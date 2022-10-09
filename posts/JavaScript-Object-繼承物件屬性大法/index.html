@@ -1,0 +1,156 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>JavaScript Object 繼承物件屬性大法 - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="JavaScript Object 繼承物件屬性大法"><meta property="og:description" content="有時候自幹套件，使用 Object 去設定會非常簡單，但是會有物件繼承問題。要如何快速解決問題呢?我之前有使用過 jQuery.extend 來解決這個問題。但是最近寫 Vue，不太可能使用 Query ，我相信 ES6 應該有新寫法(還真的有)，這邊來整理一下。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-10-09T23:24:36+00:00"><meta property="article:modified_time" content="2021-10-09T23:24:36+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="JavaScript Object 繼承物件屬性大法"><meta name=twitter:description content="有時候自幹套件，使用 Object 去設定會非常簡單，但是會有物件繼承問題。要如何快速解決問題呢?我之前有使用過 jQuery.extend 來解決這個問題。但是最近寫 Vue，不太可能使用 Query ，我相信 ES6 應該有新寫法(還真的有)，這邊來整理一下。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/Vite-%E6%90%AD%E9%85%8D-Electron-%E6%95%B4%E7%90%86-%E4%B8%8D%E4%BD%BF%E7%94%A8TypeScript/><link rel=next href=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"JavaScript Object 繼承物件屬性大法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95\/"},"genre":"posts","keywords":"javascript, object, assign","wordcount":240,"url":"https:\/\/malagege.github.io\/blog\/posts\/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95\/","datePublished":"2021-10-09T23:24:36+00:00","dateModified":"2021-10-09T23:24:36+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">JavaScript Object 繼承物件屬性大法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/JavaScript/><i class="far fa-folder fa-fw" aria-hidden=true></i>JavaScript</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-10-09>2021-10-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;240 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#jquery>&ldquo;jQuery&rdquo;</a></li><li><a href=#es6>ES6</a></li><li><a href=#自幹大法>自幹大法</a></li><li><a href=#vue-應用>vue 應用</a></li><li><a href=#jsonparsejsonstringifyxxxx>JSON.parse(JSON.stringify(xxxx))</a></li></ul></nav></div></div><div class=content id=content><p>有時候自幹套件，使用 Object 去設定會非常簡單，但是會有物件繼承問題。要如何快速解決問題呢?我之前有使用過 <code>jQuery.extend</code> 來解決這個問題。但是最近寫 Vue，不太可能使用 Query ，我相信 ES6 應該有新寫法(還真的有)，這邊來整理一下。</p><h2 id=jquery>&ldquo;jQuery&rdquo;</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=kd>var</span> <span class=nx>object1</span> <span class=o>=</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nx>apple</span><span class=o>:</span> <span class=mi>0</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>  <span class=nx>banana</span><span class=o>:</span> <span class=p>{</span> <span class=nx>weight</span><span class=o>:</span> <span class=mi>52</span><span class=p>,</span> <span class=nx>price</span><span class=o>:</span> <span class=mi>100</span> <span class=p>},</span>
+</span></span><span class=line><span class=cl>  <span class=nx>cherry</span><span class=o>:</span> <span class=mi>97</span>
+</span></span><span class=line><span class=cl><span class=p>};</span>
+</span></span><span class=line><span class=cl><span class=kd>var</span> <span class=nx>object2</span> <span class=o>=</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nx>banana</span><span class=o>:</span> <span class=p>{</span> <span class=nx>price</span><span class=o>:</span> <span class=mi>200</span> <span class=p>},</span>
+</span></span><span class=line><span class=cl>  <span class=nx>durian</span><span class=o>:</span> <span class=mi>100</span>
+</span></span><span class=line><span class=cl><span class=p>};</span>
+</span></span><span class=line><span class=cl> 
+</span></span><span class=line><span class=cl><span class=c1>// Merge object2 into object1
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nx>$</span><span class=p>.</span><span class=nx>extend</span><span class=p>(</span> <span class=nx>object1</span><span class=p>,</span> <span class=nx>object2</span> <span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=c1>// {&#34;apple&#34;:0,&#34;banana&#34;:{&#34;weight&#34;:52,&#34;price&#34;:200},&#34;cherry&#34;:97,&#34;durian&#34;:100}
+</span></span></span></code></pre></td></tr></table></div></div><p><a href=https://blog.darkthread.net/blog/jquery-extend/ target=_blank rel="noopener noreffer">jQuery.extend的用法-黑暗執行緒</a></p><p><a href=https://api.jquery.com/jquery.extend/ target=_blank rel="noopener noreffer">jQuery.extend() | jQuery API Documentation</a></p><p>以下參考: <a href=https://youmightnotneedjquery.com/#extend target=_blank rel="noopener noreffer">You Might Not Need jQuery</a></p><h2 id=es6>ES6</h2><p><a href=https://2ality.com/2014/01/object-assign.html target=_blank rel="noopener noreffer">ECMAScript 6: merging objects via Object.assign()</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=c1>//Object.assign()
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nb>Object</span><span class=p>.</span><span class=nx>assign</span><span class=p>(</span><span class=nx>target</span><span class=p>,</span> <span class=nx>source_1</span><span class=p>,</span> <span class=p>...,</span> <span class=nx>source_n</span><span class=p>)</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=自幹大法>自幹大法</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=kd>var</span> <span class=nx>extend</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=nx>out</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nx>out</span> <span class=o>=</span> <span class=nx>out</span> <span class=o>||</span> <span class=p>{};</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>for</span> <span class=p>(</span><span class=kd>var</span> <span class=nx>i</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=nx>i</span> <span class=o>&lt;</span> <span class=nx>arguments</span><span class=p>.</span><span class=nx>length</span><span class=p>;</span> <span class=nx>i</span><span class=o>++</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>arguments</span><span class=p>[</span><span class=nx>i</span><span class=p>])</span>
+</span></span><span class=line><span class=cl>      <span class=k>continue</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=p>(</span><span class=kd>var</span> <span class=nx>key</span> <span class=k>in</span> <span class=nx>arguments</span><span class=p>[</span><span class=nx>i</span><span class=p>])</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>      <span class=k>if</span> <span class=p>(</span><span class=nx>arguments</span><span class=p>[</span><span class=nx>i</span><span class=p>].</span><span class=nx>hasOwnProperty</span><span class=p>(</span><span class=nx>key</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>        <span class=nx>out</span><span class=p>[</span><span class=nx>key</span><span class=p>]</span> <span class=o>=</span> <span class=nx>arguments</span><span class=p>[</span><span class=nx>i</span><span class=p>][</span><span class=nx>key</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=nx>out</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>};</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nx>extend</span><span class=p>({},</span> <span class=nx>objA</span><span class=p>,</span> <span class=nx>objB</span><span class=p>);</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=vue-應用>vue 應用</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=line><span class=cl><span class=p>&lt;</span><span class=nt>input</span> <span class=na>type</span><span class=o>=</span><span class=s>&#34;number&#34;</span> 
+</span></span><span class=line><span class=cl>    <span class=na>:value</span><span class=o>=</span><span class=s>&#34;settings.autotime&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=err>@</span><span class=na>change</span><span class=o>=</span><span class=s>&#34;$emit(&#39;update:settings&#39;,{ autotime: $event.target.value})&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>&gt;</span>秒
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl>    <span class=nx>updateSettings</span><span class=p>(</span><span class=nx>settings</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>      <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;updateSettings&#39;</span><span class=p>,</span> <span class=nx>settings</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>      <span class=k>if</span><span class=p>(</span><span class=nx>settings</span><span class=p>.</span><span class=nx>hasOwnProperty</span><span class=p>(</span><span class=s1>&#39;windowAlwaysOnTop&#39;</span><span class=p>)){</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span><span class=p>(</span><span class=nx>settings</span><span class=p>.</span><span class=nx>windowAlwaysOnTop</span> <span class=o>===</span> <span class=kc>true</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>          <span class=k>this</span><span class=p>.</span><span class=nx>enableWindowAlwaysOnTop</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span><span class=k>else</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>          <span class=k>this</span><span class=p>.</span><span class=nx>diseableWindowAlwaysOnTop</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>      <span class=p>}</span>
+</span></span><span class=line><span class=cl>      <span class=kr>const</span> <span class=p>{</span><span class=nx>windowAlwaysOnTop</span><span class=p>}</span> <span class=o>=</span> <span class=nx>settings</span>
+</span></span><span class=line><span class=cl>      <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;windowAlwaysOnTop&#39;</span><span class=p>,</span><span class=nx>windowAlwaysOnTop</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>      <span class=nx>settings</span><span class=p>.</span><span class=nx>windowAlwaysOnTop</span> <span class=o>=</span> <span class=nx>windowAlwaysOnTop</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=p>},</span>
+</span></span></code></pre></td></tr></table></div></div><p>但這樣寫真的太麻煩了，每個屬性都要而外自己判斷，這時候我有想到 extend 類似特性可以用到。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl>    <span class=nx>updateSettings</span><span class=p>(</span><span class=nx>settings</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>      <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;updateSettings&#39;</span><span class=p>,</span> <span class=nx>settings</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>      <span class=nb>Object</span><span class=p>.</span><span class=nx>assign</span><span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=nx>settings</span><span class=p>,</span><span class=nx>settings</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=p>},</span>
+</span></span><span class=line><span class=cl>  <span class=nx>watch</span><span class=o>:</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;settings.windowAlwaysOnTop&#34;</span><span class=p>(</span><span class=nx>newvalue</span><span class=p>,</span><span class=nx>oldvalue</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>      <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;watch settings.windowAlwaysOnTop&#39;</span><span class=p>,</span><span class=nx>newvalue</span><span class=p>,</span><span class=nx>oldvalue</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>      <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=k>this</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>      <span class=k>if</span><span class=p>(</span><span class=nx>newvalue</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>        <span class=k>this</span><span class=p>.</span><span class=nx>enableWindowAlwaysOnTop</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>      <span class=p>}</span><span class=k>else</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=k>this</span><span class=p>.</span><span class=nx>diseableWindowAlwaysOnTop</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>      <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=p>},</span>
+</span></span></code></pre></td></tr></table></div></div><p>程式碼可以更精簡設定。</p><h2 id=jsonparsejsonstringifyxxxx>JSON.parse(JSON.stringify(xxxx))</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=nx>JSON</span><span class=p>.</span><span class=nx>parse</span><span class=p>(</span><span class=nx>JSON</span><span class=p>.</span><span class=nx>stringify</span><span class=p>(</span><span class=nx>xxxx</span><span class=p>))</span>
+</span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-10-09</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/ data-title="JavaScript Object 繼承物件屬性大法" data-hashtags=javascript,object,assign><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/ data-hashtag=javascript><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/ data-title="JavaScript Object 繼承物件屬性大法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/ data-title="JavaScript Object 繼承物件屬性大法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/JavaScript-Object-%E7%B9%BC%E6%89%BF%E7%89%A9%E4%BB%B6%E5%B1%AC%E6%80%A7%E5%A4%A7%E6%B3%95/ data-title="JavaScript Object 繼承物件屬性大法"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/javascript/>javascript</a>,&nbsp;<a href=/blog/tags/object/>object</a>,&nbsp;<a href=/blog/tags/assign/>assign</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Vite-%E6%90%AD%E9%85%8D-Electron-%E6%95%B4%E7%90%86-%E4%B8%8D%E4%BD%BF%E7%94%A8TypeScript/ class=prev rel=prev title="Vite 搭配 Electron 整理(不使用TypeScript)"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Vite 搭配 Electron 整理(不使用TypeScript)</a>
+<a href=/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/ class=next rel=next title="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題">使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

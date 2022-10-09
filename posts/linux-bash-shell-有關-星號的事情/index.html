@@ -1,0 +1,148 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>linux bash / shell 有關 * 星號的事情(glob) - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="linux bash / shell 有關 * 星號的事情(glob)"><meta property="og:description" content="以前 ls 萬用字元真的很方便
+
+
+1
+
+
+ls *.jpg
+
+
+這樣可以列出很多 *.jpg 圖片
+但是有些細節沒有釐清
+偶爾會遇到不能用的狀況下
+今天終於徹底了解
+2021-07-25
+最近才發現這有專有名稱叫做glob"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-01-21T21:25:57+00:00"><meta property="article:modified_time" content="2020-01-21T21:25:57+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="linux bash / shell 有關 * 星號的事情(glob)"><meta name=twitter:description content="以前 ls 萬用字元真的很方便
+
+
+1
+
+
+ls *.jpg
+
+
+這樣可以列出很多 *.jpg 圖片
+但是有些細節沒有釐清
+偶爾會遇到不能用的狀況下
+今天終於徹底了解
+2021-07-25
+最近才發現這有專有名稱叫做glob"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/><link rel=prev href=https://malagege.github.io/blog/posts/tmux-%E6%8E%A7%E5%88%B6%E7%B5%82%E7%AB%AF%E6%A9%9F%E5%A5%BD%E5%B7%A5%E5%85%B7/><link rel=next href=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"linux bash / shell 有關 * 星號的事情(glob)","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85\/"},"genre":"posts","keywords":"bash, shell","wordcount":423,"url":"https:\/\/malagege.github.io\/blog\/posts\/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85\/","datePublished":"2020-01-21T21:25:57+00:00","dateModified":"2020-01-21T21:25:57+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">linux bash / shell 有關 * 星號的事情(glob)</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-01-21>2020-01-21</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;423 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#釐清->釐清 <code>*</code></a></li><li><a href=#shell-array-應用>shell array 應用</a><ul><li><a href=#shopt--s-nullglob>shopt -s nullglob</a></li></ul></li><li><a href=#test--f-jpg>test -f *.jpg</a></li><li><a href=#find-方法多層搜尋方法>find 方法(多層搜尋方法)</a></li></ul></nav></div></div><div class=content id=content><p>以前 <code>ls</code> 萬用字元真的很方便</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>ls *.jpg
+</span></span></code></pre></td></tr></table></div></div><p>這樣可以列出很多 <code>*.jpg</code> 圖片<br>但是有些細節沒有釐清<br>偶爾會遇到不能用的狀況下<br>今天終於徹底了解</p><p><strong>2021-07-25</strong><br>最近才發現這有專有名稱叫做<code>glob</code></p><h2 id=釐清->釐清 <code>*</code></h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>echo</span> *
+</span></span><span class=line><span class=cl><span class=c1># file list...(ex: xxx.jpg ffff.jpg)</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>就是現在目錄抓到相關檔案名稱</strong><br>這也是為什麼? 原理就這麼簡單<br>但我這邊沒講更細<br>下面 shopt -s nullglob 會提到</p><h2 id=shell-array-應用>shell array 應用</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>jpgs</span><span class=o>=(</span>*.jpg<span class=o>)</span>
+</span></span></code></pre></td></tr></table></div></div><p>這樣看似可以用<br>但沒有 jpg ，就會產生 *.jpg<br>這邊要小心<br>這邊也是有辦法解決</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>shopt</span> -s nullglob <span class=c1># bash</span>
+</span></span><span class=line><span class=cl>unsetopt nomatch <span class=c1># zsh</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>files</span><span class=o>=(</span>xorg-x11-fonts*<span class=o>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> -e <span class=s2>&#34;</span><span class=si>${</span><span class=nv>files</span><span class=p>[0]</span><span class=si>}</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>printf</span> <span class=s2>&#34;BLAH&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></td></tr></table></div></div><p>參考:<a href=https://stackoverflow.com/questions/6363441/check-if-a-file-exists-with-wildcard-in-shell-script/17404812#17404812 target=_blank rel="noopener noreffer">sh - Check if a file exists with wildcard in shell script - Stack Overflow</a></p><h3 id=shopt--s-nullglob>shopt -s nullglob</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>shopt</span> -s nullglob <span class=c1># enable </span>
+</span></span><span class=line><span class=cl><span class=nb>shopt</span> -u nullglob <span class=c1># disable</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>echo</span> my*file
+</span></span><span class=line><span class=cl>my*file
+</span></span><span class=line><span class=cl><span class=nb>shopt</span> -s nullglob
+</span></span><span class=line><span class=cl><span class=nb>echo</span> my*file <span class=c1># 不會印出東西</span>
+</span></span></code></pre></td></tr></table></div></div><p>參考: <a href=https://t.codebug.vip/questions-844092.htm target=_blank rel="noopener noreffer">linux:以下shell選項的含義是什麼 - shopt -s nullglob \ textglob - Codebug</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/sh  
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nv>old</span><span class=o>=</span><span class=k>$(</span><span class=nb>pwd</span><span class=k>)</span>  
+</span></span><span class=line><span class=cl><span class=o>[</span> <span class=nv>$#</span> -lt <span class=m>2</span> <span class=o>]</span> <span class=o>&amp;&amp;</span> <span class=nb>echo</span> -e <span class=s2>&#34;\t[Info] Give arg1=Folder path; arg2=File extension!\n&#34;</span> <span class=o>&amp;&amp;</span> <span class=nb>exit</span> <span class=m>1</span>  
+</span></span><span class=line><span class=cl><span class=o>[</span> -d <span class=nv>$1</span> <span class=o>]</span> <span class=o>&amp;&amp;</span> <span class=nb>cd</span> <span class=nv>$1</span> <span class=o>||</span> <span class=nb>exit</span> <span class=m>2</span>  
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl><span class=nb>shopt</span> -s nullglob  
+</span></span><span class=line><span class=cl><span class=nv>found</span><span class=o>=</span><span class=m>0</span>  
+</span></span><span class=line><span class=cl><span class=k>for</span> i in *.<span class=nv>$2</span><span class=p>;</span> <span class=k>do</span>  
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;File </span><span class=nv>$i</span><span class=s2> found&#34;</span> <span class=c1># or take other action  </span>
+</span></span><span class=line><span class=cl>    <span class=nv>found</span><span class=o>=</span><span class=m>1</span>  
+</span></span><span class=line><span class=cl><span class=k>done</span>  
+</span></span><span class=line><span class=cl><span class=nb>shopt</span> -u nullglob  
+</span></span><span class=line><span class=cl><span class=o>[</span> <span class=nv>$found</span> -eq <span class=m>0</span> <span class=o>]</span> <span class=o>&amp;&amp;</span> <span class=nb>echo</span> <span class=s2>&#34;Directory is empty&#34;</span>  
+</span></span><span class=line><span class=cl><span class=nb>cd</span> <span class=nv>$old</span>  
+</span></span></code></pre></td></tr></table></div></div><p>// List all file with extension .mp3 under folder &rsquo;empty'<br>./listFE.sh empty mp3<br>File test.mp3 found</p><p>以上參考:<a href=http://puremonkey2010.blogspot.com/2016/01/linux-use-bash-nullglob-to-verify-c.html target=_blank rel="noopener noreffer">程式扎記: [Linux 文章收集] Use BASH nullglob To Verify *.c Files Exists or Not In a Directory</a></p><p>當然也有別的解決方案</p><h2 id=test--f-jpg>test -f *.jpg</h2><p>我公司有古早程式這樣寫<br>但會遇到一些問題</p><p>除了上述解決方法</p><p>還有一種是</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>files</span><span class=o>=</span><span class=k>$(</span>ls /tmp/*.cache 2&gt; /dev/null <span class=p>|</span> wc -l<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=s2>&#34;</span><span class=nv>$files</span><span class=s2>&#34;</span> !<span class=o>=</span> <span class=s2>&#34;0&#34;</span> <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Cache files exist: do something with them&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>else</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;No cache files...&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=find-方法多層搜尋方法>find 方法(多層搜尋方法)</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>files</span><span class=o>=</span><span class=k>$(</span>find /tmp -type f -name <span class=s2>&#34;*.cache&#34;</span> <span class=p>|</span> wc -l<span class=k>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=s2>&#34;</span><span class=nv>$files</span><span class=s2>&#34;</span> !<span class=o>=</span> <span class=s2>&#34;0&#34;</span> <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Cache files exist: do something with them&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>else</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;No cache files...&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></td></tr></table></div></div><p>find 搜尋也可以加 or 條件<br>再多個搜尋也是很方便</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>find /tmp -type f -name &#34;*.mpg&#34; -o -name &#34;*.jpg&#34;
+</span></span></code></pre></td></tr></table></div></div><p>更多方法可以看:<a href=http://www.ducea.com/2009/03/05/bash-tips-if-e-wildcard-file-check-too-many-arguments/ target=_blank rel="noopener noreffer">Bash tips: if -e wildcard file check => [: too many arguments - MDLog:/sysadmin</a></p><p>相關連結:</p><ul><li><a href=https://unix.stackexchange.com/questions/378205/use-asterisk-in-variables target=_blank rel="noopener noreffer">bash - Use asterisk in variables - Unix & Linux Stack Exchange</a></li><li><a href=https://stackoverflow.com/questions/6363441/check-if-a-file-exists-with-wildcard-in-shell-script/17404812#17404812 target=_blank rel="noopener noreffer">sh - Check if a file exists with wildcard in shell script - Stack Overflow</a></li><li><a href=https://phoenixnap.com/kb/how-to-check-if-file-or-directory-exists-bash-shell target=_blank rel="noopener noreffer">How to Check / Test if a File or Directory Exists in Bash</a></li><li><a href=http://www.ducea.com/2009/03/05/bash-tips-if-e-wildcard-file-check-too-many-arguments/ target=_blank rel="noopener noreffer">Bash tips: if -e wildcard file check => [: too many arguments - MDLog:/sysadmin</a></li><li><a href=https://blog.hsdn.net/970.html target=_blank rel="noopener noreffer">電腦各種符號英文唸法 | 阿維雜記本 (Wei&rsquo;s Blog)</a></li><li><a href=https://stackoverflow.com/questions/25224324/bash-detecting-mp4-files target=_blank rel="noopener noreffer">linux - bash, detecting mp4 files - Stack Overflow</a></li><li><a href=https://www.codenong.com/10653300/ target=_blank rel="noopener noreffer">关于bash：确认是否存在一个或多个目录 | 码农家园</a></li></ul><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-01-21</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/ data-title="linux bash / shell 有關 * 星號的事情(glob)" data-hashtags=bash,shell><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/ data-hashtag=bash><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/ data-title="linux bash / shell 有關 * 星號的事情(glob)"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/ data-title="linux bash / shell 有關 * 星號的事情(glob)"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/ data-title="linux bash / shell 有關 * 星號的事情(glob)"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/bash/>bash</a>,&nbsp;<a href=/blog/tags/shell/>shell</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/tmux-%E6%8E%A7%E5%88%B6%E7%B5%82%E7%AB%AF%E6%A9%9F%E5%A5%BD%E5%B7%A5%E5%85%B7/ class=prev rel=prev title="tmux 控制終端機好工具"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>tmux 控制終端機好工具</a>
+<a href=/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/ class=next rel=next title="logrotate 自動切割 log 小記">logrotate 自動切割 log 小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

@@ -1,0 +1,134 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>ssh port forward連MySQL方法(SSH Tunnel) - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="ssh port forward連MySQL方法(SSH Tunnel)"><meta property="og:description" content="早上看到Backend 台灣 (Backend Tw)
+
+
+1
+2
+3
+4
+5
+6
+
+
+傳統老人要連上production db的方法：
+...
+２　把自己電腦的public key放到這台nano machine上的authorized_keys，以便自己電腦不用每次ssh都要輸入密碼。
+３　每次要連上mysql時，先建立ssh port forwarding
+ssh -L 9000:yourDBhostname:3306 smallPotato@abc.com
+４　然後，看你喜歡用phpMyAdmin也好，mysql bench也好，連線上localhost:9000，這樣子便能連線上production db
+
+
+以上內容來自Backend 台灣 (Backend Tw) Triton Ho
+之前有用過ssh tunnel 代理網頁來看
+但沒想到可以用在MySQL
+可能以前沒有深入理解這怎麼傳的 (>////<)"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-12-13T21:28:46+00:00"><meta property="article:modified_time" content="2018-12-13T21:28:46+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="ssh port forward連MySQL方法(SSH Tunnel)"><meta name=twitter:description content="早上看到Backend 台灣 (Backend Tw)
+
+
+1
+2
+3
+4
+5
+6
+
+
+傳統老人要連上production db的方法：
+...
+２　把自己電腦的public key放到這台nano machine上的authorized_keys，以便自己電腦不用每次ssh都要輸入密碼。
+３　每次要連上mysql時，先建立ssh port forwarding
+ssh -L 9000:yourDBhostname:3306 smallPotato@abc.com
+４　然後，看你喜歡用phpMyAdmin也好，mysql bench也好，連線上localhost:9000，這樣子便能連線上production db
+
+
+以上內容來自Backend 台灣 (Backend Tw) Triton Ho
+之前有用過ssh tunnel 代理網頁來看
+但沒想到可以用在MySQL
+可能以前沒有深入理解這怎麼傳的 (>////<)"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/cors%E8%B7%A8%E5%9F%9F%E8%B3%87%E6%BA%90%E5%85%B1%E4%BA%AB%E4%BB%A3%E7%90%86-proxy-%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/git-push%E7%B0%A1%E5%96%AE%E8%87%AA%E5%8B%95%E9%83%A8%E5%B1%AC%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"ssh port forward連MySQL方法(SSH Tunnel)","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"mysql, port forward","wordcount":328,"url":"https:\/\/malagege.github.io\/blog\/posts\/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95\/","datePublished":"2018-12-13T21:28:46+00:00","dateModified":"2018-12-13T21:28:46+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">ssh port forward連MySQL方法(SSH Tunnel)</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/MySQL/><i class="far fa-folder fa-fw" aria-hidden=true></i>MySQL</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2018-12-13>2018-12-13</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;328 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#dbeaver>DBeaver</a></li><li><a href=#ssh-相關資料>SSH 相關資料</a></li></ul></nav></div></div><div class=content id=content><p>早上看到<a href=https://www.facebook.com/groups/616369245163622/permalink/1498950796905458/ target=_blank rel="noopener noreffer">Backend 台灣 (Backend Tw)</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>傳統老人要連上production db的方法：
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>２　把自己電腦的public key放到這台nano machine上的authorized_keys，以便自己電腦不用每次ssh都要輸入密碼。
+</span></span><span class=line><span class=cl>３　每次要連上mysql時，先建立ssh port forwarding
+</span></span><span class=line><span class=cl>ssh -L 9000:yourDBhostname:3306 smallPotato@abc.com
+</span></span><span class=line><span class=cl>４　然後，看你喜歡用phpMyAdmin也好，mysql bench也好，連線上localhost:9000，這樣子便能連線上production db
+</span></span></code></pre></td></tr></table></div></div><p>以上內容來自<a href=https://www.facebook.com/groups/616369245163622/permalink/1498950796905458/ target=_blank rel="noopener noreffer">Backend 台灣 (Backend Tw) Triton Ho</a></p><p>之前有用過ssh tunnel 代理網頁來看<br>但沒想到可以用在MySQL<br>可能以前沒有深入理解這怎麼傳的 (>////&lt;)</p><p>早上看FB看到<code>ssh port forwarding</code><br>沒想到還有這種操作</p><p>長期用phpmyadmin真的很痛苦<br>但是用這個方法可以用workbench連到MySQL(內網)<br>想說有沒有快速的方法</p><h2 id=dbeaver>DBeaver</h2><p><a href=https://dbeaver.io/ target=_blank rel="noopener noreffer">DBeaver Community | Free Universal Database Tool</a></p><p>連線設定可以設定SSH Tunnel<br>這樣以後一鍵迅速連MySQL<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://dbeaver.com/wp-content/uploads/2018/09/redis-connection-ssh.png data-srcset="https://dbeaver.com/wp-content/uploads/2018/09/redis-connection-ssh.png, https://dbeaver.com/wp-content/uploads/2018/09/redis-connection-ssh.png 1.5x, https://dbeaver.com/wp-content/uploads/2018/09/redis-connection-ssh.png 2x" data-sizes=auto alt=https://dbeaver.com/wp-content/uploads/2018/09/redis-connection-ssh.png title=https://dbeaver.com/wp-content/uploads/2018/09/redis-connection-ssh.png></p><p>設定非常簡單簡單，也不需要打ssh指令</p><h2 id=ssh-相關資料>SSH 相關資料</h2><p>由於我家裡沒有兩個不同網段<br>所以我就沒有實驗<br>但基於理解還是仔細爬了一下網路文章<br>不太想花太多時間研究<br>簡單整理一下</p><ul><li>Local port forwarding</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>ssh -L &lt;local_port&gt;:&lt;target_host&gt;:&lt;target_port&gt; remote_user@remote_host
+</span></span></code></pre></td></tr></table></div></div><ul><li>Remote port forwarding (Reverse SSH)</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>ssh -R 5900:localhost:22 guest@remote-pc
+</span></span></code></pre></td></tr></table></div></div><ul><li>SOCKS Proxy Forwarding</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>ssh -C -D 8080 cwliu@123.123.123.123
+</span></span></code></pre></td></tr></table></div></div><p><a href=http://blog.codylab.com/ssh-port-forwarding/ target=_blank rel="noopener noreffer">SSH Tunnel</a><br><a href=web1.png rel>備份圖</a></p><p>Local port forwarding 和 SOCKS Proxy Forwarding<br>感覺兩個都好像</p><p>有看到<a href="https://www.ubuntu-tw.org/modules/newbb/viewtopic.php?viewmode=compact&topic_id=17538" target=_blank rel="noopener noreffer">上班族ssh tunnel求生手冊 [論壇 - Ubuntu 與工具程式及軟體推薦] | Ubuntu 正體中文站</a><br><a href=web2.png rel>備份圖</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>範例1：
+</span></span><span class=line><span class=cl>在公司，透過外面的電腦當proxy，連到外面。
+</span></span><span class=line><span class=cl>ssh -NfD 8888 remote_ip
+</span></span><span class=line><span class=cl>-N : 不執行任何命令
+</span></span><span class=line><span class=cl>-f : 在背景執行
+</span></span><span class=line><span class=cl>-D : 建socks5 的proxy
+</span></span><span class=line><span class=cl>這時候,瀏覽器和msn在socks 5 proxy設定的欄位填上localhost:8888 。
+</span></span><span class=line><span class=cl>連出去的連驗就是加密，並且是穿過remot_ip的連線。
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>範例2:
+</span></span><span class=line><span class=cl>在公司，透過外面的電腦連BBS。
+</span></span><span class=line><span class=cl>ssh -NfL 2323:bbs.gamer.com.tw:23 remote_ip
+</span></span><span class=line><span class=cl>-L : 將local port 轉向
+</span></span><span class=line><span class=cl>telnet localhost 2323 就可以連到巴哈，而且是加密的。
+</span></span><span class=line><span class=cl>也可用PCManx連localhost 2323也是一樣的意思。
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>範例3:
+</span></span><span class=line><span class=cl>有時候假日，想要連回公司加個班。
+</span></span><span class=line><span class=cl>但是公司是NAT，所以沒辦法這樣作。
+</span></span><span class=line><span class=cl>可以運用TCP雙向傳輸的特性來辦到這件事。
+</span></span><span class=line><span class=cl>ssh -NfR 2222:localhost:22 remote_ip
+</span></span><span class=line><span class=cl>-R : 將remote port轉向 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>....
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>範例一和範例二差別在於 SOCKS Proxy 的建立。這是因為 HTTP Proxy 會貼上/處理/取下額外的資訊，不能直接轉送(Forwarding)。範例二就真的是照本宣科地轉送。(當然，兩者轉送之前都有加密。)
+</span></span></code></pre></td></tr></table></div></div><p>簡單來說<code>Local port forwarding</code>只能對外一個port轉出去，所以不能用在看網頁上面<br>但是<code>SOCKS Proxy Forwarding</code>就可以對印remote可以連到的主機做連線(而且是多個)<br>這個用在網頁上面很方便</p><p>當然還有查了一些:<br>除了目前連mysql感覺其他地方目前用不上<br>所以先留著筆記</p><ul><li><a href="https://medium.com/@achilles1452/ssh-forwarding-%E5%85%A7%E9%83%A8%E7%B6%B2%E8%B7%AF%E9%80%A3%E7%B7%9A-b79c13e2cdc8?fbclid=IwAR0HpLQ4tZhi5gEOZ37Ii-lS68_1_6ysL3nam7Aimaig1LeOwx1ciljZ9iY" target=_blank rel="noopener noreffer">SSH Forwarding 內部網路連線 – 繁華上海城 ＆ 邊緣小宅女 – Medium</a><br><a href=web3.png rel>備份圖</a></li><li><a href=http://blog.codylab.com/ssh-port-forwarding/ target=_blank rel="noopener noreffer">SSH Tunnel</a></li><li><a href=https://ez3c.tw/2043 target=_blank rel="noopener noreffer">Reverse SSH Tunnel實際運用，搭配auotssh永不斷線，putty建立反向tunnel :: 哇哇3C日誌</a></li><li><a href=https://blog.windrunner.me/sa/reverse-ssh.html target=_blank rel="noopener noreffer">使用 autossh 建立反向 SSH 连接 · 不立不破</a></li><li><a href=https://gwokae.mewggle.com/wordpress/2010/08/%E5%88%A9%E7%94%A8ssh-tunnel%E9%80%A3%E7%B7%9A%E8%87%B3%E5%85%A7%E9%83%A8%E7%B6%B2%E8%B7%AF/ target=_blank rel="noopener noreffer">利用SSH Tunnel連線至內部網路 - LinXblog</a></li><li><a href=https://shazi.info/%E7%94%A8-ssh-tunnel-%E4%BE%86%E9%81%BF%E5%85%8D%E9%98%B2%E7%81%AB%E7%89%86%E9%98%BB%E6%93%8B%E5%AF%A6%E4%BD%9C%E8%88%87%E5%8F%8D%E5%88%B6/ target=_blank rel="noopener noreffer">用 SSH Tunnel 來避免防火牆阻擋實作與反制 | Mr. 沙先生</a></li><li><a href=https://blog.fundebug.com/2017/04/24/ssh-port-forwarding/ target=_blank rel="noopener noreffer">玩转SSH端口转发 | Fundebug博客</a></li><li><a href=http://87showmin.blogspot.com/2012/06/ssh-port-forwarding-using-putty.html target=_blank rel="noopener noreffer">87showmin的筆記本: ssh port forwarding using Putty</a></li><li><a href=https://blog.gtwang.org/linux/ssh-tunnel-socks-proxy-forwarding-tutorial/ target=_blank rel="noopener noreffer">SSH Tunnel 通道打造加密 Proxy，透過外部 Linux 伺服器上網 - G. T. Wang</a></li><li><a href=http://applezulab.netdpi.net/02-linux-xi-tong-cao-zuo/set-proxy-server-in-bash target=_blank rel="noopener noreffer">在 bash 中設定 Proxy server - 蘋果小豬筆記</a></li><li><a href=https://ifconfig.co/ target=_blank rel="noopener noreffer">What is my IP address? — ifconfig.co</a></li><li><a href="https://www.ubuntu-tw.org/modules/newbb/viewtopic.php?viewmode=compact&topic_id=17538" target=_blank rel="noopener noreffer">上班族ssh tunnel求生手冊 [論壇 - Ubuntu 與工具程式及軟體推薦] | Ubuntu 正體中文站</a></li></ul><p>Date: 2018-12-20</p><p>Filezilla預設沒有做ssh tunnel<br>但有找到WinScp能做到</p><ul><li><p><a href=https://www.cnblogs.com/wangkongming/p/4124945.html target=_blank rel="noopener noreffer">winScp如何通过隧道代理进行远程连接 - KoMiles - 博客园</a></p></li><li><p><a href="http://blog.faq-book.com/?p=1483" target=_blank rel="noopener noreffer">WinSCP使用教學 | FAQ Book</a></p></li><li><p><a href=https://tw.saowen.com/a/b855ee1a0a683498261219a649f983e3d1916ed1974556022a2a5d418fdd100f target=_blank rel="noopener noreffer">SSH使用教程( Bitvise Tunnelier+Chrome+Proxy Switchy) - 掃文資訊</a></p></li><li><p><a href=https://ssorc.tw/6866 target=_blank rel="noopener noreffer">瀏覽器設定 proxy 透過 SSH Tunnel 連線網站 | SSORC.tw</a></p></li><li><p><a href=https://www.jianshu.com/p/bb4cde6e88c6 target=_blank rel="noopener noreffer">DownloadManager实现版本更新，监听下载进度 - 简书</a></p></li><li><p><a href=https://johnliu55.tw/ssh-tunnel.html target=_blank rel="noopener noreffer">SSH Tunneling (Port Forwarding) 詳解 · John Engineering Stuff</a> <a href=https://imgur.com/Xb5Xo1D.png target=_blank rel="noopener noreffer">備份圖</a><br>發現上面介紹很清楚，忘記可以回來看。</p></li></ul><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2018-12-13</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/ data-title="ssh port forward連MySQL方法(SSH Tunnel)" data-hashtags="mysql,port forward"><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/ data-hashtag=mysql><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/ data-title="ssh port forward連MySQL方法(SSH Tunnel)"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/ data-title="ssh port forward連MySQL方法(SSH Tunnel)"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/ data-title="ssh port forward連MySQL方法(SSH Tunnel)"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/mysql/>mysql</a>,&nbsp;<a href=/blog/tags/port-forward/>port forward</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/cors%E8%B7%A8%E5%9F%9F%E8%B3%87%E6%BA%90%E5%85%B1%E4%BA%AB%E4%BB%A3%E7%90%86-proxy-%E5%B0%8F%E8%A8%98/ class=prev rel=prev title=cors跨域資源共享代理(proxy)小記><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>cors跨域資源共享代理(proxy)小記</a>
+<a href=/blog/posts/git-push%E7%B0%A1%E5%96%AE%E8%87%AA%E5%8B%95%E9%83%A8%E5%B1%AC%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/ class=next rel=next title="git push簡單自動部屬程式方法">git push簡單自動部屬程式方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

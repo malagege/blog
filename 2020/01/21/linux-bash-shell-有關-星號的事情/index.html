@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="以前 ls 萬用字元真的很方便 1ls *.jpg 這樣可以列出很多 *.jpg 圖片但是有些細節沒有釐清偶爾會遇到不能用的狀況下今天終於徹底了解 2021-07-25最近才發現這有專有名稱叫做glob">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux bash &#x2F; shell 有關 * 星號的事情(glob)">
+<meta property="og:url" content="https://malagege.github.io/blog/2020/01/21/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="以前 ls 萬用字元真的很方便 1ls *.jpg 這樣可以列出很多 *.jpg 圖片但是有些細節沒有釐清偶爾會遇到不能用的狀況下今天終於徹底了解 2021-07-25最近才發現這有專有名稱叫做glob">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2020-01-21T13:25:57.000Z">
+<meta property="article:modified_time" content="2021-07-25T11:22:26.182Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="bash">
+<meta property="article:tag" content="shell">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2020/01/21/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>linux bash / shell 有關 * 星號的事情(glob) | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2020/01/21/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          linux bash / shell 有關 * 星號的事情(glob)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2020-01-21 21:25:57" itemprop="dateCreated datePublished" datetime="2020-01-21T21:25:57+08:00">2020-01-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-07-25 19:22:26" itemprop="dateModified" datetime="2021-07-25T19:22:26+08:00">2021-07-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2020/01/21/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2020/01/21/linux-bash-shell-有關-星號的事情/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>以前 <code>ls</code> 萬用字元真的很方便</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls *.jpg</span><br></pre></td></tr></table></figure>
+<p>這樣可以列出很多 <code>*.jpg</code> 圖片<br>但是有些細節沒有釐清<br>偶爾會遇到不能用的狀況下<br>今天終於徹底了解</p>
+<p><strong>2021-07-25</strong><br>最近才發現這有專有名稱叫做<code>glob</code></p>
+<a id="more"></a>
+<h2 id="釐清"><a href="#釐清" class="headerlink" title="釐清 *"></a>釐清 <code>*</code></h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> *</span><br><span class="line"><span class="comment"># file list...(ex: xxx.jpg ffff.jpg)</span></span><br></pre></td></tr></table></figure>
+<p><strong>就是現在目錄抓到相關檔案名稱</strong><br>這也是為什麼? 原理就這麼簡單<br>但我這邊沒講更細<br>下面 shopt -s nullglob 會提到</p>
+<h2 id="shell-array-應用"><a href="#shell-array-應用" class="headerlink" title="shell array 應用"></a>shell array 應用</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jpgs=(*.jpg)</span><br></pre></td></tr></table></figure>
+<p>這樣看似可以用<br>但沒有 jpg ，就會產生 *.jpg<br>這邊要小心<br>這邊也是有辦法解決</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">shopt</span> -s nullglob <span class="comment"># bash</span></span><br><span class="line"><span class="built_in">unsetopt</span> nomatch <span class="comment"># zsh</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">files=(xorg-x11-fonts*)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -e <span class="string">"<span class="variable">$&#123;files[0]&#125;</span>"</span> ];</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">printf</span> <span class="string">"BLAH"</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<p>參考:<a href="https://stackoverflow.com/questions/6363441/check-if-a-file-exists-with-wildcard-in-shell-script/17404812#17404812" target="_blank" rel="noopener">sh - Check if a file exists with wildcard in shell script - Stack Overflow</a></p>
+<h3 id="shopt-s-nullglob"><a href="#shopt-s-nullglob" class="headerlink" title="shopt -s nullglob"></a>shopt -s nullglob</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">shopt</span> -s nullglob <span class="comment"># enable </span></span><br><span class="line"><span class="built_in">shopt</span> -u nullglob <span class="comment"># disable</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> my*file</span><br><span class="line">my*file</span><br><span class="line"><span class="built_in">shopt</span> -s nullglob</span><br><span class="line"><span class="built_in">echo</span> my*file <span class="comment"># 不會印出東西</span></span><br></pre></td></tr></table></figure>
+<p>參考: <a href="https://t.codebug.vip/questions-844092.htm" target="_blank" rel="noopener">linux:以下shell選項的含義是什麼 - shopt -s nullglob \ textglob - Codebug</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh  </span></span><br><span class="line">old=$(<span class="built_in">pwd</span>)  </span><br><span class="line">[ <span class="variable">$#</span> -lt 2 ] &amp;&amp; <span class="built_in">echo</span> -e <span class="string">"\t[Info] Give arg1=Folder path; arg2=File extension!\n"</span> &amp;&amp; <span class="built_in">exit</span> 1  </span><br><span class="line">[ -d <span class="variable">$1</span> ] &amp;&amp; <span class="built_in">cd</span> <span class="variable">$1</span> || <span class="built_in">exit</span> 2  </span><br><span class="line">    </span><br><span class="line"><span class="built_in">shopt</span> -s nullglob  </span><br><span class="line">found=0  </span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> *.<span class="variable">$2</span>; <span class="keyword">do</span>  </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"File <span class="variable">$i</span> found"</span> <span class="comment"># or take other action  </span></span><br><span class="line">    found=1  </span><br><span class="line"><span class="keyword">done</span>  </span><br><span class="line"><span class="built_in">shopt</span> -u nullglob  </span><br><span class="line">[ <span class="variable">$found</span> -eq 0 ] &amp;&amp; <span class="built_in">echo</span> <span class="string">"Directory is empty"</span>  </span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$old</span></span><br></pre></td></tr></table></figure>
+<p>// List all file with extension .mp3 under folder ‘empty’<br>./listFE.sh empty mp3<br>File test.mp3 found</p>
+<p>以上參考:<a href="http://puremonkey2010.blogspot.com/2016/01/linux-use-bash-nullglob-to-verify-c.html" target="_blank" rel="noopener">程式扎記: [Linux 文章收集] Use BASH nullglob To Verify *.c Files Exists or Not In a Directory</a></p>
+<p>當然也有別的解決方案</p>
+<h2 id="test-f-jpg"><a href="#test-f-jpg" class="headerlink" title="test -f *.jpg"></a>test -f *.jpg</h2><p>我公司有古早程式這樣寫<br>但會遇到一些問題</p>
+<p>除了上述解決方法</p>
+<p>還有一種是</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">files=$(ls /tmp/*.cache 2&gt; /dev/null | wc -l)</span><br><span class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$files</span>"</span> != <span class="string">"0"</span> ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"Cache files exist: do something with them"</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"No cache files..."</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<h2 id="find-方法-多層搜尋方法"><a href="#find-方法-多層搜尋方法" class="headerlink" title="find 方法(多層搜尋方法)"></a>find 方法(多層搜尋方法)</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">files=$(find /tmp -<span class="built_in">type</span> f -name <span class="string">"*.cache"</span> | wc -l)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$files</span>"</span> != <span class="string">"0"</span> ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"Cache files exist: do something with them"</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"No cache files..."</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<p>find 搜尋也可以加 or 條件<br>再多個搜尋也是很方便<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find &#x2F;tmp -type f -name &quot;*.mpg&quot; -o -name &quot;*.jpg&quot;</span><br></pre></td></tr></table></figure></p>
+<p>更多方法可以看:<a href="http://www.ducea.com/2009/03/05/bash-tips-if-e-wildcard-file-check-too-many-arguments/" target="_blank" rel="noopener">Bash tips: if -e wildcard file check =&gt; [: too many arguments - MDLog:/sysadmin</a></p>
+<p>相關連結:</p>
+<ul>
+<li><a href="https://unix.stackexchange.com/questions/378205/use-asterisk-in-variables" target="_blank" rel="noopener">bash - Use asterisk in variables - Unix &amp; Linux Stack Exchange</a></li>
+<li><a href="https://stackoverflow.com/questions/6363441/check-if-a-file-exists-with-wildcard-in-shell-script/17404812#17404812" target="_blank" rel="noopener">sh - Check if a file exists with wildcard in shell script - Stack Overflow</a></li>
+<li><a href="https://phoenixnap.com/kb/how-to-check-if-file-or-directory-exists-bash-shell" target="_blank" rel="noopener">How to Check / Test if a File or Directory Exists in Bash</a></li>
+<li><a href="http://www.ducea.com/2009/03/05/bash-tips-if-e-wildcard-file-check-too-many-arguments/" target="_blank" rel="noopener">Bash tips: if -e wildcard file check =&gt; [: too many arguments - MDLog:/sysadmin</a></li>
+<li><a href="https://blog.hsdn.net/970.html" target="_blank" rel="noopener">電腦各種符號英文唸法 | 阿維雜記本 (Wei’s Blog)</a></li>
+<li><a href="https://stackoverflow.com/questions/25224324/bash-detecting-mp4-files" target="_blank" rel="noopener">linux - bash, detecting mp4 files - Stack Overflow</a></li>
+<li><a href="https://www.codenong.com/10653300/" target="_blank" rel="noopener">关于bash：确认是否存在一个或多个目录 | 码农家园</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/bash/" rel="tag"># bash</a>
+              <a href="/blog/tags/shell/" rel="tag"># shell</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2020/01/13/tmux-%E6%8E%A7%E5%88%B6%E7%B5%82%E7%AB%AF%E6%A9%9F%E5%A5%BD%E5%B7%A5%E5%85%B7/" rel="prev" title="tmux 控制終端機好工具">
+      <i class="fa fa-chevron-left"></i> tmux 控制終端機好工具
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2020/01/27/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/" rel="next" title="logrotate 自動切割 log 小記">
+      logrotate 自動切割 log 小記 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#釐清"><span class="nav-number">1.</span> <span class="nav-text">釐清 *</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shell-array-應用"><span class="nav-number">2.</span> <span class="nav-text">shell array 應用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shopt-s-nullglob"><span class="nav-number">2.1.</span> <span class="nav-text">shopt -s nullglob</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#test-f-jpg"><span class="nav-number">3.</span> <span class="nav-text">test -f *.jpg</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#find-方法-多層搜尋方法"><span class="nav-number">4.</span> <span class="nav-text">find 方法(多層搜尋方法)</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2020/01/21/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/";
+    this.page.identifier = "2020/01/21/linux-bash-shell-有關-星號的事情/";
+    this.page.title = "linux bash / shell 有關 * 星號的事情(glob)";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

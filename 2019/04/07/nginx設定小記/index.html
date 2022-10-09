@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="最近專案開始有使用 Nginx之前沒有什麼機會用到所以對設定也不是很清楚趁這個機會整理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx設定小記">
+<meta property="og:url" content="https://malagege.github.io/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="最近專案開始有使用 Nginx之前沒有什麼機會用到所以對設定也不是很清楚趁這個機會整理">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-04-07T11:11:33.000Z">
+<meta property="article:modified_time" content="2021-06-27T08:05:08.390Z">
+<meta property="article:author" content="malagege">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>nginx設定小記 | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          nginx設定小記
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2019-04-07 19:11:33" itemprop="dateCreated datePublished" datetime="2019-04-07T19:11:33+08:00">2019-04-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-06-27 16:05:08" itemprop="dateModified" datetime="2021-06-27T16:05:08+08:00">2021-06-27</time>
+              </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/04/07/nginx設定小記/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>最近專案開始有使用 Nginx<br>之前沒有什麼機會用到<br>所以對設定也不是很清楚<br>趁這個機會整理</p>
+<a id="more"></a>
+<p>這邊有爬到<a href="https://nginxconfig.io/" target="_blank" rel="noopener">nginxconfig.io</a><br>可以簡單設定 nginx 設定<br>這篇主要是紀錄目前專案有用到的設定</p>
+<p>先分享最近專案用的 Codeigniter 的 nginx 設定檔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    index index.php index.html;</span><br><span class="line">    server_name localhost;</span><br><span class="line">    error_log  &#x2F;var&#x2F;log&#x2F;nginx&#x2F;error.log;</span><br><span class="line">    access_log &#x2F;var&#x2F;log&#x2F;nginx&#x2F;access.log;</span><br><span class="line">    root &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;html;</span><br><span class="line"></span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        try_files $uri $uri&#x2F; &#x2F;index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~  ^.+\.php &#123;</span><br><span class="line">        fastcgi_pass   php-fpm:9000;</span><br><span class="line">        fastcgi_index  index.php;</span><br><span class="line">        fastcgi_split_path_info ^(.+\.php)(.*)$;</span><br><span class="line">        fastcgi_param   PATH_INFO $fastcgi_path_info;</span><br><span class="line">        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;</span><br><span class="line">        fastcgi_param    PATH_TRANSLATED    $document_root$fastcgi_path_info;</span><br><span class="line">        include        fastcgi_params;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # unless the request is for a valid file (image, js, css, etc.), send to bootstrap</span><br><span class="line">    if (!-e $request_filename)</span><br><span class="line">    &#123;</span><br><span class="line">        rewrite ^&#x2F;(.*)$ &#x2F;index.php?&#x2F;$1 last;</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最近專案使用<a href="http://matt7137.pixnet.net/blog/post/42754388-codeigniter%E5%9C%A8nginx%E4%B8%8A%E8%A8%AD%E5%AE%9Arewrite%E7%9A%84%E6%96%B9%E6%B3%95" target="_blank" rel="noopener">Codeigniter 在 nginx 上設定 rewrite 的方法 @ 秋風落葉、萍水相逢 - Matt 網頁製作 生活旅遊 日誌 :: 痞客邦 ::</a></p>
+<h2 id="location"><a href="#location" class="headerlink" title="location"></a>location</h2><blockquote>
+<p>語法規則<br>location [ = | ~ | ~<em> | ^~ ] uri { … }<br>location @name { … }<br>語法規則很簡單，一個 location 關鍵字，後面跟著可選的修飾符，後面是要匹配的字符，花括號中是要執行的操作。<br>修飾符<br>= 表示精確匹配。只有請求的 url 路徑與後面的字符串完全相等時，才會命中。<br>~ 表示該規則是使用正則定義的，區分大小寫。<br>~\</em> 表示該規則是使用正則定義的，不區分大小寫。<br>^~ 表示如果該符號後面的字符是最佳匹配，採用該規則，不再進行後續的查找。</p>
+</blockquote>
+<p>參考來源<br><a href="https://segmentfault.com/a/1190000013267839" target="_blank" rel="noopener">一文弄懂 Nginx 的 location 匹配 - 個人文章 - SegmentFault 思否</a> <a href="/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/location_1.png" title="備份圖">備份圖</a></p>
+<blockquote>
+<p>location 順序/優先級：<br>(location =) &gt; (location 完整路徑) &gt; (location ^~ 路徑) &gt; (location ~,~* 正則順序) &gt; (location 部分起始路徑) &gt; (/)</p>
+</blockquote>
+<p>參考來源<br><a href="https://my.oschina.net/foreverich/blog/800359" target="_blank" rel="noopener">nginx 中 location 的顺序(优先级)及 rewrite 规则写法 - 永福的博客 - 开源中国</a></p>
+<h2 id="root"><a href="#root" class="headerlink" title="root"></a>root</h2><p>簡單來說就是放的程式路徑</p>
+<blockquote>
+<p>root 是指定項目的根目錄，適用與 server 和 location。可以指定多個，如果 locaiton 沒有指定，會往其外層的 server 或 http 中尋找繼承。</p>
+</blockquote>
+<p>更多內容可以看<a href="https://www.jianshu.com/p/4be0d5882ec5" target="_blank" rel="noopener">Nginx 靜態服務配置—詳解 root 和 alias 指令 - 簡書</a> <a href="/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/root_1.png" title="備份圖">備份圖</a></p>
+<h2 id="try-files"><a href="#try-files" class="headerlink" title="try_files"></a>try_files</h2><p>這個函示有些 rewrite 可以套用在這功能上面<br>簡單檔案不存在的時候，可以自己設定指定到某一隻檔案<br>但要注意那個檔案需要存在，否則會 ERROR</p>
+<p>看到網路上有人拿來做 cache</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F; &#123;</span><br><span class="line">        # 檢查是否有這個檔案或資料夾存在，不存在則使用index.php內容</span><br><span class="line">        try_files $uri $uri&#x2F; &#x2F;index.php;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>rewrite ^/(.*)$ /index.php?/$1 last;</code>這段寫法是在網址前面加上 index.php<br>只要有關 index.php 都會導入到 phpfpm 裡面去</p>
+<p><a href="https://blog.51cto.com/10546390/1754757" target="_blank" rel="noopener">Nginx 的 try_files 参数保证能懂的讲解-10536390-51CTO 博客</a> <a href="/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/2.png" title="備份圖">備份圖</a><br><a href="https://www.hi-linux.com/posts/53878.html" target="_blank" rel="noopener">Nginx 的 try_files 指令使用实例 - 运维之美</a><br><a href="https://yii.im/posts/the-right-way-to-set-nginx-for-laravel/" target="_blank" rel="noopener">请给你的 Laravel 一份更好的 Nginx 配置 · yii.im</a> <a href="/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/1.png" title="備份圖">備份圖</a></p>
+<h2 id="nginx-if"><a href="#nginx-if" class="headerlink" title="nginx if"></a>nginx if</h2><blockquote>
+<p>計算指定的 condition 的值。如果為真，執行定義在大括號中的 rewrite 模塊指令，並將 if 指令中的配置指定給請求。if 指令會從上一層配置中繼承配置。<br>條件可以是下列任意一種：<br>變量名；如果變量值為空或者是以「0」開始的字符串，則條件為假；<br>使用「=」和「!=」運算符比較變量和字符串；<br>使用「~」（大小寫敏感）和「~*」（大小寫不敏感）運算符匹配變量和正則表達式。正則表達式可以包含匹配組，匹配結果後續可以使用變量$1..$9 引用。如果正則表達式中包含字符「}」或者「;」，整個表達式應該被包含在單引號或雙引號的引用中。<br>使用「-f」和「!-f」運算符檢查文件是否存在；<br>使用「-d」和「!-d」運算符檢查目錄是否存在；<br>使用「-e」和「!-e」運算符檢查文件、目錄或符號鏈接是否存在；<br>使用「-x」和「!-x」運算符檢查可執行文件；</p>
+</blockquote>
+<p><a href="https://blog.51cto.com/cuidehua/1874770" target="_blank" rel="noopener">nginx location if 的匹配規則-殘劍-51CTO 博客</a><br><a href="https://xwsoul.com/posts/761" target="_blank" rel="noopener">Nginx 配置陷阱之万恶的 if 指令 – 虚伪的灵魂</a><br><a href="https://xyz.cinc.biz/2016/06/nginx-if-and-host-get-variable.html" target="_blank" rel="noopener">XYZ 的筆記本: Nginx if、and、網域名稱、GET 變數判斷</a></p>
+<h2 id="rewrite"><a href="#rewrite" class="headerlink" title="rewrite"></a>rewrite</h2><blockquote>
+<p>Context: server, location, if<br>rewrite regex replacement [flag];</p>
+</blockquote>
+<p><a href="https://segmentfault.com/a/1190000008102599" target="_blank" rel="noopener">搞懂 nginx 的 rewrite 模块 - youyu 岁月 - SegmentFault 思否</a><br><a href="https://www.jianshu.com/p/3b2345f7347d" target="_blank" rel="noopener">第七章：nginx 的 rewrite 规则详解 - 简书</a><br><a href="https://yungke.me/nginx-location-rewrite/" target="_blank" rel="noopener">Nginx Rewrite 規則寫法 | Helloyungke</a></p>
+<p>因為我的專案程式有掛 nginx docker 裡面目錄<br>所以我猜測下面應該也能執行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">   location ~* \.(js|jpg|png|css)$ &#123;</span><br><span class="line">        expires 30d;</span><br><span class="line">    &#125;</span><br><span class="line">[Laravel nginx conf file](https:&#x2F;&#x2F;gist.github.com&#x2F;ashleydw&#x2F;afd389b1e763d3c1cf1f)</span><br></pre></td></tr></table></figure>
+<p><a href="https://stackoverflow.com/questions/41330739/serving-html-css-js-files-with-nginx" target="_blank" rel="noopener">vhosts - Serving html / css / js files with nginx - Stack Overflow</a><br><a href="https://blog.51cto.com/tenderrain/1949254" target="_blank" rel="noopener">nginx rewrite 指令 last break 区别-Tenderrain-51CTO 博客</a></p>
+<h2 id="fastcgi"><a href="#fastcgi" class="headerlink" title="fastcgi"></a>fastcgi</h2><p>fastcgi_index 相對就是 nginx index 差不多東西</p>
+<p><a href="https://www.oschina.net/question/92960_38798" target="_blank" rel="noopener">nginx 配置里的 fastcgi_index 是用来干嘛？和 index 的区别是？ - 开源中国</a></p>
+<blockquote>
+<p>因此不再建议大家使用以下方式（搜了一下，网上大量的文章，并且 nginx.conf 的默认配置也是使用这种方式）：<br><del>fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; ~~<br>~~include fastcgi_params;</del><br>而推荐使用最新的方式：<br>include fastcgi.conf;</p>
+</blockquote>
+<p>fastcgi_split_path_info</p>
+<blockquote>
+<p>舊版本的 nginx 使用如下方式配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">location ~ .php($|&#x2F;) &#123;</span><br><span class="line">   set $script $uri;</span><br><span class="line"></span><br><span class="line">   set $path_info &quot;&quot;;</span><br><span class="line">   if ($uri ~ &quot;^(.+.php)(&#x2F;.+)&quot;) &#123;</span><br><span class="line">   &gt;    set $script $1;</span><br><span class="line">   &gt;    set $path_info $2;</span><br><span class="line">   &#125;</span><br><span class="line">   fastcgi_pass 127.0.0.1:9000;</span><br><span class="line">   fastcgi_index index.php;</span><br><span class="line">   fastcgi_param SCRIPT_FILENAME $document_root$script;</span><br><span class="line">   fastcgi_param SCRIPT_NAME $script;</span><br><span class="line">   fastcgi_param PATH_INFO $path_info;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>新版本的 nginx 也可以使用 fastcgi_split_path_info 指令來設置 PATH_INFO，舊的方式不再推薦使用，在 location 段添加如下配置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">location ~ ^.+.php &#123;</span><br><span class="line">(...)</span><br><span class="line">fastcgi_split_path_info ^((?U).+.php)(&#x2F;?.+)$;</span><br><span class="line">  fastcgi_param SCRIPT_FILENAME &#x2F;path&#x2F;to&#x2F;php$fastcgi_script_name;</span><br><span class="line">fastcgi_param PATH_INFO $fastcgi_path_info;</span><br><span class="line">  fastcgi_param PATH_TRANSLATED $document_root\$fastcgi_path_info;</span><br><span class="line">(...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>fastcgi_param 可設定環境參數<br>其他可參考<a href="https://segmentfault.com/a/1190000002667095" target="_blank" rel="noopener">ngx_http_fastcgi_module 的那些事 - Web 开发手扎 - SegmentFault 思否</a> <a href="/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/phpfpm_1.png" title="備份圖">備份圖</a></p>
+<p>這邊我還是搞不懂 phpfpm 跟 mod_php 到底有什麼差別<br>有 google 爬到一篇，秒懂</p>
+<blockquote>
+<p>FastCGI 是什麼?<br>接下來又提到那 FastCGI 是什麼呢? FastCGI 是用來提高 CGI 處理 process 性能用的<br>那 FastCGI 會怎麼實作呢?<br>當 php 啟動時、會去尋找 php.ini、進行環境的初始化，如果不使用 FastCGI 的情況下，每一個請求都會做這個動作，很明顯浪費系統資源，所以 FastCGI 會先啟動一個 master，解析配置文件用，接下來再啟動 worker，當請求過來時、master 會遞資訊給 worker，然後接下來等下一個請求，有這個機制就不用每一次重新跑一次初始化的動作了</p>
+</blockquote>
+<p><a href="https://www.astralweb.com.tw/what-is-differences-between-fastcgi-php-fpm/" target="_blank" rel="noopener">秒懂 PHP 的 FastCGI 跟 PHP-FPM 有什麼關係 - Astral web 歐斯瑞公司</a></p>
+<p><a href="https://gxl-ct001.iteye.com/blog/2270522" target="_blank" rel="noopener">[转] fastcgi.conf 与 fastcgi_params - - ITeye 博客</a></p>
+<p><a href="https://www.cnblogs.com/clphp/p/5106284.html" target="_blank" rel="noopener">\$_SERVER[‘SCRIPT_FILENAME’] 与 <strong>FILE</strong> 区别 - 常斯特啰嗦司机 - 博客园</a><br><a href="http://wangying.sinaapp.com/archives/796" target="_blank" rel="noopener">Nginx(PHP/fastcgi)的 PATH_INFO 配置 | 尘埃</a><br><a href="https://my.oschina.net/zhichi2011/blog/118409" target="_blank" rel="noopener">nginx 新手配置\$document_root - 海盗船的个人空间 - 开源中国</a><br><a href="https://blog.51cto.com/leeyan/1865448" target="_blank" rel="noopener">nginx 使用 arg_重写带参数 url 案例-明天过后-51CTO 博客</a></p>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2019/04/05/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" rel="prev" title="遇到Content-Length不正確到底發生什麼情況">
+      <i class="fa fa-chevron-left"></i> 遇到Content-Length不正確到底發生什麼情況
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2019/04/08/POST%E5%92%8Cphp-input%E5%B0%8F%E8%A8%98/" rel="next" title="$_POST和php://input小記">
+      $_POST和php://input小記 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#location"><span class="nav-number">1.</span> <span class="nav-text">location</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#root"><span class="nav-number">2.</span> <span class="nav-text">root</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#try-files"><span class="nav-number">3.</span> <span class="nav-text">try_files</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nginx-if"><span class="nav-number">4.</span> <span class="nav-text">nginx if</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rewrite"><span class="nav-number">5.</span> <span class="nav-text">rewrite</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fastcgi"><span class="nav-number">6.</span> <span class="nav-text">fastcgi</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2019/04/07/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/";
+    this.page.identifier = "2019/04/07/nginx設定小記/";
+    this.page.title = "nginx設定小記";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

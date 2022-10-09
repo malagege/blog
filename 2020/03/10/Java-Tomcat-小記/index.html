@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="TODO: 尚未整理完成 最近工作需求，需要使用 Java這邊做一些有關 Java 雜記">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java &#x2F; Jboss 小記">
+<meta property="og:url" content="https://malagege.github.io/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="TODO: 尚未整理完成 最近工作需求，需要使用 Java這邊做一些有關 Java 雜記">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://i.imgur.com/81UjZvs.png">
+<meta property="og:image" content="https://i.imgur.com/PFJYmNX.jpg">
+<meta property="og:image" content="https://i.imgur.com/o8Y3mbk.png">
+<meta property="og:image" content="https://i.imgur.com/zEmk1Tf.png">
+<meta property="og:image" content="https://malagege.github.io/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/add_jar.png">
+<meta property="article:published_time" content="2020-03-10T12:36:37.000Z">
+<meta property="article:modified_time" content="2021-06-27T08:05:07.810Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="tomcat">
+<meta property="article:tag" content="jboss">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.imgur.com/81UjZvs.png">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>Java / Jboss 小記 | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java / Jboss 小記
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2020-03-10 20:36:37" itemprop="dateCreated datePublished" datetime="2020-03-10T20:36:37+08:00">2020-03-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-06-27 16:05:07" itemprop="dateModified" datetime="2021-06-27T16:05:07+08:00">2021-06-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2020/03/10/Java-Tomcat-小記/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>TODO: 尚未整理完成</p>
+<p>最近工作需求，需要使用 Java<br>這邊做一些有關 Java 雜記</p>
+<a id="more"></a>
+<p>常常我們配置 Eclipse 都沒有想過 Java 運作原理<br>藉著 GUI 操作我們也不知道它底下是怎麼跑的<br>雖然大學有玩過用 <code>java -cp xxxx</code> 來編譯一些程式<br><a href="https://malagege.github.io/blog/2018/08/27/go%E5%AE%89%E8%A3%9D%E7%AD%86%E8%A8%98-gopath%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8%E8%A8%AD%E5%AE%9A/">go安裝筆記&amp;gopath環境變數設定 | 程式狂想筆記</a><br>對 classpath 只能說編譯時候可以用別的 lib(或別的class) 搭配使用<br>不過我發現用 Eclipse 我不知道他是怎麼執行<br>今天主要好好研究</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h3 id="Java-Jar-檔案衝突"><a href="#Java-Jar-檔案衝突" class="headerlink" title="Java Jar 檔案衝突"></a>Java Jar 檔案衝突</h3><p><a href="http://littleblack.online/?thread-31.htm" target="_blank" rel="noopener">【经验总结】Java利用iText实现PDF操作-技术-LittleblackOnline</a></p>
+<p>最近公司 jasperreport 和 itextpdf 衝突<br>為了做 pdfwriter 做 setEncryption </p>
+<blockquote>
+<p>PdfWriter.ENCRYPTION_AES_128<br>允許列印,編輯，複製，簽名 加密級別：128-bit-AES<br>PdfWriter.STANDARD_ENCRYPTION_128<br>允許列印,編輯，複製，簽名 加密級別：128-bit-RC4</p>
+</blockquote>
+<p><a href="https://www.itread01.com/content/1541909906.html" target="_blank" rel="noopener">【itext學習之路】——-（第三篇）對pdf文件進行加密和許可權設定 - IT閱讀</a><br><a href="https://codertw.com/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80/298626/" target="_blank" rel="noopener">Java 動態載入jar和class檔案例項解析 | 程式前沿</a><br><a href="https://blog.csdn.net/myk_666888/article/details/5705208" target="_blank" rel="noopener">Tomcat启动时classloader加载顺序 <em>Java</em>天乙贵人-CSDN博客</a><br><a href="https://blog.csdn.net/Peter_K/article/details/1667674" target="_blank" rel="noopener">ClassLoader解决jar包冲突问题_JavaScript_Peter_K的专栏-CSDN博客</a><br><a href="https://learnku.com/php/t/7609/you-have-to-know-17-composer-best-practices-updated-to-22" target="_blank" rel="noopener">你必须知道的 17 个 Composer 最佳实践（已更新至 22 个） | PHP 技术论坛</a></p>
+<p>但會遇到</p>
+<blockquote>
+<p>java.lang.ClassNotFoundException: org.bouncycastle.asn1.DEREncodable</p>
+</blockquote>
+<p>但用另一個 jar ，jasperreport 就會有衝突</p>
+<p>簡單尋找衝突方式<br>看 Maven 對應版本(Compile Dependencies )<br><a href="https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports/6.1.0" target="_blank" rel="noopener"> jasperreports » 6.1.0</a>→<a href="https://mvnrepository.com/artifact/com.lowagie/itext/2.1.7" target="_blank" rel="noopener"> itext » 2.1.7</a>→<a href="https://mvnrepository.com/artifact/bouncycastle/bcprov-jdk14/138" target="_blank" rel="noopener">bcprov-jdk15on 138</a><br><a href="https://mvnrepository.com/artifact/com.itextpdf/itextpdf/5.5.5" target="_blank" rel="noopener">itextpdf » 5.5.5</a>→<a href="https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on/1.49" target="_blank" rel="noopener">bcprov-jdk15on 1.49</a></p>
+<p>依照 classpath 規則，正常 jar 檔相同 namespace 只會吃到第一個，之後讀到都會被忽略<br>正常解法應該要用對應版本，可以以框架為主，通常搭配的 jar 應該使用對應相同的版本會比較好</p>
+<p>當然也有找到下面方法，但我覺得不是最好的做法<br><a href="https://blog.csdn.net/Memery_last/article/details/83830475" target="_blank" rel="noopener">classloader解决jar冲突隔离<em>Java</em>到西伯利亚浪-CSDN博客</a></p>
+<h2 id="使用-Maven"><a href="#使用-Maven" class="headerlink" title="使用 Maven"></a>使用 Maven</h2><p>之前也有使用 Maven 但也不是很了解<br><a href="https://kentyeh.github.io/mavenStartup/index.html" target="_blank" rel="noopener">Mave教學 | Maven 初學者中文教程</a><br>但我這邊發現所有的套件都會在<code>~/.m2</code></p>
+<p>也就是說，所有的 Project 都是吃一樣的 jar 檔案<br>這邊真的還滿奇特</p>
+<p>不知道他 javac 是怎麼加檔案進去</p>
+<p><a href="https://www.jianshu.com/p/86694b6fd29c" target="_blank" rel="noopener">javac、classpath的编译和生成Maven工程 - 简书</a> <a href="/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/web1.png" title="備份圖">備份圖</a></p>
+<p>看上面這篇 classpath 可以放 Project 資料夾路徑沒編譯的 java? 有待確認…，不過應該沒錯</p>
+<p><a href="https://zhuanlan.zhihu.com/p/65388744" target="_blank" rel="noopener">Java包管理的那些事4——Maven - 知乎</a><br><a href="https://kknews.cc/zh-tw/code/nkqnleq.html" target="_blank" rel="noopener">開發中：給大家一份Maven知識整理，希望有所幫助 - 每日頭條</a></p>
+<p>因為目前公司碰的專案沒有用到 Maven和 Gradle<br>有機會接觸再補充</p>
+<p><a href="https://www.itread01.com/content/1545095402.html" target="_blank" rel="noopener">專案自動構建工具對比(Maven、Gradle、Ant) - IT閱讀</a><br><a href="https://blog.xuite.net/mistech/blog/211079202-Maven+%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E8%88%87%E5%9C%A8+eclipse+%E5%B0%88%E6%A1%88%E5%AF%A6%E4%BD%9C" target="_blank" rel="noopener">Maven 的基本概念與在 eclipse 專案實作 @ MISTECH 技術手抄本 :: 隨意窩 Xuite日誌</a></p>
+<p><a href="https://www.jianshu.com/p/a2cf2336a48c" target="_blank" rel="noopener">SpringBoot加载外部依赖 - 简书</a><br><a href="http://www.huangbowen.net/blog/2016/02/23/gradle-vs-maven/" target="_blank" rel="noopener">Maven和Gradle对比 - 黄博文的地盘</a><br><a href="http://allenwu.logdown.com/posts/4878611-eclipse-wtp-deployment-assembly" target="_blank" rel="noopener">Eclipse wtp Deployment Assembly « Allen’s Blog</a></p>
+<h2 id="Eclipse-相關環境設定的影響"><a href="#Eclipse-相關環境設定的影響" class="headerlink" title="Eclipse 相關環境設定的影響"></a>Eclipse 相關環境設定的影響</h2><p><a href="https://tomkuo139.blogspot.com/2012/01/eclipse-project-facet.html" target="_blank" rel="noopener">昭佑.天翔: Eclipse Project Facet 功能</a><br><a href="https://www.itread01.com/content/1514264308.html" target="_blank" rel="noopener">Eclipse Build Path 的理解 - IT閱讀</a></p>
+<h2 id="部屬-java"><a href="#部屬-java" class="headerlink" title="部屬 java"></a>部屬 java</h2><p><a href="https://blog.csdn.net/weixin_43112000/article/details/84032214" target="_blank" rel="noopener">Jenkins入门(一)_运维_weixin_43112000的博客-CSDN博客</a><br><a href="https://blog.csdn.net/weixin_43112000/article/details/96858469" target="_blank" rel="noopener">Jenkins+Java+Maven+不中断服务+自动化部署+失败自动回滚_Java_weixin_43112000的博客-CSDN博客</a><br><a href="https://www.dazhuanlan.com/2019/09/25/5d8a43a62f610/" target="_blank" rel="noopener">基于Jenkins的JAVA持续部署环境搭建 | 大专栏</a></p>
+<h2 id="Jboss"><a href="#Jboss" class="headerlink" title="Jboss"></a>Jboss</h2><p>記得要設定 JBOSS_HOME<br>JBOSS_HOME = C:\jboss-4.0.3SP1</p>
+<h3 id="jsp-熱加載"><a href="#jsp-熱加載" class="headerlink" title="jsp 熱加載"></a>jsp 熱加載</h3><p>jboss-eap-7.1\standalone\configuration\standalone.xml  裡面 <jsp-config>改成<jsp-config development="true"/>  就能不用重啟jsp了</p>
+<h3 id="jboss-使用-eclipse-沒有-log"><a href="#jboss-使用-eclipse-沒有-log" class="headerlink" title="jboss 使用 eclipse 沒有 log"></a>jboss 使用 eclipse 沒有 log</h3><p>移除 Server 我發現 log 消失了<br>後來突然想到有 JBoss EAP Server 點兩下，選擇 Open Launch configuration ，然後在 VM arguments 裡最後加入 -Dorg.jboss.as.logging.per-deployment=false </p>
+<p>參考:<a href="https://mistech.pixnet.net/blog/post/393201464-jboss-eap-6.x-%E5%B0%8D%E6%96%BC-log4j-%26-system.out-%E5%9C%A8-eclipse-%E4%B8%8A-cons" target="_blank" rel="noopener">JBoss EAP 6.x 對於 Log4j &amp; System.out 在 Eclipse 上 Console 顯示設定 @ MISTECH 技術手抄本 :: 痞客邦 ::</a></p>
+<h3 id="java-熱加載"><a href="#java-熱加載" class="headerlink" title="java 熱加載"></a>java 熱加載</h3><p>使用 debug 模式就能做到熱加載</p>
+<h3 id="Eclipse-的-classpath-project-settings"><a href="#Eclipse-的-classpath-project-settings" class="headerlink" title="Eclipse 的 .classpath .project .settings"></a>Eclipse 的 .classpath .project .settings</h3><blockquote>
+<p>從數據上我們容易看出，上面描述了工程的依賴文件：</p>
+<p>源文件的具體位置（kind=”src”）<br>運行的系統環境（kind=”con”）<br>工程的library的具體位置信息(kind=”lib”)<br>在每個lib的xml子節點中，有關於它的其它配置信息（例如我配置的那個”javadoc_location”）<br>項目的輸出目錄(kind=”output”)<br>總體上說這個文件就是配置整個工程的運行環境。</p>
+</blockquote>
+<p><a href="https://blog.csdn.net/qq_35792598/article/details/76573943" target="_blank" rel="noopener">eclipse项目中的.settings .project .classpath 个人见解<em>开发工具</em>只在朝暮间的博客-CSDN博客</a><br><a href="https://segmentfault.com/a/1190000007721071" target="_blank" rel="noopener">除了Maven，还有一种解决jar包管理及定制的好方法 - Java开发分享 - SegmentFault 思否</a></p>
+<h3 id="Tomcat-一些事情"><a href="#Tomcat-一些事情" class="headerlink" title="Tomcat 一些事情"></a>Tomcat 一些事情</h3><p><a href="https://blog.csdn.net/andyelvis/article/details/6719996" target="_blank" rel="noopener">理解Tomcat的Classpath-常见问题以及如何解决_Java_AndyElvis的专栏-CSDN博客</a></p>
+<h2 id="struct2"><a href="#struct2" class="headerlink" title="struct2"></a>struct2</h2><p>這邊簡單小記，有空再補</p>
+<p>action </p>
+<p>spa!xxx<br>spa 找 xml 對照的 java<br>xxx 是 method<br>沒寫 xxx 預設是 execute</p>
+<p>頁面傳到 jsp 會做 setXXXX,getXXX</p>
+<h2 id="struct2-和-spring"><a href="#struct2-和-spring" class="headerlink" title="struct2 和 spring"></a>struct2 和 spring</h2><p><a href="https://www.w3cschool.cn/struts_2/struts_spring.html" target="_blank" rel="noopener">Struts2 Spring集成_w3cschool</a></p>
+<h2 id="Eclipse-修改檔案不用重啟-Server"><a href="#Eclipse-修改檔案不用重啟-Server" class="headerlink" title="Eclipse 修改檔案不用重啟 Server"></a>Eclipse 修改檔案不用重啟 Server</h2><p><a href="https://blog.csdn.net/xingsfdz/article/details/80665896" target="_blank" rel="noopener">eclipse配置修改代码不用重启<em>开发工具</em>小白菜-CSDN博客</a><br><a href="https://www.itread01.com/content/1542335343.html" target="_blank" rel="noopener">Eclipse 修改方法裡面的內容不用重啟專案 - IT閱讀</a></p>
+<p><a href="https://www.itdaan.com/tw/191c35d4309929e8a8154a0d6553bce2" target="_blank" rel="noopener">jboss + eclipse 如何設置才能不重啟服務就能自動編譯jsp - 开发者知识库</a><br><a href="https://taiwanjava.blogspot.com/2016/04/jboss-jsp-servers.html" target="_blank" rel="noopener">Java碼農清單: jboss 修改jsp ,不須重啟servers伺服器</a></p>
+<p><a href="https://tpu.thinkpower.com.tw/tpu/articleDetails/557" target="_blank" rel="noopener">https://tpu.thinkpower.com.tw/tpu/articleDetails/557</a></p>
+<h2 id="Eclipse-Project-clean"><a href="#Eclipse-Project-clean" class="headerlink" title="Eclipse Project clean"></a>Eclipse Project clean</h2><p>以前開發經驗都知道 Project 執行有問題<br>只需要按 Project → clean<br>有找到他是清除 class 文件</p>
+<blockquote>
+<p>所以有些時候編譯不通過原因是沒有project-&gt;clean造成的！！！<br>eclipse &gt; project &gt; clean 是把 eclipse 編譯生成的 class 之類的文件刪除，以便以後再次編譯。 redeploy 是指把 web 重新部署到 tomcat， 這可能會把 jsp/html/css/js 之類的文件及 WEB-INF 目錄複製到 tomcat 或者是把整個項目導致成一個 war 複製到 tomcat。<br><a href="https://www.cnblogs.com/panxuejun/p/6180324.html" target="_blank" rel="noopener">eclipse中project-&gt;clean的作用是什么 - THISISPAN - 博客园</a></p>
+</blockquote>
+<blockquote>
+<p>在eclipse中写JavaWeb项目时，有时候会出现代码修改了，但是执行的效果还是修改之前的，这时候clean一下就会解决问题</p>
+<p>1.clean操作</p>
+<p>Project—-&gt;clean—&gt;选择需要clean的项目</p>
+<p><img src="https://i.imgur.com/81UjZvs.png" alt=""></p>
+<p>2.clean原理</p>
+<p>eclipse为了提高效率，并不是每次启动项目都会检查插件，通过clean就是强制eclipse去检查已安装插件。<br>我们都知道.java文件是通过编译成.class文件运行的，而clean后会删除已经编译生成的.class文件并重新部署项目。<br>总起来将就是强制检查已安装插件，清除以前编译的信息，重新部署项目。</p>
+<p>3.clean后无法正常运行</p>
+<p><img src="https://i.imgur.com/PFJYmNX.jpg" alt=""></p>
+<p>右键项目—-&gt;properties如图，去掉Abort build when build path errors occur<br><a href="https://www.debugger.wiki/article/html/1562671380956639" target="_blank" rel="noopener">eclipse中的clean操作 - debugger.wiki - debugger.wiki</a></p>
+</blockquote>
+<p> 發現還有 Deployment Assembly<br> java Build path是編譯路徑設置,主要用來設置源代碼的編譯路徑默認是default output folder</p>
+<blockquote>
+<p><img src="https://i.imgur.com/o8Y3mbk.png" alt=""><br>Web Deployment Assembly是eclipse中的發布路徑設置，DeployPath表示每個資源發佈之後的文件路徑<br><img src="https://i.imgur.com/zEmk1Tf.png" alt=""></p>
+<p>理解</p>
+<p>eclipse中使用tomcat使用啟動web項目的流程是 java build path編譯項目源代碼生成的class文件放到buildpath的設置路徑中，根據web deployment assembly將項目中的各個資源發佈到設置的指定文件中<br><a href="https://blog.csdn.net/shiwodecuo/article/details/62040447" target="_blank" rel="noopener">eclipse中Deployment Assembly选项设置说明<em>开发工具</em>我的世界，真实可见 -CSDN博客</a></p>
+</blockquote>
+<p>這樣我就突然想到之前專案設錯 Deployment Assembly 就不能執行<br>不是 Web 專案是沒有 Deployment Assembly </p>
+<h3 id="eclipse-設定編譯出位置-class-path"><a href="#eclipse-設定編譯出位置-class-path" class="headerlink" title="eclipse 設定編譯出位置 .class path"></a>eclipse 設定編譯出位置 .class path</h3><p>應該是相同路徑<br>主要看.classpath<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;classpathentry kind&#x3D;&quot;src&quot; path&#x3D;&quot;src&quot;&#x2F;&gt;</span><br></pre></td></tr></table></figure></p>
+<p>其他相關<br><a href="https://stackoverflow.com/questions/17161237/path-to-class-file-in-eclipse" target="_blank" rel="noopener">Path to .class file in eclipse - Stack Overflow</a><br><a href="http://jason79-blog.logdown.com/posts/256196-in-eclipse-using-gradle-to-modify-default-output-folder" target="_blank" rel="noopener">在eclipse中使用Gradle之修改default output folder « Jason’s Blog</a></p>
+<h4 id="Eclipse-看-Properties-會亂碼"><a href="#Eclipse-看-Properties-會亂碼" class="headerlink" title="Eclipse 看 Properties 會亂碼"></a>Eclipse 看 Properties 會亂碼</h4><p>安裝 PropertiesEditor 就能正常<br>可參考下面連結<br><a href="https://coffee0127.github.io/blog/2016/08/15/eclipse-poperties/" target="_blank" rel="noopener">Eclipse Properties 顯示中文字 | Xuan’s Blog</a><br><a href="https://blog.csdn.net/mukvintt/article/details/79746857" target="_blank" rel="noopener">eclipse中 XXXX.properties文件 不显示中文，显示的unicode编码。_开发工具_mukvintt的博客-CSDN博客</a></p>
+<h4 id="Eclipse-實用快速鍵"><a href="#Eclipse-實用快速鍵" class="headerlink" title="Eclipse 實用快速鍵"></a>Eclipse 實用快速鍵</h4><blockquote>
+<p>重構<br><code>Alt+Shift+R</code>: 重命名 (是我自己最愛用的一個了,尤其是變量和類的Rename,比手工方法能節省很多勞動力)<br><code>Alt+Shift+M</code>: 抽取方法 (這是重構裡面最常用的方法之一了,尤其是對一大堆泥團代碼有用)<br><code>Alt+Shift+C</code>: 修改函數結構(比較實用,有N個函數調用了這個方法,修改一次搞定)<br><code>Alt+Shift+L</code>: 抽取本地變量( 可以直接把一些魔法數字和字符串抽取成一個變量,尤其是多處調用的時候)<br><code>Alt+Shift+F</code>: 把Class中的local變量變為field變量 (比較實用的功能)<br><code>Alt+Shift+I</code>: 合併變量(可能這樣說有點不妥Inline)<br><code>Alt+Shift+V</code>: 移動函數和變量(不怎麼常用)<br><code>Alt+Shift+Z</code>: 重構的後悔藥(Undo)</p>
+</blockquote>
+<p>參考: <a href="https://wsxq2.55555.io/blog/2018/12/12/eclipse%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7/" target="_blank" rel="noopener">Eclipse使用技巧</a></p>
+<h2 id="vscode-使用-web-方案"><a href="#vscode-使用-web-方案" class="headerlink" title="vscode 使用 web 方案"></a>vscode 使用 web 方案</h2><h3 id="先說明我目前用到的專案"><a href="#先說明我目前用到的專案" class="headerlink" title="先說明我目前用到的專案"></a>先說明我目前用到的專案</h3><p>.classpath 底下有設定這些<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">classpath</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">kind</span>=<span class="string">"src"</span> <span class="attr">path</span>=<span class="string">"src"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">kind</span>=<span class="string">"con"</span> <span class="attr">path</span>=<span class="string">"org.eclipse.jst.j2ee.internal.web.container"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">kind</span>=<span class="string">"con"</span> <span class="attr">path</span>=<span class="string">"org.eclipse.jst.j2ee.internal.module.container"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">combineaccessrules</span>=<span class="string">"false"</span> <span class="attr">kind</span>=<span class="string">"src"</span> <span class="attr">path</span>=<span class="string">"/xxxx-common"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">combineaccessrules</span>=<span class="string">"false"</span> <span class="attr">kind</span>=<span class="string">"src"</span> <span class="attr">path</span>=<span class="string">"/xxx-sms"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">kind</span>=<span class="string">"con"</span> <span class="attr">path</span>=<span class="string">"org.eclipse.jst.server.core.container/org.jboss.ide.eclipse.as.core.server.runtime.runtimeTarget/JBoss EAP 7.1 Runtime"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">combineaccessrules</span>=<span class="string">"false"</span> <span class="attr">kind</span>=<span class="string">"src"</span> <span class="attr">path</span>=<span class="string">"/xxxx-pdf"</span>/&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">kind</span>=<span class="string">"con"</span> <span class="attr">path</span>=<span class="string">"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">attributes</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">attribute</span> <span class="attr">name</span>=<span class="string">"owner.project.facets"</span> <span class="attr">value</span>=<span class="string">"java"</span>/&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">attributes</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">classpathentry</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">kind</span>=<span class="string">"output"</span> <span class="attr">path</span>=<span class="string">"build/classes"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">classpath</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>看到 add classpath 有設定一些專案旁的 Project<br>vscode 吃的到 .classpath 檔案<br>但 vscode 單讀開 Project 不會吃到的樣子<br>有找到下面的方法 java.project.referencedLibraries<br>但還是沒用</p>
+<h3 id="vscode-載入-jar-檔方法"><a href="#vscode-載入-jar-檔方法" class="headerlink" title="vscode 載入 jar 檔方法"></a>vscode 載入 jar 檔方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&quot;java.project.referencedLibraries&quot;: &#123;</span><br><span class="line">    &quot;include&quot;: [</span><br><span class="line">        &quot;library&#x2F;**&#x2F;*.jar&quot;,</span><br><span class="line">        &quot;&#x2F;home&#x2F;username&#x2F;lib&#x2F;foo.jar&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;exclude&quot;: [</span><br><span class="line">        &quot;library&#x2F;sources&#x2F;**&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;sources&quot;: &#123;</span><br><span class="line">        &quot;library&#x2F;bar.jar&quot;: &quot;library&#x2F;sources&#x2F;bar-src.jar&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a href="https://code.visualstudio.com/docs/java/java-project" target="_blank" rel="noopener">Maven Support, Java Package, and Dependency Management in Visual Studio Code</a></p>
+<p>In case VS Code throws an error for a classpath issue, try setting your classpath manually by either setting the CLASSPATH environment variable or editing the .classpath file with the path to the JAR file:</p>
+<p>看樣子 maven 不能設定 classpath</p>
+<p>相關連結<br><a href="https://blog.csdn.net/rogerjava/article/details/23764679" target="_blank" rel="noopener">Maven管理的jar没有发布到WEB-INF/lib下的解决方案_java的涟漪-CSDN博客</a><br><a href="https://zhuanlan.zhihu.com/p/68065612" target="_blank" rel="noopener">（三）Java资源文件和路径相关扫盲 - 知乎</a><br><a href="https://www.jianshu.com/p/7cadd9bedf4f" target="_blank" rel="noopener">java项目中的classpath到底是什么 - 简书</a><br><a href="https://stackoverflow.com/questions/364114/can-i-add-jars-to-maven-2-build-classpath-without-installing-them" target="_blank" rel="noopener">java - Can I add jars to maven 2 build classpath without installing them? - Stack Overflow</a></p>
+<p>沒法對 Project 做<br>但這個對我的專案沒什麼用</p>
+<h3 id="vsocde-對整個-workspace-開啟"><a href="#vsocde-對整個-workspace-開啟" class="headerlink" title="vsocde 對整個 workspace 開啟"></a>vsocde 對整個 workspace 開啟</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">classpathentry</span> <span class="attr">combineaccessrules</span>=<span class="string">"false"</span> <span class="attr">kind</span>=<span class="string">"src"</span> <span class="attr">path</span>=<span class="string">"/xxxx-common"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p>發現對整個 workspace 開啟<br>程式就可以關連到 Project 程式<br>手動加真的太慢了<br>用 Eclipse 做設定會寫到 .classpath 檔案<br>缺點還是需要手動加</p>
+<img src="/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/add_jar.png" class="" title="Eclipse加jar檔">
+<p>這個方法是參考<a href="https://min9nim.github.io/2018/05/vscode-setting/" target="_blank" rel="noopener">[vscode] java 사용시 세팅 관련</a><br>原本我是想用 <code>*</code> 加入 jar 檔案<br>但這邊說不能這樣設定<br>使用單筆 jar 進去 vsocde就能順利認得 class</p>
+<p>題外話<br>小記 Classpath 加 Project 時候<br>發步 JBOSS 時候 WEB-INF/lib/裡面會加入到剛剛加的 Project WAR 檔</p>
+<h3 id="add-project-classpath"><a href="#add-project-classpath" class="headerlink" title="add project(classpath)"></a>add project(classpath)</h3><p>A Project 包 jar 檔時候，被 B Project 引入時候，我發現 A project </p>
+<p><a href="https://sites.google.com/site/waue0920/Home/java/java-de-da-bao-chengjar-fang-fa#%E6%89%93%E5%8C%85%E6%88%90exe%E6%AA%94%E5%B7%A5%E5%85%B7" target="_blank" rel="noopener">java的打包成jar方法 - 學而時習之</a></p>
+<p><a href="https://www.jianshu.com/p/658ebd054fba" target="_blank" rel="noopener">intellij与eclipse默认快捷键对比 - 简书</a><br><a href="https://blog.csdn.net/keshacookie/article/details/50506428" target="_blank" rel="noopener">Maven查找依赖树，解决jar包冲突问题_Java_Epic丶玖遇-CSDN博客</a><br><a href="https://juejin.im/post/5ce90722f265da1bd522aa70" target="_blank" rel="noopener">Jar 包依赖冲突排查思路和解决方法（logback + slf4j-log4j12） - 掘金</a><br><a href="https://www.jianshu.com/p/100439269148" target="_blank" rel="noopener">重新看待Jar包冲突问题及解决方案 - 簡書</a></p>
+<h2 id="ANT"><a href="#ANT" class="headerlink" title="ANT"></a>ANT</h2><p><a href="https://dotblogs.com.tw/grayyin/2016/07/26/203656" target="_blank" rel="noopener">[JAVA] 用Ant打包war的簡單流程 | 阿輝的零碎筆記 - 點部落</a></p>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/java/" rel="tag"># java</a>
+              <a href="/blog/tags/tomcat/" rel="tag"># tomcat</a>
+              <a href="/blog/tags/jboss/" rel="tag"># jboss</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2020/03/07/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" rel="prev" title="快速用 docker 建置 oracle 環境方法">
+      <i class="fa fa-chevron-left"></i> 快速用 docker 建置 oracle 環境方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2020/03/18/%E6%9C%89%E9%97%9C-url-%E7%A9%BA%E7%99%BD%E5%AD%97%E7%AC%A6-20%E5%92%8C/" rel="next" title="有關 url 空白字符(%20和+)">
+      有關 url 空白字符(%20和+) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Java"><span class="nav-number">1.</span> <span class="nav-text">Java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-Jar-檔案衝突"><span class="nav-number">1.1.</span> <span class="nav-text">Java Jar 檔案衝突</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-Maven"><span class="nav-number">2.</span> <span class="nav-text">使用 Maven</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eclipse-相關環境設定的影響"><span class="nav-number">3.</span> <span class="nav-text">Eclipse 相關環境設定的影響</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部屬-java"><span class="nav-number">4.</span> <span class="nav-text">部屬 java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Jboss"><span class="nav-number">5.</span> <span class="nav-text">Jboss</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#jsp-熱加載"><span class="nav-number">5.1.</span> <span class="nav-text">jsp 熱加載</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jboss-使用-eclipse-沒有-log"><span class="nav-number">5.2.</span> <span class="nav-text">jboss 使用 eclipse 沒有 log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-熱加載"><span class="nav-number">5.3.</span> <span class="nav-text">java 熱加載</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eclipse-的-classpath-project-settings"><span class="nav-number">5.4.</span> <span class="nav-text">Eclipse 的 .classpath .project .settings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tomcat-一些事情"><span class="nav-number">5.5.</span> <span class="nav-text">Tomcat 一些事情</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#struct2"><span class="nav-number">6.</span> <span class="nav-text">struct2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#struct2-和-spring"><span class="nav-number">7.</span> <span class="nav-text">struct2 和 spring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eclipse-修改檔案不用重啟-Server"><span class="nav-number">8.</span> <span class="nav-text">Eclipse 修改檔案不用重啟 Server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eclipse-Project-clean"><span class="nav-number">9.</span> <span class="nav-text">Eclipse Project clean</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#eclipse-設定編譯出位置-class-path"><span class="nav-number">9.1.</span> <span class="nav-text">eclipse 設定編譯出位置 .class path</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Eclipse-看-Properties-會亂碼"><span class="nav-number">9.1.1.</span> <span class="nav-text">Eclipse 看 Properties 會亂碼</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Eclipse-實用快速鍵"><span class="nav-number">9.1.2.</span> <span class="nav-text">Eclipse 實用快速鍵</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vscode-使用-web-方案"><span class="nav-number">10.</span> <span class="nav-text">vscode 使用 web 方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#先說明我目前用到的專案"><span class="nav-number">10.1.</span> <span class="nav-text">先說明我目前用到的專案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vscode-載入-jar-檔方法"><span class="nav-number">10.2.</span> <span class="nav-text">vscode 載入 jar 檔方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vsocde-對整個-workspace-開啟"><span class="nav-number">10.3.</span> <span class="nav-text">vsocde 對整個 workspace 開啟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#add-project-classpath"><span class="nav-number">10.4.</span> <span class="nav-text">add project(classpath)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ANT"><span class="nav-number">11.</span> <span class="nav-text">ANT</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2020/03/10/Java-Tomcat-%E5%B0%8F%E8%A8%98/";
+    this.page.identifier = "2020/03/10/Java-Tomcat-小記/";
+    this.page.title = "Java / Jboss 小記";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

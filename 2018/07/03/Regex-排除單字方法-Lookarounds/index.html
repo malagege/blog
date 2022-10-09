@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="這次專案有用到 email 學生任證，有想一個用 email 方法但這次需求要把一些教育信箱排除在外…查了一下 regex 好像沒法對特定單字做不過我有實做一個方法(不知道有沒有漏洞)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Regex 排除單字方法(Lookarounds)">
+<meta property="og:url" content="https://malagege.github.io/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="這次專案有用到 email 學生任證，有想一個用 email 方法但這次需求要把一些教育信箱排除在外…查了一下 regex 好像沒法對特定單字做不過我有實做一個方法(不知道有沒有漏洞)">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2018-07-03T13:07:23.000Z">
+<meta property="article:modified_time" content="2021-07-12T13:34:33.947Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="regex">
+<meta property="article:tag" content="lookarounds">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>Regex 排除單字方法(Lookarounds) | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Regex 排除單字方法(Lookarounds)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2018-07-03 21:07:23" itemprop="dateCreated datePublished" datetime="2018-07-03T21:07:23+08:00">2018-07-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-07-12 21:34:33" itemprop="dateModified" datetime="2021-07-12T21:34:33+08:00">2021-07-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/Regex/" itemprop="url" rel="index"><span itemprop="name">Regex</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/07/03/Regex-排除單字方法-Lookarounds/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>這次專案有用到 email 學生任證，有想一個用 email 方法<br>但這次需求要把一些教育信箱排除在外…<br>查了一下 regex 好像沒法對特定單字做<br>不過我有實做一個方法(不知道有沒有漏洞)</p>
+<a id="more"></a>
+<h3 id="a-xxx"><a href="#a-xxx" class="headerlink" title="a(?!xxx)"></a>a(?!xxx)</h3><p>不會抓 axxx，但會抓 ax,axx,aoxxx 的<code>a</code></p>
+<h3 id="a-xxx-1"><a href="#a-xxx-1" class="headerlink" title="a(?=xxx)"></a>a(?=xxx)</h3><p>會抓 axxx 的<code>a</code></p>
+<h3 id="xxx"><a href="#xxx" class="headerlink" title="(?:xxx)"></a>(?:xxx)</h3><p><strong>2019-12-08</strong><br>這邊 xxx 一樣是連詞<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">^I like (?:dogs|penguins), but not (?:lions|tigers).$</span><br></pre></td></tr></table></figure><br><a href="https://www.ocpsoft.org/tutorials/regular-expressions/or-in-regex/?fbclid=IwAR0AWbTPjZKC5bXSqGBfHOTMEqPG5T-K7lmQKs9UWd3yD0Qdmz3y1aUOSvI" target="_blank" rel="noopener">Regular Expression for Or | “|” Regex | Regular Expression I | OCPsoft</a></p>
+<p>不會算 group</p>
+<p>最後再沒有找到資料情況下，有例用上面 3 個想到一個方法</p>
+<p><code>@(?!nfu)\S*edu.tw</code></p>
+<p>例用<code>(?!xxx)</code>跟<code>\S</code>(非空白字符)<br>真的太久沒有寫會忘 orz<br>我每次都是寫的時候再查</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">\s 元字符用于查找空白字符。</span><br><span class="line"></span><br><span class="line">空白字符可以是：</span><br><span class="line"></span><br><span class="line">    空格符 (space character)</span><br><span class="line">    制表符 (tab character)</span><br><span class="line">    回车符 (carriage return character)</span><br><span class="line">    换行符 (new line character)</span><br><span class="line">    垂直换行符 (vertical tab character)</span><br><span class="line">    换页符 (form feed character)</span><br></pre></td></tr></table></figure>
+<p><a href="http://www.w3school.com.cn/js/jsref_regexp_whitespace.asp" target="_blank" rel="noopener">http://www.w3school.com.cn/js/jsref_regexp_whitespace.asp</a></p>
+<p><a href="https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word" target="_blank" rel="noopener">regex - Regular expression to match a line that doesn’t contain a word? - Stack Overflow</a><br>還有看到這篇，但好像不實用</p>
+<p><a href="http://www.rexegg.com/regex-quickstart.html#lookarounds" target="_blank" rel="noopener">Regex Cheat Sheet</a>看到裡面還有很多不會<br>感覺還有更深的東西。有時間再食用。</p>
+<p><strong>2019-07-25</strong></p>
+<p>今天在改 PHP 程式，由於要改一些程式把<code>xxx_line</code>去除掉<br>但是跟 PHP <code>__LINE__</code>衝突<br>不過後來找到正規化去除<code>(?&lt;!_)_line</code></p>
+<p><a href="http://darkk6.blogspot.com/2017/03/regexp-lookahead-lookbehind.html" target="_blank" rel="noopener">無聊技術研究: RegExp 應用： lookahead , lookbehind</a> <a href="/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/web1.png" title="備份圖">備份圖</a></p>
+<p>裡面有提到<code>lookahead</code>(往前看)</p>
+<pre><code>Positive lookahead ： a(?=Y)
+Negative lookahead ： a(?!Y)
+</code></pre><p>剛我這個例子是用<code>lookbehind</code>(往後看)<br>之前沒有記錄到</p>
+<p>Positive lookbehind ： (?&lt;=Y)a<br>Negative lookbehind： (?&lt;!Y)a</p>
+<p>參考來源：</p>
+<ul>
+<li><a href="https://codeday.me/bug/20170511/14935.html" target="_blank" rel="noopener">regex – 排除单词/字符串的正则表达式 - 代码日志</a></li>
+<li><a href="https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word" target="_blank" rel="noopener">regex - Regular expression to match a line that doesn’t contain a word? - Stack Overflow</a></li>
+<li><a href="https://www.regextester.com/15" target="_blank" rel="noopener">Match string not containing string - Regex Tester/Debugger</a></li>
+<li><a href="http://es6.ruanyifeng.com/#docs/regex" target="_blank" rel="noopener">正则的扩展 - ECMAScript 6 入门</a></li>
+</ul>
+<p><a href="https://www.fooish.com/regex-regular-expression/groups-lookaround.html" target="_blank" rel="noopener">Regex 群組與環顧 Groups &amp; Lookaround - 正規表示法教學 Regular Expression Tutorial</a> <a href="/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/web2.png" title="備份圖">備份圖</a></p>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/regex/" rel="tag"># regex</a>
+              <a href="/blog/tags/lookarounds/" rel="tag"># lookarounds</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2018/07/03/SQL-not-in-in-%E6%8B%86%E9%96%8B%E5%AF%AB%E6%B3%95/" rel="prev" title="SQL not in & in 拆開寫法">
+      <i class="fa fa-chevron-left"></i> SQL not in & in 拆開寫法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2018/07/04/php%E5%AD%97%E4%B8%B2%E7%AC%A6%E8%99%9F%E5%B8%B6%E8%AE%8A%E6%95%B8%E7%94%A8%E6%B3%95/" rel="next" title="php字串"符號帶變數用法">
+      php字串"符號帶變數用法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#a-xxx"><span class="nav-number">1.</span> <span class="nav-text">a(?!xxx)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#a-xxx-1"><span class="nav-number">2.</span> <span class="nav-text">a(?&#x3D;xxx)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xxx"><span class="nav-number">3.</span> <span class="nav-text">(?:xxx)</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2018/07/03/Regex-%E6%8E%92%E9%99%A4%E5%96%AE%E5%AD%97%E6%96%B9%E6%B3%95-Lookarounds/";
+    this.page.identifier = "2018/07/03/Regex-排除單字方法-Lookarounds/";
+    this.page.title = "Regex 排除單字方法(Lookarounds)";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

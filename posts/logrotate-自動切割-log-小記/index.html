@@ -1,0 +1,226 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>logrotate 自動切割 log 小記 - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="logrotate 自動切割 log 小記"><meta property="og:description" content="最近 Pi 2號機有時候 ssh 不穩
+重開數據機或重插網路線就恢復正常
+不知道是哪邊問題
+想寫 ping log 來排除一些狀況"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-01-27T19:49:59+00:00"><meta property="article:modified_time" content="2020-01-27T19:49:59+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="logrotate 自動切割 log 小記"><meta name=twitter:description content="最近 Pi 2號機有時候 ssh 不穩
+重開數據機或重插網路線就恢復正常
+不知道是哪邊問題
+想寫 ping log 來排除一些狀況"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/><link rel=next href=https://malagege.github.io/blog/posts/VScode-Sublime-%E4%BD%BF%E7%94%A8%E5%A5%97%E4%BB%B6%E6%95%B4%E7%90%86/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"logrotate 自動切割 log 小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"linux, log","wordcount":909,"url":"https:\/\/malagege.github.io\/blog\/posts\/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98\/","datePublished":"2020-01-27T19:49:59+00:00","dateModified":"2020-01-27T19:49:59+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">logrotate 自動切割 log 小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-01-27>2020-01-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;909 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#ping-shell>ping shell</a><ul><li><a href=#沒辦法中斷ctrl--c-程式>沒辦法中斷(Ctrl + C) 程式</a></li><li><a href=#shell-比較要注意加>shell 比較要注意加"</a></li><li><a href=#shell-error-print>shell error print</a></li></ul></li><li><a href=#logrotate>logrotate</a><ul><li><a href=#更換-log-方法>更換 log 方法</a></li><li><a href=#輸出問題>輸出問題</a></li></ul></li><li><a href=#logrotate-1>logrotate</a><ul><li><a href=#相關教學網站>相關教學網站</a></li><li><a href=#logrotate-重點小記>logrotate 重點小記</a></li></ul></li><li><a href=#我的-ping-程式設定>我的 ping 程式設定</a></li><li><a href=#訊號問題>訊號問題</a><ul><li><a href=#意外小實驗結果>意外小實驗結果</a></li><li><a href=#使用-create-做-pingsh-127001--ping_127001log>使用 create 做 ./ping.sh 127.0.0.1 &#187; ping_127.0.0.1.log</a></li><li><a href=#使用-copytruncate-做-pingsh-127001--ping_127001log>使用 copytruncate 做 ./ping.sh 127.0.0.1 &#187; ping_127.0.0.1.log</a></li></ul></li><li><a href=#heading>></a></li><li><a href=#測試使用>測試使用</a><ul><li><a href=#測試完建議刪除檔案>測試完建議刪除檔案</a></li><li><a href=#logrotate-2>logrotate</a></li></ul></li><li><a href=#總結>總結</a></li></ul></nav></div></div><div class=content id=content><p>最近 Pi 2號機有時候 ssh 不穩<br>重開數據機或重插網路線就恢復正常<br>不知道是哪邊問題<br>想寫 ping log 來排除一些狀況</p><h2 id=ping-shell>ping shell</h2><p>首先，我需要準備 ping 的 shell 程式</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>IP</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>date <span class=s2>&#34;+%Y-%m-%d %H:%M:%S&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;PING HOST </span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>while</span> <span class=o>[</span> TRUE <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>        ping -c <span class=m>10</span> <span class=si>${</span><span class=nv>IP</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>        sleep <span class=m>300</span> <span class=c1>#300秒檢查</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><p>開啟 tmux 分割多個視窗<br><code>./test.sh > ping_tw.yahoo.com.log</code></p><p>更多 ping 相關指令<br><a href=https://blog.gtwang.org/linux/windows-linux-ping-command-tutorial/ target=_blank rel="noopener noreffer">Ping 指令用法教學：檢查網路連線狀態與品質 - G. T. Wang</a> <a href=ping.png rel>備份圖</a></p><h3 id=沒辦法中斷ctrl--c-程式>沒辦法中斷(Ctrl + C) 程式</h3><p><a href=https://www.jianshu.com/p/a028c9eef2c2 target=_blank rel="noopener noreffer">你无法用ctrl c 杀死的进程 - 简书</a></p><p>簡單解決方法，用 htop kill掉程式吧&mldr;</p><h3 id=shell-比較要注意加>shell 比較要注意加"</h3><blockquote><p>有兩種解決方法：<br>if [ &ldquo;$app-running&rdquo; == "" ];<br>或是<br>if [[ $app-running == "" ]];</p></blockquote><p><a href=https://medium.com/micheh/linux-%E7%9A%84-shell-script-%E4%B8%AD-%E9%81%87%E5%88%B0-unary-operator-expected-%E7%9A%84%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95-3b4725d3fdf1 target=_blank rel="noopener noreffer">Linux 的 shell script 中，遇到 unary operator expected 的解決方法</a></p><h3 id=shell-error-print>shell error print</h3><p><a href=http://linuxcommand.org/lc3_wss0140.php target=_blank rel="noopener noreffer">Writing shell scripts - Lesson 14: Errors and Signals and Traps (Oh My!) - Part 1</a></p><h2 id=logrotate>logrotate</h2><h3 id=更換-log-方法>更換 log 方法</h3><p>其實 logrotate 切割 log 我有在想不會跟線上執行程式衝到嗎?<br><a href=https://wsgzao.github.io/post/logrotate/ target=_blank rel="noopener noreffer">Linux 日志切割神器 logrotate 原理介绍和配置详解 | HelloDog</a> <a href=web1.png rel>備份圖</a><br>這邊裡面有詳細說明</p><blockquote><p>如上也就是 logrotate 的默認操作方式，也就是 mv+create 執行完之後，通知應用重新在新文件寫入即可。mv+create 成本都比較低，幾乎是原子操作，如果應用支持重新打開日誌文件，如 syslog, nginx, mysql 等，那麼這是最好的方式。<br>不過，有些程序並不支持這種方式，壓根沒有提供重新打開日誌的接口；而如果重啟應用程序，必然會降低可用性，為此引入了如下方式。</p></blockquote><p>這邊讓我想到之前有做，mv 跟 cp 實驗(<a href=https://malagege.github.io/blog/2020/01/10/cp-%E8%A4%87%E8%A3%BD%E6%AA%94%E6%A1%88%E5%8F%AF%E8%83%BD%E6%B2%92%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B%E6%83%85/ target=_blank rel="noopener noreffer">cp 複製檔案可能沒注意的事情 | 程式狂想筆記</a>)</p><p>我計畫使用 <code>./test.sh > ping_tw.yahoo.com.log</code><br>但這個好像不可行 我是使用指令倒出 log</p><h3 id=輸出問題>輸出問題</h3><p>我想預防上述的問題<br>我想到下面方法<br><strong>不過先說明以下 shell 不能正常執行</strong><br><strong>不過先說明以下 shell 不能正常執行</strong><br><strong>不過先說明以下 shell 不能正常執行</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>IP</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span> <span class=o>=</span> <span class=s2>&#34;&#34;</span> <span class=o>]</span><span class=p>;</span><span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;must need put IP&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>OUTLOG</span><span class=o>=</span><span class=s2>&#34; &gt;&gt; ping_</span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>.log&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>while</span> <span class=o>[</span> TRUE <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;=========================================&#34;</span> <span class=nv>$OUTLOG</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;=========================================&#34;</span> <span class=nv>$OUTLOG</span>
+</span></span><span class=line><span class=cl>        date <span class=s2>&#34;+%Y-%m-%d %H:%M:%S&#34;</span> <span class=nv>$OUTLOG</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;PING HOST: </span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span> <span class=nv>$OUTLOG</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        ping -c <span class=m>10</span> <span class=si>${</span><span class=nv>IP</span><span class=si>}</span>  <span class=nv>$OUTLOG</span>
+</span></span><span class=line><span class=cl>        sleep <span class=m>300</span> <span class=c1>#300秒檢查</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>log<span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=o>[</span> -n <span class=s2>&#34;</span><span class=nv>$logfile</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>printf</span> <span class=s1>&#39;%s\n&#39;</span> <span class=s2>&#34;</span><span class=nv>$@</span><span class=s2>&#34;</span> &gt;&gt; <span class=s2>&#34;</span><span class=nv>$logfile</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>  <span class=k>else</span>
+</span></span><span class=line><span class=cl>    <span class=nb>printf</span> <span class=s1>&#39;%s\n&#39;</span> <span class=s2>&#34;</span><span class=nv>$@</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>  <span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>log <span class=s2>&#34;</span><span class=nv>$buf</span><span class=s2>&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>可修正成這個方法<a href=https://unix.stackexchange.com/questions/336224/elegant-solution-to-echo-to-either-stdout-or-file-in-bash target=_blank rel="noopener noreffer">shell script - Elegant solution to echo to either stdout or file in bash - Unix & Linux Stack Exchange</a></p><p>因為<del>我比較懶</del>行數比較少，所以我就寫在每一行 XD<br>但其實可以不用這樣寫<br>可參考後續文章</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>IP</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span> <span class=o>=</span> <span class=s2>&#34;&#34;</span> <span class=o>]</span><span class=p>;</span><span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;must need put IP&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>OUTLOG</span><span class=o>=</span><span class=s2>&#34; &gt;&gt; ping_</span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>.log&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>while</span> <span class=o>[</span> TRUE <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;=========================================&#34;</span>  &gt;&gt; ping_<span class=si>${</span><span class=nv>IP</span><span class=si>}</span>.log
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;=========================================&#34;</span>  &gt;&gt; ping_<span class=si>${</span><span class=nv>IP</span><span class=si>}</span>.log
+</span></span><span class=line><span class=cl>        date <span class=s2>&#34;+%Y-%m-%d %H:%M:%S&#34;</span>  &gt;&gt; ping_<span class=si>${</span><span class=nv>IP</span><span class=si>}</span>.log
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;PING HOST: </span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span>  &gt;&gt; ping_<span class=si>${</span><span class=nv>IP</span><span class=si>}</span>.log
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        ping -c <span class=m>10</span> <span class=si>${</span><span class=nv>IP</span><span class=si>}</span>   &gt;&gt; ping_<span class=si>${</span><span class=nv>IP</span><span class=si>}</span>.log
+</span></span><span class=line><span class=cl>        sleep <span class=m>300</span> <span class=c1>#300秒檢查</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><p>這樣我應該就能使用 CREATE 機制<br>終於到我們重頭戲了</p><h2 id=logrotate-1>logrotate</h2><h3 id=相關教學網站>相關教學網站</h3><ul><li><a href=http://n.sfs.tw/content/index/12926 target=_blank rel="noopener noreffer">[CENTOS7] 使用 logrotate 來整理wildfly日誌檔 @新精讚</a></li><li><a href=https://wsgzao.github.io/post/logrotate/ target=_blank rel="noopener noreffer">Linux 日誌切割神器 logrotate 原理介紹和配置詳解 | HelloDog</a></li><li><a href=https://ihower.tw/blog/archives/3565 target=_blank rel="noopener noreffer">使用 logrotate 定期整理 Rails Log 檔案 – ihower { blogging }</a></li><li><a href=https://www.jianshu.com/p/ea7c2363639c target=_blank rel="noopener noreffer">linux 日志定时轮询流程详解 - 簡書</a></li><li><a href=https://stackoverflow.com/questions/9555769/how-to-insert-a-date-inside-the-filename-with-logrotate target=_blank rel="noopener noreffer">linux - How to insert a date inside the filename with logrotate - Stack Overflow</a></li><li><a href=http://www.hatlonely.com/2018/04/16/linux-%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86%E6%9C%8D%E5%8A%A1-logrotate/index.html target=_blank rel="noopener noreffer">linux 日志管理服务 logrotate | hatlonely的小站</a></li><li><a href=https://superuser.com/questions/255951/logrotate-configuration-file-syntax-multiple-wildcard-entries-possible target=_blank rel="noopener noreffer">linux - logrotate configuration file syntax - multiple wildcard entries possible? - Super User</a></li></ul><h3 id=logrotate-重點小記>logrotate 重點小記</h3><p>相關自訂 logrotate 設定可放在 <code>/etc/logrotate.d</code><br>原理可看<a href=https://wsgzao.github.io/post/logrotate/ target=_blank rel="noopener noreffer">Linux 日誌切割神器 logrotate 原理介紹和配置詳解 | HelloDog</a> 運行機制</p><p>其實最原始的 conf設定在 <code>/etc/logrotate.conf</code><br>看到<code>include /etc/logrotate.d</code>就能明白為什麼會自動載入</p><p>其他看到的重點</p><blockquote><p>配置文件裡一定要配置 rotate 文件數目 這個參數。如果不配置默認是 0 個，也就是只允許存在一份日誌，剛切分出來的日誌會馬上被刪除。多麼痛的領悟，說多了都是淚。<br>執行 logrotate 命令最好加 -f 參數，不然有時候配置文件修改的內容不生效。</p></blockquote><h2 id=我的-ping-程式設定>我的 ping 程式設定</h2><p>/home/pi/ping/ping_*.log {<br>daily<br>dateext<br>missingok<br>rotate 30<br>notifempty<br>create 664 pi pi<br>}</p><h2 id=訊號問題>訊號問題</h2><p>看到有些需要做 HUP 動作，讓程式重新讀 log 方法<br>使用<strong>create</strong>需要注意通知程式做，copytruncate 不需要做</p><blockquote><p>create</p><p>create 是默認的方案，可以通過 create 命令配置文件的權限和屬組設置。</p><p>這個方案的思路是：** 重命名原日誌文件，創建新的日誌文件 **。</p><p>詳細步驟如下：</p><pre><code>1. 重命名正在輸出的日誌文件。 因為重命名只修改文件（目錄亦文件）的名稱，而進程操作文件使用的是 inode，所以並不影響原程序繼續輸出日誌。
+
+2. 創建新的日誌文件。 文件名和原日誌文件一樣，注意，此時只是文件名稱一樣，而 inode 編號不同，程序輸出的日誌還是往原日誌文件輸出。
+
+3. 最後通過某些方式通知程序，重新打開日誌文件。 由於重新打開日誌文件會用到文件路徑而非 inode 編號，所以打開的是新的日誌文件。
+</code></pre><p>簡而言之，logrotate 的默認操作方式，就是 mv+create 執行完之後，通知應用重新在新文件寫入即可。mv+create 成本都比較低，幾乎是原子操作，如果應用支> 持重新打開日誌文件，如 syslog、 nginx、mysql 等，那麼這是最好的方式。</p><p>不過，有些程序並不支持這種方式，壓根兒沒有提供重新打開日誌的接口，而如果重啟應用程序，必然會降低可用性，為此引入了 copytruncate 方式。<br>copytruncate</p><p>copytruncate 是把正在輸出的日誌拷（copy）一份出來，再清空 （trucate）原來的日誌。</p><p>詳細步驟如下：</p><pre><code>1. 將當前正在輸出的日誌文件複製為目標文件，此時程序仍然將日誌輸出到原來文件中，原文件名也沒有變。
+2. 清空原日誌文件，程序仍然還是輸出到原日誌文件中，因為清空文件只把文件的內容刪除了，而 inode 並沒改變。
+</code></pre><p>所以 copytruncate 也就是先複製一份文件，然後清空原有文件。</p><p>通常來說，清空操作比較快，但是如果日誌文件太大，那麼複製就會比較耗時，從而可能導致部分日誌丟失。不過這種方式不需要應用程序的支持即可使用。</p></blockquote><p>參考：<a href=https://www.pwdpwd.com/post/2020-01-03-linux-logrotate/ target=_blank rel="noopener noreffer">Linux 日志切割工具 Logrotate | PwD</a></p><p><a href=https://www.cnblogs.com/276815076/p/7053640.html target=_blank rel="noopener noreffer">linux 日志定时轮询流程详解(logrotate) - 生活费 - 博客园</a><br><a href=https://blog.51cto.com/pengjc/1774210 target=_blank rel="noopener noreffer">kill -HUP 命令的使用-赤练挚爱-51CTO博客</a></p><h3 id=意外小實驗結果>意外小實驗結果</h3><p>雖然不是很清楚他的原理，但我剛剛做一個實驗<br>得出很有趣的結果</p><blockquote><p>如果是用 > 重定向輸出的日誌，如 test_app > stdout.log, copytruncate 則無法裁剪原始日誌文件 stdout.log, 它將持續增漲下去。而用 &#187; 就沒問題了，test-app &#187; stdout.log，日誌滾動後 stdout.log 大小將變為零。</p></blockquote><p><a href=https://yanbin.blog/linux-config-log-ratation-logrotate/ target=_blank rel="noopener noreffer">Linux 下配置滚动日志之 logrotate | 隔叶黄莺 Yanbin Blog - 软件编程实践</a></p><p>這邊把 ping.sh 標準輸出註解掉了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>IP</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span> <span class=o>=</span> <span class=s2>&#34;&#34;</span> <span class=o>]</span><span class=p>;</span><span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;must need put IP&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>OUTLOG</span><span class=o>=</span><span class=s2>&#34; &gt;&gt; ping_</span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>.log&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>while</span> <span class=o>[</span> TRUE <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;=========================================&#34;</span>  <span class=c1>#&gt;&gt; ping_${IP}.log</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;=========================================&#34;</span>  <span class=c1>#&gt;&gt; ping_${IP}.log</span>
+</span></span><span class=line><span class=cl>        date <span class=s2>&#34;+%Y-%m-%d %H:%M:%S&#34;</span>  <span class=c1>#&gt;&gt; ping_${IP}.log</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;PING HOST: </span><span class=si>${</span><span class=nv>IP</span><span class=si>}</span><span class=s2>&#34;</span>  <span class=c1>#&gt;&gt; ping_${IP}.log</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        ping -c <span class=m>10</span> <span class=si>${</span><span class=nv>IP</span><span class=si>}</span>   <span class=c1>#&gt;&gt; ping_${IP}.log</span>
+</span></span><span class=line><span class=cl>        <span class=c1>#sleep 300 #300秒檢查</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=使用-create-做-pingsh-127001--ping_127001log>使用 create 做 ./ping.sh 127.0.0.1 &#187; ping_127.0.0.1.log</h3><p>做 logrotate(<code>sudo logrotate -vf /etc/logrotate.d/ping</code>) 後會產生ping_127.0.0.1.log,ping_127.0.0.1.log-2020-01-27<br>程式持續跑的log會加在ping_127.0.0.1.log-2020-01-27<br>如果還記得流程的話，上面有說要 HUP 通知信號跟程式講重抓 log 寫入設定檔</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl> 3. 最後通過某些方式通知程序，重新打開日誌文件。 由於重新打開日誌文件會用到文件路徑而非 inode 編號，所以打開的是新的日誌文件。
+</span></span></code></pre></td></tr></table></div></div><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1.png data-srcset="./1.png, ./1.png 1.5x, ./1.png 2x" data-sizes=auto alt=./1.png title=實驗成果></p><h3 id=使用-copytruncate-做-pingsh-127001--ping_127001log>使用 copytruncate 做 ./ping.sh 127.0.0.1 &#187; ping_127.0.0.1.log</h3><p>做 logrotate(<code>sudo logrotate -vf /etc/logrotate.d/ping</code>) 後會產生ping_127.0.0.1.log,ping_127.0.0.1.log-2020-01-27<br>程式持續跑的log會加在ping_127.0.0.1.log<br>但聽說這種作法有機率遺失 log</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=./2.png data-srcset="./2.png, ./2.png 1.5x, ./2.png 2x" data-sizes=auto alt=./2.png title=實驗成果></p><h2 id=heading>></h2><p>這個應該沒什麼機會用到<br>但對 create , copytruncate 都會造成 log 紀錄有問題<br>結果我就不貼了</p><h2 id=測試使用>測試使用</h2><p>建議加 sudo root執行</p><ol><li><p>sudo logrotate /etc/logrotate.d/ping<br>執行 logrotate</p></li><li><p>sudo logrotate -d /etc/logrotate.d/ping<br>測試日誌切割 (如果文件的時間小於一天，不會執行切割日誌 )</p></li><li><p>sudo logrotate -vf /etc/logrotate.d/ping<br>強制輪詢切割日誌 ( 為了便於我們直觀的觀察測試結果,建議大家手動試一下 )<br>-f (&ndash;force), 就是把不管日誌文件大小是否符合要求，強制執行日誌滾動操作</p></li></ol><p>參照:<a href=https://zhuanlan.zhihu.com/p/24880144 target=_blank rel="noopener noreffer">linux环境下使用logrotate工具实现nginx日志切割 - 知乎</a></p><h3 id=測試完建議刪除檔案>測試完建議刪除檔案</h3><p>測試完建議刪除檔案，否則會出現如下錯誤<br>error: destination /home/pi/ping/ping_127.0.0.1.log-20200127 already exists, skipping rotation</p><p><a href=https://stackoverflow.com/questions/25845752/logrotate-suffix-dateext-rotate target=_blank rel="noopener noreffer">linux - logrotate suffix: dateext + rotate - Stack Overflow</a></p><p>最後 shell 用 tmux 爽爽執行 ping.sh 程式</p><h3 id=logrotate-2>logrotate</h3><p>配置選項</p><p>常用選項：</p><pre><code>daily - 指定轉儲週期為每天
+weekly - 指定轉儲週期為每週
+monthly - 指定轉儲週期為每月
+rotate count - 指定日誌文件刪除之前轉儲的次數，0 指沒有備份，5 指保留 5 個備份
+tabooext [+] list - 讓 logrotate 不轉儲指定擴展名的文件，缺省的擴展名是：.rpm-orig、.rpmsave、v 和 ～
+missingok - 在日誌輪循期間，任何錯誤將被忽略，例如 * 文件無法找到 * 之類的錯誤
+size size - 當日誌文件到達指定的大小時才轉儲，bytes (缺省) 及 KB (sizek) 或 MB (sizem)
+compress - 通過 gzip 壓縮轉儲以後的日誌
+nocompress - 不壓縮
+copytruncate - 用於還在打開中的日誌文件，把當前日誌備份並截斷
+nocopytruncate - 備份日誌文件但是不截斷
+create mode owner group - 轉儲文件，使用指定的文件模式創建新的日誌文件
+nocreate - 不建立新的日誌文件
+delaycompress - 和 compress 一起使用時，轉儲的日誌文件到下一次轉儲時才壓縮
+nodelaycompress - 覆蓋 delaycompress 選項，轉儲同時壓縮。
+errors address - 轉儲時的錯誤信息發送到指定的 Email 地址
+ifempty - 即使是空文件也轉儲，這是 logrotate 的缺省選項。
+notifempty - 如果是空文件的話，不轉儲
+mail address - 把轉儲的日誌文件發送到指定的 E-mail 地址
+nomail - 轉儲時不發送日誌文件
+olddir directory - 儲後的日誌文件放入指定的目錄，必須和當前日誌文件在同一個文件系統
+noolddir - 轉儲後的日誌文件和當前日誌文件放在同一個目錄下
+prerotate/endscript - 在轉儲以前需要執行的命令可以放入這個選項對之間，這兩個關鍵字必須單獨成行
+sharedscripts - 默認情況下，prerotate/endscript 內定義的命令會對匹配到的所有文件 (比如： /var/log/news/*）都執行一次，如果指定為 sharedscripts，則這些命令只會執行一次
+dateext - 對於轉儲的日誌文件加上日期後綴
+</code></pre><p>參考:<a href=https://www.pwdpwd.com/post/2020-01-03-linux-logrotate/ target=_blank rel="noopener noreffer">Linux 日誌切割工具 Logrotate | PwD</a> <a href=web2.png rel>備份圖</a></p><h2 id=總結>總結</h2><p>其實這篇不重要刪減，所以看的內容非常雜<br>不過經過這次實驗有清楚了解到要怎麼使用 logrotate</p><p>後續如果程式要做 HUP 訊號要怎麼處理?之後有空在研究</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-01-27</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/ data-title="logrotate 自動切割 log 小記" data-hashtags=linux,log><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/ data-hashtag=linux><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/ data-title="logrotate 自動切割 log 小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/ data-title="logrotate 自動切割 log 小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/logrotate-%E8%87%AA%E5%8B%95%E5%88%87%E5%89%B2-log-%E5%B0%8F%E8%A8%98/ data-title="logrotate 自動切割 log 小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/Linux/>Linux</a>,&nbsp;<a href=/blog/tags/log/>log</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/linux-bash-shell-%E6%9C%89%E9%97%9C-%E6%98%9F%E8%99%9F%E7%9A%84%E4%BA%8B%E6%83%85/ class=prev rel=prev title="linux bash / shell 有關 * 星號的事情(glob)"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>linux bash / shell 有關 * 星號的事情(glob)</a>
+<a href=/blog/posts/VScode-Sublime-%E4%BD%BF%E7%94%A8%E5%A5%97%E4%BB%B6%E6%95%B4%E7%90%86/ class=next rel=next title="VScode,Sublime 使用套件整理">VScode,Sublime 使用套件整理<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

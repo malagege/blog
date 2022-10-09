@@ -1,0 +1,374 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>lsyncd 做檔案同步實作紀錄 - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="lsyncd 做檔案同步實作紀錄"><meta property="og:description" content="最近看到這幾篇使用 inotify 做文件同步感到有興趣
+雖然現在工作上目前還沒用到
+但這種情境感覺很常遇到
+希望能用不用寫程式方法
+
+Rsync + inotify 做文件实时同步 - 哈希
+Rsync + sersync 实现文件实时同步 - 哈希
+rsync + lsyncd 实现文件实时同步 - 哈希
+"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-04-25T16:22:34+00:00"><meta property="article:modified_time" content="2020-04-25T16:22:34+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="lsyncd 做檔案同步實作紀錄"><meta name=twitter:description content="最近看到這幾篇使用 inotify 做文件同步感到有興趣
+雖然現在工作上目前還沒用到
+但這種情境感覺很常遇到
+希望能用不用寫程式方法
+
+Rsync + inotify 做文件实时同步 - 哈希
+Rsync + sersync 实现文件实时同步 - 哈希
+rsync + lsyncd 实现文件实时同步 - 哈希
+"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/><link rel=prev href=https://malagege.github.io/blog/posts/%E4%B8%B2%E6%8E%A5-LINE-message-API-WebHook-%E5%92%8C-LIFF-%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/%E6%A8%A1%E6%93%AC%E4%B8%8D%E8%89%AF%E7%B6%B2%E8%B7%AF%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"lsyncd 做檔案同步實作紀錄","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84\/"},"genre":"posts","keywords":"lsyncd","wordcount":1026,"url":"https:\/\/malagege.github.io\/blog\/posts\/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84\/","datePublished":"2020-04-25T16:22:34+00:00","dateModified":"2020-04-25T16:22:34+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">lsyncd 做檔案同步實作紀錄</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-04-25>2020-04-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1026 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#相關工具>相關工具</a></li><li><a href=#lsyncd>lsyncd</a><ul><li><a href=#安裝>安裝</a></li><li><a href=#設定>設定</a></li><li><a href=#簡單測試>簡單測試</a></li></ul></li><li><a href=#同步完做動作>同步完做動作</a></li><li><a href=#可能做-layer-2-做自訂動作>可能做 Layer 2 做自訂動作</a></li><li><a href=#其他參考>其他參考</a><ul><li><a href=#同步腳本>同步腳本</a></li></ul></li><li><a href=#相關同步數量問題>相關同步數量問題</a></li></ul></nav></div></div><div class=content id=content><p>最近看到這幾篇使用 inotify 做文件同步感到有興趣<br>雖然現在工作上目前還沒用到<br>但這種情境感覺很常遇到<br><del>希望能用不用寫程式方法</del></p><ul><li><a href=https://www.haxi.cc/archives/Rsync-inotify%E5%81%9A%E6%96%87%E4%BB%B6%E5%AE%9E%E6%97%B6%E5%90%8C%E6%AD%A5.html target=_blank rel="noopener noreffer">Rsync + inotify 做文件实时同步 - 哈希</a></li><li><a href=https://www.haxi.cc/archives/Rsync-sersync%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E5%AE%9E%E6%97%B6%E5%90%8C%E6%AD%A5.html target=_blank rel="noopener noreffer">Rsync + sersync 实现文件实时同步 - 哈希</a></li><li><a href=https://www.haxi.cc/archives/rsync-lsyncd%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E5%AE%9E%E6%97%B6%E5%90%8C%E6%AD%A5-1.html target=_blank rel="noopener noreffer">rsync + lsyncd 实现文件实时同步 - 哈希</a></li></ul><h2 id=相關工具>相關工具</h2><ul><li>inotify</li></ul><p><a href=https://malagege.github.io/blog/2020/01/12/inotify-tools-%E7%9B%A3%E8%81%BD%E8%B3%87%E6%96%99%E5%A4%BE%E8%A3%A1%E6%AA%94%E6%A1%88%E7%95%B0%E5%8B%95%E5%B7%A5%E5%85%B7/ target=_blank rel="noopener noreffer">inotify-tools 監聽資料夾裡檔案異動工具 | 程式狂想筆記</a><br>之前小記這篇，其實裡面沒什麼實作<br>需透過 bash 執行<br>但這樣當然不是很方便，所以有類似 sersync 和 lsyncd 工具解決這個方案</p><ul><li>sersync</li></ul><p>這篇<a href=https://www.centos.bz/2017/08/lsyncd-rsync-inotify/ target=_blank rel="noopener noreffer">lsyncd实时同步搭建指南——取代rsync+inotify-Linux运维日志</a>有講到很多優點缺點<a href=web1.png rel>備份圖</a><br>為了不浪費時間<br>所以我就不實作了</p><h2 id=lsyncd>lsyncd</h2><h3 id=安裝>安裝</h3><p>apt install rsyncd</p><p>或去 github 官網抓 <a href=https://github.com/axkibe/lsyncd target=_blank rel="noopener noreffer">axkibe/lsyncd: Lsyncd (Live Syncing Daemon) synchronizes local directories with remote targets</a></p><h4 id=lua-記得要升到-52>lua 記得要升到 5.2</h4><p>Lua >= 5.2</p><p>Lsyncd depends on Lua 5.2 or greater; that is 5.2 or 5.3. For most distributions you need to install the liblua??, the liblua??-dev and the lua?? package, with ?? being the respective Lua version.<br>cmake >= 2.8</p><p>To configure Lsyncd to your system, cmake >= 2.8 is required<br>rsync >= 3.1</p><p>During runtime Lsyncd needs rsync > 3.1 installed both on source and target systems.</p><p><a href=https://axkibe.github.io/lsyncd/manual/building/ target=_blank rel="noopener noreffer">Lsyncd - Building</a></p><h3 id=設定>設定</h3><p>一開始不會有<code>/etc/lsyncd.conf</code><br>可以做 <code>service lsync status</code> 有沒有執行</p><p><del>vim /etc/lsyncd.conf</del> 網路上看到是這個路徑<br>但是我看<code>CONFIG=/etc/lsyncd/lsyncd.conf.lua</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span><span class=lnt>87
+</span><span class=lnt>88
+</span><span class=lnt>89
+</span><span class=lnt>90
+</span><span class=lnt>91
+</span><span class=lnt>92
+</span><span class=lnt>93
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># 全域設定
+</span></span><span class=line><span class=cl>settings {
+</span></span><span class=line><span class=cl>    logfile = &#34;/var/log/lsyncd/lsyncd.log&#34;,
+</span></span><span class=line><span class=cl>    statusFile = &#34;/var/log/lsyncd/lsyncd.status&#34;
+</span></span><span class=line><span class=cl>    inotifyMode = &#34;CloseWrite&#34;,
+</span></span><span class=line><span class=cl>    maxProcesses = 8,
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>## 以下設定參考 https://www.centos.bz/2017/08/lsyncd-rsync-inotify/
+</span></span><span class=line><span class=cl># 可設定多組
+</span></span><span class=line><span class=cl># I. 本地目錄同步，direct：cp/rm/mv。 適用：500+萬文件，變動不大
+</span></span><span class=line><span class=cl>sync {
+</span></span><span class=line><span class=cl>    default.direct,
+</span></span><span class=line><span class=cl>    source    = &#34;/tmp/src&#34;,
+</span></span><span class=line><span class=cl>    target    = &#34;/tmp/dest&#34;,
+</span></span><span class=line><span class=cl>    delay = 1
+</span></span><span class=line><span class=cl>    maxProcesses = 1
+</span></span><span class=line><span class=cl>    }
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl># II. 本地目錄同步，rsync模式：rsync
+</span></span><span class=line><span class=cl>sync {
+</span></span><span class=line><span class=cl>    default.rsync,
+</span></span><span class=line><span class=cl>    source    = &#34;/tmp/src&#34;,
+</span></span><span class=line><span class=cl>    target    = &#34;/tmp/dest1&#34;,
+</span></span><span class=line><span class=cl>    excludeFrom = &#34;/etc/rsyncd.d/rsync_exclude.lst&#34;,
+</span></span><span class=line><span class=cl>    rsync     = {
+</span></span><span class=line><span class=cl>        binary = &#34;/usr/bin/rsync&#34;,
+</span></span><span class=line><span class=cl>        archive = true,
+</span></span><span class=line><span class=cl>        compress = true,
+</span></span><span class=line><span class=cl>        bwlimit   = 2000
+</span></span><span class=line><span class=cl>        } 
+</span></span><span class=line><span class=cl>    }
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl># III. 遠程目錄同步，rsync模式 + rsyncd daemon
+</span></span><span class=line><span class=cl>sync {
+</span></span><span class=line><span class=cl>    default.rsync,
+</span></span><span class=line><span class=cl>    source    = &#34;/tmp/src&#34;,
+</span></span><span class=line><span class=cl>    target    = &#34;syncuser@172.29.88.223::module1&#34;,
+</span></span><span class=line><span class=cl>    delete=&#34;running&#34;,  # 可以改成false 這樣就不會刪掉
+</span></span><span class=line><span class=cl>    exclude = { &#34;.*&#34;, &#34;.tmp&#34; },
+</span></span><span class=line><span class=cl>    delay = 30,
+</span></span><span class=line><span class=cl>    init = false, # 默認init功能設置為false來跳過初始rsync過程
+</span></span><span class=line><span class=cl>    rsync     = {
+</span></span><span class=line><span class=cl>        binary = &#34;/usr/bin/rsync&#34;,
+</span></span><span class=line><span class=cl>        archive = true,
+</span></span><span class=line><span class=cl>        compress = true,
+</span></span><span class=line><span class=cl>        verbose   = true,
+</span></span><span class=line><span class=cl>        password_file = &#34;/etc/rsyncd.d/rsync.pwd&#34;,
+</span></span><span class=line><span class=cl>        _extra    = {&#34;--bwlimit=200&#34;}
+</span></span><span class=line><span class=cl>        }
+</span></span><span class=line><span class=cl>    }
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl># IV. 遠程目錄同步，rsync模式 + ssh shell
+</span></span><span class=line><span class=cl>sync {
+</span></span><span class=line><span class=cl>    default.rsync,
+</span></span><span class=line><span class=cl>    source    = &#34;/tmp/src&#34;,
+</span></span><span class=line><span class=cl>    target    = &#34;172.29.88.223:/tmp/dest&#34;,
+</span></span><span class=line><span class=cl>    # target    = &#34;root@172.29.88.223:/remote/dest&#34;,
+</span></span><span class=line><span class=cl>    # 上面target，注意如果是普通用戶，必須擁有寫權限
+</span></span><span class=line><span class=cl>    maxDelays = 5,
+</span></span><span class=line><span class=cl>    delay = 30,
+</span></span><span class=line><span class=cl>    # init = true,
+</span></span><span class=line><span class=cl>    rsync     = {
+</span></span><span class=line><span class=cl>        binary = &#34;/usr/bin/rsync&#34;,
+</span></span><span class=line><span class=cl>        archive = true,
+</span></span><span class=line><span class=cl>        compress = true,
+</span></span><span class=line><span class=cl>        bwlimit   = 2000
+</span></span><span class=line><span class=cl>        # rsh = &#34;/usr/bin/ssh -p 22 -o StrictHostKeyChecking=no&#34;
+</span></span><span class=line><span class=cl>        # 如果要指定其它端口，請用上面的rsh
+</span></span><span class=line><span class=cl>        }
+</span></span><span class=line><span class=cl>    }
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl># V. 遠程目錄同步，rsync模式 + rsyncssh，效果與上面相同
+</span></span><span class=line><span class=cl>sync {
+</span></span><span class=line><span class=cl>    default.rsyncssh,
+</span></span><span class=line><span class=cl>    source    = &#34;/tmp/src2&#34;,
+</span></span><span class=line><span class=cl>    host      = &#34;172.29.88.223&#34;,
+</span></span><span class=line><span class=cl>    targetdir = &#34;/remote/dir&#34;,
+</span></span><span class=line><span class=cl>    excludeFrom = &#34;/etc/rsyncd.d/rsync_exclude.lst&#34;,
+</span></span><span class=line><span class=cl>    # maxDelays = 5,
+</span></span><span class=line><span class=cl>    delay = 0,
+</span></span><span class=line><span class=cl>    # init = false,
+</span></span><span class=line><span class=cl>    rsync    = {
+</span></span><span class=line><span class=cl>        binary = &#34;/usr/bin/rsync&#34;,
+</span></span><span class=line><span class=cl>        archive = true,
+</span></span><span class=line><span class=cl>        compress = true,
+</span></span><span class=line><span class=cl>        verbose   = true,
+</span></span><span class=line><span class=cl>        _extra = {&#34;--bwlimit=2000&#34;},
+</span></span><span class=line><span class=cl>        },
+</span></span><span class=line><span class=cl>    ssh      = {
+</span></span><span class=line><span class=cl>        port  =  1234
+</span></span><span class=line><span class=cl>        }
+</span></span><span class=line><span class=cl>    }
+</span></span></code></pre></td></tr></table></div></div><p><strong>default.direct</strong></p><p>Default.direct可以用來保持兩個本地目錄同步，比使用default.rsync更好的性能。Default.direct在啟動時使用（就像default.rsync一樣）rsync來初始化目標目錄與源目錄的同步。但是，在正常操作期間，default.direct使用/ bin / cp，/ bin / rm和/ bin / mv來保持同步。所有參數就像default.rsync一樣。</p><p>delete 也適用這個屬性</p><p><strong>_extra 可放一些參數</strong></p><p>想說有沒有 size-only 設定<br>但發現都找不到<br>後來看到<code>_extra</code> 可以設定</p><h3 id=簡單測試>簡單測試</h3><p>預設是 10 秒檢查資料更新<br>可設定 statusInterval<br><a href=https://axkibe.github.io/lsyncd/manual/config/file/ target=_blank rel="noopener noreffer">Lsyncd - The Configuration File</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-lua data-lang=lua><span class=line><span class=cl><span class=n>settings</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>   <span class=n>logfile</span>    <span class=o>=</span> <span class=s2>&#34;/tmp/lsyncd.log&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>   <span class=n>statusFile</span> <span class=o>=</span> <span class=s2>&#34;/tmp/lsyncd.status&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>   <span class=n>nodaemon</span>   <span class=o>=</span> <span class=kc>true</span><span class=p>,</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>sync</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>   <span class=n>default.rsync</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>   <span class=n>source</span> <span class=o>=</span> <span class=s2>&#34;/home/malagege/test_lsyncd/a/&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>   <span class=n>target</span> <span class=o>=</span> <span class=s2>&#34;/home/malagege/test_lsyncd/b/&#34;</span><span class=p>,</span>
+</span></span></code></pre></td></tr></table></div></div><p>default.rsync 預設是執行<br>/usr/bin/rsync -ltsd &ndash;delete &ndash;include-from=- &ndash;exclude=* SOURCE TARGET<br>所以會做刪除動作</p><h2 id=同步完做動作>同步完做動作</h2><p><a href=https://axkibe.github.io/lsyncd/faq/postscript/ target=_blank rel="noopener noreffer">Lsyncd - FAQ: How can I call a script before or after each rsync operation?</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>/usr/bin/rsync <span class=s2>&#34;</span><span class=nv>$@</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>result</span><span class=o>=</span><span class=nv>$?</span>
+</span></span><span class=line><span class=cl><span class=o>(</span>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=o>[</span> <span class=nv>$result</span> -eq <span class=m>0</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>     <span class=nb>echo</span> <span class=s2>&#34;my commands&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=o>)</span> &gt;/dev/null 2&gt;/dev/null &lt;/dev/null
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>exit</span> <span class=nv>$result</span>
+</span></span></code></pre></td></tr></table></div></div><p>這邊注意 rsync 並不是對單一檔案做搬移<br>而是對整個&mldr;<br>echo $@ 結果是<br><code>-slt -r --delete --ignore-errors --force --from0 --include-from=- --exclude=* /home/malagege/test_lsyncd/a/ /home/malagege/test_lsyncd/a/ /home/malagege/test_lsyncd/b/</code></p><p>跟我想要抓的東西不一樣</p><h2 id=可能做-layer-2-做自訂動作>可能做 Layer 2 做自訂動作</h2><p>感覺這邊自由度很高<br>因為我對 lua 不熟<br>所以就沒打算做這段</p><ul><li><a href=https://gowa.club/Linux-Unix/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Lsyncd%E8%BF%9B%E8%A1%8C%E6%95%B0%E6%8D%AE%E9%95%9C%E5%83%8F%E5%90%8C%E6%AD%A5.html target=_blank rel="noopener noreffer">關於使用Lsyncd進行數據鏡像同步 | 退思園</a> <a href=web2.png rel>備份圖</a><br>裡面有官方中文說明</li></ul><h2 id=其他參考>其他參考</h2><ul><li><a href=https://axkibe.github.io/lsyncd/manual/examples/ target=_blank rel="noopener noreffer">Lsyncd - Examples</a></li><li><a href=https://www.cnblogs.com/jiangzhaowei/p/8298416.html target=_blank rel="noopener noreffer">Lsyncd搭建同步镜像-用Lsyncd实现本地和远程服务器之间实时同步 - 江召伟 - 博客园</a></li><li><a href=https://gowa.club/Linux-Unix/Bash%E4%B8%AD%E7%9A%84IO%E4%B8%8E%E9%87%8D%E5%AE%9A%E5%90%91.html target=_blank rel="noopener noreffer">Bash中的IO與重定向 | 退思園</a></li><li><a href=http://news.migage.com/articles/lsyncdrsync+%E5%AE%9E%E6%97%B6%E5%90%8C%E6%AD%A5_3575751_csdn.html target=_blank rel="noopener noreffer">lsyncd+rsync 实时同步</a></li><li><a href=https://www.centos.bz/2017/08/lsyncd-rsync-inotify/ target=_blank rel="noopener noreffer">lsyncd实时同步搭建指南——取代rsync+inotify-Linux运维日志</a></li><li><a href=https://www.zhihu.com/question/26463409 target=_blank rel="noopener noreffer">做网站迁移 大量的小文件怎么办？ - 知乎</a></li></ul><h3 id=同步腳本>同步腳本</h3><p>以下都是參考:<a href=https://www.cnblogs.com/ginvip/p/6430986.html target=_blank rel="noopener noreffer">真正的inotify+rsync实时同步 彻底告别同步慢 - 琴酒网络 - 博客园</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>/usr/bin/inotifywait -mrq --format <span class=s1>&#39;%w%f&#39;</span>-e create,close_write,delete /backup <span class=p>|</span><span class=k>while</span> <span class=nb>read</span> file
+</span></span><span class=line><span class=cl><span class=c1>#把發生更改的文件列表都接收到file 然後循環，但有什麼鬼用呢？下面的命令都沒有引用這個$file 下面做的是全量rsync</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>    <span class=nb>cd</span> /backup <span class=o>&amp;&amp;</span> rsync -az --delete /backup/ rsync_backup@192.168.24.101::backup/--password-file<span class=o>=</span>/etc/rsync.password
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><p>優化</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nv>src</span><span class=o>=</span>/data/                           <span class=c1># 需要同步的源路徑</span>
+</span></span><span class=line><span class=cl><span class=nv>des</span><span class=o>=</span>data                             <span class=c1># 目標服務器上 rsync --daemon 發佈的名稱，rsync --daemon這裡就不做介紹了，網上搜一下，比較簡單。</span>
+</span></span><span class=line><span class=cl><span class=nv>rsync_passwd_file</span><span class=o>=</span>/etc/rsyncd.passwd            <span class=c1># rsync驗證的密碼文件</span>
+</span></span><span class=line><span class=cl><span class=nv>ip1</span><span class=o>=</span>192.168.0.18                 <span class=c1># 目標服務器1</span>
+</span></span><span class=line><span class=cl><span class=nv>ip2</span><span class=o>=</span>192.168.0.19                 <span class=c1># 目標服務器2</span>
+</span></span><span class=line><span class=cl><span class=nv>user</span><span class=o>=</span>root                            <span class=c1># rsync --daemon定義的驗證用戶名</span>
+</span></span><span class=line><span class=cl><span class=nb>cd</span> <span class=si>${</span><span class=nv>src</span><span class=si>}</span>                            
+</span></span><span class=line><span class=cl><span class=c1># 此方法中，由於rsync同步的特性，這裡必須要先cd到源目錄，inotify再監聽 ./ 才能rsync同步後目錄結構一致，有興趣的同學可以進行各種嘗試觀看其效果</span>
+</span></span><span class=line><span class=cl>/usr/local/bin/inotifywait -mrq --format  <span class=s1>&#39;%Xe %w%f&#39;</span> -e modify,create,delete,attrib,close_write,move ./ <span class=p>|</span> <span class=k>while</span> <span class=nb>read</span> file
+</span></span><span class=line><span class=cl><span class=c1># 把監控到有發生更改的&#34;文件路徑列表&#34;循環</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>        <span class=nv>INO_EVENT</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$file</span> <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=k>)</span>      <span class=c1># 把inotify輸出切割 把事件類型部分賦值給INO_EVENT</span>
+</span></span><span class=line><span class=cl>        <span class=nv>INO_FILE</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$file</span> <span class=p>|</span> awk <span class=s1>&#39;{print $2}&#39;</span><span class=k>)</span>       <span class=c1># 把inotify輸出切割 把文件路徑部分賦值給INO_FILE</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;-------------------------------</span><span class=k>$(</span>date<span class=k>)</span><span class=s2>------------------------------------&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=nv>$file</span>
+</span></span><span class=line><span class=cl>        <span class=c1>#增加、修改、寫入完成、移動進事件</span>
+</span></span><span class=line><span class=cl>        <span class=c1>#增、改放在同一個判斷，因為他們都肯定是針對文件的操作，即使是新建目錄，要同步的也只是一個空目錄，不會影響速度。</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;CREATE&#39;</span> <span class=o>]]</span> <span class=o>||</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;MODIFY&#39;</span> <span class=o>]]</span> <span class=o>||</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;CLOSE_WRITE&#39;</span> <span class=o>]]</span> <span class=o>||</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;MOVED_TO&#39;</span> <span class=o>]]</span>         <span class=c1># 判斷事件類型</span>
+</span></span><span class=line><span class=cl>        <span class=k>then</span>
+</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s1>&#39;CREATE or MODIFY or CLOSE_WRITE or MOVED_TO&#39;</span>
+</span></span><span class=line><span class=cl>                rsync -avzcR --password-file<span class=o>=</span><span class=si>${</span><span class=nv>rsync_passwd_file</span><span class=si>}</span> <span class=k>$(</span>dirname <span class=si>${</span><span class=nv>INO_FILE</span><span class=si>}</span><span class=k>)</span> <span class=si>${</span><span class=nv>user</span><span class=si>}</span>@<span class=si>${</span><span class=nv>ip1</span><span class=si>}</span>::<span class=si>${</span><span class=nv>des</span><span class=si>}</span> <span class=o>&amp;&amp;</span>
+</span></span><span class=line><span class=cl><span class=c1># INO_FILE變量代表路徑哦  -c校驗文件內容</span>
+</span></span><span class=line><span class=cl>                rsync -avzcR --password-file<span class=o>=</span><span class=si>${</span><span class=nv>rsync_passwd_file</span><span class=si>}</span> <span class=k>$(</span>dirname <span class=si>${</span><span class=nv>INO_FILE</span><span class=si>}</span><span class=k>)</span> <span class=si>${</span><span class=nv>user</span><span class=si>}</span>@<span class=si>${</span><span class=nv>ip2</span><span class=si>}</span>::<span class=si>${</span><span class=nv>des</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=c1>#仔細看 上面的rsync同步命令 源是用了$(dirname ${INO_FILE})變量 即每次只針對性的同步發生改變的文件的目錄(只同步目標文件的方法在生產環境的某些極端</span>
+</span></span><span class=line><span class=cl><span class=c1>#環境下會漏文件 現在可以在不漏文件下也有不錯的速度 做到平衡)</span>
+</span></span><span class=line><span class=cl><span class=c1>#然後用-R參數把源的目錄結構遞歸到目標後面 保證目錄結構一致性</span>
+</span></span><span class=line><span class=cl>        <span class=k>fi</span>
+</span></span><span class=line><span class=cl>        <span class=c1>#刪除、移動出事件</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;DELETE&#39;</span> <span class=o>]]</span> <span class=o>||</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;MOVED_FROM&#39;</span> <span class=o>]]</span>
+</span></span><span class=line><span class=cl>        <span class=k>then</span>
+</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s1>&#39;DELETE or MOVED_FROM&#39;</span>
+</span></span><span class=line><span class=cl>                rsync -avzR --delete --password-file<span class=o>=</span><span class=si>${</span><span class=nv>rsync_passwd_file</span><span class=si>}</span> <span class=k>$(</span>dirname <span class=si>${</span><span class=nv>INO_FILE</span><span class=si>}</span><span class=k>)</span> <span class=si>${</span><span class=nv>user</span><span class=si>}</span>@<span class=si>${</span><span class=nv>ip1</span><span class=si>}</span>::<span class=si>${</span><span class=nv>des</span><span class=si>}</span> <span class=o>&amp;&amp;</span>
+</span></span><span class=line><span class=cl>                rsync -avzR --delete --password-file<span class=o>=</span><span class=si>${</span><span class=nv>rsync_passwd_file</span><span class=si>}</span> <span class=k>$(</span>dirname <span class=si>${</span><span class=nv>INO_FILE</span><span class=si>}</span><span class=k>)</span> <span class=si>${</span><span class=nv>user</span><span class=si>}</span>@<span class=si>${</span><span class=nv>ip2</span><span class=si>}</span>::<span class=si>${</span><span class=nv>des</span><span class=si>}</span>
+</span></span><span class=line><span class=cl><span class=c1>#看rsync命令 如果直接同步已刪除的路徑${INO_FILE}會報no such or directory錯誤 所以這裡同步的源是被刪文件或目錄的上一級路徑</span>
+</span></span><span class=line><span class=cl><span class=c1>#並加上--delete來刪除目標上有而源中沒有的文件，這裡不能做到指定文件刪除，如果刪除的路徑越靠近根，則同步的目錄月多，同步刪除的操作就越花時間。</span>
+</span></span><span class=line><span class=cl><span class=c1>#這裡有更好方法的同學，歡迎交流。</span>
+</span></span><span class=line><span class=cl>        <span class=k>fi</span>
+</span></span><span class=line><span class=cl>        <span class=c1>#修改屬性事件 指 touch chgrp chmod chown等操作</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>[[</span> <span class=nv>$INO_EVENT</span> <span class=o>=</span>~ <span class=s1>&#39;ATTRIB&#39;</span> <span class=o>]]</span>
+</span></span><span class=line><span class=cl>        <span class=k>then</span>
+</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s1>&#39;ATTRIB&#39;</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=o>[</span> ! -d <span class=s2>&#34;</span><span class=nv>$INO_FILE</span><span class=s2>&#34;</span> <span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=c1># 如果修改屬性的是目錄 則不同步，因為同步目錄會發生遞歸掃瞄，等此目錄下的文件發生同步時，rsync會順帶更新此目錄。</span>
+</span></span><span class=line><span class=cl>                <span class=k>then</span>
+</span></span><span class=line><span class=cl>                        rsync -avzcR --password-file<span class=o>=</span><span class=si>${</span><span class=nv>rsync_passwd_file</span><span class=si>}</span> <span class=k>$(</span>dirname <span class=si>${</span><span class=nv>INO_FILE</span><span class=si>}</span><span class=k>)</span> <span class=si>${</span><span class=nv>user</span><span class=si>}</span>@<span class=si>${</span><span class=nv>ip1</span><span class=si>}</span>::<span class=si>${</span><span class=nv>des</span><span class=si>}</span> <span class=o>&amp;&amp;</span>         
+</span></span><span class=line><span class=cl>                        rsync -avzcR --password-file<span class=o>=</span><span class=si>${</span><span class=nv>rsync_passwd_file</span><span class=si>}</span> <span class=k>$(</span>dirname <span class=si>${</span><span class=nv>INO_FILE</span><span class=si>}</span><span class=k>)</span> <span class=si>${</span><span class=nv>user</span><span class=si>}</span>@<span class=si>${</span><span class=nv>ip2</span><span class=si>}</span>::<span class=si>${</span><span class=nv>des</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>                <span class=k>fi</span>
+</span></span><span class=line><span class=cl>        <span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><p>簡單來看就是對檔案做 dirname 備份，減少做多次遞迴<br>是不是能確認來源是資料夾或檔案，單純 scp 或 rsync 過去是不是比較快?</p><h2 id=相關同步數量問題>相關同步數量問題</h2><p>以下參考:<a href=https://www.iq180.com.tw/2018/08/lsyncd-live-syncing-daemon.html target=_blank rel="noopener noreffer">等很久資訊室: Lsyncd - Live syncing Daemon 資料夾同步</a></p><p>檢查可監測數量設定值：<br>lsyncd 是依靠 kernel 內建的檔案監測功能 inotify，來回報記錄檔案狀態，而 inotify 預設有設定了一個可監測資料夾數量的限定值。</p><p>cat /proc/sys/fs/inotify/max_user_watches</p><p>在 CentOS 6.8 內，它預設值是 8192，也就是它只能監測最多 8192 個資料夾。<br>而我們要同步的資料夾有多少，會不會超過這個數值呢？必竟，若是超過了，它就無法同步到了。</p><p>cat /var/run/lsyncd/lsyncd.status</p><p>在狀態檔中找到一行如下：<br>Inotify watching 1440 directories<br>那數字便是目前 lsyncd 所監測的資料夾數量。<br>如果您看到的數字很靠近 8192 或甚至超過，那就必須放大這個限定值。</p><p>echo &lsquo;10000&rsquo; > /proc/sys/fs/inotify/max_user_watches</p><p>這樣可以即時把限定值改成 10000，但重開機後它又會變成原本的 8192。<br>下面方法可以改變開機後的預設值：</p><p>把上述即時修改的指令放到 rc.local 之類的開機啟動檔內。<br>或是<br>在 /etc/sysctl.conf 內加上一行<br>fs.inotify.max_user_watches = 10000</p><p>這樣它重開機後，一樣會放大成我們設定的數值。</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-04-25</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/ data-title="lsyncd 做檔案同步實作紀錄" data-hashtags=lsyncd><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/ data-hashtag=lsyncd><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/ data-title="lsyncd 做檔案同步實作紀錄"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/ data-title="lsyncd 做檔案同步實作紀錄"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/lsyncd-%E5%81%9A%E6%AA%94%E6%A1%88%E5%90%8C%E6%AD%A5%E5%AF%A6%E4%BD%9C%E7%B4%80%E9%8C%84/ data-title="lsyncd 做檔案同步實作紀錄"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/lsyncd/>lsyncd</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E4%B8%B2%E6%8E%A5-LINE-message-API-WebHook-%E5%92%8C-LIFF-%E5%B0%8F%E8%A8%98/ class=prev rel=prev title="串接 LINE message API(WebHook)  和 LIFF 小記"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>串接 LINE message API(WebHook) 和 LIFF 小記</a>
+<a href=/blog/posts/%E6%A8%A1%E6%93%AC%E4%B8%8D%E8%89%AF%E7%B6%B2%E8%B7%AF%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/ class=next rel=next title=模擬不良網路環境方法>模擬不良網路環境方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

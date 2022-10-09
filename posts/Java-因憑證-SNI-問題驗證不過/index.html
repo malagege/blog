@@ -1,0 +1,280 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Java 因憑證 SNI 問題驗證不過 - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Java 因憑證 SNI 問題驗證不過"><meta property="og:description" content="最近在做 line webhook
+但是做測試的時候
+發現沒有呼叫我的程式
+但我手機、其他電腦都可以連線
+這又非常詭異"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-06-25T23:49:03+00:00"><meta property="article:modified_time" content="2020-06-25T23:49:03+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Java 因憑證 SNI 問題驗證不過"><meta name=twitter:description content="最近在做 line webhook
+但是做測試的時候
+發現沒有呼叫我的程式
+但我手機、其他電腦都可以連線
+這又非常詭異"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/><link rel=prev href=https://malagege.github.io/blog/posts/Linux-%E4%BD%BF%E7%94%A8-openvpn-%E9%80%A3%E7%B7%9A%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/vagrant-%E5%95%9F%E5%8B%95%E7%84%A1%E6%B3%95%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Java 因憑證 SNI 問題驗證不過","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E\/"},"genre":"posts","wordcount":732,"url":"https:\/\/malagege.github.io\/blog\/posts\/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E\/","datePublished":"2020-06-25T23:49:03+00:00","dateModified":"2020-06-25T23:49:03+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Java 因憑證 SNI 問題驗證不過</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-06-25>2020-06-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;732 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;4 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#使用外部網站檢查>使用外部網站檢查</a></li><li><a href=#使用-java-ssltest>使用 Java SSLTEST</a></li><li><a href=#java-其他驗證>Java 其他驗證</a></li><li><a href=#其他程式>其他程式</a></li><li><a href=#解決方法>解決方法</a></li><li><a href=#感想>感想</a></li><li><a href=#java-sslpoke-檢查>Java SSLPoke 檢查</a><ul><li><a href=#handling-exception-javaxnetsslsslhandshakeexception-sunsecurityvalidatorvalidatorexception-pkix-path-building-failed-sunsecurityprovidercertpathsuncertpathbuilderexception-unable-to-find-valid-certification-path-to-requested-target>handling exception: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>最近在做 line webhook<br>但是做測試的時候<br>發現沒有呼叫我的程式<br>但我手機、其他電腦都可以連線<br>這又非常詭異</p><h2 id=使用外部網站檢查>使用外部網站檢查</h2><p>我在<a href=https://www.ssllabs.com/ssltest/ target=_blank rel="noopener noreffer">SSL Server Test (Powered by Qualys SSL Labs)</a>做測試<br>是在這裡面找到的<a href=https://github.com/edelahozuah/awesome-tls-security target=_blank rel="noopener noreffer">edelahozuah/awesome-tls-security: A collection of (not-so, yet) awesome resources related to TLS, PKI and related stuff</a></p><p>這個網站可以找到很多問題<br>但主要不能連我是遇到的問題是<code>Client aborts on SNI unrecognized_name warning</code></p><p>![憑證問題"](./error1.png &ldquo;Java SNI)</p><h2 id=使用-java-ssltest>使用 Java SSLTEST</h2><p>不多說，紀錄安裝過程</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 安裝 jdk</span>
+</span></span><span class=line><span class=cl>sudo apt install default-jdk <span class=c1>#openjdk-11-jdk</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 下載 ssltest</span>
+</span></span><span class=line><span class=cl>git clone https://github.com/ChristopherSchultz/ssltest.git
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>cd</span> ssltest
+</span></span><span class=line><span class=cl>./build.sh <span class=c1># 記得 socure 跟 target 要改11 因為我使用的是11</span>
+</span></span><span class=line><span class=cl><span class=nb>cd</span> build
+</span></span><span class=line><span class=cl>java -jar ssltest.jar google.com
+</span></span><span class=line><span class=cl><span class=c1># 我第一次的實用適用 jdk 7 跑，會有 sni Exception</span>
+</span></span><span class=line><span class=cl><span class=c1># 但我現在用 jdk 11 沒有跑出 Exception</span>
+</span></span><span class=line><span class=cl><span class=c1># 不過可以看到沒有 Accepted</span>
+</span></span><span class=line><span class=cl>java -jar ssltest.jar  google.com.tw <span class=p>|</span> grep Accepted
+</span></span></code></pre></td></tr></table></div></div><p>自己來寫一隻來驗證<br>其實用 postman 產生範例<br>搭配我之前 maven 執行</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>OkHttpClient</span> <span class=n>client</span> <span class=o>=</span> <span class=k>new</span> <span class=n>OkHttpClient</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>Request</span> <span class=n>request</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Request</span><span class=o>.</span><span class=na>Builder</span><span class=o>()</span>
+</span></span><span class=line><span class=cl>  <span class=o>.</span><span class=na>url</span><span class=o>(</span><span class=s>&#34;http://httpbin.org/get?test=123%20123&#34;</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>  <span class=o>.</span><span class=na>get</span><span class=o>()</span>
+</span></span><span class=line><span class=cl>  <span class=o>.</span><span class=na>addHeader</span><span class=o>(</span><span class=s>&#34;cache-control&#34;</span><span class=o>,</span> <span class=s>&#34;no-cache&#34;</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>  <span class=o>.</span><span class=na>addHeader</span><span class=o>(</span><span class=s>&#34;postman-token&#34;</span><span class=o>,</span> <span class=s>&#34;b0cbc43f-9a70-1056-951e-e5b0c6b2dd33&#34;</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>  <span class=o>.</span><span class=na>build</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>Response</span> <span class=n>response</span> <span class=o>=</span> <span class=n>client</span><span class=o>.</span><span class=na>newCall</span><span class=o>(</span><span class=n>request</span><span class=o>).</span><span class=na>execute</span><span class=o>();</span>
+</span></span></code></pre></td></tr></table></div></div><p>maven 不知道為什麼執行要加這段<code> -Dexec.cleanupDaemonThreads=false</code><br><a href=https://www.shangmayuan.com/a/405034f1ec9c45fe8e1aa411.html target=_blank rel="noopener noreffer">运行 mvn java:exec 如何避免 <code>IllegalThreadStateException</code> - 尚码园</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[WARNING] 
+</span></span><span class=line><span class=cl>javax.net.ssl.SSLHandshakeException: received handshake warning: unrecognized_name
+</span></span><span class=line><span class=cl>    at sun.security.ssl.Alert.createSSLException (Alert.java:131)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.Alert.createSSLException (Alert.java:117)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.TransportContext.fatal (TransportContext.java:313)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.TransportContext.fatal (TransportContext.java:269)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.TransportContext.fatal (TransportContext.java:260)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.Alert$AlertConsumer.consume (Alert.java:272)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.TransportContext.dispatch (TransportContext.java:186)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.SSLTransport.decode (SSLTransport.java:164)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.SSLSocketImpl.decode (SSLSocketImpl.java:1144)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.SSLSocketImpl.readHandshakeRecord (SSLSocketImpl.java:1055)
+</span></span><span class=line><span class=cl>    at sun.security.ssl.SSLSocketImpl.startHandshake (SSLSocketImpl.java:395)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.RealConnection.connectTls (RealConnection.kt:367)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.RealConnection.establishProtocol (RealConnection.kt:325)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.RealConnection.connect (RealConnection.kt:197)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.ExchangeFinder.findConnection (ExchangeFinder.kt:249)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.ExchangeFinder.findHealthyConnection (ExchangeFinder.kt:108)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.ExchangeFinder.find (ExchangeFinder.kt:76)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.RealCall.initExchange$okhttp (RealCall.kt:245)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.ConnectInterceptor.intercept (ConnectInterceptor.kt:32)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.http.RealInterceptorChain.proceed (RealInterceptorChain.kt:100)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.cache.CacheInterceptor.intercept (CacheInterceptor.kt:96)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.http.RealInterceptorChain.proceed (RealInterceptorChain.kt:100)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.http.BridgeInterceptor.intercept (BridgeInterceptor.kt:83)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.http.RealInterceptorChain.proceed (RealInterceptorChain.kt:100)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept (RetryAndFollowUpInterceptor.kt:76)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.http.RealInterceptorChain.proceed (RealInterceptorChain.kt:100)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp (RealCall.kt:197)
+</span></span><span class=line><span class=cl>    at okhttp3.internal.connection.RealCall.execute (RealCall.kt:148)
+</span></span><span class=line><span class=cl>    at test.App.main (App.java:23)
+</span></span><span class=line><span class=cl>    at org.codehaus.mojo.exec.ExecJavaMojo$1.run (ExecJavaMojo.java:254)
+</span></span><span class=line><span class=cl>    at java.lang.Thread.run (Thread.java:834)
+</span></span></code></pre></td></tr></table></div></div><p>正在就能證明 JAVA 程式會有問題</p><h2 id=java-其他驗證>Java 其他驗證</h2><p>這個也可以直接看到 Exception 錯誤內容</p><p><a href=https://github.com/UniconLabs/java-keystore-ssl-test target=_blank rel="noopener noreffer">UniconLabs/java-keystore-ssl-test: A simple script to verify SSL/HTTPS functionality of a remote host through JDK keystore.</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>mvn clean package
+</span></span><span class=line><span class=cl><span class=nb>cd</span> target
+</span></span><span class=line><span class=cl>java -jar java-keystore-test-0.1.0.jar https://google.com.tw
+</span></span></code></pre></td></tr></table></div></div><h2 id=其他程式>其他程式</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl https://xxx
+</span></span></code></pre></td></tr></table></div></div><p>golang 就用 postman 產生出來吧</p><h2 id=解決方法>解決方法</h2><p>apache VirtualServer 設定</p><p>ServerName xxx</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;VirtualHost</span> <span class=err>xxx:443</span><span class=nt>&gt;</span>
+</span></span><span class=line><span class=cl>ServerName www.example.com
+</span></span><span class=line><span class=cl>ServerAlias example.com www.example.com
+</span></span><span class=line><span class=cl>...
+</span></span></code></pre></td></tr></table></div></div><p><a href=https://qualys-secure.force.com/discussions/s/question/0D52L00004TnvXySAJ/client-aborts-on-sni-unrecognizedname-warning target=_blank rel="noopener noreffer">Client aborts on SNI unrecognized_name warning</a><br><a href=https://jervis.ws/qualys-labs-ssl-test-incorrect-sni-alerts/ target=_blank rel="noopener noreffer">Qualys Labs SSL Test - Incorrect SNI alerts - JERVIS DOT WS</a></p><p>其他相關<br><a href=https://stackoverflow.com/questions/37206209/handshake-alert-unrecognized-name-liberty-profile target=_blank rel="noopener noreffer">java - Handshake alert: Unrecognized_name Liberty Profile - Stack Overflow</a><br><a href=https://geekflare.com/ssl-test-certificate/ target=_blank rel="noopener noreffer">10 Online Tool to Test SSL, TLS and Latest Vulnerability - Geekflare</a></p><p><a href=https://github.com/drwetter/testssl.sh target=_blank rel="noopener noreffer">drwetter/testssl.sh: Testing TLS/SSL encryption anywhere on any port</a><br>git clone <a href=https://github.com/drwetter/testssl.sh target=_blank rel="noopener noreffer">https://github.com/drwetter/testssl.sh</a><br>chmod a+x testssh.sh<br>./testssh.sh google.com</p><p><a href=https://github.com/pornin/TestSSLServer target=_blank rel="noopener noreffer">pornin/TestSSLServer</a><br><a href="https://www.bear2little.net/wordpress/?paged=4" target=_blank rel="noopener noreffer">tord and lion&rsquo;s lair | 各式心得 | 頁 4</a></p><h2 id=感想>感想</h2><p>之前<a href=https://malagege.github.io/blog/2018/10/10/%E8%90%AC%E7%94%A8%E6%86%91%E8%AD%89-WildCard-%E5%92%8C%E4%B8%AD%E9%96%93%E6%86%91%E8%AD%89%E5%B0%8F%E8%A8%98/ target=_blank rel="noopener noreffer">萬用憑證(WildCard)和中間憑證小記 | 程式狂想筆記</a>就讓我以為就不會有其他問題<br>沒想到 Java 也有憑證這一關(好像是 Java 獨立的)<br>QQ 希望之後不要遇到類似這個問題</p><p><strong>2020-07-28</strong></p><h2 id=java-sslpoke-檢查>Java SSLPoke 檢查</h2><p>檢查也有找到這個方法可用<a href=https://dotblogs.com.tw/grayyin/2018/07/12/145718 target=_blank rel="noopener noreffer">[JAVA] SSL handshake連線測試工具 SSLPoke | 阿輝的零碎筆記 - 點部落</a></p><p>SSLPoke.java</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.PrintStream</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.net.ssl.SSLHandshakeException</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.net.ssl.SSLSocket</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.net.ssl.SSLSocketFactory</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>public</span> <span class=kd>class</span> <span class=nc>SSLPoke</span>
+</span></span><span class=line><span class=cl><span class=o>{</span>
+</span></span><span class=line><span class=cl>  <span class=kd>public</span> <span class=nf>SSLPoke</span><span class=o>()</span> <span class=o>{}</span>
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>  <span class=kd>public</span> <span class=kd>static</span> <span class=kt>void</span> <span class=nf>main</span><span class=o>(</span><span class=n>String</span><span class=o>[]</span> <span class=n>paramArrayOfString</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>  <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=o>(</span><span class=n>paramArrayOfString</span><span class=o>.</span><span class=na>length</span> <span class=o>!=</span> <span class=n>2</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;Utility to debug Java connections to SSL servers&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;Usage: &#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;  java &#34;</span> <span class=o>+</span> <span class=n>SSLPoke</span><span class=o>.</span><span class=na>class</span><span class=o>.</span><span class=na>getName</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34; &lt;host&gt; &lt;port&gt;&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;or for more debugging:&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;  java -Djavax.net.debug=ssl &#34;</span> <span class=o>+</span> <span class=n>SSLPoke</span><span class=o>.</span><span class=na>class</span><span class=o>.</span><span class=na>getName</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34; &lt;host&gt; &lt;port&gt;&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;Eg. to test the SSL certificate at https://localhost, use&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>err</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;  java &#34;</span> <span class=o>+</span> <span class=n>SSLPoke</span><span class=o>.</span><span class=na>class</span><span class=o>.</span><span class=na>getName</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34; localhost 443&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>exit</span><span class=o>(</span><span class=n>1</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>    <span class=k>try</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>      <span class=n>SSLSocketFactory</span> <span class=n>localSSLSocketFactory</span> <span class=o>=</span> <span class=o>(</span><span class=n>SSLSocketFactory</span><span class=o>)</span><span class=n>SSLSocketFactory</span><span class=o>.</span><span class=na>getDefault</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>      <span class=n>SSLSocket</span> <span class=n>localSSLSocket</span> <span class=o>=</span> <span class=o>(</span><span class=n>SSLSocket</span><span class=o>)</span><span class=n>localSSLSocketFactory</span><span class=o>.</span><span class=na>createSocket</span><span class=o>(</span><span class=n>paramArrayOfString</span><span class=o>[</span><span class=n>0</span><span class=o>],</span> <span class=n>Integer</span><span class=o>.</span><span class=na>parseInt</span><span class=o>(</span><span class=n>paramArrayOfString</span><span class=o>[</span><span class=n>1</span><span class=o>]));</span>
+</span></span><span class=line><span class=cl>      
+</span></span><span class=line><span class=cl>      <span class=n>java</span><span class=o>.</span><span class=na>io</span><span class=o>.</span><span class=na>InputStream</span> <span class=n>localInputStream</span> <span class=o>=</span> <span class=n>localSSLSocket</span><span class=o>.</span><span class=na>getInputStream</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>      <span class=n>java</span><span class=o>.</span><span class=na>io</span><span class=o>.</span><span class=na>OutputStream</span> <span class=n>localOutputStream</span> <span class=o>=</span> <span class=n>localSSLSocket</span><span class=o>.</span><span class=na>getOutputStream</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>      
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>      <span class=n>localOutputStream</span><span class=o>.</span><span class=na>write</span><span class=o>(</span><span class=n>1</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      
+</span></span><span class=line><span class=cl>      <span class=k>while</span> <span class=o>(</span><span class=n>localInputStream</span><span class=o>.</span><span class=na>available</span><span class=o>()</span> <span class=o>&gt;</span> <span class=n>0</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>print</span><span class=o>(</span><span class=n>localInputStream</span><span class=o>.</span><span class=na>read</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>      <span class=o>}</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;Successfully connected&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>      <span class=n>System</span><span class=o>.</span><span class=na>exit</span><span class=o>(</span><span class=n>0</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>    <span class=k>catch</span> <span class=o>(</span><span class=n>SSLHandshakeException</span> <span class=n>localSSLHandshakeException</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>      <span class=k>if</span> <span class=o>(</span><span class=n>localSSLHandshakeException</span><span class=o>.</span><span class=na>getCause</span><span class=o>()</span> <span class=o>!=</span> <span class=kc>null</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>localSSLHandshakeException</span><span class=o>.</span><span class=na>getCause</span><span class=o>().</span><span class=na>printStackTrace</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>      <span class=o>}</span> <span class=k>else</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>localSSLHandshakeException</span><span class=o>.</span><span class=na>printStackTrace</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>      <span class=o>}</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>localException</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>      <span class=n>localException</span><span class=o>.</span><span class=na>printStackTrace</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>    <span class=n>System</span><span class=o>.</span><span class=na>exit</span><span class=o>(</span><span class=n>1</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>  <span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>## 先打包成class
+</span></span><span class=line><span class=cl>$ javac SSLPoke.java
+</span></span><span class=line><span class=cl>$ java SSLPoke www.google.com 443
+</span></span></code></pre></td></tr></table></div></div><p>連線成功會顯示</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>$ java SSLPoke www.google.com 443
+</span></span><span class=line><span class=cl>Successfully connected
+</span></span></code></pre></td></tr></table></div></div><p>失敗就會出現一大堆錯</p><h3 id=handling-exception-javaxnetsslsslhandshakeexception-sunsecurityvalidatorvalidatorexception-pkix-path-building-failed-sunsecurityprovidercertpathsuncertpathbuilderexception-unable-to-find-valid-certification-path-to-requested-target>handling exception: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl> handling exception: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+</span></span><span class=line><span class=cl>sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+</span></span></code></pre></td></tr></table></div></div><p>不知道是哪裡出問題<br>但後來發現是根憑證沒有這個</p><ol><li>指定jks(加好根憑證)或自己加</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>java -Djavax.net.ssl.trustStore<span class=o>=</span> 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 吃公司內部jks 無可以設定</span>
+</span></span><span class=line><span class=cl><span class=c1>#java -Djavax.net.debug=ssl  -Djavax.net.ssl.trustStore=./jssecacerts.jks SSLPoke xxxx.aaa.com.tw 443</span>
+</span></span></code></pre></td></tr></table></div></div><p><a href=https://blog.csdn.net/iihero/article/details/7584162 target=_blank rel="noopener noreffer">获取访问目标主机的有效SSL/TLS证书 (无法直接得到证书时)_iihero@CSDN-CSDN博客</a></p><ol start=2><li>程式忽略掉<br><a href=https://blog.csdn.net/tiantianchuqiji/article/details/76639796 target=_blank rel="noopener noreffer">证书不安全解决HttpClient 如何忽略证书验证 - ALLOW_ALL_HOSTNAME_VERIFIER_tiantianchuqiji的博客-CSDN博客</a></li></ol><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-06-25</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/ data-title="Java 因憑證 SNI 問題驗證不過"><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/ data-title="Java 因憑證 SNI 問題驗證不過"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/ data-title="Java 因憑證 SNI 問題驗證不過"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Java-%E5%9B%A0%E6%86%91%E8%AD%89-SNI-%E5%95%8F%E9%A1%8C%E9%A9%97%E8%AD%89%E4%B8%8D%E9%81%8E/ data-title="Java 因憑證 SNI 問題驗證不過"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Linux-%E4%BD%BF%E7%94%A8-openvpn-%E9%80%A3%E7%B7%9A%E5%B0%8F%E8%A8%98/ class=prev rel=prev title="Linux 使用 openvpn 連線小記"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Linux 使用 openvpn 連線小記</a>
+<a href=/blog/posts/vagrant-%E5%95%9F%E5%8B%95%E7%84%A1%E6%B3%95%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ class=next rel=next title="vagrant 啟動無法自動掛載解決方法">vagrant 啟動無法自動掛載解決方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

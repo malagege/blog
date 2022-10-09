@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="最近同事搞不定 PHP7 AES 加密由於我們從 PHP5 升級到 PHP7我們換成 openssl 但是到 Android APP 解憑證的時候竟然驗證結果會不一樣??被同事抓去救火(同事也處理不行 XD)然後不熟加密原理的我第一件事情就是去 github 上面找 ChaoLiFL&#x2F;PHP-Java-AES-Encrypt-Decrypt: Pass data AES encrypted bet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) &amp; 一些加密雜記">
+<meta property="og:url" content="https://malagege.github.io/blog/2019/06/15/PHP-%E7%94%A8-AES-%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E7%B5%90%E6%9E%9C%E4%BD%9C%E7%B0%BD%E7%AB%A0%E4%B8%8D%E4%B8%80%E6%A8%A3-PKCS-%E4%B8%80%E4%BA%9B%E5%8A%A0%E5%AF%86%E9%9B%9C%E8%A8%98/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="最近同事搞不定 PHP7 AES 加密由於我們從 PHP5 升級到 PHP7我們換成 openssl 但是到 Android APP 解憑證的時候竟然驗證結果會不一樣??被同事抓去救火(同事也處理不行 XD)然後不熟加密原理的我第一件事情就是去 github 上面找 ChaoLiFL&#x2F;PHP-Java-AES-Encrypt-Decrypt: Pass data AES encrypted bet">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-06-15T07:08:34.000Z">
+<meta property="article:modified_time" content="2021-06-27T08:05:08.054Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="php">
+<meta property="article:tag" content="aes">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2019/06/15/PHP-%E7%94%A8-AES-%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E7%B5%90%E6%9E%9C%E4%BD%9C%E7%B0%BD%E7%AB%A0%E4%B8%8D%E4%B8%80%E6%A8%A3-PKCS-%E4%B8%80%E4%BA%9B%E5%8A%A0%E5%AF%86%E9%9B%9C%E8%A8%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) & 一些加密雜記 | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2019/06/15/PHP-%E7%94%A8-AES-%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E7%B5%90%E6%9E%9C%E4%BD%9C%E7%B0%BD%E7%AB%A0%E4%B8%8D%E4%B8%80%E6%A8%A3-PKCS-%E4%B8%80%E4%BA%9B%E5%8A%A0%E5%AF%86%E9%9B%9C%E8%A8%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) & 一些加密雜記
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2019-06-15 15:08:34" itemprop="dateCreated datePublished" datetime="2019-06-15T15:08:34+08:00">2019-06-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-06-27 16:05:08" itemprop="dateModified" datetime="2021-06-27T16:05:08+08:00">2021-06-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2019/06/15/PHP-%E7%94%A8-AES-%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E7%B5%90%E6%9E%9C%E4%BD%9C%E7%B0%BD%E7%AB%A0%E4%B8%8D%E4%B8%80%E6%A8%A3-PKCS-%E4%B8%80%E4%BA%9B%E5%8A%A0%E5%AF%86%E9%9B%9C%E8%A8%98/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/06/15/PHP-用-AES-加密解密結果作簽章不一樣-PKCS-一些加密雜記/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>最近同事搞不定 PHP7 AES 加密<br>由於我們從 PHP5 升級到 PHP7<br>我們換成 openssl 但是到 Android APP 解憑證的時候竟然驗證結果會不一樣??<br>被同事抓去救火(同事也處理不行 XD)<br>然後不熟加密原理的我<br>第一件事情就是去 github 上面找 <a href="https://github.com/ChaoLiFL/PHP-Java-AES-Encrypt-Decrypt" target="_blank" rel="noopener">ChaoLiFL/PHP-Java-AES-Encrypt-Decrypt: Pass data AES encrypted between PHP 5.x, PHP 7.1, PHP 7.2 and Java. Support two ways of encryption and decryption: Base64, Hexadecimal.</a><br>沒想到剛好可以用!!! (運氣好)<br>不過還是卡在 簽章 結果會不一樣</p>
+<a id="more"></a>
+<h2 id="AES-一些加密範例"><a href="#AES-一些加密範例" class="headerlink" title="AES 一些加密範例"></a>AES 一些加密範例</h2><p>今天又找了幾個 AES 加密</p>
+<ul>
+<li><a href="https://github.com/lyhiving/aes" target="_blank" rel="noopener">lyhiving/aes: 兼容 php、js、JAVA 的 AES 加密</a></li>
+<li><a href="https://github.com/pkuoliver/EasyAES" target="_blank" rel="noopener">pkuoliver/EasyAES: AES encrypt/decrypt, Android, iOS, php compatible(兼容 php, Android, iOS 平台)</a></li>
+<li><a href="https://github.com/simplephp/php-java-AES-128-ECB" target="_blank" rel="noopener">simplephp/php-java-AES-128-ECB: PHP &amp;&amp; JAVA AES/ECB/PKCS5Padding 相互加解密</a></li>
+<li><a href="https://github.com/stevenholder/PHP-Java-AES-Encrypt" target="_blank" rel="noopener">stevenholder/PHP-Java-AES-Encrypt: Pass data AES encrypted between PHP and Java.</a></li>
+</ul>
+<h2 id="當日狀況"><a href="#當日狀況" class="headerlink" title="當日狀況"></a>當日狀況</h2><p>首先紀錄，先整理那天的狀態<br>原本我同事會先做 簽章 → AES 加密<br>他們做簽章 check 都通過<br>但是到 AES 一直失敗<br>後來他們使用 openssl 一直試 AES<br>我用了 <a href="https://github.com/ChaoLiFL/PHP-Java-AES-Encrypt-Decrypt" target="_blank" rel="noopener">ChaoLiFL/PHP-Java-AES-Encrypt-Decrypt: Pass data AES encrypted between PHP 5.x, PHP 7.1, PHP 7.2 and Java. Support two ways of encryption and decryption: Base64, Hexadecimal.</a> 可以用了<br>(但可能沒有注意 console 後面有空白)<br>魔鬼總是藏在細節!!</p>
+<p>後來套用我那個加密，發現 APP 做簽章反查竟然不正確??<br>這時候我同事發現後面有空白!!!<br>原因是這個導致最簽章反查導致不正確<br>但是 PHP 內容印出來也不正確</p>
+<h2 id="簽章"><a href="#簽章" class="headerlink" title="簽章"></a>簽章</h2><p>首先講一下，我目前認知簽章是怕內容有被串改<br>所以正常近來如如內容 array 會改他做 <code>json_encode</code><br>在做 base64_url_encode(內容)<br>會做 hash_hmac <a href="https://www.php.net/manual/en/function.hash-hmac.php" target="_blank" rel="noopener">PHP: hash_hmac - Manual</a></p>
+<ul>
+<li><a href="https://blog.csdn.net/dengjiexian123/article/details/53313913" target="_blank" rel="noopener">php 中使用 hash_hmac 函数实现 HMAC-SHA1 签名算法的来龙去脉 - dengjiexian123 的专栏 - CSDN 博客</a></li>
+<li><a href="https://blog.m157q.tw/posts/2017/12/25/differences-between-encryption-and-hashing/" target="_blank" rel="noopener">加密和雜湊有什麼不一樣？ | Just for noting</a></li>
+<li><a href="https://gist.github.com/frankyueh/3d5d45236339ff0097a7" target="_blank" rel="noopener">Code Sign - 程式碼數位簽章</a></li>
+<li><a href="https://blog.darkthread.net/blog/base64-in-querystring/" target="_blank" rel="noopener">TIPS-用 URL 傳送 Base64 編碼-黑暗執行緒</a></li>
+</ul>
+<p>這時候還會做 base64 url encode(簽章)</p>
+<blockquote>
+<p>why 用 base64 url encode ?<br><a href="http://xxxx/?token=xxxxxxx" target="_blank" rel="noopener">http://xxxx/?token=xxxxxxx</a><br>這時候不做 base64 url encode，可能就會有問題</p>
+</blockquote>
+<p><del>這之間可能可以去換一些符號</del> (+/改為*-或._) 如上補充 url 不能放+/</p>
+<ul>
+<li><a href="https://blog.longwin.com.tw/2018/12/php-base64-url-encode-decode-2018/" target="_blank" rel="noopener">PHP 處理 Base64 URL 的編碼、解碼方式 | Tsung’s Blog</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html" target="_blank" rel="noopener">JSON Web Token 入门教程 - 阮一峰的网络日志</a></li>
+</ul>
+<p>裡面也有提到 base64 url encode<br>PS:<a href="https://zh.wikipedia.org/wiki/Base64" target="_blank" rel="noopener">Base64 - 維基百科，自由的百科全書</a>，原因為何我也不確定，目前猜測可能是怕放在 url 上面??</p>
+<p>這時候內容會是<code>簽章</code>+ <code>.(間隔符號)</code>+<code>內容</code><br>出來的時候我們會用 AES 加密<br>這時候因為是 binary，所以還會做 Base64(也可以用自己去換一些符號)</p>
+<p>APP 端接收到要做檢查<br>首先解 base64 url decode<del>(或自訂反解 fucntion)</del><br>去做 AES 解密<br>這時候會是 binary(但是 PHP 出來是 string?) 這邊可能還要確認<br>我們要再做 base64 url decode</p>
+<blockquote>
+<p>這邊講詳細一點<br><code>簽章</code>+ <code>.(間隔符號)</code>+<code>內容</code><br>這時候可以做反簽章<br>簽章跟內容是分開獨立各做<code>base64 url decode</code></p>
+</blockquote>
+<p>內容解出來，在自己做 <code>hash_hmac</code><br>可以得到自己<code>簽章內容</code></p>
+<p>這時候跟風包給的簽章內容有沒有一致?<br>一致就是這個資料沒有被串改</p>
+<p><strong>簽章講完了，重頭戲要開始了</strong></p>
+<h2 id="為什麼送到-Android-有奇怪的空白字元-PKCS7"><a href="#為什麼送到-Android-有奇怪的空白字元-PKCS7" class="headerlink" title="為什麼送到 Android 有奇怪的空白字元??(PKCS7)"></a>為什麼送到 Android 有奇怪的空白字元??(PKCS7)</h2><p>是 PKCS7 的關係</p>
+<p>簡單說明一下，因為 AES 加密必須是 16 倍數(應該= =|||，是聽到這個原因)<br>當你資料沒有給到一定的數字，它會自動幫你補</p>
+<p>我們當下用 workaround 方式先去解在我們資料帶<code>===</code>講好符號先去解取<br>但最佳解不是這樣做</p>
+<ul>
+<li><a href="https://www.heylc.com/fuanyuopenssl.html" target="_blank" rel="noopener">关于 mcrypt_encrypt 和 openssl_encrypt 加密结果不一致的解决 – 继续生活</a></li>
+<li><a href="https://www.xxling.com/blog/article/3114.aspx" target="_blank" rel="noopener">PHP 由 mcrypt 扩展加密改为 openssl 扩展加密|xiaolingzi’s blog | 生活是多彩的 | Life is colorful</a></li>
+<li><a href="https://kknews.cc/zh-tw/other/9pgvlpl.html" target="_blank" rel="noopener">php 遷移 Mcrypt 至 OpenSSL 加密算法的詳細介紹（代碼示例） - 每日頭條</a></li>
+<li><a href="https://zhiwei.li/text/2009/05/17/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%E7%9A%84pkcs5%E5%92%8Cpkcs7%E5%A1%AB%E5%85%85/" target="_blank" rel="noopener">对称加密算法的 PKCS5 和 PKCS7 填充 | Zhiwei Li</a></li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * PKCS7Encoder class</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 提供基于PKCS7算法的加解密接口.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PKCS7Encoder</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> $block_size = <span class="number">32</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	* 对需要加密的明文进行填充补位</span></span><br><span class="line"><span class="comment">	* <span class="doctag">@param</span> $text 需要进行填充补位操作的明文</span></span><br><span class="line"><span class="comment">	* <span class="doctag">@return</span> 补齐明文字符串</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">encode</span><span class="params">($text)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		$block_size = <span class="keyword">self</span>::$block_size;</span><br><span class="line">		$text_length = strlen($text);</span><br><span class="line">		<span class="comment">//计算需要填充的位数</span></span><br><span class="line">		$amount_to_pad = $block_size - ($text_length % $block_size);</span><br><span class="line">		<span class="keyword">if</span> ( $amount_to_pad == <span class="number">0</span> )</span><br><span class="line">			$amount_to_pad = $block_size;</span><br><span class="line">		<span class="comment">//获得补位所用的字符</span></span><br><span class="line">		$pad_chr = chr($amount_to_pad);</span><br><span class="line">		$tmp = <span class="string">""</span>;</span><br><span class="line">		<span class="keyword">for</span> ( $index = <span class="number">0</span>; $index &lt; $amount_to_pad; $index++ )</span><br><span class="line">			$tmp .= $pad_chr;</span><br><span class="line">		<span class="keyword">return</span> $text . $tmp;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	* 对解密后的明文进行补位删除</span></span><br><span class="line"><span class="comment">	* <span class="doctag">@param</span> decrypted 解密后的明文</span></span><br><span class="line"><span class="comment">	* <span class="doctag">@return</span> 删除填充补位后的明文</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">decode</span><span class="params">($text)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		$pad = ord(substr($text, <span class="number">-1</span>));</span><br><span class="line">		<span class="keyword">if</span> ($pad &lt; <span class="number">1</span> || $pad &gt; <span class="keyword">self</span>::$block_size)</span><br><span class="line">			$pad = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">return</span> substr($text, <span class="number">0</span>, (strlen($text) - $pad));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ---------------------</span></span><br><span class="line"><span class="comment">// 作者：qq_34089779</span></span><br><span class="line"><span class="comment">// 来源：CSDN</span></span><br><span class="line"><span class="comment">// 原文：https://blog.csdn.net/qq_34089779/article/details/79066961</span></span><br><span class="line"><span class="comment">// 版权声明：本文为博主原创文章，转载请附上博文链接！</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="https://blog.csdn.net/qq_34089779/article/details/79066961" target="_blank" rel="noopener">PKCS7 算法基于 php 的加解密 - qq_34089779 的博客 - CSDN 博客</a></li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">PKCS7Padding</span><span class="params">($str, $block_size)</span> </span>&#123;</span><br><span class="line">    $padding_char = $block_size - (strlen($str) % $block_size);</span><br><span class="line">    $padding_str = str_repeat(chr($padding_char),$padding_char);</span><br><span class="line">    <span class="keyword">return</span> $str.$padding_str;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">PKCS7UnPadding</span><span class="params">($str)</span> </span>&#123;</span><br><span class="line">    $char=substr($str,<span class="number">-1</span>,<span class="number">1</span>);</span><br><span class="line">    $num=ord($char);</span><br><span class="line">    <span class="keyword">if</span>($num&gt;<span class="number">0</span> &amp;&amp; $num &lt;= strlen($str)) &#123;</span><br><span class="line">        $str = substr($str, <span class="number">0</span>, <span class="number">-1</span> * $num);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> $str;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a href="http://www.imsry.cn/posts/5c3bf0b6.html" target="_blank" rel="noopener">PHP 加解密算法使用 openssl 替换 mcrypt 扩展 | 牛牛大作栈</a> <a href="/blog/2019/06/15/PHP-%E7%94%A8-AES-%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E7%B5%90%E6%9E%9C%E4%BD%9C%E7%B0%BD%E7%AB%A0%E4%B8%8D%E4%B8%80%E6%A8%A3-PKCS-%E4%B8%80%E4%BA%9B%E5%8A%A0%E5%AF%86%E9%9B%9C%E8%A8%98/web1.png" title="備份圖">備份圖</a><br>有驗證上面兩個函示，得出來結果都是相等的。<br>但注意，在上面 echo 出來，網頁或 log 上面都不會有字元<br>要看 var_dump 會比較準</li>
+</ul>
+<ul>
+<li><a href="https://my.oschina.net/luoxiaojun1992/blog/883123" target="_blank" rel="noopener">AES/CBC/PKCS5Padding 的 PHP 实现 - luoxiaojun1992 的个人空间 - OSCHINA</a></li>
+</ul>
+<p>主要的填充算法有填充 NUL(“0”) 和 PKCS7，Mcrypt 默認使用的 NUL(“0”) 填充算法，當前已不被推薦，OpenSSL 則默認模式使用 PKCS7 對數據進行填充並對加密後的數據進行了 base64encode 編碼，所以建議開發中使用 PKCS7 對待加密數據進行填充，已保證通用性（alipay sdk 中雖然使用了 Mcrypt 加密簇，但使用 PKCS7 算法對數據進行了填充，這樣在一定程度上親和了 OpenSSL 加密算法）。</p>
+<p>原文網址：<a href="https://kknews.cc/zh-tw/other/9pgvlpl.html" target="_blank" rel="noopener">https://kknews.cc/zh-tw/other/9pgvlpl.html</a></p>
+<p><a href="https://segmentfault.com/a/1190000016804661" target="_blank" rel="noopener">php 如何 openssl_encrypt 加密解密 - 个人文章 - SegmentFault 思否</a><br>有說<code>OPENSSL_ZERO_PADDING</code>會自動填充<br>但測試結果沒有效果 OPENSSL_RAW_DATA 方式【会用 PKCS#7 进行补位】</p>
+<h2 id="簡單說我對簽章的定義"><a href="#簡單說我對簽章的定義" class="headerlink" title="簡單說我對簽章的定義"></a>簡單說我對簽章的定義</h2>
+<p>簽章主要目的加密，而是防止資料有被串改</p>
+<p>ebc 是沒有 iv 的，cbc 是有 iv 的<br>有用 iv 會比較安全，但是 iv 長度是有限制的<br><a href="https://github.com/lyhiving/aes" target="_blank" rel="noopener">lyhiving/aes: 兼容 php、js、JAVA 的 AES 加密</a><br>詳細的我就沒研究</p>
+<p>當天跟所有公司留到半夜 4:30 回去，也許這就是技術債!!!<br>希望不要有上班回家的時候不要再看到太陽出來了</p>
+<p>題外小記<br>matrix 做翻書效果，搭配 向量矩陣 和<a href="https://www.xuanfengge.com/easeing/easeing/" target="_blank" rel="noopener">缓动函数速查表</a><br>有很好展示效果</p>
+<p><a href="https://github.com/jlmakes/rematrix" target="_blank" rel="noopener">jlmakes/rematrix: Matrix transformations made easy.</a><br><a href="http://www.useragentman.com/matrix/#E4UwziAuBCCumQPYDsBMBeASuKACAYosALYBkAZsIsQAwAe6NFVtAno6UvegMwAcAFk6Ia7AIwA2IZWpjxNJkjEMeAicLnpU25tVQMxC4fvQBWAOymAdAE47NiTYF9UA1GJvHxAnsJ4MfXyQedlVUUgATRB4AEXRIYFgQUgBLCLF0AGVYACNiFMhUiIxsCEKAC0hiABsAYRRIEGRIdAAeAAcAPgAVcpSwXH7cAENcHOrEAGMAa1wQapBiJsgrVoB6LoAoUkmwMHrm5fQ1gCpN3BOCEHncSmvcJDmIgpHkVlxEcgfykFwwSFYCwGOXmiAA7lZzic1ptNqc5sgwLBQCNqtVvr95otlgN-oCQBExqCwbhYBAxkQIiBgABaHKIOgXGFWcZTaYAGlwAGIAObANK4ADe51wovpdBpYBSAC8UsgeQAuCnAKm08UAbk2AF9YfDer9EDkAFYgSaQInkIi-F5DBLDRGWkgEpmbLmIMRCkVi4YzPmIWDICJKrnkciTcOTTU6uGXfUfY2m83DciNYCDc3lYbA67IB7Ae1gR1LQnQ12IVCe0Xe31UANB7kRyahqO6y71YjEFB-AFA25ECmMw0ms1gKwulkTGaVquW5qSmUgJVyn78yBR3Ct3C1TKZPtpyA-XB8gWl3n8wnCqtjH3TP11pXI6oACgARCliMMeeA1jkb3fA1YPIpOQL4AJS4KA7QgMM5pgJMVBorgNBIbgYJ9I0mpXj8KQ8pUSp8Ao7R0JhVbtIgUqQCkKBKqA1QwSkABuIAkaKiBMcA5ATGCSp9BEVLIC2RQ8FkuT5OaAAS3QALIADKvIS26ZEUAjoLU9qTPMRSmOgkwTBARQSDpekgEAA" target="_blank" rel="noopener">The CSS3 Matrix Construction Set</a><br><a href="http://www.csie.ntnu.edu.tw/~u91029/LinearFunction.html" target="_blank" rel="noopener">演算法筆記 - Linear Function</a></p>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/php/" rel="tag"># php</a>
+              <a href="/blog/tags/aes/" rel="tag"># aes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2019/06/05/Laravel-%E6%96%B0%E6%89%8B%E5%AF%A6%E4%BD%9C-Vue-js-%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95-%E5%92%8C-yield-%E6%87%89%E7%94%A8/" rel="prev" title="Laravel 新手實作 Vue.js 簡單使用方法 和 yield 應用">
+      <i class="fa fa-chevron-left"></i> Laravel 新手實作 Vue.js 簡單使用方法 和 yield 應用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2019/06/16/Homestead-%E6%9E%B6%E8%A8%AD-Laravel-%E7%92%B0%E5%A2%83%E5%B0%8F%E8%A8%98/" rel="next" title="Homestead 架設 Laravel 環境小記">
+      Homestead 架設 Laravel 環境小記 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#AES-一些加密範例"><span class="nav-number">1.</span> <span class="nav-text">AES 一些加密範例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#當日狀況"><span class="nav-number">2.</span> <span class="nav-text">當日狀況</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#簽章"><span class="nav-number">3.</span> <span class="nav-text">簽章</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#為什麼送到-Android-有奇怪的空白字元-PKCS7"><span class="nav-number">4.</span> <span class="nav-text">為什麼送到 Android 有奇怪的空白字元??(PKCS7)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#簡單說我對簽章的定義"><span class="nav-number">5.</span> <span class="nav-text">簡單說我對簽章的定義</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2019/06/15/PHP-%E7%94%A8-AES-%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E7%B5%90%E6%9E%9C%E4%BD%9C%E7%B0%BD%E7%AB%A0%E4%B8%8D%E4%B8%80%E6%A8%A3-PKCS-%E4%B8%80%E4%BA%9B%E5%8A%A0%E5%AF%86%E9%9B%9C%E8%A8%98/";
+    this.page.identifier = "2019/06/15/PHP-用-AES-加密解密結果作簽章不一樣-PKCS-一些加密雜記/";
+    this.page.title = "PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) & 一些加密雜記";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

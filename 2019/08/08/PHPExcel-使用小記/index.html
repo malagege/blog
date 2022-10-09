@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="最近做報表業務，有包含一些排版，對這些非常不熟竟然都用了，紀錄一下我覺得實用筆記PHPExcel 已經被廢棄了，取而代之的是PHPOffice&#x2F;PhpSpreadsheet: A pure PHP library for reading and writing spreadsheet files但這篇還是以 PHPExcel 為主">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHPExcel 使用小記">
+<meta property="og:url" content="https://malagege.github.io/blog/2019/08/08/PHPExcel-%E4%BD%BF%E7%94%A8%E5%B0%8F%E8%A8%98/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="最近做報表業務，有包含一些排版，對這些非常不熟竟然都用了，紀錄一下我覺得實用筆記PHPExcel 已經被廢棄了，取而代之的是PHPOffice&#x2F;PhpSpreadsheet: A pure PHP library for reading and writing spreadsheet files但這篇還是以 PHPExcel 為主">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-08-08T14:17:38.000Z">
+<meta property="article:modified_time" content="2021-06-27T08:05:08.062Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="phpexcel">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2019/08/08/PHPExcel-%E4%BD%BF%E7%94%A8%E5%B0%8F%E8%A8%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>PHPExcel 使用小記 | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2019/08/08/PHPExcel-%E4%BD%BF%E7%94%A8%E5%B0%8F%E8%A8%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PHPExcel 使用小記
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2019-08-08 22:17:38" itemprop="dateCreated datePublished" datetime="2019-08-08T22:17:38+08:00">2019-08-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-06-27 16:05:08" itemprop="dateModified" datetime="2021-06-27T16:05:08+08:00">2021-06-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2019/08/08/PHPExcel-%E4%BD%BF%E7%94%A8%E5%B0%8F%E8%A8%98/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/08/08/PHPExcel-使用小記/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>最近做報表業務，有包含一些排版，對這些非常不熟<br>竟然都用了，紀錄一下我覺得實用筆記<br>PHPExcel 已經被廢棄了，取而代之的是<a href="https://github.com/PHPOffice/PhpSpreadsheet" target="_blank" rel="noopener">PHPOffice/PhpSpreadsheet: A pure PHP library for reading and writing spreadsheet files</a><br>但這篇還是以 PHPExcel 為主</p>
+<a id="more"></a>
+<p><a href="https://github.com/PHPOffice/PHPExcel" target="_blank" rel="noopener">PHPOffice/PHPExcel: ARCHIVED</a></p>
+<p>PhpSpreadsheet 一些 note 可以看<a href="https://www.cnblogs.com/leestar54/p/7786806.html" target="_blank" rel="noopener">phpspreadsheet 开发手记 - leestar54 - 博客园</a> <a href="/blog/2019/08/08/PHPExcel-%E4%BD%BF%E7%94%A8%E5%B0%8F%E8%A8%98/web1.png" title="備份圖">備份圖</a></p>
+<h2 id="載入-PHPEXCEL"><a href="#載入-PHPEXCEL" class="headerlink" title="載入 PHPEXCEL"></a>載入 PHPEXCEL</h2><p><a href="https://github.com/PHPOffice/PHPExcel/tree/1.8/Classes" target="_blank" rel="noopener">PHPExcel/Classes at 1.8 · PHPOffice/PHPExcel</a></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** PHPExcel */</span></span><br><span class="line"><span class="keyword">require_once</span> <span class="string">"lib/excel/PHPExcel.php"</span>;</span><br><span class="line"><span class="comment">/** PHPExcel_IOFactory */</span></span><br><span class="line"><span class="keyword">require_once</span> <span class="string">"lib/excel/PHPExcel/IOFactory.php"</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="worksheet-工作表-設定"><a href="#worksheet-工作表-設定" class="headerlink" title="worksheet(工作表)設定"></a>worksheet(工作表)設定</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 建立工作表並指定名稱</span></span><br><span class="line">$index = <span class="number">0</span>;</span><br><span class="line">$objPHPExcel-&gt;setActiveSheetIndex($index);  <span class="comment">//設定預設顯示的工作表</span></span><br><span class="line"><span class="comment">// Rename sheet(sheet名稱)</span></span><br><span class="line"><span class="comment">// 重新命名 sheet 名稱</span></span><br><span class="line">$month_date = substr($ym, <span class="number">0</span>, <span class="number">4</span>).<span class="string">"."</span>.substr($ym, <span class="number">-2</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;setTitle($month_date);</span><br></pre></td></tr></table></figure>
+<h2 id="背景顏色設定"><a href="#背景顏色設定" class="headerlink" title="背景顏色設定"></a>背景顏色設定</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//設定背景顏色為"鮮黃色" (單色)</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1:A2"</span>)-&gt;applyFromArray(</span><br><span class="line">    <span class="keyword">array</span>(</span><br><span class="line">        <span class="string">"fill"</span> =&gt; <span class="keyword">array</span>(</span><br><span class="line">            <span class="string">"type"</span> =&gt; PHPExcel_Style_Fill::FILL_SOLID,</span><br><span class="line">            <span class="string">"color"</span>=&gt; <span class="keyword">array</span>(<span class="string">"rgb"</span> =&gt; <span class="string">"FFFF00"</span>) ),</span><br><span class="line">    )</span><br><span class="line">);</span><br><span class="line"><span class="comment">//設定背景顏色為"淡黃色"</span></span><br><span class="line">$backcolor = <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">'fill'</span> =&gt; <span class="keyword">array</span>(</span><br><span class="line">        <span class="string">'type'</span> =&gt; PHPExcel_Style_Fill::FILL_SOLID,</span><br><span class="line">        <span class="string">'color'</span>=&gt; <span class="keyword">array</span>(<span class="string">'rgb'</span> =&gt; <span class="string">'FFFFAB'</span>)</span><br><span class="line">    ),</span><br><span class="line">);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1"</span>)-&gt;applyFromArray($backcolor);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A3:B3"</span>)-&gt;applyFromArray($backcolor);</span><br></pre></td></tr></table></figure>
+<h2 id="設定框線格式"><a href="#設定框線格式" class="headerlink" title="設定框線格式"></a>設定框線格式</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 設定框線格式</span></span><br><span class="line"><span class="comment">// 用陣列設定 全框線</span></span><br><span class="line">$style_array = <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">'borders'</span> =&gt; <span class="keyword">array</span>(</span><br><span class="line">        <span class="string">'allborders'</span> =&gt; <span class="keyword">array</span>(</span><br><span class="line">            <span class="string">'style'</span> =&gt; PHPExcel_Style_Border::BORDER_THIN,</span><br><span class="line">            <span class="string">'color'</span> =&gt; <span class="keyword">array</span>(<span class="string">'rgb'</span> =&gt; <span class="string">'000000'</span>) ),</span><br><span class="line">    )</span><br><span class="line">);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1:O"</span>.$rows_count.<span class="string">""</span>)-&gt;applyFromArray($style_array);</span><br><span class="line"><span class="comment">// 下底線</span></span><br><span class="line"><span class="comment">// 總計很常用到</span></span><br><span class="line">$bottom = <span class="keyword">array</span>(</span><br><span class="line"><span class="string">'borders'</span> =&gt; <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">'bottom'</span>  =&gt; <span class="keyword">array</span>(</span><br><span class="line">        <span class="string">'style'</span> =&gt; PHPExcel_Style_Border::BORDER_MEDIUM,</span><br><span class="line">        <span class="string">'color'</span> =&gt; <span class="keyword">array</span>(<span class="string">'rgb'</span> =&gt; <span class="string">'000000'</span>) ),</span><br><span class="line">)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h2 id="字體設定"><a href="#字體設定" class="headerlink" title="字體設定"></a>字體設定</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 設定字型大小</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1"</span>)-&gt;getFont()-&gt;setSize(<span class="number">11</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A2:B10"</span>)-&gt;getFont()-&gt;setSize(<span class="number">10</span>);</span><br><span class="line"><span class="comment">// 粗體</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1:B2"</span>)-&gt;getFont()-&gt;setBold(<span class="keyword">true</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A6:I6"</span>)-&gt;getFont()-&gt;setBold(<span class="keyword">true</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"N2"</span>)-&gt;getFont()-&gt;setBold(<span class="keyword">false</span>);</span><br><span class="line"><span class="comment">// 動態算位置技巧</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A"</span>.($rows_count).<span class="string">":O"</span>.($rows_count).<span class="string">""</span>)-&gt;getFont()-&gt;setBold(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">// 自動換行</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A3:B3"</span>)-&gt;getAlignment()-&gt;setWrapText(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="欄位給予值"><a href="#欄位給予值" class="headerlink" title="欄位給予值"></a>欄位給予值</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//設定A1欄位顯示文字2015-08</span></span><br><span class="line">$month_date = substr($ym, <span class="number">0</span>, <span class="number">4</span>).<span class="string">"-"</span>.substr($ym, <span class="number">-2</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;setCellValue(<span class="string">"A1"</span>, $month_date );</span><br></pre></td></tr></table></figure>
+<h2 id="欄位類型"><a href="#欄位類型" class="headerlink" title="欄位類型"></a>欄位類型</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//設定成數字</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getCell(<span class="string">"B20"</span>)-&gt;setValueExplicit(<span class="number">1000</span>, PHPExcel_Cell_DataType::TYPE_NUMERIC);</span><br><span class="line"><span class="comment">//設定成百分比</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"B20"</span>)-&gt;getNumberFormat()-&gt;setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE_00);</span><br></pre></td></tr></table></figure>
+<h2 id="欄位對齊方式"><a href="#欄位對齊方式" class="headerlink" title="欄位對齊方式"></a>欄位對齊方式</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//水平對齊 setVertiacl 垂直對齊 setHorizontal</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">VERTICAL_CENTER 垂直置中</span></span><br><span class="line"><span class="comment">VERTICAL_TOP</span></span><br><span class="line"><span class="comment">HORIZONTAL_CENTER</span></span><br><span class="line"><span class="comment">HORIZONTAL_RIGHT</span></span><br><span class="line"><span class="comment">HORIZONTAL_LEFT</span></span><br><span class="line"><span class="comment">HORIZONTAL_JUSTIFY</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1:B3"</span>)-&gt;getAlignment()-&gt;setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1:B3"</span>)-&gt;getAlignment()-&gt;setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1:A"</span>.$rows_count.<span class="string">""</span>)-&gt;getAlignment()-&gt;setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"B1:B"</span>.$rows_count.<span class="string">""</span>)-&gt;getAlignment()-&gt;setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 合併儲存格</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;mergeCells(<span class="string">"A1:B1"</span>);</span><br><span class="line"><span class="comment">// or</span></span><br><span class="line">$objPHPExcel-&gt;setActiveSheetIndex(<span class="number">0</span>)-&gt;mergeCells(<span class="string">'A1:C1'</span>);</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 取消 合併儲存格</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"><span class="comment">// [How to Merge/unmerge cells in PHPExcel | Degree Documentation](https://degreedocumentation.wordpress.com/2012/08/17/how-to-mergeunmerge-cells/)</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;unmergeCells(<span class="string">'A18:E22'</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="字體顏色"><a href="#字體顏色" class="headerlink" title="字體顏色"></a>字體顏色</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 設定字體顏色</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">這裡有列出可用英文單字表示的顏色，並不多。</span></span><br><span class="line"><span class="comment">COLOR_BLACK</span></span><br><span class="line"><span class="comment">COLOR_BLUE</span></span><br><span class="line"><span class="comment">COLOR_DARKBLUE</span></span><br><span class="line"><span class="comment">COLOR_DARKGREEN</span></span><br><span class="line"><span class="comment">COLOR_DARKRED</span></span><br><span class="line"><span class="comment">COLOR_DARKYELLOW</span></span><br><span class="line"><span class="comment">COLOR_GREEN</span></span><br><span class="line"><span class="comment">COLOR_RED</span></span><br><span class="line"><span class="comment">COLOR_WHITE</span></span><br><span class="line"><span class="comment">COLOR_YELLOW</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">$gray = <span class="keyword">array</span>(</span><br><span class="line"><span class="string">'font'</span>  =&gt; <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">'color'</span> =&gt; <span class="keyword">array</span>(<span class="string">'rgb'</span> =&gt; <span class="string">'BABABA'</span>),</span><br><span class="line">));</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"I1:I7"</span>)-&gt;applyFromArray($gray);</span><br><span class="line"></span><br><span class="line">$yellow = <span class="keyword">array</span>(</span><br><span class="line"><span class="string">'fill'</span>  =&gt; <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">'type'</span> =&gt; PHPExcel_Style_Fill::FILL_SOLID,</span><br><span class="line">    <span class="string">'color'</span> =&gt; <span class="keyword">array</span>(<span class="string">'rgb'</span> =&gt; <span class="string">'FFFF00'</span>),</span><br><span class="line">));</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"F1:F2"</span>)-&gt;applyFromArray($yellow);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"I2"</span>)-&gt;applyFromArray($yellow);</span><br></pre></td></tr></table></figure>
+<h2 id="欄位寬度、高度設定"><a href="#欄位寬度、高度設定" class="headerlink" title="欄位寬度、高度設定"></a>欄位寬度、高度設定</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//設定 cell 高度</span></span><br><span class="line"><span class="comment">// 设置默认行高 getDefaultRowDimension</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getDefaultRowDimension()-&gt;setRowHeight(<span class="number">12</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getRowDimension(<span class="number">1</span>)-&gt;setRowHeight(<span class="number">16</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getRowDimension(<span class="number">2</span>)-&gt;setRowHeight(<span class="number">16</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getRowDimension(<span class="number">3</span>)-&gt;setRowHeight(<span class="number">36</span>);</span><br><span class="line"><span class="comment">//設定的欄位寬度(+0.71才正確)</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getColumnDimension(<span class="string">'A'</span>)-&gt;setWidth(<span class="number">17</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getColumnDimension(<span class="string">'B'</span>)-&gt;setWidth(<span class="number">6</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="欄位數值資料格式"><a href="#欄位數值資料格式" class="headerlink" title="欄位數值資料格式"></a>欄位數值資料格式</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 網底</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"A1"</span>)-&gt;getFill()-&gt;setFillType(PHPExcel_Style_Fill::FILL_PATTERN_LIGHTTRELLIS);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 設定成數字，並且有千分位逗號</span></span><br><span class="line"><span class="comment">// excel格式設定裡的#：代表數字，多餘的0會去掉。</span></span><br><span class="line"><span class="comment">// excel格式設定裡的0:基本上跟#一樣，但是多餘的0會保留。</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"D4:D"</span>.($rows_count).<span class="string">""</span>)-&gt;getNumberFormat()-&gt;setFormatCode(<span class="string">'#,##0'</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"O4:O"</span>.($rows_count).<span class="string">""</span>)-&gt;getNumberFormat()-&gt;setFormatCode(<span class="string">'$#,##0'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 設定成百分比</span></span><br><span class="line"><span class="comment">// 設定拆款百分比30.00%</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"E3:E"</span>.($rows_count).<span class="string">""</span>)-&gt;getNumberFormat()-&gt;setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE_00);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"G3:G"</span>.($rows_count).<span class="string">""</span>)-&gt;getNumberFormat()-&gt;setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE_00);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(<span class="string">"H3:H"</span>.($rows_count).<span class="string">""</span>)-&gt;getNumberFormat()-&gt;setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getCell(<span class="string">'H4'</span>)-&gt;setValueExplicit(<span class="string">'0.3'</span>, PHPExcel_Cell_DataType::TYPE_NUMERIC);</span><br></pre></td></tr></table></figure>
+<h2 id="凍結窗格"><a href="#凍結窗格" class="headerlink" title="凍結窗格"></a>凍結窗格</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//凍結窗格</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;freezePane(<span class="string">'A6'</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;freezePane(<span class="string">'D6'</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="建立新的"><a href="#建立新的" class="headerlink" title="建立新的"></a>建立新的</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$objPHPExcel-&gt;createSheet(); <span class="comment">//建立新的工作表</span></span><br><span class="line">$objPHPExcel-&gt;setActiveSheetIndex($index+<span class="number">1</span>);<span class="comment">//現編輯頁</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;setTitle(<span class="string">"標題名稱"</span>);  <span class="comment">//設定標題</span></span><br></pre></td></tr></table></figure>
+<h2 id="動態處理橫軸資料-A-AZ"><a href="#動態處理橫軸資料-A-AZ" class="headerlink" title="動態處理橫軸資料(A~AZ)"></a>動態處理橫軸資料(A~AZ)</h2><p>PHPExcel 可以用 <code>$objPHPExcel-&gt;getActiveSheet()-&gt;setCellValue(&quot;A1&quot;, $month_date );</code><br>塞值真的非常方便<br>但是沒辦法動態產生資料<br>可以透過<code>setCellValueByColumnAndRow</code><br>但注意第一個欄(column 英文)是從 0 開始<br>列是從 1 開始<br><code>$objPHPExcel-&gt;getActiveSheet()-&gt;setCellValueByColumnAndRow(0, 1,&quot;2019-04月&quot;);</code></p>
+<p>但還有一個問題，就是轉換 getStyle 沒有這類似 function<br><code>PHPExcel_Cell::stringFromColumnIndex</code> 可以簡單轉換<br>stringFromColumnIndex(0) = ‘A’ &lt;=&gt; columnIndexFromString</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一般</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;setCellValueByColumnAndRow(<span class="number">0</span>, <span class="number">1</span>,.<span class="string">"2019-04月"</span>);</span><br><span class="line"><span class="comment">// 合併儲存格</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;mergeCellsByColumnAndRow( $index, <span class="number">1</span>, $index + <span class="number">8</span> , <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// PHPExcel_Cell::stringFromColumnIndex</span></span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(PHPExcel_Cell::stringFromColumnIndex( $index ).<span class="string">'1'</span>)-&gt;getAlignment()-&gt;setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;getStyle(PHPExcel_Cell::stringFromColumnIndex( $index ).<span class="string">'1'</span>)-&gt;getAlignment()-&gt;setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 公式運算方法</span></span><br><span class="line">$col1 = PHPExcel_Cell::stringFromColumnIndex($index + <span class="number">1</span>);</span><br><span class="line">$col2 = PHPExcel_Cell::stringFromColumnIndex($index + <span class="number">2</span>);</span><br><span class="line">$col3 = PHPExcel_Cell::stringFromColumnIndex($index + <span class="number">3</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;setCellValueByColumnAndRow($o2, <span class="string">'4'</span>,<span class="string">"=&#123;$col1&#125;4+&#123;$col2&#125;4+&#123;$col3&#125;4"</span>);</span><br><span class="line">$objPHPExcel-&gt;getActiveSheet()-&gt;setCellValueByColumnAndRow($o2, <span class="string">'4'</span>,<span class="string">"=SUM(&#123;$scol&#125;$5:&#123;$scol&#125;$"</span>.($nu+<span class="number">4</span>).<span class="string">")"</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="匯出-EXCEL"><a href="#匯出-EXCEL" class="headerlink" title="匯出 EXCEL"></a>匯出 EXCEL</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Export to Excel2007 (.xlsx)</span></span><br><span class="line">$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, <span class="string">"Excel2007"</span>);</span><br><span class="line">$objWriter-&gt;save(<span class="string">'export/filename.xlsx'</span>);</span><br></pre></td></tr></table></figure>
+<p><a href="http://ron314159.blogspot.com/2011/02/phpexcel.html" target="_blank" rel="noopener">Ron, Run ~~: PHPExcel - 如何設定儲存格代號</a><br><a href="https://www.puritys.me/docs-blog/article-33-PHP-%E8%BC%B8%E5%87%BA-Excel-%EF%BC%8C%E4%BD%BF%E7%94%A8PHPExcel.html" target="_blank" rel="noopener">PHP 輸出 Excel ，使用 PHPExcel</a><br><a href="https://www.itread01.com/content/1507728009.html" target="_blank" rel="noopener">PHP excel 設置參數 - IT 閱讀</a></p>
+<h2 id="其他程式使用方式"><a href="#其他程式使用方式" class="headerlink" title="其他程式使用方式"></a>其他程式使用方式</h2><p>Java 使用 POI 方式<br>但我覺得不好用….</p>
+<p>JavaScript 有找到 js-xlsx，做匯入資料感覺非常方便<br>一般報表還可以，複雜格式報表可能不行<br>但是進階設定需要付費，所以還是很可惜</p>
+<p><a href="https://aotu.io/notes/2016/04/07/node-excel/index.html" target="_blank" rel="noopener">Node 读写 Excel 文件探究实践 | Aotu.io「凹凸实验室」</a><br><a href="https://www.jianshu.com/p/877631e7e411" target="_blank" rel="noopener">【node+demo】使用 xlsx-style 设置表格的宽高等样式 - 简书</a><br><a href="https://segmentfault.com/a/1190000019700368" target="_blank" rel="noopener">使用 js-xlsx 纯前端导出 excel - 个人文章 - SegmentFault 思否</a><br>不知道為什麼範例沒辦法用出顏色</p>
+<p>網路文章:</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/6820250/merge-cell-values-with-phpexcel-php" target="_blank" rel="noopener">Merge Cell values with PHPExcel - PHP - Stack Overflow</a></li>
+<li><a href="https://www.puritys.me/docs-blog/article-33-PHP-%E8%BC%B8%E5%87%BA-Excel-%EF%BC%8C%E4%BD%BF%E7%94%A8PHPExcel.html" target="_blank" rel="noopener">PHP 輸出 Excel ，使用 PHPExcel</a></li>
+<li><a href="https://blog.csdn.net/gezhonglei2007/article/details/51475059" target="_blank" rel="noopener">基于 Excel 模板导出——ExcelTemplate - gezhonglei2007 的专栏 - CSDN 博客</a></li>
+<li><a href="https://www.cnblogs.com/leestar54/p/7786806.html" target="_blank" rel="noopener">phpspreadsheet 开发手记 - leestar54 - 博客园</a></li>
+<li><a href="https://github.com/PHPOffice/PHPExcel/issues/307" target="_blank" rel="noopener">columnIndexFromString and stringFromColumnIndex are not compatible · Issue #307 · PHPOffice/PHPExcel</a></li>
+<li><a href="https://github.com/SheetJS/js-xlsx/issues/964" target="_blank" rel="noopener">merge cells from Array of Arrays · Issue #964 · SheetJS/js-xlsx</a></li>
+<li><a href="https://www.jianshu.com/p/869375439fee" target="_blank" rel="noopener">纯前端利用 js-xlsx 之单元格样式(4) - 简书</a></li>
+<li><a href="https://gist.github.com/yajra/a71d030e68126714e88a" target="_blank" rel="noopener">PHPExcel Notes and code snippets</a></li>
+</ul>
+<p>公司有遇到RAM 吃很大的問題<br><a href="https://www.cnblogs.com/cocowool/p/6893774.html" target="_blank" rel="noopener">phpExcel導出文件時內存溢出的問題 - Cocowool - 博客園</a></p>
+<ul>
+<li><a href="https://github.com/mk-j/PHP_XLSXWriter" target="_blank" rel="noopener">mk-j/PHP_XLSXWriter: Lightwight XLSX Excel Spreadsheet Writer in PHP</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/phpexcel/" rel="tag"># phpexcel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2019/08/04/%E6%8E%92%E7%A8%8B-crontab-%E6%99%82%E9%96%93%E8%A8%AD%E5%AE%9A%E6%9C%88%E5%BA%95%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/" rel="prev" title="排程 crontab 時間設定月底執行方法">
+      <i class="fa fa-chevron-left"></i> 排程 crontab 時間設定月底執行方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2019/08/14/MySQL-%E6%9F%A5%E7%9C%8B%E8%B3%87%E6%96%99%E8%A1%A8%E6%AC%8A%E9%99%90/" rel="next" title="MySQL 查看資料表權限">
+      MySQL 查看資料表權限 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#載入-PHPEXCEL"><span class="nav-number">1.</span> <span class="nav-text">載入 PHPEXCEL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#worksheet-工作表-設定"><span class="nav-number">2.</span> <span class="nav-text">worksheet(工作表)設定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#背景顏色設定"><span class="nav-number">3.</span> <span class="nav-text">背景顏色設定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#設定框線格式"><span class="nav-number">4.</span> <span class="nav-text">設定框線格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字體設定"><span class="nav-number">5.</span> <span class="nav-text">字體設定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#欄位給予值"><span class="nav-number">6.</span> <span class="nav-text">欄位給予值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#欄位類型"><span class="nav-number">7.</span> <span class="nav-text">欄位類型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#欄位對齊方式"><span class="nav-number">8.</span> <span class="nav-text">欄位對齊方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字體顏色"><span class="nav-number">9.</span> <span class="nav-text">字體顏色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#欄位寬度、高度設定"><span class="nav-number">10.</span> <span class="nav-text">欄位寬度、高度設定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#欄位數值資料格式"><span class="nav-number">11.</span> <span class="nav-text">欄位數值資料格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#凍結窗格"><span class="nav-number">12.</span> <span class="nav-text">凍結窗格</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#建立新的"><span class="nav-number">13.</span> <span class="nav-text">建立新的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#動態處理橫軸資料-A-AZ"><span class="nav-number">14.</span> <span class="nav-text">動態處理橫軸資料(A~AZ)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匯出-EXCEL"><span class="nav-number">15.</span> <span class="nav-text">匯出 EXCEL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他程式使用方式"><span class="nav-number">16.</span> <span class="nav-text">其他程式使用方式</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2019/08/08/PHPExcel-%E4%BD%BF%E7%94%A8%E5%B0%8F%E8%A8%98/";
+    this.page.identifier = "2019/08/08/PHPExcel-使用小記/";
+    this.page.title = "PHPExcel 使用小記";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

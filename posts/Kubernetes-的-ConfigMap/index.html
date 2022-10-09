@@ -1,0 +1,548 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Kubernetes 的 ConfigMap - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 的 ConfigMap"><meta property="og:description" content="Kubernetes 的 ConfigMap 常常會跟 Storage 有關係。
+可以針對
+
+volume(檔案設定檔)
+environment variable (環境變數)
+"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-03-03T20:54:32+00:00"><meta property="article:modified_time" content="2021-03-03T20:54:32+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kubernetes 的 ConfigMap"><meta name=twitter:description content="Kubernetes 的 ConfigMap 常常會跟 Storage 有關係。
+可以針對
+
+volume(檔案設定檔)
+environment variable (環境變數)
+"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/><link rel=prev href=https://malagege.github.io/blog/posts/%E8%B2%B7S360DB%E5%96%87%E5%90%A7%E8%88%87%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E8%B2%B7-DAC-%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/%E7%B7%A8%E8%BC%AF%E5%99%A8%E6%8A%93%E5%8F%96-Emoji/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Kubernetes 的 ConfigMap","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E7%9A%84-ConfigMap\/"},"genre":"posts","keywords":"configmap","wordcount":942,"url":"https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E7%9A%84-ConfigMap\/","datePublished":"2021-03-03T20:54:32+00:00","dateModified":"2021-03-03T20:54:32+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 的 ConfigMap</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Kuberenetes/><i class="far fa-folder fa-fw" aria-hidden=true></i>Kuberenetes</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-03-03>2021-03-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;942 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#設定關鍵字>設定關鍵字</a></li><li><a href=#建立-clusters>建立 Clusters</a><ul><li><a href=#從檔案建立-configmap>從檔案建立 ConfigMap</a></li></ul></li><li><a href=#在-pod-使用-configmap>在 Pod 使用 ConfigMap</a><ul><li><a href=#使用環境變數>使用環境變數</a></li></ul></li><li><a href=#cheatsheet>cheatsheet</a></li><li><a href=#同步時間>同步時間</a></li><li><a href=#env-安全性問題>env 安全性問題</a></li></ul></nav></div></div><div class=content id=content><p>Kubernetes 的 ConfigMap 常常會跟 Storage 有關係。</p><p>可以針對</p><ul><li>volume(檔案設定檔)</li><li>environment variable (環境變數)</li></ul><h2 id=設定關鍵字>設定關鍵字</h2><p>掛載檔案方式:</p><ul><li>使用 <code>Volume</code> 掛在 Pod</li><li>使用 <code>VolumeMount</code> 掛在 Container</li></ul><p>套用環境變數上:</p><ul><li>使用 <code>configMapKeyRef</code> 掛在 環境變數</li></ul><h2 id=建立-clusters>建立 Clusters</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create configmap &lt;map-name&gt; &lt;data-source&gt;
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Create the local directory</span>
+</span></span><span class=line><span class=cl>mkdir -p configure-pod-container/configmap/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Download the sample files into `configure-pod-container/configmap/` directory</span>
+</span></span><span class=line><span class=cl>wget https://kubernetes.io/examples/configmap/game.properties -O configure-pod-container/configmap/game.properties
+</span></span><span class=line><span class=cl>wget https://kubernetes.io/examples/configmap/ui.properties -O configure-pod-container/configmap/ui.properties
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Create the configmap</span>
+</span></span><span class=line><span class=cl>kubectl create configmap game-config --from-file<span class=o>=</span>configure-pod-container/configmap/
+</span></span></code></pre></td></tr></table></div></div><p>這邊有點有趣，client 端做，nodes 竟然可以吃到抓下來的 properties<br>不知道底層原理怎麼做到</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get configmaps game-config -o yaml
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ConfigMap</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=ld>2016-02-18T18:52:05Z</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>game-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>resourceVersion</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;516&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uid</span><span class=p>:</span><span class=w> </span><span class=l>b4952dc3-d670-11e5-8cd0-68f728db1985</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>data</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>game.properties</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    enemies=aliens
+</span></span></span><span class=line><span class=cl><span class=sd>    lives=3
+</span></span></span><span class=line><span class=cl><span class=sd>    enemies.cheat=true
+</span></span></span><span class=line><span class=cl><span class=sd>    enemies.cheat.level=noGoodRotten
+</span></span></span><span class=line><span class=cl><span class=sd>    secret.code.passphrase=UUDDLRLRBABAS
+</span></span></span><span class=line><span class=cl><span class=sd>    secret.code.allowed=true
+</span></span></span><span class=line><span class=cl><span class=sd>    secret.code.lives=30    </span><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>ui.properties</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>    color.good=purple
+</span></span></span><span class=line><span class=cl><span class=sd>    color.bad=yellow
+</span></span></span><span class=line><span class=cl><span class=sd>    allow.textmode=true
+</span></span></span><span class=line><span class=cl><span class=sd>    how.nice.to.look=fairlyNice    </span><span class=w>    
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=從檔案建立-configmap>從檔案建立 ConfigMap</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create configmap game-config-2 --from-file<span class=o>=</span>configure-pod-container/configmap/game.properties
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl describe configmaps game-config-2
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Name:         game-config-2
+</span></span><span class=line><span class=cl>Namespace:    default
+</span></span><span class=line><span class=cl>Labels:       &lt;none&gt;
+</span></span><span class=line><span class=cl>Annotations:  &lt;none&gt;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Data
+</span></span><span class=line><span class=cl>====
+</span></span><span class=line><span class=cl>game.properties:
+</span></span><span class=line><span class=cl>----
+</span></span><span class=line><span class=cl>enemies=aliens
+</span></span><span class=line><span class=cl>lives=3
+</span></span><span class=line><span class=cl>enemies.cheat=true
+</span></span><span class=line><span class=cl>enemies.cheat.level=noGoodRotten
+</span></span><span class=line><span class=cl>secret.code.passphrase=UUDDLRLRBABAS
+</span></span><span class=line><span class=cl>secret.code.allowed=true
+</span></span><span class=line><span class=cl>secret.code.lives=30
+</span></span><span class=line><span class=cl>Events:  &lt;none&gt;
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 同時使用--from-file 載入多個檔案</span>
+</span></span><span class=line><span class=cl>kubectl create configmap game-config-2 --from-file<span class=o>=</span>configure-pod-container/configmap/game.properties --from-file<span class=o>=</span>configure-pod-container/configmap/ui.properties
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 查看 ConfigMap 內容</span>
+</span></span><span class=line><span class=cl>kubectl describe configmaps game-config-2
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Name:         game-config-2
+</span></span><span class=line><span class=cl>Namespace:    default
+</span></span><span class=line><span class=cl>Labels:       &lt;none&gt;
+</span></span><span class=line><span class=cl>Annotations:  &lt;none&gt;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Data
+</span></span><span class=line><span class=cl>====
+</span></span><span class=line><span class=cl>game.properties:
+</span></span><span class=line><span class=cl>----
+</span></span><span class=line><span class=cl>enemies=aliens
+</span></span><span class=line><span class=cl>lives=3
+</span></span><span class=line><span class=cl>enemies.cheat=true
+</span></span><span class=line><span class=cl>enemies.cheat.level=noGoodRotten
+</span></span><span class=line><span class=cl>secret.code.passphrase=UUDDLRLRBABAS
+</span></span><span class=line><span class=cl>secret.code.allowed=true
+</span></span><span class=line><span class=cl>secret.code.lives=30
+</span></span><span class=line><span class=cl>ui.properties:
+</span></span><span class=line><span class=cl>----
+</span></span><span class=line><span class=cl>color.good=purple
+</span></span><span class=line><span class=cl>color.bad=yellow
+</span></span><span class=line><span class=cl>allow.textmode=true
+</span></span><span class=line><span class=cl>how.nice.to.look=fairlyNice
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1>#Download the sample files into `configure-pod-container/configmap/` directory</span>
+</span></span><span class=line><span class=cl>wget https://kubernetes.io/examples/configmap/game-env-file.properties -O configure-pod-container/configmap/game-env-file.properties
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># The env-file `game-env-file.properties` looks like below</span>
+</span></span><span class=line><span class=cl>cat configure-pod-container/configmap/game-env-file.properties
+</span></span><span class=line><span class=cl><span class=nv>enemies</span><span class=o>=</span>aliens
+</span></span><span class=line><span class=cl><span class=nv>lives</span><span class=o>=</span><span class=m>3</span>
+</span></span><span class=line><span class=cl><span class=nv>allowed</span><span class=o>=</span><span class=s2>&#34;true&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># This comment and the empty line above it are ignored</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>kubectl get configmap game-config-env-file -o yaml
+</span></span><span class=line><span class=cl><span class=c1># apiVersion: v1</span>
+</span></span><span class=line><span class=cl><span class=c1># kind: ConfigMap</span>
+</span></span><span class=line><span class=cl><span class=c1># metadata:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   creationTimestamp: 2017-12-27T18:36:28Z</span>
+</span></span><span class=line><span class=cl><span class=c1>#   name: game-config-env-file</span>
+</span></span><span class=line><span class=cl><span class=c1>#   namespace: default</span>
+</span></span><span class=line><span class=cl><span class=c1>#   resourceVersion: &#34;809965&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1>#   uid: d9d1ca5b-eb34-11e7-887b-42010a8002b8</span>
+</span></span><span class=line><span class=cl><span class=c1># data:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   allowed: &#39;&#34;true&#34;&#39;</span>
+</span></span><span class=line><span class=cl><span class=c1>#   enemies: aliens</span>
+</span></span><span class=line><span class=cl><span class=c1>#   lives: &#34;3&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>使用多個<code>--from-env-file</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Download the sample files into `configure-pod-container/configmap/` directory</span>
+</span></span><span class=line><span class=cl>wget https://kubernetes.io/examples/configmap/ui-env-file.properties -O configure-pod-container/configmap/ui-env-file.properties
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Create the configmap</span>
+</span></span><span class=line><span class=cl>kubectl create configmap config-multi-env-files <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        --from-env-file<span class=o>=</span>configure-pod-container/configmap/game-env-file.properties <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        --from-env-file<span class=o>=</span>configure-pod-container/configmap/ui-env-file.properties
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get configmap config-multi-env-files -o yaml
+</span></span><span class=line><span class=cl><span class=c1># apiVersion: v1</span>
+</span></span><span class=line><span class=cl><span class=c1># kind: ConfigMap</span>
+</span></span><span class=line><span class=cl><span class=c1># metadata:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   creationTimestamp: 2017-12-27T18:38:34Z</span>
+</span></span><span class=line><span class=cl><span class=c1>#   name: config-multi-env-files</span>
+</span></span><span class=line><span class=cl><span class=c1>#   namespace: default</span>
+</span></span><span class=line><span class=cl><span class=c1>#   resourceVersion: &#34;810136&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1>#   uid: 252c4572-eb35-11e7-887b-42010a8002b8</span>
+</span></span><span class=line><span class=cl><span class=c1># data:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   color: purple</span>
+</span></span><span class=line><span class=cl><span class=c1>#   how: fairlyNice</span>
+</span></span><span class=line><span class=cl><span class=c1>#   textmode: &#34;true&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1>#kubectl create configmap game-config-3 --from-file=&lt;my-key-name&gt;=&lt;path-to-file&gt;</span>
+</span></span><span class=line><span class=cl>kubectl create configmap game-config-3 --from-file<span class=o>=</span>game-special-key<span class=o>=</span>configure-pod-container/configmap/game.properties
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>kubectl get configmaps game-config-3 -o yaml
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># apiVersion: v1</span>
+</span></span><span class=line><span class=cl><span class=c1># kind: ConfigMap</span>
+</span></span><span class=line><span class=cl><span class=c1># metadata:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   creationTimestamp: 2016-02-18T18:54:22Z</span>
+</span></span><span class=line><span class=cl><span class=c1>#   name: game-config-3</span>
+</span></span><span class=line><span class=cl><span class=c1>#   namespace: default</span>
+</span></span><span class=line><span class=cl><span class=c1>#   resourceVersion: &#34;530&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1>#   uid: 05f8da22-d671-11e5-8cd0-68f728db1985</span>
+</span></span><span class=line><span class=cl><span class=c1># data:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   game-special-key: |</span>
+</span></span><span class=line><span class=cl><span class=c1>#     enemies=aliens</span>
+</span></span><span class=line><span class=cl><span class=c1>#     lives=3</span>
+</span></span><span class=line><span class=cl><span class=c1>#     enemies.cheat=true</span>
+</span></span><span class=line><span class=cl><span class=c1>#     enemies.cheat.level=noGoodRotten</span>
+</span></span><span class=line><span class=cl><span class=c1>#     secret.code.passphrase=UUDDLRLRBABAS</span>
+</span></span><span class=line><span class=cl><span class=c1>#     secret.code.allowed=true</span>
+</span></span><span class=line><span class=cl><span class=c1>#     secret.code.lives=30    </span>
+</span></span></code></pre></td></tr></table></div></div><p>指令內文 key</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create configmap special-config --from-literal<span class=o>=</span>special.how<span class=o>=</span>very --from-literal<span class=o>=</span>special.type<span class=o>=</span>charm
+</span></span><span class=line><span class=cl>kubectl get configmaps special-config -o yaml
+</span></span><span class=line><span class=cl><span class=c1># apiVersion: v1</span>
+</span></span><span class=line><span class=cl><span class=c1># kind: ConfigMap</span>
+</span></span><span class=line><span class=cl><span class=c1># metadata:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   creationTimestamp: 2016-02-18T19:14:38Z</span>
+</span></span><span class=line><span class=cl><span class=c1>#   name: special-config</span>
+</span></span><span class=line><span class=cl><span class=c1>#   namespace: default</span>
+</span></span><span class=line><span class=cl><span class=c1>#   resourceVersion: &#34;651&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1>#   uid: dadce046-d673-11e5-8cd0-68f728db1985</span>
+</span></span><span class=line><span class=cl><span class=c1># data:</span>
+</span></span><span class=line><span class=cl><span class=c1>#   special.how: very</span>
+</span></span><span class=line><span class=cl><span class=c1>#   special.type: charm</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Create a kustomization.yaml file with ConfigMapGenerator</span>
+</span></span><span class=line><span class=cl>cat <span class=s>&lt;&lt;EOF &gt;./kustomization.yaml
+</span></span></span><span class=line><span class=cl><span class=s>configMapGenerator:
+</span></span></span><span class=line><span class=cl><span class=s>- name: game-config-4
+</span></span></span><span class=line><span class=cl><span class=s>  files:
+</span></span></span><span class=line><span class=cl><span class=s>  - configure-pod-container/configmap/game.properties
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>kubectl apply -k .
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>kubectl describe configmaps/game-config-4-m9dm2f92bt
+</span></span></code></pre></td></tr></table></div></div><p>定義 key Mapping 到 檔案</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Create a kustomization.yaml file with ConfigMapGenerator</span>
+</span></span><span class=line><span class=cl>cat <span class=s>&lt;&lt;EOF &gt;./kustomization.yaml
+</span></span></span><span class=line><span class=cl><span class=s>configMapGenerator:
+</span></span></span><span class=line><span class=cl><span class=s>- name: game-config-5
+</span></span></span><span class=line><span class=cl><span class=s>  files:
+</span></span></span><span class=line><span class=cl><span class=s>  - game-special-key=configure-pod-container/configmap/game.properties
+</span></span></span><span class=line><span class=cl><span class=s>EOF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>kubectl apply -k .
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># Create a kustomization.yaml file with ConfigMapGenerator
+</span></span><span class=line><span class=cl>cat &lt;&lt;EOF &gt;./kustomization.yaml
+</span></span><span class=line><span class=cl>configMapGenerator:
+</span></span><span class=line><span class=cl>- name: special-config-2
+</span></span><span class=line><span class=cl>  literals:
+</span></span><span class=line><span class=cl>  - special.how=very
+</span></span><span class=line><span class=cl>  - special.type=charm
+</span></span><span class=line><span class=cl>EOF
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>kubectl apply -k .
+</span></span></code></pre></td></tr></table></div></div><h2 id=在-pod-使用-configmap>在 Pod 使用 ConfigMap</h2><h3 id=使用環境變數>使用環境變數</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create configmap special-config --from-literal<span class=o>=</span>special.how<span class=o>=</span>very
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>dapi-test-pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>test-container</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>k8s.gcr.io/busybox</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>command</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=w> </span><span class=s2>&#34;/bin/sh&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;-c&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;env&#34;</span><span class=w> </span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c># Define the environment variable</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>SPECIAL_LEVEL_KEY</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>configMapKeyRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=c># The ConfigMap containing the value you want to assign to SPECIAL_LEVEL_KEY</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>special-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=c># Specify the key associated with the value</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>special.how</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Never</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create -f https://kubernetes.io/examples/pods/pod-single-configmap-env-variable.yaml
+</span></span></code></pre></td></tr></table></div></div><p>使用多個 ConfigMap</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>apiVersion: v1
+</span></span><span class=line><span class=cl>kind: ConfigMap
+</span></span><span class=line><span class=cl>metadata:
+</span></span><span class=line><span class=cl>  name: special-config
+</span></span><span class=line><span class=cl>  namespace: default
+</span></span><span class=line><span class=cl>data:
+</span></span><span class=line><span class=cl>  special.how: very
+</span></span><span class=line><span class=cl>---
+</span></span><span class=line><span class=cl>apiVersion: v1
+</span></span><span class=line><span class=cl>kind: ConfigMap
+</span></span><span class=line><span class=cl>metadata:
+</span></span><span class=line><span class=cl>  name: env-config
+</span></span><span class=line><span class=cl>  namespace: default
+</span></span><span class=line><span class=cl>data:
+</span></span><span class=line><span class=cl>  log_level: INFO
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create -f https://kubernetes.io/examples/configmap/configmaps.yaml
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>dapi-test-pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>test-container</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>k8s.gcr.io/busybox</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>command</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=w> </span><span class=s2>&#34;/bin/sh&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;-c&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;env&#34;</span><span class=w> </span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>SPECIAL_LEVEL_KEY</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>configMapKeyRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>special-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>special.how</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>LOG_LEVEL</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>configMapKeyRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>env-config</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>log_level</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Never</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create -f https://kubernetes.io/examples/pods/pod-multiple-configmap-env-variable.yaml
+</span></span></code></pre></td></tr></table></div></div><p>TODO: <a href=https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#define-container-environment-variables-with-data-from-multiple-configmaps target=_blank rel="noopener noreffer">https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#define-container-environment-variables-with-data-from-multiple-configmaps</a></p><h2 id=cheatsheet>cheatsheet</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -R -f intrudction/configmap
+</span></span><span class=line><span class=cl>kubectl get configmap
+</span></span><span class=line><span class=cl>kubectl get pods
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> pods
+</span></span><span class=line><span class=cl>ls /tmp/config
+</span></span><span class=line><span class=cl>env
+</span></span></code></pre></td></tr></table></div></div><h2 id=同步時間>同步時間</h2><p>apiserver -> kubelet -> volume<br>一個箭頭 大約一分鐘</p><p>總共加起來需要兩分鐘。</p><h2 id=env-安全性問題>env 安全性問題</h2><p>取得 node 節點可以看到 container 環境設定變數問題</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-03-03</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/ data-title="Kubernetes 的 ConfigMap" data-hashtags=configmap><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/ data-hashtag=configmap><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/ data-title="Kubernetes 的 ConfigMap"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/ data-title="Kubernetes 的 ConfigMap"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-ConfigMap/ data-title="Kubernetes 的 ConfigMap"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/configmap/>configmap</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E8%B2%B7S360DB%E5%96%87%E5%90%A7%E8%88%87%E9%9C%80%E4%B8%8D%E9%9C%80%E8%A6%81%E8%B2%B7-DAC-%E5%B0%8F%E8%A8%98/ class=prev rel=prev title="買S360DB喇吧與需不需要買 DAC 小記"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>買S360DB喇吧與需不需要買 DAC 小記</a>
+<a href=/blog/posts/%E7%B7%A8%E8%BC%AF%E5%99%A8%E6%8A%93%E5%8F%96-Emoji/ class=next rel=next title="編輯器抓取 Emoji 文字方法">編輯器抓取 Emoji 文字方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

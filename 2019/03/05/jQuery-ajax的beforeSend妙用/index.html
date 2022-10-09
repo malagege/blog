@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="最近看到 jQuery 有beforeSend看到這個可以做驗證上面或著動態載入特效先來筆記，感覺很容易忘記">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jQuery ajax的beforeSend妙用">
+<meta property="og:url" content="https://malagege.github.io/blog/2019/03/05/jQuery-ajax%E7%9A%84beforeSend%E5%A6%99%E7%94%A8/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="最近看到 jQuery 有beforeSend看到這個可以做驗證上面或著動態載入特效先來筆記，感覺很容易忘記">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-03-05T14:23:51.000Z">
+<meta property="article:modified_time" content="2021-06-27T08:05:08.267Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="ajax">
+<meta property="article:tag" content="javascript">
+<meta property="article:tag" content="jquery">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2019/03/05/jQuery-ajax%E7%9A%84beforeSend%E5%A6%99%E7%94%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>jQuery ajax的beforeSend妙用 | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2019/03/05/jQuery-ajax%E7%9A%84beforeSend%E5%A6%99%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          jQuery ajax的beforeSend妙用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2019-03-05 22:23:51" itemprop="dateCreated datePublished" datetime="2019-03-05T22:23:51+08:00">2019-03-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-06-27 16:05:08" itemprop="dateModified" datetime="2021-06-27T16:05:08+08:00">2021-06-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2019/03/05/jQuery-ajax%E7%9A%84beforeSend%E5%A6%99%E7%94%A8/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/03/05/jQuery-ajax的beforeSend妙用/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>最近看到 jQuery 有<code>beforeSend</code><br>看到這個可以做驗證上面<br>或著動態載入特效<br>先來筆記，感覺很容易忘記</p>
+<a id="more"></a>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;form method=<span class="string">"post"</span> action=<span class="string">"test.php"</span>&gt;</span><br><span class="line">AA：&lt;input type=<span class="string">"text"</span> name=<span class="string">"aa"</span> onkeypress=<span class="string">"if (event.keyCode == 13) &#123;return false;&#125;"</span>&gt;</span><br><span class="line">&lt;input type=<span class="string">"radio"</span> name=<span class="string">"cc"</span>&gt;CC</span><br><span class="line">&lt;<span class="regexp">/form&gt;</span></span><br></pre></td></tr></table></figure>
+<p><a href="https://xyz.cinc.biz/2016/07/form-input-enter-auto-submit.html" target="_blank" rel="noopener">XYZ 的筆記本: HTML form 只有一個 text input 時，在 input 上按 enter 會自動送出表單</a><br>之前公司也是用這個解法<br>但是我覺得這個方法寫在 html 真的很長<br>有想到一個方法</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="string">"input"</span>).on(<span class="string">"keypress"</span>, e =&gt; e.preventDefault());</span><br></pre></td></tr></table></figure>
+<p>ajax 搭配 submit 事件，實做 ajax 後，下面回傳 false，所以表單不會送出去<br><code>beforeSend</code>可以做驗證動作<br>這時候還會有 input 按 Enter 會送出的問題</p>
+<p>EX:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="string">'form'</span>).on(<span class="string">'submit'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line"></span><br><span class="line">  $.ajax(&#123;</span><br><span class="line">    url: <span class="string">'.'</span>,</span><br><span class="line">    data:&#123;</span><br><span class="line">      ...</span><br><span class="line">    &#125;,</span><br><span class="line">    beforeSend: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">      ...</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>由於暫存筆記有記錄 jquery.form.js<br>但是一直沒有記錄，趁著這個時間趕快記錄</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="string">"#myForm"</span>).ajaxForm(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  $(<span class="string">"#output1"</span>)</span><br><span class="line">    .html(<span class="string">"提交成功！欢迎下次再来！"</span>)</span><br><span class="line">    .show();</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">$(<span class="string">"#myForm2"</span>).submit(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  $(<span class="keyword">this</span>).ajaxSubmit(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">"#output2"</span>)</span><br><span class="line">      .html(<span class="string">"提交成功！欢迎下次再来！"</span>)</span><br><span class="line">      .show();</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>; <span class="comment">//阻止表单默认提交</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><a href="https://codertw.com/%E5%89%8D%E7%AB%AF%E9%96%8B%E7%99%BC/260779/" target="_blank" rel="noopener">淺談 jquery.form.js 的 ajaxSubmit 和 ajaxForm 的使用 | 程式前沿</a></p>
+<p>簡單來說<code>ajaxForm</code>和<code>ajaxSubmit</code>看起來很像<br>但簡單來說<code>ajaxForm</code>是拿當下 form 做 submit 時候，不會送出去，會做 ajax<br>這就是跟一般 ajax 差別</p>
+<p><code>ajaxSubmit</code>是當下呼叫拿當下 form 做 ajax 動作<br>所以上面範例是寫在<code>.submit()</code>裡面</p>
+<p>ajax 拿來放在 submit 可以簡單做到表單綁定效果</p>
+<p>以下是筆記暫存就放在下面<br>怕沒有甚麼機會寫到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># JQuery Form Validate</span><br><span class="line">[使用jQuery.form庫中ajaxSubmit提交表單時遇到的一些問題 - 掃文資訊](https:&#x2F;&#x2F;hk.saowen.com&#x2F;a&#x2F;e36ca7b7b772fcc2699400c165fb9129964364e45217a35412ca0cdb21b37b63)</span><br><span class="line">https:&#x2F;&#x2F;jqueryvalidation.org&#x2F;documentation&#x2F;</span><br><span class="line">http:&#x2F;&#x2F;formvalidation.io&#x2F;examples&#x2F;</span><br><span class="line"></span><br><span class="line">[Bootstrap 表單驗證formValidation 之表單動態驗證 - CSDN博客](https:&#x2F;&#x2F;blog.csdn.net&#x2F;u012123026&#x2F;article&#x2F;details&#x2F;53288641)</span><br><span class="line">[Bootstrap 表单验证formValidation 之表单动态添加元素之后再次验证 - CSDN博客](https:&#x2F;&#x2F;blog.csdn.net&#x2F;weixin_40475396&#x2F;article&#x2F;details&#x2F;79879094)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">jQuery Form</span><br><span class="line">[jQuery Form Plugin中AjaxForm与AjaxSubmit的区别-飘一代-51CTO博客](http:&#x2F;&#x2F;blog.51cto.com&#x2F;fluagen&#x2F;393134)</span><br><span class="line">把傳統表單迅速套成ajaxForm，submit可以做成ajax動作</span><br><span class="line"></span><br><span class="line"># waitme</span><br><span class="line"></span><br><span class="line"># ajaxsuccess</span><br><span class="line">[Ajax-Global Ajax Event Handlers .ajaxComplete()、.ajaxError()、.ajaxSend()、.ajaxStart()、.ajaxStop()、.ajaxSuccess() | 阿沙布魯 - 點部落](https:&#x2F;&#x2F;dotblogs.com.tw&#x2F;brooke&#x2F;2016&#x2F;07&#x2F;10&#x2F;142933)</span><br><span class="line"></span><br><span class="line">可搭配waitme實做</span><br></pre></td></tr></table></figure>
+<p>參考來源:</p>
+<ul>
+<li><a href="https://expect7.pixnet.net/blog/post/39829979-%5B%E7%A8%8B%E5%BC%8F%5D%5Bjquery%5D-%E8%AE%93ajax%E9%81%8B%E4%BD%9C%E7%9A%84%E6%99%82%E5%80%99%EF%BC%8C%E8%B7%B3%E5%87%BAloding%E7%9A%84%E8%A8%8A" target="_blank" rel="noopener">[程式][JQuery] 讓 AJAX 運作的時候，跳出 loding 的訊息。－Part 1 @ 四處流浪的阿基。I am Vagrant Walker :: 痞客邦 ::</a></li>
+<li><a href="https://github.com/jquery-form/form" target="_blank" rel="noopener">jquery-form/form: jQuery Form Plugin</a></li>
+<li><a href="https://blog.51cto.com/fluagen/393134" target="_blank" rel="noopener">jQuery Form Plugin 中 AjaxForm 与 AjaxSubmit 的区别-飘一代-51CTO 博客</a></li>
+<li><a href="https://www.cnblogs.com/liuhongfeng/p/5150389.html" target="_blank" rel="noopener">jQuery form 插件的使用–ajaxForm()和 ajaxSubmit()的可选参数项对象 - souvc - 博客园</a></li>
+<li><a href="http://www.blueshop.com.tw/board/FUM20041006152641OLG/BRD20060619104902G2O.html" target="_blank" rel="noopener">防止 ENTER 鍵直接 SUBMIT- 藍色小舖 BlueShop</a></li>
+<li><a href="https://blog.csdn.net/ligang2585116/article/details/44699567" target="_blank" rel="noopener">HTML 防止 input 回车提交表单 - 李刚的学习专栏 - CSDN 博客</a></li>
+<li><a href="https://xyz.cinc.biz/2016/07/form-input-enter-auto-submit.html" target="_blank" rel="noopener">XYZ 的筆記本: HTML form 只有一個 text input 時，在 input 上按 enter 會自動送出表單</a></li>
+<li><a href="http://david-chen-blog.logdown.com/posts/177766-how-forms-submit-when-pressing-enter" target="_blank" rel="noopener">Press Enter to Submit 背后的那些事 « David Chen’s Blog</a></li>
+<li><a href="https://jsbin.com/namefaqija/edit?html,css,js,output" target="_blank" rel="noopener">JS Bin - JS Bin</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/ajax/" rel="tag"># ajax</a>
+              <a href="/blog/tags/javascript/" rel="tag"># javascript</a>
+              <a href="/blog/tags/jquery/" rel="tag"># jquery</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2019/02/28/%E7%A5%9E%E5%A5%87%E7%9A%84%E9%81%B8%E6%93%87%E5%99%A8-focus-within/" rel="prev" title="神奇的選擇器 :focus-within">
+      <i class="fa fa-chevron-left"></i> 神奇的選擇器 :focus-within
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2019/03/06/jQuery%E5%BF%AB%E9%80%9F%E6%96%B9%E4%BE%BF%E8%BC%89%E5%85%A5-load-%E6%96%B9%E6%B3%95/" rel="next" title="jQuery快速方便載入(load)方法">
+      jQuery快速方便載入(load)方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2019/03/05/jQuery-ajax%E7%9A%84beforeSend%E5%A6%99%E7%94%A8/";
+    this.page.identifier = "2019/03/05/jQuery-ajax的beforeSend妙用/";
+    this.page.title = "jQuery ajax的beforeSend妙用";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

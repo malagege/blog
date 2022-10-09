@@ -1,0 +1,452 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>JavaScript,Java 實作 AES/CBC/NoPadding 加密方法 - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="JavaScript,Java 實作 AES/CBC/NoPadding 加密方法"><meta property="og:description" content="最近公司 API 原有測試程式需要改前後端，才能測試 API。最近在想能不能搭配 Vite & Vue 能實現前端測試 API。API有做加密，今天就先研究如何實現 AES/CBC/NoPadding加密。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-08-22T15:41:55+00:00"><meta property="article:modified_time" content="2021-08-22T15:41:55+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="JavaScript,Java 實作 AES/CBC/NoPadding 加密方法"><meta name=twitter:description content="最近公司 API 原有測試程式需要改前後端，才能測試 API。最近在想能不能搭配 Vite & Vue 能實現前端測試 API。API有做加密，今天就先研究如何實現 AES/CBC/NoPadding加密。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/%E6%88%91%E5%A4%9A%E5%B9%B4%E5%BF%BD%E7%95%A5%E4%BA%86-Java-RuntimeException-%E8%A7%80%E5%BF%B5/><link rel=next href=https://malagege.github.io/blog/posts/Chrome-%E8%8E%AB%E5%90%8D%E5%85%B6%E5%A6%99-localhost-%E6%9C%83%E5%B0%8E%E5%88%B0-HTTPS/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"JavaScript,Java 實作 AES/CBC/NoPadding 加密方法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"aes, cbc, nopadding, java, javascript","wordcount":932,"url":"https:\/\/malagege.github.io\/blog\/posts\/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95\/","datePublished":"2021-08-22T15:41:55+00:00","dateModified":"2021-08-22T15:41:55+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">JavaScript,Java 實作 AES/CBC/NoPadding 加密方法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/%E5%8A%A0%E5%AF%86/><i class="far fa-folder fa-fw" aria-hidden=true></i>加密</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-08-22>2021-08-22</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;932 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#公司使用情境>公司使用情境</a></li><li><a href=#解決方案>解決方案</a></li><li><a href=#實作-javajavascript-做-aescbcnopadding>實作 Java/JavaScript 做 AES/CBC/NoPadding</a><ul><li><a href=#java>Java</a></li><li><a href=#javascript>JavaScript</a></li></ul></li><li><a href=#要了解的知識>要了解的知識</a></li><li><a href=#可以應用地方>可以應用地方</a></li></ul></nav></div></div><div class=content id=content><p>最近公司 API 原有測試程式需要改前後端，才能測試 API。最近在想能不能搭配 Vite & Vue 能實現前端測試 API。API有做加密，今天就先研究如何實現 AES/CBC/NoPadding加密。</p><h2 id=公司使用情境>公司使用情境</h2><p>API 接口所有參數會經過第一層加密(包最外層變數)，這邊會有一個外部key，內層資料會用內部key再做一次加密。</p><p>這邊我還是小小抱怨一下，公司這篇稱外部key為私鑰，內部key為公鑰，我這邊原本看到這邊應該是非對稱加密，當初裡面長輩也說這邊是非對稱加密，但我最近找了一下套件發現不是，之前一直在想這邊怎麼產生公鑰(內部key)、私鑰(外部key)，這邊可以不用想了，密碼應該也是rand 產生出來了。根本不是非對稱加密。</p><p>這邊不是重點，我們趕快來想想怎麼比較快錯出來。</p><h2 id=解決方案>解決方案</h2><p>我想快速做出來，這邊有想想幾個方案</p><p>內部程式</p><ul><li>node-java:<br>載入 Java Method 呼叫加密程式。但我沒有採用此方案，因為還要而外裝node-gpy ，可能還要搭配 node-electron 來使用，修改程式便利性又降低了。</li><li>vite-electron-plugin<br>本來想採取上面方案搭配，但是原因同上。而且風險係數太多。</li><li>crypto<br>好像也能做到，但好像看到相關文章寫沒支援 Padding設定?? 所以先跳過</li><li>crypto-js<br>可以用在web上面，後來採用這個方案。</li></ul><h2 id=實作-javajavascript-做-aescbcnopadding>實作 Java/JavaScript 做 AES/CBC/NoPadding</h2><p>網路上這個範例可說是零，我自己整理出來趕快記筆記。</p><h3 id=java>Java</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>decryptBase64StrByAES</span><span class=o>(</span><span class=n>String</span> <span class=n>encodeBase64Str</span><span class=o>,</span> <span class=n>String</span> <span class=n>decrypt</span><span class=o>,</span><span class=n>String</span> <span class=n>iv</span><span class=o>)</span> 
+</span></span><span class=line><span class=cl>            <span class=kd>throws</span> <span class=n>UnsupportedEncodingException</span><span class=o>,</span><span class=n>InvalidAlgorithmParameterException</span><span class=o>,</span><span class=n>NoSuchPaddingException</span><span class=o>,</span><span class=n>NoSuchAlgorithmException</span><span class=o>,</span><span class=n>InvalidKeyException</span><span class=o>,</span><span class=n>BadPaddingException</span><span class=o>,</span><span class=n>IllegalBlockSizeException</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=kt>byte</span><span class=o>[]</span> <span class=n>unDecryptByte</span> <span class=o>=</span> <span class=n>Base64</span><span class=o>.</span><span class=na>decodeBase64</span><span class=o>(</span><span class=n>encodeBase64Str</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=n>Cipher</span> <span class=n>deCipher</span> <span class=o>=</span> <span class=n>Cipher</span><span class=o>.</span><span class=na>getInstance</span><span class=o>(</span><span class=s>&#34;AES/CBC/NoPadding&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=n>SecretKeySpec</span> <span class=n>decryptSpec</span> <span class=o>=</span> <span class=k>new</span> <span class=n>SecretKeySpec</span><span class=o>(</span><span class=n>decrypt</span><span class=o>.</span><span class=na>getBytes</span><span class=o>(),</span> <span class=s>&#34;AES&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=n>IvParameterSpec</span> <span class=n>ivspec</span> <span class=o>=</span> <span class=k>new</span> <span class=n>IvParameterSpec</span><span class=o>(</span><span class=n>iv</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=n>deCipher</span><span class=o>.</span><span class=na>init</span><span class=o>(</span><span class=n>Cipher</span><span class=o>.</span><span class=na>DECRYPT_MODE</span><span class=o>,</span> <span class=n>decryptSpec</span><span class=o>,</span> <span class=n>ivspec</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=k>new</span> <span class=n>String</span><span class=o>(</span><span class=n>deCipher</span><span class=o>.</span><span class=na>doFinal</span><span class=o>(</span><span class=n>unDecryptByte</span><span class=o>),</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>).</span><span class=na>trim</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>encryptBase64StrByAES</span><span class=o>(</span><span class=n>String</span> <span class=n>unDecryptStr</span><span class=o>,</span> <span class=n>String</span> <span class=n>decrypt</span><span class=o>,</span> <span class=n>String</span> <span class=n>iv</span><span class=o>)</span> 
+</span></span><span class=line><span class=cl>            <span class=kd>throws</span> <span class=n>UnsupportedEncodingException</span><span class=o>,</span><span class=n>InvalidAlgorithmParameterException</span><span class=o>,</span><span class=n>NoSuchPaddingException</span><span class=o>,</span><span class=n>NoSuchAlgorithmException</span><span class=o>,</span><span class=n>InvalidKeyException</span><span class=o>,</span><span class=n>BadPaddingException</span><span class=o>,</span><span class=n>IllegalBlockSizeException</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        
+</span></span><span class=line><span class=cl>            <span class=n>Cipher</span> <span class=n>cipher</span> <span class=o>=</span> <span class=n>Cipher</span><span class=o>.</span><span class=na>getInstance</span><span class=o>(</span><span class=s>&#34;AES/CBC/NoPadding&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=c1>// 補齊16倍數，不足padding zero
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=kt>int</span> <span class=n>blockSize</span> <span class=o>=</span> <span class=n>cipher</span><span class=o>.</span><span class=na>getBlockSize</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>            
+</span></span><span class=line><span class=cl>            <span class=kt>byte</span><span class=o>[]</span> <span class=n>dataBytes</span> <span class=o>=</span> <span class=n>unDecryptStr</span><span class=o>.</span><span class=na>getBytes</span><span class=o>(</span><span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=kt>int</span> <span class=n>plaintextLength</span> <span class=o>=</span> <span class=n>dataBytes</span><span class=o>.</span><span class=na>length</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=o>(</span><span class=n>plaintextLength</span> <span class=o>%</span> <span class=n>blockSize</span> <span class=o>!=</span> <span class=n>0</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>plaintextLength</span> <span class=o>=</span> <span class=n>plaintextLength</span> <span class=o>+</span> <span class=o>(</span><span class=n>blockSize</span> <span class=o>-</span> <span class=o>(</span><span class=n>plaintextLength</span> <span class=o>%</span> <span class=n>blockSize</span><span class=o>));</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>            <span class=kt>byte</span><span class=o>[]</span> <span class=n>plaintext</span> <span class=o>=</span> <span class=k>new</span> <span class=kt>byte</span><span class=o>[</span><span class=n>plaintextLength</span><span class=o>];</span>
+</span></span><span class=line><span class=cl>            <span class=n>System</span><span class=o>.</span><span class=na>arraycopy</span><span class=o>(</span><span class=n>dataBytes</span><span class=o>,</span> <span class=n>0</span><span class=o>,</span> <span class=n>plaintext</span><span class=o>,</span> <span class=n>0</span><span class=o>,</span> <span class=n>dataBytes</span><span class=o>.</span><span class=na>length</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=n>SecretKeySpec</span> <span class=n>decryptSpec</span> <span class=o>=</span> <span class=k>new</span> <span class=n>SecretKeySpec</span><span class=o>(</span><span class=n>decrypt</span><span class=o>.</span><span class=na>getBytes</span><span class=o>(),</span> <span class=s>&#34;AES&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=n>IvParameterSpec</span> <span class=n>ivspec</span> <span class=o>=</span> <span class=k>new</span> <span class=n>IvParameterSpec</span><span class=o>(</span><span class=n>iv</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=n>cipher</span><span class=o>.</span><span class=na>init</span><span class=o>(</span><span class=n>Cipher</span><span class=o>.</span><span class=na>ENCRYPT_MODE</span><span class=o>,</span> <span class=n>decryptSpec</span><span class=o>,</span> <span class=n>ivspec</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>Base64</span><span class=o>.</span><span class=na>encodeBase64String</span><span class=o>(</span><span class=n>cipher</span><span class=o>.</span><span class=na>doFinal</span><span class=o>(</span><span class=n>plaintext</span><span class=o>));</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>或</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm> * 
+</span></span></span><span class=line><span class=cl><span class=cm> */</span>
+</span></span><span class=line><span class=cl><span class=kn>package</span> <span class=nn>com.serpro.library.String</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.security.NoSuchAlgorithmException</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.apache.commons.codec.binary.Base64</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.crypto.Cipher</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.crypto.NoSuchPaddingException</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.crypto.spec.IvParameterSpec</span><span class=o>;</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.crypto.spec.SecretKeySpec</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>public</span> <span class=kd>class</span> <span class=nc>MCrypt</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=n>String</span> <span class=n>iv</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=n>String</span> <span class=n>SecretKey</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=n>IvParameterSpec</span> <span class=n>ivspec</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=n>SecretKeySpec</span> <span class=n>keyspec</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=n>Cipher</span> <span class=n>cipher</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=nf>MCrypt</span><span class=o>(</span><span class=n>String</span> <span class=n>iv</span><span class=o>,</span> <span class=n>String</span> <span class=n>key</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>        <span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>try</span><span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>this</span><span class=o>.</span><span class=na>setIv</span><span class=o>(</span><span class=n>iv</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>                <span class=k>this</span><span class=o>.</span><span class=na>setSecretKey</span><span class=o>(</span><span class=n>key</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=n>ivspec</span> <span class=o>=</span> <span class=k>new</span> <span class=n>IvParameterSpec</span><span class=o>(</span><span class=n>iv</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=n>keyspec</span> <span class=o>=</span> <span class=k>new</span> <span class=n>SecretKeySpec</span><span class=o>(</span><span class=n>SecretKey</span><span class=o>.</span><span class=na>getBytes</span><span class=o>(),</span> <span class=s>&#34;AES&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>try</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>cipher</span> <span class=o>=</span> <span class=n>Cipher</span><span class=o>.</span><span class=na>getInstance</span><span class=o>(</span><span class=s>&#34;AES/CBC/NoPadding&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>NoSuchAlgorithmException</span> <span class=n>e</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                    <span class=c1>// TODO Auto-generated catch block
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=n>e</span><span class=o>.</span><span class=na>printStackTrace</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>NoSuchPaddingException</span> <span class=n>e</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                    <span class=c1>// TODO Auto-generated catch block
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=n>e</span><span class=o>.</span><span class=na>printStackTrace</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=n>String</span> <span class=nf>getIv</span><span class=o>(){</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=k>this</span><span class=o>.</span><span class=na>iv</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=n>IvParameterSpec</span> <span class=nf>getIvSpc</span><span class=o>(){</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=k>this</span><span class=o>.</span><span class=na>ivspec</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kt>void</span> <span class=nf>setIv</span><span class=o>(</span><span class=n>String</span> <span class=n>iv</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span><span class=o>(</span><span class=n>iv</span><span class=o>.</span><span class=na>length</span><span class=o>()</span> <span class=o>!=</span> <span class=n>16</span><span class=o>){</span>
+</span></span><span class=line><span class=cl>                <span class=k>throw</span> <span class=k>new</span> <span class=n>Exception</span><span class=o>(</span><span class=s>&#34;Quantidade IV inválida&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>this</span><span class=o>.</span><span class=na>iv</span> <span class=o>=</span> <span class=n>iv</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kt>void</span> <span class=nf>setSecretKey</span><span class=o>(</span><span class=n>String</span> <span class=n>key</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span><span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span><span class=o>(</span><span class=n>key</span><span class=o>.</span><span class=na>length</span><span class=o>()</span> <span class=o>!=</span> <span class=n>16</span><span class=o>){</span>
+</span></span><span class=line><span class=cl>                <span class=k>throw</span> <span class=k>new</span> <span class=n>Exception</span><span class=o>(</span><span class=s>&#34;Quantidade Key Inválido&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>this</span><span class=o>.</span><span class=na>SecretKey</span> <span class=o>=</span> <span class=n>key</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=kd>static</span> <span class=kt>void</span> <span class=nf>main</span><span class=o>(</span><span class=n>String</span><span class=o>[]</span> <span class=n>args</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>            
+</span></span><span class=line><span class=cl>            <span class=k>try</span><span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>MCrypt</span> <span class=n>mcrypt</span> <span class=o>=</span> <span class=k>new</span> <span class=n>MCrypt</span><span class=o>(</span><span class=s>&#34;9sb9510e375d44f0&#34;</span><span class=o>,</span> <span class=s>&#34;9756e93d09054s4f&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>String</span> <span class=n>encrypted</span> <span class=o>=</span> <span class=n>mcrypt</span><span class=o>.</span><span class=na>encrypt</span><span class=o>(</span><span class=s>&#34;佩德羅加布里埃爾 佩德羅加布里埃爾&#34;</span><span class=o>);</span> 
+</span></span><span class=line><span class=cl>                <span class=n>String</span> <span class=n>decrypted</span> <span class=o>=</span> <span class=n>mcrypt</span><span class=o>.</span><span class=na>decrypt</span><span class=o>(</span><span class=n>encrypted</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>encrypted</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>                <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>decrypted</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  <span class=k>catch</span><span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>){</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>e</span><span class=o>.</span><span class=na>getMessage</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=n>String</span> <span class=nf>encrypt</span><span class=o>(</span><span class=n>String</span> <span class=n>text</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span>
+</span></span><span class=line><span class=cl>        <span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span><span class=o>(</span><span class=n>text</span> <span class=o>==</span> <span class=kc>null</span> <span class=o>||</span> <span class=n>text</span><span class=o>.</span><span class=na>length</span><span class=o>()</span> <span class=o>==</span> <span class=n>0</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                    <span class=k>throw</span> <span class=k>new</span> <span class=n>Exception</span><span class=o>(</span><span class=s>&#34;Empty string&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=kt>byte</span><span class=o>[]</span> <span class=n>encrypted</span> <span class=o>=</span> <span class=kc>null</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>try</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>cipher</span><span class=o>.</span><span class=na>init</span><span class=o>(</span><span class=n>Cipher</span><span class=o>.</span><span class=na>ENCRYPT_MODE</span><span class=o>,</span> <span class=n>keyspec</span><span class=o>,</span> <span class=n>ivspec</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>encrypted</span> <span class=o>=</span> <span class=n>cipher</span><span class=o>.</span><span class=na>doFinal</span><span class=o>(</span><span class=n>padString</span><span class=o>(</span><span class=n>text</span><span class=o>).</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>            <span class=o>{</span>                       
+</span></span><span class=line><span class=cl>                <span class=k>throw</span> <span class=k>new</span> <span class=n>Exception</span><span class=o>(</span><span class=s>&#34;[encrypt] &#34;</span> <span class=o>+</span> <span class=n>e</span><span class=o>.</span><span class=na>getMessage</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=k>this</span><span class=o>.</span><span class=na>toBase64</span><span class=o>(</span><span class=n>encrypted</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=n>String</span> <span class=nf>decrypt</span><span class=o>(</span><span class=n>String</span> <span class=n>code</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span>
+</span></span><span class=line><span class=cl>        <span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span><span class=o>(</span><span class=n>code</span> <span class=o>==</span> <span class=kc>null</span> <span class=o>||</span> <span class=n>code</span><span class=o>.</span><span class=na>length</span><span class=o>()</span> <span class=o>==</span> <span class=n>0</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                    <span class=k>throw</span> <span class=k>new</span> <span class=n>Exception</span><span class=o>(</span><span class=s>&#34;Empty string&#34;</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=kt>byte</span><span class=o>[]</span> <span class=n>decrypted</span> <span class=o>=</span> <span class=kc>null</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>try</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>cipher</span><span class=o>.</span><span class=na>init</span><span class=o>(</span><span class=n>Cipher</span><span class=o>.</span><span class=na>DECRYPT_MODE</span><span class=o>,</span> <span class=n>keyspec</span><span class=o>,</span> <span class=n>ivspec</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=n>decrypted</span> <span class=o>=</span> <span class=n>cipher</span><span class=o>.</span><span class=na>doFinal</span><span class=o>(</span><span class=n>Base64</span><span class=o>.</span><span class=na>decodeBase64</span><span class=o>(</span><span class=n>code</span><span class=o>));</span>
+</span></span><span class=line><span class=cl>                    <span class=c1>//Remove trailing zeroes
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=k>if</span><span class=o>(</span> <span class=n>decrypted</span><span class=o>.</span><span class=na>length</span> <span class=o>&gt;</span> <span class=n>0</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                    <span class=o>{</span>
+</span></span><span class=line><span class=cl>                        <span class=kt>int</span> <span class=n>trim</span> <span class=o>=</span> <span class=n>0</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>                        <span class=k>for</span><span class=o>(</span> <span class=kt>int</span> <span class=n>i</span> <span class=o>=</span> <span class=n>decrypted</span><span class=o>.</span><span class=na>length</span> <span class=o>-</span> <span class=n>1</span><span class=o>;</span> <span class=n>i</span> <span class=o>&gt;=</span> <span class=n>0</span><span class=o>;</span> <span class=n>i</span><span class=o>--</span> <span class=o>)</span> <span class=k>if</span><span class=o>(</span> <span class=n>decrypted</span><span class=o>[</span><span class=n>i</span><span class=o>]</span> <span class=o>==</span> <span class=n>0</span> <span class=o>)</span> <span class=n>trim</span><span class=o>++;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                        <span class=k>if</span><span class=o>(</span> <span class=n>trim</span> <span class=o>&gt;</span> <span class=n>0</span> <span class=o>)</span>
+</span></span><span class=line><span class=cl>                        <span class=o>{</span>
+</span></span><span class=line><span class=cl>                            <span class=kt>byte</span><span class=o>[]</span> <span class=n>newArray</span> <span class=o>=</span> <span class=k>new</span> <span class=kt>byte</span><span class=o>[</span><span class=n>decrypted</span><span class=o>.</span><span class=na>length</span> <span class=o>-</span> <span class=n>trim</span><span class=o>];</span>
+</span></span><span class=line><span class=cl>                            <span class=n>System</span><span class=o>.</span><span class=na>arraycopy</span><span class=o>(</span><span class=n>decrypted</span><span class=o>,</span> <span class=n>0</span><span class=o>,</span> <span class=n>newArray</span><span class=o>,</span> <span class=n>0</span><span class=o>,</span> <span class=n>decrypted</span><span class=o>.</span><span class=na>length</span> <span class=o>-</span> <span class=n>trim</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>                            <span class=n>decrypted</span> <span class=o>=</span> <span class=n>newArray</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>                        <span class=o>}</span>
+</span></span><span class=line><span class=cl>                    <span class=o>}</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>            <span class=o>{</span>
+</span></span><span class=line><span class=cl>                <span class=k>throw</span> <span class=k>new</span> <span class=n>Exception</span><span class=o>(</span><span class=s>&#34;[decrypt] &#34;</span> <span class=o>+</span> <span class=n>e</span><span class=o>.</span><span class=na>getMessage</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=k>new</span> <span class=n>String</span><span class=o>(</span><span class=n>decrypted</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>      
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>padString</span><span class=o>(</span><span class=n>String</span> <span class=n>source</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>        <span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=kt>char</span> <span class=n>paddingChar</span> <span class=o>=</span> <span class=n>0</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>            <span class=kt>int</span> <span class=n>size</span> <span class=o>=</span> <span class=n>16</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>            <span class=kt>int</span> <span class=n>x</span> <span class=o>=</span> <span class=n>source</span><span class=o>.</span><span class=na>length</span><span class=o>()</span> <span class=o>%</span> <span class=n>size</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>            <span class=kt>int</span> <span class=n>padLength</span> <span class=o>=</span> <span class=n>size</span> <span class=o>-</span> <span class=n>x</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>for</span> <span class=o>(</span><span class=kt>int</span> <span class=n>i</span> <span class=o>=</span> <span class=n>0</span><span class=o>;</span> <span class=n>i</span> <span class=o>&lt;</span> <span class=n>padLength</span><span class=o>;</span> <span class=n>i</span><span class=o>++)</span>
+</span></span><span class=line><span class=cl>            <span class=o>{</span>
+</span></span><span class=line><span class=cl>                  <span class=n>source</span> <span class=o>+=</span> <span class=n>paddingChar</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>source</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=n>String</span> <span class=nf>toBase64</span><span class=o>(</span><span class=kt>byte</span><span class=o>[]</span> <span class=n>buffer</span><span class=o>){</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>Base64</span><span class=o>.</span><span class=na>encodeBase64String</span><span class=o>(</span><span class=n>buffer</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>比較要注意 NoPadding 好像要處理文字 Padding，但我看其他PKCS，Java那一段好像都不需要做??</p><p>參考:<br><a href=https://zhuanlan.zhihu.com/p/349116118 target=_blank rel="noopener noreffer">Java 使用Cipher类实现加密 - 知乎</a><br><a href=http://smlie-blog.blogspot.com/2013/07/java-javaaes-encrypt-and-decrypt-example.html target=_blank rel="noopener noreffer">Jesse&rsquo;s blog: [Java] 使用Java實做，AES encrypt and decrypt</a><br><a href=https://github.com/PgPedroGabriel/java-php-mcrypt-base64/blob/master/Java/src/com/serpro/library/String/MCrypt.java target=_blank rel="noopener noreffer">java-php-mcrypt-base64/MCrypt.java at master · PgPedroGabriel/java-php-mcrypt-base64</a><br><a href=https://www.jianshu.com/p/b277b75013e4 target=_blank rel="noopener noreffer">java版本的AES/CBC/NoPadding和Python3版本的AES/CBC/NoPadding 记录 - 簡書</a></p><h3 id=javascript>JavaScript</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=kr>import</span> <span class=o>*</span> <span class=nx>as</span> <span class=nx>CryptoJS</span> <span class=nx>from</span> <span class=s2>&#34;crypto-js&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kd>function</span> <span class=nx>encryptBase64StrByAES</span><span class=p>(</span><span class=nx>data</span><span class=p>,</span><span class=nx>key</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>    <span class=kd>let</span> <span class=nx>cipher</span> <span class=o>=</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>AES</span><span class=p>.</span><span class=nx>encrypt</span><span class=p>(</span><span class=nx>data</span><span class=p>,</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>enc</span><span class=p>.</span><span class=nx>Utf8</span><span class=p>.</span><span class=nx>parse</span><span class=p>(</span><span class=nx>key</span><span class=p>),</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>iv</span><span class=o>:</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>enc</span><span class=p>.</span><span class=nx>Utf8</span><span class=p>.</span><span class=nx>parse</span><span class=p>(</span><span class=nx>key</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>        <span class=nx>mode</span><span class=o>:</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>mode</span><span class=p>.</span><span class=nx>CBC</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nx>padding</span><span class=o>:</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>pad</span><span class=p>.</span><span class=nx>ZeroPadding</span>
+</span></span><span class=line><span class=cl>    <span class=p>});</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nx>cipher</span><span class=p>.</span><span class=nx>toString</span><span class=p>();</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>function</span> <span class=nx>decryptBase64StrByAES</span><span class=p>(</span><span class=nx>data</span><span class=p>,</span> <span class=nx>key</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// data = CryptoJS.enc.Base64.parse(data)
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=c1>// console.log(&#39;dd&#39;,data)
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=kd>let</span> <span class=nx>cipher</span> <span class=o>=</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>AES</span><span class=p>.</span><span class=nx>decrypt</span><span class=p>(</span><span class=nx>data</span><span class=p>,</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>enc</span><span class=p>.</span><span class=nx>Utf8</span><span class=p>.</span><span class=nx>parse</span><span class=p>(</span><span class=nx>key</span><span class=p>),</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>iv</span><span class=o>:</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>enc</span><span class=p>.</span><span class=nx>Utf8</span><span class=p>.</span><span class=nx>parse</span><span class=p>(</span><span class=nx>key</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>        <span class=nx>mode</span><span class=o>:</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>mode</span><span class=p>.</span><span class=nx>CBC</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nx>padding</span><span class=o>:</span> <span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>pad</span><span class=p>.</span><span class=nx>ZeroPadding</span>
+</span></span><span class=line><span class=cl>    <span class=p>});</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nx>cipher</span><span class=p>.</span><span class=nx>toString</span><span class=p>(</span><span class=nx>CryptoJS</span><span class=p>.</span><span class=nx>enc</span><span class=p>.</span><span class=nx>Utf8</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=要了解的知識>要了解的知識</h2><p>PRIVATEKEY:必須至少16個字元，最大32個字元，因為使用AES演算法，可以的話，最好給32個字比較安全</p><p>IV:必須至少16個字元，最大32個字元，因為使用AES演算法，可以的話，最好給32個字比較安全</p><p>HEX: <a href=https://www.cnblogs.com/chenss15060100790/p/9079686.html target=_blank rel="noopener noreffer">Hex和Base64 - 疯狂的妞妞 - 博客园</a></p><p>URLBASE64</p><blockquote><p>標準的Base64並不適合直接放在URL裡傳輸，因為URL編碼器會把標準Base64中的/和+字元變為形如%XX的形式，而這些%號在存入資料庫時還需要再進行轉換，因為ANSI SQL中已將%號用作萬用字元。<br>為解決此問題，可採用一種用於URL的改進Base64編碼，它不在末尾填充=號，並將標準Base64中的+和/分別改成了-和_，這樣就免去了在URL編解碼和資料庫儲存時所要做的轉換，避免了編碼資訊長度在此過程中的增加，並統一了資料庫、表單等處物件識別碼的格式。<br>另有一種用於正規表示式的改進Base64變種，它將+和/改成了!和-，因為+，*以及前面在IRCu中用到的[和]在正規表示式中都可能具有特殊含義。</p></blockquote><p>參考: <a href=https://zh.wikipedia.org/wiki/Base64#URL target=_blank rel="noopener noreffer">Base64 - 維基百科，自由的百科全書</a></p><h2 id=可以應用地方>可以應用地方</h2><p>token : 但這樣會不會有AES加密後長度會不一致??要怎麼用比較安全，有空來研究。<br>看起來有各式各樣方式。<br>目前比較正規是拿 sha256(userid+user_data&mldr;+sign_datetime) 產生一組 token ，sign_datetime需要儲存到db，這一組也不需要存到資料庫，到時候token 驗證用db sign_datetime 再做一次 sha256 encode方式測試是否有效，但這是一種 token 只能有一組方法。</p><p>另一種做法產生 UUID 然後存放到資料庫裡面，這也是以前比較常見方法。</p><p>JWT 也是最近最常用方式，userid放在jwt裡面，但是重要資訊不能放在上面，不知道這長度會不會一致，有時間再研究。</p><p>HTTP Header 不能超過 8kb ，這一點也要注意。</p><ul><li><a href=https://learnku.com/articles/8584/php-and-web-end-symmetric-encryption-transmission-jsencryptcryptojs target=_blank rel="noopener noreffer">PHP 和 Web 端对称加密传输|JSEncrypt|CryptoJS | Laravel China 社区</a></li><li><a href=http://www.woshipm.com/pd/877760.html target=_blank rel="noopener noreffer">简单理解token机制 | 人人都是产品经理</a></li><li><a href=https://blog.yyisyou.tw/5d272c64/ target=_blank rel="noopener noreffer">認識Cookie、Session、Token與JWT | Yang Yang</a></li><li><a href=https://help.aliyun.com/document_detail/159037.html target=_blank rel="noopener noreffer">生成Token - 音视频通信 - 阿里云</a></li><li><a href=https://blog.csdn.net/qq_41369135/article/details/116530607 target=_blank rel="noopener noreffer">传统token与Jwt区别及优缺点_qq_41369135的博客-CSDN博客_jwttoken优点与缺点</a></li><li><a href=https://medium.com/starbugs/what-are-encoding-encrypt-and-hashing-4b03d40e7b0c target=_blank rel="noopener noreffer">一次搞懂密碼學中的三兄弟 — Encode、Encrypt 跟 Hash | by Larry Lu | Starbugs Weekly 星巴哥技術專欄 | Medium</a></li><li><a href=http://blog.leapoahead.com/2015/09/06/understanding-jwt/ target=_blank rel="noopener noreffer">JSON Web Token - 在Web应用间安全地传递信息 - 回田园</a></li><li><a href=https://bbs.csdn.net/topics/392509818 target=_blank rel="noopener noreffer">关于token验证几点不明白的地方-CSDN社区</a></li><li><a href=http://wsfdl.com/openstack/2015/12/26/%E7%90%86%E8%A7%A3Keystone%E7%9A%84%E5%9B%9B%E7%A7%8DToken.html target=_blank rel="noopener noreffer">理解 Keystone 的四种 Token</a></li><li><a href=https://alvinzhu.me/web/2014/04/26/10-things-you-should-know-about-tokens.html target=_blank rel="noopener noreffer">Alvin Zhu - 关于 Token，你应该知道的十件事</a></li><li><a href=https://hackerain.me/2020/11/09/openstack/keystone-fernet-token.html target=_blank rel="noopener noreffer">Keystone Fernet Token解析 | 开心鬼</a></li><li><a href=https://kylinyu.win/jwt-advanced/ target=_blank rel="noopener noreffer">深入探討 JSON Web Token (JWT) - 墨冊</a></li></ul><p>驗證信: 這樣應該就不用存 DB了，時間也可以存裡面，這樣也可以不用讀DB。<br>網路上大多數方法都是存在 DB，但我想用AES加密應該可行的，後來有找到有人實作。<br><a href=https://blog.safeandsound.cn/post/UseJava2ImplimentTheEmail-bindingSystem.html target=_blank rel="noopener noreffer">java实现绑定邮箱与验证系统 | jay&rsquo;s Blog</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-08-22</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/ data-title="JavaScript,Java 實作 AES/CBC/NoPadding 加密方法" data-hashtags=aes,cbc,nopadding,java,javascript><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/ data-hashtag=aes><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/ data-title="JavaScript,Java 實作 AES/CBC/NoPadding 加密方法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/ data-title="JavaScript,Java 實作 AES/CBC/NoPadding 加密方法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/JavaScript-Java-%E5%AF%A6%E4%BD%9C-AES-CBC-NoPadding-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95/ data-title="JavaScript,Java 實作 AES/CBC/NoPadding 加密方法"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/aes/>aes</a>,&nbsp;<a href=/blog/tags/cbc/>cbc</a>,&nbsp;<a href=/blog/tags/nopadding/>nopadding</a>,&nbsp;<a href=/blog/tags/java/>java</a>,&nbsp;<a href=/blog/tags/javascript/>javascript</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E6%88%91%E5%A4%9A%E5%B9%B4%E5%BF%BD%E7%95%A5%E4%BA%86-Java-RuntimeException-%E8%A7%80%E5%BF%B5/ class=prev rel=prev title="我多年忽略了 Java RuntimeException 觀念"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>我多年忽略了 Java RuntimeException 觀念</a>
+<a href=/blog/posts/Chrome-%E8%8E%AB%E5%90%8D%E5%85%B6%E5%A6%99-localhost-%E6%9C%83%E5%B0%8E%E5%88%B0-HTTPS/ class=next rel=next title="Chrome 莫名其妙 localhost 會導到 HTTPS">Chrome 莫名其妙 localhost 會導到 HTTPS<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>

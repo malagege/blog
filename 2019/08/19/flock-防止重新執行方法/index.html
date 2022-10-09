@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"malagege.github.io","root":"/blog/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="印象中以前寫 PHP 有用過 flock但這只用在簡單 PHP 上面最近看到flock指令突然想啟以前寫 PHP有用過這個">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flock 防止重新執行方法">
+<meta property="og:url" content="https://malagege.github.io/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="程式狂想筆記">
+<meta property="og:description" content="印象中以前寫 PHP 有用過 flock但這只用在簡單 PHP 上面最近看到flock指令突然想啟以前寫 PHP有用過這個">
+<meta property="og:locale" content="zh_TW">
+<meta property="article:published_time" content="2019-08-19T14:07:54.000Z">
+<meta property="article:modified_time" content="2021-06-27T08:05:08.192Z">
+<meta property="article:author" content="malagege">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="flock">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://malagege.github.io/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-TW'
+  };
+</script>
+
+  <title>flock 防止重新執行方法 | 程式狂想筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-105195903-2');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程式狂想筆記</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一個攻城師奮鬥史</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>歸檔</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/blog/links/" rel="section"><i class="fa fa-link fa-fw"></i>好站連結</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜尋..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+<!-- head AdSense -->
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: 'ca-pub-1439458814178865',
+    enable_page_level_ads: true
+  });
+</script>
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://malagege.github.io/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="malagege">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程式狂想筆記">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          flock 防止重新執行方法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">發表於</span>
+
+              <time title="創建時間：2019-08-19 22:07:54" itemprop="dateCreated datePublished" datetime="2019-08-19T22:07:54+08:00">2019-08-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2021-06-27 16:05:08" itemprop="dateModified" datetime="2021-06-27T16:05:08+08:00">2021-06-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/08/19/flock-防止重新執行方法/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+    <div class="post-meta-adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- typeart_post_body_end -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1439458814178865"
+             data-ad-slot="4661282975"
+             data-ad-format="fluid"
+             data-ad-layout-key="-gw-3+1f-3d+2z"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-1439458814178865"
+     data-ad-slot="2236653478"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+        <p>印象中以前寫 PHP 有用過 flock<br>但這只用在簡單 PHP 上面<br>最近看到flock指令<br>突然想啟以前寫 PHP<br>有用過這個</p>
+<a id="more"></a>
+<p><a href="https://rpubs.com/wush978/flock" target="_blank" rel="noopener">RPubs - Linux 小撇步：利用flock來做同步和非同步應用</a> <a href="/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/web3.png" title="備份圖">備份圖</a></p>
+<p>裡面有提到flock 基本用法<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#! /bin/bash</span></span><br><span class="line">sleep 10</span><br><span class="line">date</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>儲存成test.sh並且打開執行權限（chmod 700 test.sh）<br>此時如果我們打開兩個shell, 並且約同時執行：</p>
+</blockquote>
+<blockquote>
+<p>flock /tmp/demo.lock /tmp/test.sh</p>
+</blockquote>
+<p>簡單測試用兩個command line 測試<br>但我還不確定有沒有照順序執行</p>
+<p>我有簡單開三個command line 測試<br>確定不會照順序執行</p>
+<p>flock 預設為<code>-x</code> </p>
+<p><code>-c</code> 後面下 command line，通常放在最後面</p>
+<p><code>-x</code> exclusive lock</p>
+<p><code>-s</code> shared lock</p>
+<p><code>-n</code> or <code>-xn</code> or <code>-sn</code><br><del>當下有執行程式(錯誤說法)</del>，不會執行程式</p>
+<p>有趣的xxx.lock檔案一直都會在!!!</p>
+<p>簡單來說就是當 shared lock，別的程式 (shared lock) 還是能執行，但是 exclusive lock 不行<br>反之<br>當 exclusive lock 程式執行， shared lock 和 exclusive lock 都不能執行!!!</p>
+<p>可以開三個 command line 玩玩看</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">flock -s  &#x2F;tmp&#x2F;demo.lock &#x2F;tmp&#x2F;test.sh</span><br><span class="line">flock -x  &#x2F;tmp&#x2F;demo.lock &#x2F;tmp&#x2F;test.sh</span><br><span class="line">flock -sn  &#x2F;tmp&#x2F;demo.lock &#x2F;tmp&#x2F;test.sh</span><br><span class="line">flock -xn  &#x2F;tmp&#x2F;demo.lock &#x2F;tmp&#x2F;test.sh</span><br></pre></td></tr></table></figure>
+<h2 id="linux-lock-種類"><a href="#linux-lock-種類" class="headerlink" title="linux lock 種類"></a>linux lock 種類</h2><ul>
+<li><p>shared lock</p>
+</li>
+<li><p>exclusive lock</p>
+</li>
+</ul>
+<blockquote>
+<p>同時持有一個shared lock的process數量並沒有限制. 但同時只有一個process有exclusive lock.(Exclusive lock會拒絕其他shared lock和exclusive lock)<br>無論process對於檔案的存取方式為何(R/W, ReadOnly, WriteOnll), 都可以使用flock()對檔案加上shared lock或exclusive lock<br>shared lock跟exclusive lock可以互相轉換. 但轉換的過程不是atomic的. 轉換的步驟是先移除舊的鎖然後建立新的鎖. 中間若有另一個新鎖上去, 轉換過程就會發生失敗並且失去原本的鎖。<br>再將shared lock轉成exclusive lock的過程中. 若有另一個process持有相同的shared lock, 那他就會被blocking, 除非他有設置LOCK_NB</p>
+</blockquote>
+<p>參考: <a href="http://objectaline19.blogspot.com/2017/03/linux-file-locking.html" target="_blank" rel="noopener">CODING IS ART: Linux 檔案鎖(File Locking)</a> <a href="/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/web1.png" title="備份圖">備份圖</a></p>
+<p>我覺得善用這個特性，寫排成會非常方便<br>印象中有看過程式適用<code>ps</code>去看關鍵字找東西<br>但透過這個真的會很方便，又不用寫程式!!!</p>
+<p>更多設定方法可參考 <a href="https://blog.gtwang.org/linux/prevent-shell-script-duplicate-executions/" target="_blank" rel="noopener">Linux 防止 Shell 指令稿重複執行教學 - G. T. Wang</a> <a href="/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/web2.png" title="備份圖">備份圖</a></p>
+<p><strong>2019-10-01</strong><br>找到查看 lock 檔案方法<br><a href="https://ephrain.net/linux-%E4%BD%BF%E7%94%A8-lsof-lslocks-fuser-%E6%8C%87%E4%BB%A4%E5%88%97%E5%87%BA%E7%9B%AE%E5%89%8D%E9%8E%96%E5%AE%9A%E4%B8%AD%E7%9A%84-file-locks/" target="_blank" rel="noopener">[Linux] 使用 lsof, lslocks, fuser 指令列出目前鎖定中的 file locks | EPH 的程式日記</a><br><a href="https://unix.stackexchange.com/questions/85994/how-to-list-processes-locking-file" target="_blank" rel="noopener">process - How to list processes locking file? - Unix &amp; Linux Stack Exchange</a></p>
+<p><strong>2019-10-26</strong></p>
+<p>最近上了 Swoole 課程<br>最近用 rclone 寫 tranmission 腳本<br>使用 flock 防止重覆執行<br>沒有預到問題<br>但最近我也觀查到 rclone 上傳的時候<br><del>會開很多<code>子程序</code></del> 結果是執行緒<br><del>但我沒有預到什麼問題</del> 結果是執行緒 😜</p>
+<p>在上 swoole 裡面有提到子程序 fork 主程序<br>這時候主程序會跟子程序變數做隔離<br><del>但我很好奇 flock 竟然能讓子程序繼續運作</del> 結果是執行緒 🤷‍<br>但我覺得 flock 沒辦法測試子程序執行狀況，畢竟是用 flock 指令</p>
+<p>上面再搞笑 orz，還好有翻到這篇<br>補充一下， n 個 thread 都在同一個 process<br>所以算同一個程序，應該不會有 lock 問題<br>剛剛看到<a href="https://ithelp.ithome.com.tw/questions/10194441?sc=rss.qu" target="_blank" rel="noopener">Ununtu htop - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a><br><del>瞬間被打臉</del>，原來綠色不是子程序，但為什麼會有獨立的 PID?</p>
+<blockquote>
+<p>綠色字的是 Thread ，你可以在 Setup -&gt; Display options -&gt; Hide userland process thread 選項做調整，看你要不要顯示<br>另外你也可以按 F5 切換 Tree view ，這樣就可以明確的看出來那些綠字的 thread 是屬於哪個 process 的</p>
+</blockquote>
+<p>最後有看到比較詳細的介紹<a href="https://medium.com/@petertc/thread-and-signal-in-linux-4f2038d18fd" target="_blank" rel="noopener">[筆記]Linux的thread和signal - petertc - Medium</a> <a href="/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/web4.png" title="備份圖">備份圖</a></p>
+<blockquote>
+<p>同process的thread會有相同的process id，且個別有thread id。對於multithread的process，process id又稱為thread group id<br>…<br>圖中Command欄位是綠色代表這是一個thread，其PID欄位值其實是thread id。圖中ipython共有有三個thread（一個leader, 兩個member）</p>
+</blockquote>
+<p>原來是我誤會大了!!難怪怎麼對 thread 做 kill 沒有效果<br>更多 process 介紹可以看這篇<a href="https://medium.com/@petertc/session-process-group-and-signal-in-linux-7fbe85c0b0c5" target="_blank" rel="noopener">[筆記]Linux的process和signal - petertc - Medium</a></p>
+<p>因為我在 Raspberry PI 觀察<br><a href="https://ephrain.net/linux-%E4%BD%BF%E7%94%A8-lsof-lslocks-fuser-%E6%8C%87%E4%BB%A4%E5%88%97%E5%87%BA%E7%9B%AE%E5%89%8D%E9%8E%96%E5%AE%9A%E4%B8%AD%E7%9A%84-file-locks/" target="_blank" rel="noopener">[Linux] 使用 lsof, lslocks, fuser 指令列出目前鎖定中的 file locks | EPH 的程式日記</a><br>預設沒有使用 lsof 所以就不測試了<br>lslock<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">COMMAND           PID  TYPE SIZE MODE  M START END PATH</span><br><span class="line">cron              304 FLOCK      WRITE 0     0   0 &#x2F;run...</span><br><span class="line">flock           17094 FLOCK      WRITE 0     0   0 &#x2F;...</span><br><span class="line">(unknown)         278 FLOCK      WRITE 0     0   0 &#x2F;run...</span><br><span class="line">(unknown)         281 FLOCK      WRITE 0     0   0 &#x2F;run...</span><br></pre></td></tr></table></figure><br>不知道我的 PI 怎麼了orz<br>PATH 看不到</p>
+<p>sudo fuser 可以看到 lock 檔案<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~ $ sudo fuser &#x2F;tmp&#x2F;rclone.lock</span><br><span class="line">&#x2F;tmp&#x2F;rclone.lock:    17094 17095</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://gist.github.com/beyu/462241bd73ae630cd7ee937a90766046" target="_blank" rel="noopener">flockを孫プロセスに保持させてプロセスの終了までロックを無理やり保持する</a> 不知道這是什麼?先留一下</p>
+
+    </div>
+
+    
+    
+    
+
+
+<div class="post-end-adsense">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- typeart_post_body_end -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-1439458814178865"
+         data-ad-slot="2236653478"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/linux/" rel="tag"># linux</a>
+              <a href="/blog/tags/flock/" rel="tag"># flock</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2019/08/16/SQL-UPDATE-%E5%92%8C-DELETE-%E8%B6%B4%E9%85%8D-JOIN-%E6%96%B9%E6%B3%95/" rel="prev" title="SQL UPDATE 和 DELETE 趴配 JOIN 方法">
+      <i class="fa fa-chevron-left"></i> SQL UPDATE 和 DELETE 趴配 JOIN 方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2019/08/21/MySQL-%E6%8A%93%E5%87%BA%E9%87%8D%E8%A4%87%E8%B3%87%E6%96%99%E6%96%B9%E6%B3%95/" rel="next" title="MySQL 抓出重複資料方法">
+      MySQL 抓出重複資料方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#linux-lock-種類"><span class="nav-number">1.</span> <span class="nav-text">linux lock 種類</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">malagege</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">746</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">分類</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">590</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">malagege</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 強力驅動
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/muse.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://malagege-blog.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://malagege.github.io/blog/2019/08/19/flock-%E9%98%B2%E6%AD%A2%E9%87%8D%E6%96%B0%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/";
+    this.page.identifier = "2019/08/19/flock-防止重新執行方法/";
+    this.page.title = "flock 防止重新執行方法";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://malagege-blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

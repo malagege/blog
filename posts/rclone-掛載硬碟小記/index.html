@@ -1,0 +1,896 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>rclone 掛載硬碟小記 - 程式狂想筆記 - 記錄著我接觸程式藝文</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="rclone 掛載硬碟小記"><meta property="og:description" content="最近公司有用 gcsfuse 做硬碟掛載
+突然想到之前有看到使用 rclone 的文章
+今天就小式了一下"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-10-14T20:58:51+00:00"><meta property="article:modified_time" content="2019-10-14T20:58:51+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="rclone 掛載硬碟小記"><meta name=twitter:description content="最近公司有用 gcsfuse 做硬碟掛載
+突然想到之前有看到使用 rclone 的文章
+今天就小式了一下"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/%E5%9C%A8-Linux-%E8%A8%AD%E5%AE%9A%E6%8E%92%E7%A8%8B%E8%B6%85%E9%81%8E%E5%9F%B7%E8%A1%8C%E6%99%82%E9%96%93-kill-%E6%8E%89%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/Bash-%E5%92%8C-sh-%E6%98%AF%E4%B8%8D%E4%B8%80%E6%A8%A3%E7%9A%84%E6%9D%B1%E8%A5%BF/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"rclone 掛載硬碟小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"rclone, linux, gdrive","wordcount":3020,"url":"https:\/\/malagege.github.io\/blog\/posts\/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98\/","datePublished":"2019-10-14T20:58:51+00:00","dateModified":"2019-10-14T20:58:51+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title="程式狂想筆記 - 記錄著我接觸程式藝文">程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">rclone 掛載硬碟小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-10-14>2019-10-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;3020 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;15 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#在-window-掛載-rclone>在 Window 掛載 rclone</a><ul><li><a href=#下載>下載</a></li></ul></li><li><a href=#設定>設定</a><ul><li><a href=#掛載>掛載</a></li><li><a href=#gui>GUI</a></li></ul></li><li><a href=#在-raspberry-pi-掛載>在 Raspberry Pi 掛載</a><ul><li><a href=#安裝>安裝</a></li><li><a href=#掛載-1>掛載</a></li><li><a href=#tmux>Tmux</a></li><li><a href=#自動掛載>自動掛載</a></li><li><a href=#移除-rclone>移除 rclone</a></li><li><a href=#使用-google-driver-注意事項>使用 Google Driver 注意事項</a></li><li><a href=#rsync-複製檔案顯示進度>rsync 複製檔案顯示進度</a></li><li><a href=#raspberry-pi-掛載-usb>Raspberry PI 掛載 USB</a></li><li><a href=#systemctl-和-service-掛載的差異>systemctl 和 service 掛載的差異</a></li><li><a href=#tmux-掛載方式不建議用>tmux 掛載方式(不建議用)</a></li></ul></li><li><a href=#tranmission>tranmission</a><ul><li><a href=#aria2不建議使用>aria2(不建議使用)</a></li></ul></li><li><a href=#參考來源>參考來源</a></li><li><a href=#at-排成設定>AT 排成設定</a></li></ul></nav></div></div><div class=content id=content><p>最近公司有用 gcsfuse 做硬碟掛載<br>突然想到之前有看到使用 rclone 的文章<br>今天就小式了一下</p><h2 id=在-window-掛載-rclone>在 Window 掛載 rclone</h2><p>參考<a href=https://blog.rhilip.info/archives/874/ target=_blank rel="noopener noreffer">使用 rclone 在 Windows 下挂载 Google 个人 / 团队云盘 - R 酱小窝</a>實作</p><h3 id=下載>下載</h3><p>rclone ： <a href=https://rclone.org/downloads/ target=_blank rel="noopener noreffer">https://rclone.org/downloads/</a><br>winfsp ： <a href=http://www.secfs.net/winfsp/download/ target=_blank rel="noopener noreffer">http://www.secfs.net/winfsp/download/</a></p><p><strong>winfsp</strong>一定要安裝，這個軟體跟掛載有關係</p><h2 id=設定>設定</h2><p><code>rclone config</code></p><p>參考: <a href=https://ymgblog.com/2018/03/09/296/ target=_blank rel="noopener noreffer">Linux下rclone简单教程(支持VPS数据同步,多种网盘,支持挂载) | 半醉浮生丶</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>root@arm1:~# rclone config
+</span></span><span class=line><span class=cl>2018/06/12 15:36:43 NOTICE: Config file “/root/.config/rclone/rclone.conf” not found – using defaults
+</span></span><span class=line><span class=cl>No remotes found – make a new one
+</span></span><span class=line><span class=cl>n) New remote
+</span></span><span class=line><span class=cl>s) Set configuration password
+</span></span><span class=line><span class=cl>q) Quit config
+</span></span><span class=line><span class=cl>n/s/q&gt; n       **********************选择 n，新建配置文件
+</span></span><span class=line><span class=cl>name&gt; test       **********************输入配置的名称
+</span></span><span class=line><span class=cl>Type of storage to configure.
+</span></span><span class=line><span class=cl>Choose a number from below, or type in your own value
+</span></span><span class=line><span class=cl>1 / Alias for a existing remote
+</span></span><span class=line><span class=cl>\ “alias”
+</span></span><span class=line><span class=cl>2 / Amazon Drive
+</span></span><span class=line><span class=cl>\ “amazon cloud drive”
+</span></span><span class=line><span class=cl>3 / Amazon S3 Compliant Storage Providers (AWS, Ceph, Dreamhost, IBM COS, Minio)
+</span></span><span class=line><span class=cl>\ “s3”
+</span></span><span class=line><span class=cl>4 / Backblaze B2
+</span></span><span class=line><span class=cl>\ “b2”
+</span></span><span class=line><span class=cl>5 / Box
+</span></span><span class=line><span class=cl>\ “box”
+</span></span><span class=line><span class=cl>6 / Cache a remote
+</span></span><span class=line><span class=cl>\ “cache”
+</span></span><span class=line><span class=cl>7 / Dropbox
+</span></span><span class=line><span class=cl>\ “dropbox”
+</span></span><span class=line><span class=cl>8 / Encrypt/Decrypt a remote
+</span></span><span class=line><span class=cl>\ “crypt”
+</span></span><span class=line><span class=cl>9 / FTP Connection
+</span></span><span class=line><span class=cl>\ “ftp”
+</span></span><span class=line><span class=cl>10 / Google Cloud Storage (this is not Google Drive)
+</span></span><span class=line><span class=cl>\ “google cloud storage”
+</span></span><span class=line><span class=cl>11 / Google Drive
+</span></span><span class=line><span class=cl>\ “drive”
+</span></span><span class=line><span class=cl>12 / Hubic
+</span></span><span class=line><span class=cl>\ “hubic”
+</span></span><span class=line><span class=cl>13 / Local Disk
+</span></span><span class=line><span class=cl>\ “local”
+</span></span><span class=line><span class=cl>14 / Mega
+</span></span><span class=line><span class=cl>\ “mega”
+</span></span><span class=line><span class=cl>15 / Microsoft Azure Blob Storage
+</span></span><span class=line><span class=cl>\ “azureblob”
+</span></span><span class=line><span class=cl>16 / Microsoft OneDrive
+</span></span><span class=line><span class=cl>\ “onedrive”
+</span></span><span class=line><span class=cl>17 / Openstack Swift (Rackspace Cloud Files, Memset Memstore, OVH)
+</span></span><span class=line><span class=cl>\ “swift”
+</span></span><span class=line><span class=cl>18 / Pcloud
+</span></span><span class=line><span class=cl>\ “pcloud”
+</span></span><span class=line><span class=cl>19 / QingCloud Object Storage
+</span></span><span class=line><span class=cl>\ “qingstor”
+</span></span><span class=line><span class=cl>20 / SSH/SFTP Connection
+</span></span><span class=line><span class=cl>\ “sftp”
+</span></span><span class=line><span class=cl>21 / Webdav
+</span></span><span class=line><span class=cl>\ “webdav”
+</span></span><span class=line><span class=cl>22 / Yandex Disk
+</span></span><span class=line><span class=cl>\ “yandex”
+</span></span><span class=line><span class=cl>23 / http Connection
+</span></span><span class=line><span class=cl>\ “http”
+</span></span><span class=line><span class=cl>Storage&gt; 11       **********************这里是添加 googledrive 云盘，选择 11，当然你也可以添加其它云盘
+</span></span><span class=line><span class=cl>Google Application Client Id – leave blank normally.
+</span></span><span class=line><span class=cl>client_id&gt;       **********************回车留空即可
+</span></span><span class=line><span class=cl>Google Application Client Secret – leave blank normally.
+</span></span><span class=line><span class=cl>client_secret&gt;       **********************回车留空即可
+</span></span><span class=line><span class=cl>Scope that rclone should use when requesting access from drive.
+</span></span><span class=line><span class=cl>Choose a number from below, or type in your own value
+</span></span><span class=line><span class=cl>1 / Full access all files, excluding Application Data Folder.
+</span></span><span class=line><span class=cl>\ “drive”
+</span></span><span class=line><span class=cl>2 / Read-only access to file metadata and file contents.
+</span></span><span class=line><span class=cl>\ “drive.readonly”
+</span></span><span class=line><span class=cl>/ Access to files created by rclone only.
+</span></span><span class=line><span class=cl>3 | These are visible in the drive website.
+</span></span><span class=line><span class=cl>| File authorization is revoked when the user deauthorizes the app.
+</span></span><span class=line><span class=cl>\ “drive.file”
+</span></span><span class=line><span class=cl>/ Allows read and write access to the Application Data folder.
+</span></span><span class=line><span class=cl>4 | This is not visible in the drive website.
+</span></span><span class=line><span class=cl>\ “drive.appfolder”
+</span></span><span class=line><span class=cl>/ Allows read-only access to file metadata but
+</span></span><span class=line><span class=cl>5 | does not allow any access to read or download file content.
+</span></span><span class=line><span class=cl>\ “drive.metadata.readonly”
+</span></span><span class=line><span class=cl>scope&gt;       **********************回车留空即可，这里是云盘 API 权限的设置
+</span></span><span class=line><span class=cl>ID of the root folder – leave blank normally. Fill in to access “Computers” folders. (see docs).
+</span></span><span class=line><span class=cl>root_folder_id&gt;       **********************回车留空即可
+</span></span><span class=line><span class=cl>Service Account Credentials JSON file path – leave blank normally.
+</span></span><span class=line><span class=cl>Needed only if you want use SA instead of interactive login.
+</span></span><span class=line><span class=cl>service_account_file&gt;
+</span></span><span class=line><span class=cl>Remote config
+</span></span><span class=line><span class=cl>Use auto config?
+</span></span><span class=line><span class=cl>* Say Y if not sure
+</span></span><span class=line><span class=cl>* Say N if you are working on a remote or headless machine or Y didn’t work
+</span></span><span class=line><span class=cl>y) Yes
+</span></span><span class=line><span class=cl>n) No
+</span></span><span class=line><span class=cl>y/n&gt; n       **********************输入 n，手动配置
+</span></span><span class=line><span class=cl>If your browser doesn’t open automatically go to the following link: https://accounts.google.com/o/oauth2/auth?access_type=offline&amp;client_id=20111111644.apps.googleusercontent.com&amp;redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&amp;response_type=code&amp;scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive&amp;state=1111111111111111111111       **********************在本地打开这个链接，添加 google 云盘账号授予 rclone 权限
+</span></span><span class=line><span class=cl>Log in and authorize rclone for access
+</span></span><span class=line><span class=cl>Enter verification code&gt; 4/AAC8CPF21dYWqRnNSw479Fa8dUb11111111111111111111111111E       **********************输入在浏览器获取的认证 code
+</span></span><span class=line><span class=cl>Configure this as a team drive?
+</span></span><span class=line><span class=cl>y) Yes
+</span></span><span class=line><span class=cl>n) No
+</span></span><span class=line><span class=cl>y/n&gt; y       **********************是否团队云盘，我这里是，所以选择 Y
+</span></span><span class=line><span class=cl>Fetching team drive list…
+</span></span><span class=line><span class=cl>Choose a number from below, or type in your own value
+</span></span><span class=line><span class=cl>1 / back
+</span></span><span class=line><span class=cl>\ “0AAbWF01111111111”
+</span></span><span class=line><span class=cl>2 / back2
+</span></span><span class=line><span class=cl>\ “0ABf3gOL111111111”
+</span></span><span class=line><span class=cl>Enter a Team Drive ID&gt; 1       **********************选择一个你要添加的团队云盘
+</span></span><span class=line><span class=cl>——————–
+</span></span><span class=line><span class=cl>[test]
+</span></span><span class=line><span class=cl>type = drive
+</span></span><span class=line><span class=cl>client_id =
+</span></span><span class=line><span class=cl>client_secret =
+</span></span><span class=line><span class=cl>scope =
+</span></span><span class=line><span class=cl>root_folder_id =
+</span></span><span class=line><span class=cl>service_account_file =
+</span></span><span class=line><span class=cl>token = {“access_token”:”ya29.GlvY1111qGBysX4tO_V5ZSO1PZ_Kq1111111111111111fksugvyOFC-MzvAPnl1rsi3OOwMFTdkk11111111H_u5zzPRp0eB_iLzKsZOVzP3R2ee1111AVmO”,”token_type”:”Bearer”,”refresh_token”:”1/r5Q_pH11111111CV-xiMne9_w62y_ag11bT_H9zz7qc”,”expiry”:”2018-06-12T16:37:16.714510063+08:00″}
+</span></span><span class=line><span class=cl>team_drive = 0AA11111111111111
+</span></span><span class=line><span class=cl>——————–
+</span></span><span class=line><span class=cl>y) Yes this is OK
+</span></span><span class=line><span class=cl>e) Edit this remote
+</span></span><span class=line><span class=cl>d) Delete this remote
+</span></span><span class=line><span class=cl>y/e/d&gt; y       **********************输入 y，配置到这里就完成了
+</span></span><span class=line><span class=cl>Current remotes:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Name Type
+</span></span><span class=line><span class=cl>==== ====
+</span></span><span class=line><span class=cl>test drive
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>e) Edit existing remote
+</span></span><span class=line><span class=cl>n) New remote
+</span></span><span class=line><span class=cl>d) Delete remote
+</span></span><span class=line><span class=cl>r) Rename remote
+</span></span><span class=line><span class=cl>c) Copy remote
+</span></span><span class=line><span class=cl>s) Set configuration password
+</span></span><span class=line><span class=cl>q) Quit config
+</span></span><span class=line><span class=cl>e/n/d/r/c/s/q&gt; q       **********************输入 q 退出即可！
+</span></span></code></pre></td></tr></table></div></div><h3 id=掛載>掛載</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>rclone mount gdrive:/ x: --cache-dir D:\tmp --vfs-cache-mode writes
+</span></span><span class=line><span class=cl># git bash
+</span></span><span class=line><span class=cl>rclone mount gdrive:/ x: --cache-dir /d/tmp --vfs-cache-mode writes
+</span></span></code></pre></td></tr></table></div></div><p>不知道為什麼我的 powershell 執行失敗&mldr;<br>但用 Git bash 就可以順力執行</p><h3 id=gui>GUI</h3><p>另外，GUI 介面:<a href=https://github.com/kapitainsky/RcloneBrowser/releases target=_blank rel="noopener noreffer">Releases · kapitainsky/RcloneBrowser</a><br>這個我就沒有試了</p><h2 id=在-raspberry-pi-掛載>在 Raspberry Pi 掛載</h2><h3 id=安裝>安裝</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># raspberry pi </span>
+</span></span><span class=line><span class=cl>curl -L https://raw.github.com/pageauc/rclone4pi/master/rclone-install.sh <span class=p>|</span> bash
+</span></span><span class=line><span class=cl><span class=c1># normal(not raspberry pi)</span>
+</span></span><span class=line><span class=cl>curl https://rclone.org/install.sh <span class=p>|</span> sudo bash
+</span></span></code></pre></td></tr></table></div></div><p>有看到<code>sudo apt install rclone</code>也可以使用，我沒有測試</p><p>rclone config 就不再寫了，請看上面</p><h3 id=掛載-1>掛載</h3><p><strong>這邊需要注意權限問題</strong></p><p>假如要掛載 <code>/mnt/xxx</code> 可能未因為 <code>user</code> 權限無法掛載<br>可以使用家目錄 或者吧 <code>/mnt/xxx</code> 改成 777<br>或者切換 <code>root</code> 做 mount</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>rclone mount --vfs-cache-mode writes --fast-list --vfs-cache-max-size 100M gdrive: /mnt/gdrive
+</span></span></code></pre></td></tr></table></div></div><p>有執行發現這一行不是背景執行&mldr;<br>除了用<code>&</code><br>還發現有人用 tmux</p><h3 id=tmux>Tmux</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>tmux # create tmux 
+</span></span><span class=line><span class=cl>tmux ls # tmux ls
+</span></span><span class=line><span class=cl>tmux a -t 0# tmux session
+</span></span><span class=line><span class=cl>Ctrl+b &amp; d (關掉背景執行)
+</span></span></code></pre></td></tr></table></div></div><p>簡單說一下，<code>tmux</code>建立一個 session，做 mount 動做<br>這時候會發現不能做任何動作，<code>Ctrl+b & d</code>會回到原始的 bash<br>再輸入<code>tmux</code>，可以做<code>cp 動作到gdrive</code> 再<code>Ctrl+b & d</code><br>關掉 command line 連線都還會在<br><code>tmux ls</code>可以看到還有哪些 session 再跑</p><p>因為指令不熟又不常用，之前用過的都忘了差不多<br>有空再補&mldr;</p><h3 id=自動掛載>自動掛載</h3><p>假如用網路上範例<br>路徑存放在<code>/etc/systemd/system/rclone.service</code><br>使用前建議用root掛載</p><p>但聽說一般 user 也能設定<br>我沒有仔細研究<br><code>~/.config/systemd/user/rclone@.service</code></p><p>改完記得要<strong>systemctl daemon-reload</strong></p><p>(還沒測試)</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[Unit]
+</span></span><span class=line><span class=cl>Description=rclone: Remote FUSE filesystem for cloud storage config %i
+</span></span><span class=line><span class=cl>Documentation=man:rclone(1)[Service]
+</span></span><span class=line><span class=cl>Type=notify
+</span></span><span class=line><span class=cl>ExecStartPre=/bin/mkdir -p %h/mnt/%i
+</span></span><span class=line><span class=cl>ExecStart= \
+</span></span><span class=line><span class=cl>  /usr/bin/rclone mount \
+</span></span><span class=line><span class=cl>    --fast-list \
+</span></span><span class=line><span class=cl>    --vfs-cache-mode writes \
+</span></span><span class=line><span class=cl>    --vfs-cache-max-size 100M \
+</span></span><span class=line><span class=cl>    %i: %h/mnt/%i[Install]
+</span></span><span class=line><span class=cl>WantedBy=default.target
+</span></span></code></pre></td></tr></table></div></div><p>剛剛發現<code>--daemon</code>有這個，<del>尚未測試</del>測是這個可運作!!</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[Unit]
+</span></span><span class=line><span class=cl>Description=RClone Service
+</span></span><span class=line><span class=cl>After=network-online.target
+</span></span><span class=line><span class=cl>Wants=network-online.target
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>[Service]
+</span></span><span class=line><span class=cl>Type=notify
+</span></span><span class=line><span class=cl>ExecStart=/usr/sbin/rclone mount --allow-other --dir-cache-time 48h --vfs-read-chunk-size 16M --buffer-size 2G Googlecrypt: /home/plex
+</span></span><span class=line><span class=cl>ExecStop=/bin/fusermount -uz /home/plex
+</span></span><span class=line><span class=cl>Restart=on-abort
+</span></span></code></pre></td></tr></table></div></div><p>最終我電腦設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[Unit]
+</span></span><span class=line><span class=cl>Description=RClone Service
+</span></span><span class=line><span class=cl>After=network-online.target
+</span></span><span class=line><span class=cl>Wants=network-online.target
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>[Service]
+</span></span><span class=line><span class=cl>User=pi
+</span></span><span class=line><span class=cl>Type=notify
+</span></span><span class=line><span class=cl>#ExecStart=/usr/bin/rclone mount --allow-root --vfs-cache-mode writes --vfs-cache-max-size 100M gdrive: /mnt/gdrive
+</span></span><span class=line><span class=cl>ExecStart=/usr/bin/rclone mount --allow-root --vfs-cache-mode writes --vfs-cache-max-size 100M gdrive: /mnt/gdrive
+</span></span><span class=line><span class=cl>ExecStop=/bin/fusermount -uz /mnt/gdrive
+</span></span><span class=line><span class=cl>RestartSec=30
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>[Install]
+</span></span><span class=line><span class=cl>WantedBy=multi-user.target
+</span></span></code></pre></td></tr></table></div></div><p>allow-root 不能用&mldr;，好像是 bug</p><ul><li><a href=https://forum.rclone.org/t/rclone-auto-mount/6353 target=_blank rel="noopener noreffer">Rclone auto mount - rclone - rclone forum</a></li><li><a href=https://www.jamescoyle.net/how-to/3116-rclone-systemd-startup-mount-script target=_blank rel="noopener noreffer">rclone Systemd startup mount script – JamesCoyle.net Limited</a></li><li><a href=https://github.com/rclone/rclone/wiki/rclone-fstab-mount-helper-script target=_blank rel="noopener noreffer">rclone fstab mount helper script · rclone/rclone Wiki</a></li><li>Restart 可參考<a href=https://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html target=_blank rel="noopener noreffer">Systemd 入门教程：实战篇 - 阮一峰的网络日志</a></li><li><a href=https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29 target=_blank rel="noopener noreffer">systemd (正體中文) - ArchWiki</a></li></ul><h3 id=移除-rclone>移除 rclone</h3><p><a href=https://github.com/pageauc/rclone4pi/wiki#how-to-remove-rclone target=_blank rel="noopener noreffer">Home · pageauc/rclone4pi Wiki</a></p><h3 id=使用-google-driver-注意事項>使用 Google Driver 注意事項</h3><ul><li>1 天上傳最多 750 GB</li><li>1 個檔案不能超過 100 GB</li><li>不能太平凡掛載</li></ul><p>超過小心帳號可能會被 Ban!!</p><h3 id=rsync-複製檔案顯示進度>rsync 複製檔案顯示進度</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>rsync -rvh --progress /mnt/ddd /mnt/gdrive
+</span></span></code></pre></td></tr></table></div></div><p>-r 複製資料夾記得要加上去</p><p>影片不建議使用 rsync ，不知道為什麼丟到上面去，影片不會轉成線上看<br>下載檔案後面會加奇怪副檔名，所以用 <code>cp</code> 比較不會有問題</p><p>後來發現<code>rclone sync xxx gd:xxx -P</code> 也能看狀態= =</p><h3 id=raspberry-pi-掛載-usb>Raspberry PI 掛載 USB</h3><p>之前有在 <a href=http://yehnan.blogspot.com/2016/05/raspberry-piusb.html target=_blank rel="noopener noreffer">葉難: Raspberry Pi：自動掛載USB隨身碟</a> 看到怎麼使用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>UUID=&#34;F840-AAE1&#34;  /media/usbstick vfat   rw,defaults 0 0
+</span></span></code></pre></td></tr></table></div></div><p>後面兩個 0 代表</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>    第五欄：能否被 dump 備份指令作用：
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>dump 是一個用來做為備份的指令，不過現在有太多的備份方案了，所以這個項目可以不要理會啦！直接輸入 0 就好了！
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    第六欄：是否以 fsck 檢驗磁區：
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>早期開機的流程中，會有一段時間去檢驗本機的檔案系統，看看檔案系統是否完整 (clean)。 不過這個方式使用的主要是透過 fsck 去做的，我們現在用的 xfs 檔案系統就沒有辦法適用，因為 xfs 會自己進行檢驗，不需要額外進行這個動作！所以直接填 0 就好了。
+</span></span></code></pre></td></tr></table></div></div><p>參考:<a href=http://linux.vbird.org/linux_basic/0230filesystem.php#fstab target=_blank rel="noopener noreffer">鳥哥的 Linux 私房菜 &ndash; 第七章、Linux 磁碟與檔案系統管理</a></p><ol><li>sudo fdisk -l (查看裝置有沒有掛載)</li><li>$ sudo mkdir /mnt/extHDD (建置掛載用的資料夾和權限)<br>$ sudo chown pi:pi /mnt/extHDD</li><li>sudo mount -t vfat /dev/sda1 /mnt/extHDD # (test mount) ext4的話，把 vfat 改成 ext4<br><code>-o uid=pi,gid=pi</code>我的樹梅派家這段會失敗</li><li>sudo umount /dev/sda1 # 解除掛載</li><li>sudo blkid # 查看掛載的 UUID</li><li>sudo vim /etc/fstab</li><li>加入 UUID=&ldquo;F840-AAE1&rdquo; /mnt/extHDD vfat rw,defaults 0 0 #(-a, &ndash;all 掛載 fstab 中的所有文件系統)</li></ol><p><a href=https://www.itread01.com/content/1553540779.html target=_blank rel="noopener noreffer">Mount的用法詳細解析 - IT閱讀</a></p><p>最近看到<a href=https://docs.aws.amazon.com/zh_tw/AWSEC2/latest/UserGuide/ebs-using-volumes.html target=_blank rel="noopener noreffer">使 Amazon EBS 磁碟區可供在 Linux 上使用 - Amazon Elastic Compute Cloud</a>這篇<br>UUID=aebf131c-6957-451e-8d34-ec978d9581ae /data xfs defaults,<strong>nofail</strong> 0 2</p><blockquote><p>如果曾在不掛載此磁碟區的狀態下開機執行個體 (例如，在將磁碟區移至其他執行個體後)，nofail 掛載選項可讓執行個體繼續開機，即使在掛載磁碟區的作業出現錯誤。包括 16.04 前之 Ubuntu 版本在內的 Debian 衍生產品，也必須新增 nobootwait 掛載選項。</p></blockquote><p>/usr/bin/rclone mount &ndash;allow-root &ndash;vfs-cache-mode writes &ndash;vfs-cache-max-size 100M gdrive: /mnt/gdrive<br>2019/10/16 16:15:54 mount helper error: fusermount: option allow_root only allowed if &lsquo;user_allow_other&rsquo; is set in /etc/fuse.conf</p><h3 id=systemctl-和-service-掛載的差異>systemctl 和 service 掛載的差異</h3><p>在這次藉著學習到簡單使用 systemctl 設定服務<br>但很好奇這兩個差異</p><blockquote><p>systemd是Linux系統最新的初始化系統(init),作用是提高系統的啟動速度，儘可能啟動較少的進程，儘可能更多進程並發啟動。<br>systemd對應的進程管理命令是systemctl</p></blockquote><p>參考:<a href=https://www.cnblogs.com/shijingjing07/p/9301590.html target=_blank rel="noopener noreffer">Linux 服務管理兩種方式service和systemctl - 迪米特 - 博客園</a><br>裡面還有講:<code>主要有四種類型文件.mount,.service,.target,.wants</code></p><p>有找到比較兩者指令差異<a href=https://blog.csdn.net/capecape/article/details/78505511 target=_blank rel="noopener noreffer">centos7 systemctl取代service和chkconfig来实现系统管理 - cape的博客 - CSDN博客</a> <a href=web1.png rel>備份圖</a></p><p>發現選擇 systemctl 還是能繼續用 service 指令<br>習慣改不了用 service XDD</p><p>但設定上 service 設定服務需要用 chkconfig<br>用systemctl 直接 enable/disable 就能解決</p><p><a href=https://wiki.archlinux.org/index.php/Systemd_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29 target=_blank rel="noopener noreffer">systemd (简体中文) - ArchWiki</a><br><a href=https://wiki.archlinux.org/index.php/Systemd/User_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29 target=_blank rel="noopener noreffer">systemd/User (简体中文) - ArchWiki</a></p><p><code>journalctl</code> 查看 systemctl log</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>#查看所有日誌（默認情況下 ，只保存本次啟動的日誌） $ sudo journalctl #查看內核日誌（不顯示應用日誌） 
+</span></span><span class=line><span class=cl>$ sudo journalctl -k #查看系統本次啟動的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl -b 
+</span></span><span class=line><span class=cl>$ sudo journalctl -b -0 #查看上一次啟動的日誌（需更改設置） 
+</span></span><span class=line><span class=cl>$ sudo journalctl -b -1 #查看指定時間的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl --since=&#34;2017-09-26 22:17:16&#34; 
+</span></span><span class=line><span class=cl>$ sudo journalctl --since &#34;30 min ago&#34; 
+</span></span><span class=line><span class=cl>$ sudo journalctl --since yesterday 
+</span></span><span class=line><span class=cl>$ sudo journalctl --since &#34;2015-01-10&#34; --until &#34;2017-01-11 03:00&#34; 
+</span></span><span class=line><span class=cl>$ sudo journalctl --since 09:00 --until &#34;1 hour ago&#34; #顯示尾部的最新10行日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl -n #顯示尾部指定行數的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl -n 50 #實時滾動顯示最新日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl -f #查看指定服務的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl /usr/lib/systemd/systemd #查看指定進程的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl _PID=1 #查看某個路徑的腳本的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl /usr/bin/bash #查看指定用戶的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl _UID=33 --since today #查看某個 Unit 的日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl -u nginx.service 
+</span></span><span class=line><span class=cl>$ sudo journalctl -u nginx.service --since today #實時滾動顯示某個 Unit 的最新日誌 
+</span></span><span class=line><span class=cl>$ sudo journalctl -u nginx.service -f #合併顯示多個 Unit 的日誌 
+</span></span><span class=line><span class=cl>$ journalctl -u nginx.service -u php-fpm.service --since today #查看指定優先級（及其以上級別）的日誌，共有8級
+</span></span><span class=line><span class=cl> # 0: emerg
+</span></span><span class=line><span class=cl> # 1: alert
+</span></span><span class=line><span class=cl> # 2: crit
+</span></span><span class=line><span class=cl> # 3: err
+</span></span><span class=line><span class=cl> # 4: warning
+</span></span><span class=line><span class=cl> # 5: notice
+</span></span><span class=line><span class=cl> # 6: info
+</span></span><span class=line><span class=cl> # 7: debug 
+</span></span><span class=line><span class=cl>$ sudo journalctl -p err -b #日誌默認分頁輸出，--no-pager 改為正常的標準輸出 
+</span></span><span class=line><span class=cl>$ sudo journalctl --no-pager #以 JSON 格式（單行）輸出 
+</span></span><span class=line><span class=cl>$ sudo journalctl -b -u nginx.service -o json #以 JSON 格式（多行）輸出，可讀性更好 
+</span></span><span class=line><span class=cl>$ sudo journalctl -b -u nginx.serviceqq -o json-pretty #顯示日誌占據的硬碟空間 
+</span></span><span class=line><span class=cl>$ sudo journalctl --disk-usage #指定日誌文件占據的最大空間 
+</span></span><span class=line><span class=cl>$ sudo journalctl --vacuum-size=1G #指定日誌文件保存多久 
+</span></span><span class=line><span class=cl>$ sudo journalctl --vacuum-time=1years
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>原文網址：https://kknews.cc/code/pqyayy2.html
+</span></span></code></pre></td></tr></table></div></div><p>相關網頁</p><ul><li><a href=https://kknews.cc/zh-tw/code/pqyayy2.html target=_blank rel="noopener noreffer">systemd一種更好的啟動方式 - 每日頭條</a></li><li><a href=http://linux.vbird.org/linux_basic/0560daemons.php#systemd_cfg_vsftpd target=_blank rel="noopener noreffer">鳥哥的 Linux 私房菜 &ndash; 第十七章、認識系統服務 (daemons)</a></li><li><a href=https://blog.lilydjwg.me/2014/2/2/systemd-user-daemons.42631.html target=_blank rel="noopener noreffer">玩转 systemd 之用户级服务管理 - 依云&rsquo;s Blog</a></li></ul><p>聽說一般 user 家目錄也可以做服務設定<br>這一快我就先不研究<br>改天用到再說</p><p><strong>2020-04-26</strong></p><p>這些查詢滿常用的</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 檢查 nginx 服務是否正在運行</span>
+</span></span><span class=line><span class=cl>systemctl is-active nginx.service
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 檢查 nginx 服務是否有設定開機自動啟動</span>
+</span></span><span class=line><span class=cl>systemctl is-enabled nginx.service
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 檢查 nginx 服務是否啟動失敗</span>
+</span></span><span class=line><span class=cl>systemctl is-failed nginx.service
+</span></span></code></pre></td></tr></table></div></div><h3 id=tmux-掛載方式不建議用>tmux 掛載方式(不建議用)</h3><p>在沒知道用 systemctl 原本想使用 tmux<br>不過看起來好像能跑，但我覺得 systemctl 比較完美</p><p><a href=https://gist.github.com/B-Galati/c7890f86fc2bfce0b98c5410d964727a target=_blank rel="noopener noreffer">tmux script example</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>tmux new-window -d -n <span class=s1>&#39;test&#39;</span> <span class=s1>&#39;ping 127.0.0.1&#39;</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=tranmission>tranmission</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>&#34;script-torrent-done-enabled&#34;: true,
+</span></span><span class=line><span class=cl>&#34;script-torrent-done-filename&#34;: &#34;/home/user/script.sh&#34;,
+</span></span></code></pre></td></tr></table></div></div><p>記得 chmod a+x /home/user/script.sh<br>裡面對印的<br>conf 也要加 777 (tranmission不同權限，或加群組權限)</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># 注意需要看.config/rclone 資料夾和檔案權限，需要到rx
+</span></span><span class=line><span class=cl>RCLONE_CONFIG_PATH=&#34;--config=/home/pi/.config/rclone/rclone.conf&#34;
+</span></span></code></pre></td></tr></table></div></div><p><a href=https://gist.github.com/awesometic/253b740d45f8e5f95b56ec24f33a9444 target=_blank rel="noopener noreffer">Transmission download complete shell script for moving complete files and removing its torrent entry</a><br><a href=https://gist.github.com/pawelszydlo/e2e1fc424f2c9d306f3a target=_blank rel="noopener noreffer">Script to clear finished torrents from transmission-daemon</a><br><a href=https://community.wd.com/t/guide-auto-removal-of-downloads-from-transmission-2-82/93156 target=_blank rel="noopener noreffer">Guide : Auto removal of downloads from transmission 2.82 - My Cloud - Personal Cloud Storage / My Cloud - WD Community</a><br><a href=https://blog.longwin.com.tw/2013/05/tmux-auto-ssh-remote-2013/ target=_blank rel="noopener noreffer">Tmux 開啟後 自動 SSH 連結多台指定機器 | Tsung&rsquo;s Blog</a><br><a href=https://forum.openmediavault.org/index.php/Thread/13290-Transmission-Script-to-move-completed-downloads-to-directories-or-how-to-create/ target=_blank rel="noopener noreffer">Transmission - Script to move completed downloads to directories, or how to create script? - Plugins - openmediavault</a><br><a href=https://superuser.com/questions/735691/copy-completed-files-larger-than-1024m-to-another-directory target=_blank rel="noopener noreffer">ubuntu - Copy completed files larger than 1024M to another directory - Super User</a><br><a href=https://superuser.com/questions/735691/copy-completed-files-larger-than-1024m-to-another-directory/735757#735757 target=_blank rel="noopener noreffer">ubuntu - Copy completed files larger than 1024M to another directory - Super User</a></p><p>密碼不要取驚嘆號<br><a href=https://linux.cn/article-5608-1.html target=_blank rel="noopener noreffer">技术|在Linux命令行下令人惊叹的惊叹号（!）</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-zed data-lang=zed><span class=line><span class=cl><span class=n>Oct</span><span class=w> </span><span class=err>18</span><span class=w> </span><span class=err>23</span><span class=o>:</span><span class=err>35</span><span class=o>:</span><span class=err>12</span><span class=w> </span><span class=n>raspberrypi</span><span class=w> </span><span class=n>transmission</span><span class=o>-</span><span class=n>daemon</span><span class=p>[</span><span class=err>13077</span><span class=p>]</span><span class=o>:</span><span class=w> </span><span class=err>2019</span><span class=o>/</span><span class=err>10</span><span class=o>/</span><span class=err>18</span><span class=w> </span><span class=err>23</span><span class=o>:</span><span class=err>35</span><span class=o>:</span><span class=err>12</span><span class=w> </span><span class=n>Failed</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>save</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=n>after</span><span class=w> </span><span class=err>10</span><span class=w> </span><span class=n>tries</span><span class=o>:</span><span class=w> </span><span class=n>Failed</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>create</span><span class=w> </span><span class=n>temp</span><span class=w> </span><span class=n>file</span><span class=w> </span><span class=n>for</span><span class=w> </span><span class=n>new</span><span class=w> </span><span class=n>config</span><span class=o>:</span><span class=w> </span><span class=n>open</span><span class=w> </span><span class=o>/</span><span class=nn>home/pi/</span><span class=p>.</span><span class=nn>config/rclone/</span><span class=n>rclone</span><span class=p>.</span><span class=n>conf295018896</span><span class=o>:</span><span class=w> </span><span class=kd>permission</span><span class=w> </span><span class=n>denied</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>Oct</span><span class=w> </span><span class=err>18</span><span class=w> </span><span class=err>23</span><span class=o>:</span><span class=err>35</span><span class=o>:</span><span class=err>17</span><span class=w> </span><span class=n>raspberrypi</span><span class=w> </span><span class=n>transmission</span><span class=o>-</span><span class=n>daemon</span><span class=p>[</span><span class=err>13077</span><span class=p>]</span><span class=o>:</span><span class=w> </span><span class=err>2019</span><span class=o>/</span><span class=err>10</span><span class=o>/</span><span class=err>18</span><span class=w> </span><span class=err>23</span><span class=o>:</span><span class=err>35</span><span class=o>:</span><span class=err>17</span><span class=w> </span><span class=n>Failed</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>save</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=n>after</span><span class=w> </span><span class=err>10</span><span class=w> </span><span class=n>tries</span><span class=o>:</span><span class=w> </span><span class=n>Failed</span><span class=w> </span><span class=n>to</span><span class=w> </span><span class=n>create</span><span class=w> </span><span class=n>temp</span><span class=w> </span><span class=n>file</span><span class=w> </span><span class=n>for</span><span class=w> </span><span class=n>new</span><span class=w> </span><span class=n>config</span><span class=o>:</span><span class=w> </span><span class=n>open</span><span class=w> </span><span class=o>/</span><span class=nn>home/pi/</span><span class=p>.</span><span class=nn>config/rclone/</span><span class=n>rclone</span><span class=p>.</span><span class=n>conf984318943</span><span class=o>:</span><span class=w> </span><span class=kd>permission</span><span class=w> </span><span class=n>denied</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>我改寫的 Script<br>有通知 discord 功能</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>DSCORD_WEBHOOK</span><span class=o>=</span><span class=s2>&#34;https://discordapp.com/api/webhooks/*&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># 需要做同步的路徑，結尾資料夾不用/</span>
+</span></span><span class=line><span class=cl><span class=nv>LOCAL_SYNCDIR</span><span class=o>=</span><span class=s2>&#34;/mnt/extHDD/Download&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># RCLONE 結尾不能有 /</span>
+</span></span><span class=line><span class=cl><span class=nv>RCLONE_SYNCDIR</span><span class=o>=</span><span class=s2>&#34;gdrive:/test&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># 注意需要看.config/rclone 資料夾和檔案權限，需要到rx</span>
+</span></span><span class=line><span class=cl><span class=nv>RCLONE_CONFIG_PATH</span><span class=o>=</span><span class=s2>&#34;--config=/home/pi/.config/rclone/rclone.conf&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>AUTH</span><span class=o>=</span><span class=s2>&#34;--auth admin:admin&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1>#### debug end</span>
+</span></span><span class=line><span class=cl>df -H <span class=p>|</span> grep -vE <span class=s1>&#39;^Filesystem|tmpfs|cdrom|udev|已用&#39;</span> <span class=p>|</span> awk <span class=s1>&#39;{ print $5 &#34; &#34; $1 }&#39;</span> <span class=p>|</span> <span class=k>while</span> <span class=nb>read</span> output<span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>  <span class=nv>usep</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$output</span> <span class=p>|</span> awk <span class=s1>&#39;{ print $1}&#39;</span> <span class=p>|</span> cut -d<span class=s1>&#39;%&#39;</span> -f1  <span class=k>)</span>
+</span></span><span class=line><span class=cl>  <span class=nv>partition</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$output</span> <span class=p>|</span> awk <span class=s1>&#39;{ print $2 }&#39;</span> <span class=k>)</span>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=o>[</span> <span class=nv>$usep</span> -ge <span class=m>80</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;⚠️注意快超出硬碟空間\\\&#34;</span><span class=nv>$partition</span><span class=s2>\\\&#34; (</span><span class=nv>$usep</span><span class=s2>%) on </span><span class=k>$(</span>hostname<span class=k>)</span><span class=s2> as on </span><span class=k>$(</span>date<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nv>url</span><span class=o>=</span><span class=nv>$DSCORD_WEBHOOK</span>
+</span></span><span class=line><span class=cl>    curl -H <span class=s2>&#34;Content-Type: application/json&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -X POST <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -d <span class=s2>&#34;{\&#34;username\&#34;: \&#34;system\&#34;, \&#34;content\&#34;: \&#34;</span><span class=si>${</span><span class=nv>msg</span><span class=si>}</span><span class=s2>\&#34;}&#34;</span> <span class=nv>$url</span>
+</span></span><span class=line><span class=cl>  <span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[[</span> <span class=s2>&#34;</span><span class=nv>$TR_TORRENT_DIR</span><span class=s2>&#34;</span> <span class=o>=</span>~ ^<span class=s2>&#34;</span><span class=nv>$LOCAL_SYNCDIR</span><span class=s2>&#34;</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;pass&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=o>[</span> -f <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>        flock -x  /tmp/rclone.lock rclone copy <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=nv>$RCLONE_SYNCDIR</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>        rclone check <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=nv>$RCLONE_SYNCDIR</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>else</span> 
+</span></span><span class=line><span class=cl>        flock -x  /tmp/rclone.lock rclone copy <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=nv>$RCLONE_SYNCDIR</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>        rclone check <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=nv>$RCLONE_SYNCDIR</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> --size-only
+</span></span><span class=line><span class=cl>    <span class=k>fi</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=o>[</span> <span class=nv>$?</span> -eq <span class=m>0</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>        <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;✅ </span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，並完成同步&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=nv>$msg</span>
+</span></span><span class=line><span class=cl>        <span class=nv>url</span><span class=o>=</span><span class=nv>$DSCORD_WEBHOOK</span>
+</span></span><span class=line><span class=cl>        curl -H <span class=s2>&#34;Content-Type: application/json&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        -X POST <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        -d <span class=s2>&#34;{\&#34;username\&#34;: \&#34;system\&#34;, \&#34;content\&#34;: \&#34;</span><span class=si>${</span><span class=nv>msg</span><span class=si>}</span><span class=s2>\&#34;}&#34;</span> <span class=nv>$url</span>
+</span></span><span class=line><span class=cl>        transmission-remote <span class=nv>$AUTH</span> -t <span class=nv>$TR_TORRENT_ID</span> --remove-and-delete
+</span></span><span class=line><span class=cl>    <span class=k>else</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;FAIL&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;⚠️ </span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，但同步失敗&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=nv>$msg</span>
+</span></span><span class=line><span class=cl>        <span class=nv>url</span><span class=o>=</span><span class=nv>$DSCORD_WEBHOOK</span>
+</span></span><span class=line><span class=cl>        curl -H <span class=s2>&#34;Content-Type: application/json&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        -X POST <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        -d <span class=s2>&#34;{\&#34;username\&#34;: \&#34;system\&#34;, \&#34;content\&#34;: \&#34;</span><span class=si>${</span><span class=nv>msg</span><span class=si>}</span><span class=s2>\&#34;}&#34;</span> <span class=nv>$url</span>
+</span></span><span class=line><span class=cl>    <span class=k>fi</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl><span class=k>else</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;✅</span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，不需要做同步&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;✅</span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，不需要做同步&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=nv>$msg</span>
+</span></span><span class=line><span class=cl>    <span class=nv>url</span><span class=o>=</span><span class=nv>$DSCORD_WEBHOOK</span>
+</span></span><span class=line><span class=cl>    curl -H <span class=s2>&#34;Content-Type: application/json&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -X POST <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -d <span class=s2>&#34;{\&#34;username\&#34;: \&#34;system\&#34;, \&#34;content\&#34;: \&#34;</span><span class=si>${</span><span class=nv>msg</span><span class=si>}</span><span class=s2>\&#34;}&#34;</span> <span class=nv>$url</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></td></tr></table></div></div><p>有時候會失敗，補跑方式也很簡單</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>export</span> <span class=nv>TR_TORRENT_DIR</span><span class=o>=</span><span class=s2>&#34;/mnt/extHDD/Download&#34;</span>
+</span></span><span class=line><span class=cl>ls <span class=nv>$TR_TORRENT_DIR</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>TR_TORRENT_NAME</span><span class=o>=</span><span class=s2>&#34;xxx&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#測試</span>
+</span></span><span class=line><span class=cl><span class=c1>#echo ${TR_TORRENT_DIR}/${TR_TORRENT_NAME}</span>
+</span></span><span class=line><span class=cl>ls <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>/etc/transmission-daemon/syncGdrive.sh
+</span></span></code></pre></td></tr></table></div></div><p>最近這個腳本還算完美的<br>不過處理大檔案<code>rclone check </code>太久了</p><blockquote><p>→ thousandday: rclone sync比對修改時間和size(很快,省流量) 05/29 18:17<br>→ thousandday: rclone check &ndash;size-only比對size(很快,省流量) 05/29 18:18<br>→ thousandday: rclone sync -c完整下載後Checksum(慢,費流量) 05/29 18:18<br>→ thousandday: rclone check下載hash值後Checksum(慢,省流量) 05/29 18:18<br>→ thousandday: Google Drive有支援hash可以直接撈到MD5 05/29 18:19<br>→ thousandday: 沒支援hash的雲端空間要Checksum只能完整下載 05/29 18:19<br>→ thousandday: 用rclone sync -c或rclone check &ndash;download 05/29 18:19<br>→ thousandday: 個人認為rclone sync夠用了 Checksum很花時間和效能 05/29 18:20<br>→ thousandday: 檔案如果多又大 好幾TB會跑到天荒地老<br><a href=https://www.ptt.cc/bbs/Free_box/M.1527420602.A.819.html target=_blank rel="noopener noreffer">[工具] 自製本機與google drive檔案md5比對工具 - 看板 Free_box - 批踢踢實業坊</a></p></blockquote><p>我後來加<code>--size-only</code><br>覺得應該不會這麼衰&mldr;<br>不然好幾GB都卡很久</p><h3 id=aria2不建議使用>aria2(不建議使用)</h3><p>除非你想用&mldr;</p><p>安裝方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubiBackup/doubi/master/aria2.sh &amp;&amp; chmod +x aria2.sh &amp;&amp; bash aria2.sh
+</span></span></code></pre></td></tr></table></div></div><p><a href="https://doubibackup.com/zuigoj__.html?fbclid=IwAR22FvWyZjXt8qwW2IQfYGOPbmewh6kyRpqvxSX3Zd0aWKJQAx1p777hOCo" target=_blank rel="noopener noreffer">『原创』BT/种子/磁力链接下载工具 —— Aria2 一键安装管理脚本 | 逗比根据地</a><br>但說真的這個腳本整合超好的</p><p>幫我同學用的<br>結果用別人 Script 搬到 rclone 不能正常<br>所以自己改寫，可能有 bug<br>請自行修</p><p>有看到 *.aria2 檔案有刪除<br>重開機有時候回重新載(然後aira2檔案又會出現&mldr;)<br>不知道是不是用 aria2 會有這樣問題?</p><p>$3 不是傳資料夾位址<br>所以在查哪個資料夾會不太方便<br>所以檔案一定要下載在 downloadpath 才會做上傳動作</p><p>Script 是參考這個網站<br>但好像連不到了(在我寫這篇前幾天掛掉&mldr;)<br><a href="https://webcache.googleusercontent.com/search?q=cache:f9-JvXWtHC0J:https://blog.codesofun.com/aria2-rclone-faq.html+&cd=7&hl=zh-TW&ct=clnk&gl=tw&client=firefox-b-d" target=_blank rel="noopener noreffer">使用 Aria2 + rclone 遇到的一些问题 | 代码真香</a><br>備份到 <a href=https://next.plnkr.co/edit/DOfCgSvBCebpklXE?preview target=_blank rel="noopener noreffer">Plunker - demo script</a><br>Youtube 還活著 <a href="https://www.youtube.com/channel/UCmlhPmTdqYhRWwWZWSIBwGw?feature=embeds_subscribe_title" target=_blank rel="noopener noreffer">代码真香 - YouTube</a></p><p>目前 $3 是傳第一個檔案內容<br>這邊就跟 tranmission 不太一樣，tranmission 給的參數比較完整<br>發現原 Script 會複製全部目錄到 rclone 去<br>這樣多線程下載的檔案會有問題<br>所以依照來看，舊的 Script 應該是 <strong>1線程</strong> 下載 (它裡面網頁沒寫&mldr;，不過看他網頁寫 VPS 10GB 看來是有可能的&mldr;.)</p><p>因為我不熟 shell ，以下用的出事不要找我XD</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>filepath</span><span class=o>=</span><span class=nv>$3</span>	 <span class=c1>#取文件原始路径，如果是单文件则为/Download/a.mp4，如果是文件夹则该值为文件夹内第一个文件比如/Download/a/1.mp4</span>
+</span></span><span class=line><span class=cl><span class=nv>path</span><span class=o>=</span><span class=si>${</span><span class=nv>3</span><span class=p>%/*</span><span class=si>}</span>	 <span class=c1>#取文件根路径，如把/Download/a/1.mp4变成/Download/a</span>
+</span></span><span class=line><span class=cl><span class=nv>downloadpath</span><span class=o>=</span><span class=s1>&#39;/media/download&#39;</span>	<span class=c1>#Aria2下载目录</span>
+</span></span><span class=line><span class=cl><span class=nv>name</span><span class=o>=</span><span class=s1>&#39;gdrive&#39;</span> <span class=c1>#配置Rclone时的name</span>
+</span></span><span class=line><span class=cl><span class=nv>folder</span><span class=o>=</span><span class=s1>&#39;/test2&#39;</span>	 <span class=c1>#网盘里的文件夹，如果是根目录直接留空</span>
+</span></span><span class=line><span class=cl><span class=nv>MinSize</span><span class=o>=</span><span class=s1>&#39;10k&#39;</span>	 <span class=c1>#限制最低上传大小，默认10k，BT下载时可防止上传其他无用文件。会删除文件，谨慎设置。</span>
+</span></span><span class=line><span class=cl><span class=nv>MaxSize</span><span class=o>=</span><span class=s1>&#39;15G&#39;</span>	 <span class=c1>#限制最高文件大小，默认15G，OneDrive上传限制。</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=nv>$2</span> -eq <span class=m>0</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span> <span class=nb>exit</span> 0<span class=p>;</span> <span class=k>fi</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> <span class=sb>`</span>dirname <span class=s2>&#34;</span><span class=nv>$filepath</span><span class=s2>&#34;</span><span class=sb>`</span> <span class=o>=</span>  <span class=s2>&#34;</span><span class=nv>$downloadpath</span><span class=s2>&#34;</span> <span class=o>]</span> <span class=o>&amp;&amp;</span> <span class=o>[</span> <span class=nv>$2</span> -eq <span class=m>1</span> <span class=o>]</span>	<span class=c1>#如果下载的是单个文件</span>
+</span></span><span class=line><span class=cl>    <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;enter 1&#34;</span> 
+</span></span><span class=line><span class=cl>    rclone move -v <span class=s2>&#34;</span><span class=nv>$filepath</span><span class=s2>&#34;</span> <span class=si>${</span><span class=nv>name</span><span class=si>}</span>:<span class=si>${</span><span class=nv>folder</span><span class=si>}</span> --min-size <span class=nv>$MinSize</span> --max-size <span class=nv>$MaxSize</span>
+</span></span><span class=line><span class=cl>    rm -vf <span class=s2>&#34;</span><span class=nv>$filepath</span><span class=s2>&#34;</span>.aria2	<span class=c1>#删除残留的.aria.2文件</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> result: <span class=nv>$?</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>0</span>
+</span></span><span class=line><span class=cl><span class=k>elif</span> <span class=o>[[</span> <span class=s2>&#34;</span><span class=nv>$path</span><span class=s2>&#34;</span> <span class=o>=</span>~ ^<span class=s2>&#34;</span><span class=nv>$downloadpath</span><span class=s2>&#34;</span> <span class=o>]]</span>	<span class=c1>#如果下载的是文件夹</span>
+</span></span><span class=line><span class=cl>    <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;enter 2&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> path_length <span class=si>${#</span><span class=nv>path</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nv>a</span><span class=o>=</span><span class=nv>$downloadpath</span>
+</span></span><span class=line><span class=cl>    <span class=nv>b</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$filepath</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nv>c</span><span class=o>=</span><span class=si>${</span><span class=nv>b</span><span class=p>#</span><span class=nv>$a</span><span class=p>/</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>    <span class=nv>d</span><span class=o>=</span><span class=si>${</span><span class=nv>c</span><span class=p>%%/*</span><span class=si>}</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=nv>d</span> <span class=o>=</span> <span class=nv>$d</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=nv>$path</span>/<span class=nv>$d</span>/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    rclone move -v <span class=s2>&#34;</span><span class=nv>$downloadpath</span><span class=s2>/</span><span class=nv>$d</span><span class=s2>/&#34;</span> <span class=si>${</span><span class=nv>name</span><span class=si>}</span>:/<span class=si>${</span><span class=nv>folder</span><span class=si>}</span>/<span class=s2>&#34;</span><span class=si>${</span><span class=nv>d</span><span class=si>}</span><span class=s2>&#34;</span> --min-size <span class=nv>$MinSize</span> --max-size <span class=nv>$MaxSize</span> --delete-empty-src-dirs
+</span></span><span class=line><span class=cl>    <span class=c1>#rclone delete -v &#34;$downloadpath/$d/&#34; --max-size $MinSize	#删除多余的文件</span>
+</span></span><span class=line><span class=cl>    <span class=c1>#rclone rmdirs -v &#34;$downloadpath/$d/&#34; --leave-root	#删除空目录，--delete-empty-src-dirs 参数已实现，加上无所谓。</span>
+</span></span><span class=line><span class=cl>    rm -vf <span class=s2>&#34;</span><span class=nv>$downloadpath</span><span class=s2>/</span><span class=nv>$d</span><span class=s2>&#34;</span>.aria2	<span class=c1>#删除残留的.aria2文件</span>
+</span></span><span class=line><span class=cl>    rmdir <span class=s2>&#34;</span><span class=nv>$downloadpath</span><span class=s2>/</span><span class=nv>$d</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> result: <span class=nv>$?</span>
+</span></span><span class=line><span class=cl>    <span class=nb>exit</span> <span class=m>0</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></td></tr></table></div></div><p>a=&ldquo;123&rdquo;<br>b=&ldquo;123/4/125/1236&rdquo;<br>c=${b#$a/}<br>d=${c%%/*}</p><p><a href=https://blog.csdn.net/jiezi2016/article/details/79649382 target=_blank rel="noopener noreffer">shell中#<em>,##</em>,#<em>,##</em>,% *,%% *的含义及用法 - jiezi2016的博客 - CSDN博客</a></p><h2 id=參考來源>參考來源</h2><ul><li><a href=https://ymgblog.com/2018/03/09/296/ target=_blank rel="noopener noreffer">Linux下rclone简单教程(支持VPS数据同步,多种网盘,支持挂载) | 半醉浮生丶</a></li><li><a href=https://www.jeffgeerling.com/blog/2019/raspberry-pi-microsd-card-performance-comparison-2019 target=_blank rel="noopener noreffer">Raspberry Pi microSD card performance comparison - 2019 | Jeff Geerling</a></li><li><a href=https://zhuanlan.zhihu.com/p/31004760 target=_blank rel="noopener noreffer">树莓派raspberrypi3打造homeassistant+homebridge智能家居中心（homekit） - 知乎</a></li><li><a href=https://raspberrypi.stackexchange.com/questions/63586/how-to-set-vnc-security-settings-using-ssh-no-security-types-supported-server target=_blank rel="noopener noreffer">raspbian - How to set VNC security settings using SSH? <code>No security types supported. Server sent security types, but we do not support any of them</code> - Raspberry Pi Stack Exchange</a></li><li><a href=https://www.moerats.com/archives/877/ target=_blank rel="noopener noreffer">解决Rclone挂载Google Drive时上传失败和内存占用高等问题 - Rat&rsquo;s Blog</a></li><li><a href=https://blog.e9china.net/lesson/liyongaria2nginxrclonewanchengwuxiandianyingyingpan.html target=_blank rel="noopener noreffer">利用Aria2+Nginx+rclone完成无限电影硬盘 | Sandy&rsquo;Blog</a></li><li><a href=https://wijtb.nctu.me/archives/153/ target=_blank rel="noopener noreffer">Plex + Rclone 掛載 Google drive 搭建多媒體伺服器 - WIJ Blog</a></li><li><a href=https://ak77now.pixnet.net/blog/post/45722625-mount-google-drive-on-nas-with-rclone target=_blank rel="noopener noreffer">[筆記]將Google Drive掛載到NAS上(用rclone) @ 老電影下載 [ Old Movies ] :: 痞客邦 ::</a></li><li><a href=https://blog.rhilip.info/archives/874/ target=_blank rel="noopener noreffer">使用 rclone 在 Windows 下挂载 Google 个人 / 团队云盘 - R 酱小窝</a></li><li><a href=https://www.zrj96.com/post-520.html target=_blank rel="noopener noreffer">【转载】Rclone: 超好用的网盘 / VPS 数据同步、备份工具，支持 Google Drive | 初行博客</a></li><li><a href=https://p3terx.com/archives/rclone-advanced-user-manual-common-command-parameters.html target=_blank rel="noopener noreffer">Rclone 进阶使用教程：常用命令参数详解 - P3TERX ZONE - Zhuangbility & Technology</a></li><li><a href=https://www.ptt.cc/bbs/Free_box/M.1529958022.A.295.html target=_blank rel="noopener noreffer">[心得] Rclone Browser教學 - 看板 Free_box - 批踢踢實業坊</a></li><li><a href=https://www.screenly.io/blog/2017/07/02/how-to-automatically-turn-off-and-on-your-monitor-from-your-raspberry-pi/ target=_blank rel="noopener noreffer">Screenly - How to automatically turn off and on your monitor from your Raspberry Pi</a></li><li><a href=https://asmcn.icopy.site/awesome/awesome-raspberry-pi/ target=_blank rel="noopener noreffer">Raspberry Pi - 超赞合集 awesome list chinese</a></li><li><a href=https://github.com/ronggang/transmission-web-control/wiki/About-script-torrent-done-filename target=_blank rel="noopener noreffer">About script torrent done filename · ronggang/transmission-web-control Wiki</a></li><li><a href=https://github.com/transmission/transmission/wiki/Scripts target=_blank rel="noopener noreffer">Scripts · transmission/transmission Wiki</a></li><li><a href="https://learn-house.idv.tw/?p=2340" target=_blank rel="noopener noreffer">LearnHouse » Blog Archive » [Raspberry Pi 3]開機自動掛載 USB 隨身碟或外接硬碟</a></li><li><a href="https://hackmd.io/@Pingu/SyZ1Pq7mQ/https%3A%2F%2Fhackmd.io%2Fs%2FSyP9NaGpm%23?type=book" target=_blank rel="noopener noreffer">伺服器架設/防火牆建置 - HackMD</a></li><li><a href=http://blog.ipushs.com/codeigniter%e7%94%a8chromephp%e4%be%86debugphp/ target=_blank rel="noopener noreffer">CodeIgniter用ChromePHP來debug[PHP] | 敲敲打打的生活</a></li><li><a href=https://stackoverflow.com/questions/49513335/bash-wait-exit-on-error-code target=_blank rel="noopener noreffer">bash wait exit on error code - Stack Overflow</a></li><li><a href=https://medium.com/@artur.klauser/mounting-google-drive-on-raspberry-pi-f5002c7095c2 target=_blank rel="noopener noreffer">Mounting Google Drive on Raspberry Pi - Artur Klauser - Medium</a></li><li><a href=https://0xhack.wordpress.com/2019/02/27/google-drive-%E7%9B%B8%E4%BA%92%E8%A4%87%E8%A3%BD-%E5%B0%8D%E6%8B%B7/ target=_blank rel="noopener noreffer">Google Drive 相互複製 對拷 – BunnyBit 比特小兔兔</a></li><li><a href=https://rclone.org/docs/#bwlimit-bandwidth-spec target=_blank rel="noopener noreffer">Documentation</a> 限速??待確認</li></ul><h2 id=at-排成設定>AT 排成設定</h2><p><strong>2020-07-23</strong></p><p>設定時間排程 at<br>Raspberry Pi 預設沒有安裝</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo apt install at
+</span></span><span class=line><span class=cl>at :time 
+</span></span><span class=line><span class=cl><span class=c1># at -l = atq</span>
+</span></span><span class=line><span class=cl>atq
+</span></span><span class=line><span class=cl><span class=c1># atrm jobid</span>
+</span></span><span class=line><span class=cl>at now + <span class=m>5</span> minutes 
+</span></span></code></pre></td></tr></table></div></div><p>中斷結束 Ctrl + D</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>at 04:00 
+</span></span><span class=line><span class=cl>at 04:00 2015-07-30
+</span></span></code></pre></td></tr></table></div></div><p>TIME：時間格式，這裡可以定義出『什麼時候要進行 at 這項工作』的時間，格式有：<br>HH:MM ex> 04:00<br>在今日的 HH:MM 時刻進行，若該時刻已超過，則明天的 HH:MM 進行此工作。<br>HH:MM YYYY-MM-DD ex> 04:00 2015-07-30<br>強制規定在某年某月的某一天的特殊時刻進行該工作！</p><p><a href=https://linux.die.net/man/1/transmission-remote target=_blank rel="noopener noreffer">transmission-remote(1) - Linux man page</a><br>開始所有 torrent 下載</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>transmission-remote --auth<span class=o>=</span>admin:admin   -tall --start
+</span></span></code></pre></td></tr></table></div></div><p>停止所有 torrent 下載</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>transmission-remote --auth=admin:admin   -tall --stop
+</span></span></code></pre></td></tr></table></div></div><p><strong>20200808</strong><br>更新放置路徑可用多重路徑同步</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=nv>DSCORD_WEBHOOK</span><span class=o>=</span><span class=s2>&#34;https://discordapp.com/api/webhooks/*&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>function</span> sendDiscordNotice<span class=o>(){</span>
+</span></span><span class=line><span class=cl>        <span class=nb>local</span> <span class=nv>MSG</span><span class=o>=</span><span class=nv>$2</span>
+</span></span><span class=line><span class=cl>        <span class=c1># echo $MSG</span>
+</span></span><span class=line><span class=cl>        <span class=nb>local</span> <span class=nv>URL</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>        curl -H <span class=s2>&#34;Content-Type: application/json&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        -X POST <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>        -d <span class=s2>&#34;{\&#34;username\&#34;: \&#34;system\&#34;, \&#34;content\&#34;: \&#34;</span><span class=si>${</span><span class=nv>MSG</span><span class=si>}</span><span class=s2>\&#34;}&#34;</span> <span class=nv>$URL</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#sendDiscordNotice $DSCORD_WEBHOOK &#34;test&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># 需要做同步的路徑，結尾資料夾不用/</span>
+</span></span><span class=line><span class=cl><span class=nv>LOCAL_SYNCDIR</span><span class=o>=</span><span class=s2>&#34;/mnt/extHDD/Download&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># RCLONE 結尾不能有 /</span>
+</span></span><span class=line><span class=cl><span class=nv>RCLONE_SYNCDIR</span><span class=o>=</span><span class=s2>&#34;gdrive:/test&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># 注意需要看.config/rclone 資料夾和檔案權限，需要到rx</span>
+</span></span><span class=line><span class=cl><span class=nv>RCLONE_CONFIG_PATH</span><span class=o>=</span><span class=s2>&#34;--config=/home/pi/.config/rclone/rclone.conf&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>AUTH</span><span class=o>=</span><span class=s2>&#34;--auth admin:admin&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>REPLATE_PATH</span><span class=o>=</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=p>#</span><span class=s2>&#34;</span><span class=si>${</span><span class=nv>LOCAL_SYNCDIR</span><span class=si>}</span><span class=s2>&#34;</span><span class=p>/</span><span class=si>}</span>  
+</span></span><span class=line><span class=cl><span class=c1>#### debug end</span>
+</span></span><span class=line><span class=cl>df -H <span class=p>|</span> grep -vE <span class=s1>&#39;^Filesystem|tmpfs|cdrom|udev|已用&#39;</span> <span class=p>|</span> awk <span class=s1>&#39;{ print $5 &#34; &#34; $1 }&#39;</span> <span class=p>|</span> <span class=k>while</span> <span class=nb>read</span> output<span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=k>do</span>
+</span></span><span class=line><span class=cl>  <span class=nv>usep</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$output</span> <span class=p>|</span> awk <span class=s1>&#39;{ print $1}&#39;</span> <span class=p>|</span> cut -d<span class=s1>&#39;%&#39;</span> -f1  <span class=k>)</span>
+</span></span><span class=line><span class=cl>  <span class=nv>partition</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$output</span> <span class=p>|</span> awk <span class=s1>&#39;{ print $2 }&#39;</span> <span class=k>)</span>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=o>[</span> <span class=nv>$usep</span> -ge <span class=m>80</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    sendDiscordNotice <span class=nv>$DSCORD_WEBHOOK</span> <span class=s2>&#34;⚠️注意快超出硬碟空間\\\&#34;</span><span class=nv>$partition</span><span class=s2>\\\&#34; (</span><span class=nv>$usep</span><span class=s2>%) on </span><span class=k>$(</span>hostname<span class=k>)</span><span class=s2> as on </span><span class=k>$(</span>date<span class=k>)</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>  <span class=k>fi</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[[</span> <span class=s2>&#34;</span><span class=nv>$TR_TORRENT_DIR</span><span class=s2>&#34;</span> <span class=o>=</span>~ ^<span class=s2>&#34;</span><span class=nv>$LOCAL_SYNCDIR</span><span class=s2>&#34;</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;pass&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=o>[</span> -f <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>        flock -x  /tmp/rclone.lock rclone copy <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>RCLONE_SYNCDIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>REPLATE_PATH</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>        rclone check <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>RCLONE_SYNCDIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>REPLATE_PATH</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>else</span> 
+</span></span><span class=line><span class=cl>        flock -x  /tmp/rclone.lock rclone copy <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>RCLONE_SYNCDIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>REPLATE_PATH</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>        rclone check <span class=si>${</span><span class=nv>RCLONE_CONFIG_PATH</span><span class=si>}</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>TR_TORRENT_DIR</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> <span class=s2>&#34;</span><span class=nv>$RCLONE_SYNCDIR</span><span class=s2>/</span><span class=si>${</span><span class=nv>REPLATE_PATH</span><span class=si>}</span><span class=s2>/</span><span class=si>${</span><span class=nv>TR_TORRENT_NAME</span><span class=si>}</span><span class=s2>&#34;</span> --size-only
+</span></span><span class=line><span class=cl>    <span class=k>fi</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=o>[</span> <span class=nv>$?</span> -eq <span class=m>0</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+</span></span><span class=line><span class=cl>        <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;✅ </span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，並完成同步&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=nv>$msg</span>
+</span></span><span class=line><span class=cl>        sendDiscordNotice <span class=nv>$DSCORD_WEBHOOK</span> <span class=s2>&#34;</span><span class=nv>$msg</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>        transmission-remote <span class=nv>$AUTH</span> -t <span class=nv>$TR_TORRENT_ID</span> --remove-and-delete
+</span></span><span class=line><span class=cl>    <span class=k>else</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=s2>&#34;FAIL&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;⚠️ </span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，但同步失敗&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=nb>echo</span> <span class=nv>$msg</span>
+</span></span><span class=line><span class=cl>        sendDiscordNotice <span class=nv>$DSCORD_WEBHOOK</span> <span class=s2>&#34;</span><span class=nv>$msg</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>fi</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl><span class=k>else</span>
+</span></span><span class=line><span class=cl>    <span class=nv>msg</span><span class=o>=</span><span class=s2>&#34;✅</span><span class=nv>$TR_TORRENT_NAME</span><span class=s2> 完成下載，不需要做同步&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=nv>$msg</span>
+</span></span><span class=line><span class=cl>    sendDiscordNotice <span class=nv>$DSCORD_WEBHOOK</span> <span class=s2>&#34;</span><span class=nv>$msg</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>fi</span>
+</span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-10-14</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/ data-title="rclone 掛載硬碟小記" data-hashtags=rclone,linux,gdrive><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/ data-hashtag=rclone><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/ data-title="rclone 掛載硬碟小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/ data-title="rclone 掛載硬碟小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/ data-title="rclone 掛載硬碟小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/rclone/>rclone</a>,&nbsp;<a href=/blog/tags/Linux/>Linux</a>,&nbsp;<a href=/blog/tags/gdrive/>gdrive</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E5%9C%A8-Linux-%E8%A8%AD%E5%AE%9A%E6%8E%92%E7%A8%8B%E8%B6%85%E9%81%8E%E5%9F%B7%E8%A1%8C%E6%99%82%E9%96%93-kill-%E6%8E%89%E6%96%B9%E6%B3%95/ class=prev rel=prev title="在 Linux 設定排程超過執行時間 kill 掉方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>在 Linux 設定排程超過執行時間 kill 掉方法</a>
+<a href=/blog/posts/Bash-%E5%92%8C-sh-%E6%98%AF%E4%B8%8D%E4%B8%80%E6%A8%A3%E7%9A%84%E6%9D%B1%E8%A5%BF/ class=next rel=next title="Bash 和 sh 是不一樣的東西">Bash 和 sh 是不一樣的東西<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.104.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
