@@ -1,0 +1,406 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>OpenAPI Spec 撰寫小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="OpenAPI Spec 撰寫小記"><meta property="og:description" content="最近規劃 API 規格打算用 OpenAPI Spec(OAS)，但真的不是很熟，所以打算文件刷一遍，這邊做個小記。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-01-09T20:32:24+08:00"><meta property="article:modified_time" content="2023-01-09T20:32:24+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="OpenAPI Spec 撰寫小記"><meta name=twitter:description content="最近規劃 API 規格打算用 OpenAPI Spec(OAS)，但真的不是很熟，所以打算文件刷一遍，這邊做個小記。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/OpenAPI-Code-Generation-%E7%94%A2%E7%94%9F%E7%A8%8B%E5%BC%8F%E7%A2%BC/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"OpenAPI Spec 撰寫小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"openapi","wordcount":1696,"url":"https:\/\/malagege.github.io\/blog\/posts\/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98\/","datePublished":"2023-01-09T20:32:24+08:00","dateModified":"2023-01-09T20:32:24+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">OpenAPI Spec 撰寫小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/OpenAPI/><i class="far fa-folder fa-fw" aria-hidden=true></i>OpenAPI</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-01-09>2023-01-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1696 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;8 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png data-srcset="https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png, https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png 1.5x, https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png title=https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#openapi-specification-oas>OpenAPI Specification (OAS)</a><ul><li><a href=#價值>價值</a></li></ul></li><li><a href=#定義>定義</a><ul><li><a href=#openapi-document>OpenAPI Document</a></li><li><a href=#path-templating>Path Templating</a></li><li><a href=#media-types>Media Types</a></li><li><a href=#http-status-codes>HTTP Status Codes</a></li></ul></li><li><a href=#規範>規範</a><ul><li><a href=#version>Version</a></li><li><a href=#格式>格式</a></li><li><a href=#文件結構>文件結構</a></li><li><a href=#資料型態>資料型態</a></li><li><a href=#rich-text-formatting>Rich Text Formatting</a></li><li><a href=#relative-references-in-uris>Relative References in URIs</a></li><li><a href=#relative-references-in-urls>Relative References in URLs</a></li><li><a href=#schema>Schema</a></li></ul></li><li><a href=#彩蛋>彩蛋</a></li></ul></nav></div></div><div class=content id=content><p>最近規劃 API 規格打算用 OpenAPI Spec(OAS)，但真的不是很熟，所以打算文件刷一遍，這邊做個小記。</p><p><a href=https://spec.openapis.org/oas/v3.1.0#openapi-document target=_blank rel="noopener noreffer">OpenAPI Specification v3.1.0 | Introduction, Definitions, & More</a></p><h2 id=openapi-specification-oas>OpenAPI Specification (OAS)</h2><p>什麼是 <code>OpenAPI Specificatio</code>，簡稱 <code>OAS</code></p><ol><li>一個定義 HTTP APIs 簡易規劃介面敘述語言。</li><li>可以讓<code>人</code>與<code>電腦</code>再不看原始碼情況下和解析網路封包下可以知道 API 怎麼使用</li><li>當通過OpenAPI正確定義時，消費者可以以最少的實現邏輯來理解並與遠程服務進行交互。類似於接口描述為低級別編程所做的工作，OpenAPI規範刪除了調用服務時的猜測。</li></ol><h3 id=價值>價值</h3><ol><li>生產文件工具</li><li>生產程式</li><li>生產測試工具</li></ol><h2 id=定義>定義</h2><h3 id=openapi-document>OpenAPI Document</h3><p><strong>MUST</strong><br>一個OpenAPI 文件<code>必需</code>包含</p><ol><li>至少 paths field</li><li>至少a components field or a webhooks field</li></ol><p>當然必須符合這些規範。</p><h3 id=path-templating>Path Templating</h3><p>Path Templating 是用大括號<code>{}</code>的template expressions來展示，URL中的路徑(URL Path)可替換成參數(URL Paramter)</p><p><strong>MUST</strong><br>每個 template expression<code>必需</code>包含path parameter和 <a href=https://spec.openapis.org/oas/v3.1.0#path-item-object target=_blank rel="noopener noreffer">Path Item</a> 或 <a href=https://spec.openapis.org/oas/v3.1.0#operation-object target=_blank rel="noopener noreffer">Path Item’s Operations</a></p><p><code>path item</code>為空的話，ACL constraints, matching path parameters為非必要。 ==>這句理解不能，但我猜是指下圖空直。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/BcAkeos.png data-srcset="https://i.imgur.com/BcAkeos.png, https://i.imgur.com/BcAkeos.png 1.5x, https://i.imgur.com/BcAkeos.png 2x" data-sizes=auto alt=https://i.imgur.com/BcAkeos.png title=https://i.imgur.com/BcAkeos.png></p><p><strong>MUST NOT</strong><br>path parameters <code>不能</code>包含符號。如[RFC3986]: forward slashes (/), question marks (?), or hashes (#).</p><h3 id=media-types>Media Types</h3><p>媒體類型定義分佈在幾個資源中。</p><p><strong>SHOULD</strong><br>the media type 定義<code>應該</code>遵從 [RFC6838]規範.</p><blockquote><p>text/plain; charset=utf-8<br>application/json<br>application/vnd.github+json<br>application/vnd.github.v3+json<br>application/vnd.github.v3.raw+json<br>application/vnd.github.v3.text+json<br>application/vnd.github.v3.html+json<br>application/vnd.github.v3.full+json<br>application/vnd.github.v3.diff<br>application/vnd.github.v3.patch</p></blockquote><p><a href=https://www.cnblogs.com/bjlhx/p/10375597.html target=_blank rel="noopener noreffer">003-RFC关于媒体类型说明 - bjlhx15 - 博客园</a></p><h3 id=http-status-codes>HTTP Status Codes</h3><p><a href=https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml target=_blank rel="noopener noreffer">Hypertext Transfer Protocol (HTTP) Status Code Registry</a></p><h2 id=規範>規範</h2><h3 id=version>Version</h3><p>這邊指 OpenAPI 版本，這邊大至上有看沒懂。感覺就像是大版本小版本之類相容問題，Swagger 版本需要放三碼，</p><p>&lsquo;3.0.*&rsquo; 這個也可以用。但Swagger 工具不能用，我就不深入琢磨。</p><h3 id=格式>格式</h3><p>所有 key 區分大小寫。</p><p>兩種 Field<br>Fixed fields, which have a declared name, and Patterned fields, which declare a regex pattern for the field name.</p><ul><li>固定欄位</li><li>花樣欄位</li></ul><p><strong>RECOMMENDED</strong><br>為了讓JSON和YAML格式來回切換，我們推薦</p><p><a href=http://tw.gitbook.net/yaml/yaml_failsafe_schema.html target=_blank rel="noopener noreffer">YAML - Failsafe Schema - 極客書</a></p><p><strong>MUST</strong><br>YAML Tag 必須最低要求符合JSON規則。ref:<a href=https://yaml.org/spec/1.2-old/spec.html#id2803231 target=_blank rel="noopener noreffer">YAML Ain’t Markup Language (YAML™) Version 1.2</a><br>YAML地圖中使用的鍵必須僅限於標量字符串，如YAML Failsafe Schema規則集所定義。<a href=https://yaml.org/spec/1.2-old/spec.html#id2802346 target=_blank rel="noopener noreffer">YAML Ain’t Markup Language (YAML™) Version 1.2</a></p><p>NOTE: 我們定義 API 使用 OpenAPI 文件可以是 YAML 或 JSON格式。但是 API Request和 Response 的Body不一定是要 JSON 或 YAML。</p><h3 id=文件結構>文件結構</h3><p><strong>MAY</strong><br>OpenAPI 文件可以由一個和多個、分段個文件，這部分由編寫者決定。在這種情況下，<a href=https://spec.openapis.org/oas/v3.1.0#reference-object target=_blank rel="noopener noreffer">Reference Object</a>和<a href=https://spec.openapis.org/oas/v3.1.0#schema-object target=_blank rel="noopener noreffer">Schema Object</a>的 <code>$ref</code> 可以被使用。</p><p><strong>RECOMMENDED</strong><br>通常 OpenAPI document 的根文件命名使用 <code>openapi.json</code>or <code>openapi.yaml</code>.</p><h3 id=資料型態>資料型態</h3><p>OAS 的資料型態基於<a href=https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-4.2.1 target=_blank rel="noopener noreffer"> JSON Schema Specification Draft 2020-12</a>，請注意，整數(Integer)作為類型也得到了支持，並將其定義為沒有分數或指數部分的JSON號。使用<a href=https://spec.openapis.org/oas/v3.1.0#schema-object target=_blank rel="noopener noreffer">Schema Object</a>定義模型，該對像是JSON Schema規範2020-12的超集。</p><p>如JSON Schema驗證詞彙所定義的<a href=https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-validation-00#section-7.3 target=_blank rel="noopener noreffer">draft-bhutton-json-schema-validation-00</a>，資料類型可以具有可選的修飾符屬性</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/SemCjTL.png data-srcset="https://i.imgur.com/SemCjTL.png, https://i.imgur.com/SemCjTL.png 1.5x, https://i.imgur.com/SemCjTL.png 2x" data-sizes=auto alt=https://i.imgur.com/SemCjTL.png title=https://i.imgur.com/SemCjTL.png></p><p>注意<code>Number</code>和<code>Integer</code>差異。Number是含小數點數字。可以看<a href=https://json-schema.org/understanding-json-schema/reference/numeric.html target=_blank rel="noopener noreffer">Numeric types — Understanding JSON Schema 2020-12 documentation</a></p><h3 id=rich-text-formatting>Rich Text Formatting</h3><p>在整個規範中，<code>description</code>字段被認為是支持Commark Markdown格式的支持。<br><strong>MUST</strong><br>如果OpenAPI Tooling呈現豐富的文本，則必須至少支持CommonMark 0.27所述的降級語法。<br><strong>MAY</strong><br>工具可以選擇忽略一些共同標記功能來解決安全問題。</p><h3 id=relative-references-in-uris>Relative References in URIs</h3><p><strong>MAY</strong><br>除非另有說明，否則所有 URIs 的屬性都可以是[RFC3986]定義的相對引用。</p><p>這邊不知道 URL和 URI是什麼可以看一下<a href=https://codingbeginner01.com/difference-between-uri-and-url/ target=_blank rel="noopener noreffer">URL和URI傻傻分不清，差別到底在哪裡？</a>。</p><p>相對引用，包括在<a href=https://spec.openapis.org/oas/v3.1.0#reference-object target=_blank rel="noopener noreffer">reference-object</a>和<a href=https://spec.openapis.org/oas/v3.1.0#path-item-object target=_blank rel="noopener noreffer">path-item-object</a>的<code>$ref</code>欄位。<a href=https://spec.openapis.org/oas/v3.1.0#link-object target=_blank rel="noopener noreffer">link-object</a>的<code>externalValue</code>根據[RFC3986]，使用引用文檔作為基本URI解決。</p><p>如果URI包含片段標識符，則應根據引用文檔的片段分辨率來解析片段。如果引用文檔的表示為JSON或YAML，則根據[RFC6901]，應將片段標識符解釋為 JSON-Pointer。</p><p>JSON Pointer 不知道可以看<a href=https://www.baeldung.com/json-pointer target=_blank rel="noopener noreffer">Overview of JSON Pointer | Baeldung</a>，感覺跟 JSON Path 有點像。也可以看這篇<a href=https://gregsdennis.github.io/Manatee.Json/usage/pointer.html target=_blank rel="noopener noreffer">JSON Pointer</a>。</p><p>正如JSON模式規范草案2020-12所述，<code>Schema Objects</code>中的相對引用，包括任何以$id值出現的引用，使用最近的父$id作為基URI。如果沒有包含$id的父模式，則必須根据[RFC3986]确定基URI。</p><p><a href=https://stackoverflow.com/questions/46671285/id-property-usage-in-json-schema target=_blank rel="noopener noreffer">jsonschema - &lsquo;$id&rsquo; property usage in JSON Schema - Stack Overflow</a><br><a href=https://json-schema.apifox.cn/#%E5%A3%B0%E6%98%8E%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E7%AC%A6 target=_blank rel="noopener noreffer">JSON Schema 规范（中文版）</a></p><p>不過我看文件沒有<code>$id</code>範例，所以這邊就不先深入探討。</p><h3 id=relative-references-in-urls>Relative References in URLs</h3><p>除非另有說明，否則所有屬性URL的屬性可能是[RFC3986]定義的相對引用。除非另有說明，否則使用Service Object 中定義為基本 URL解決相對引用。請注意，這些本身可能與引用文檔有關。</p><h3 id=schema>Schema</h3><p>在下面的描述中，如果一個字段沒有顯式的REQUIRED或用MUST或SHALL描述，它可以被認為是OPTIONAL。</p><p>以下真的太多內容了，所以我覺得不重要的就不會記到這邊。</p><h4 id=openapi-object>OpenAPI Object</h4><p><strong>REQUIRED</strong></p><ul><li>openapi(string) OAS 版本</li><li>info(Info Object) 資訊</li><li>paths([Paths Object]) The available paths and operations for the API.</li></ul><p><strong>OPTIONAL</strong></p><ul><li>components([Components Object]) 可寫定義元件</li><li>security([Security Requirement Object]) API 安全用</li><li>tags([Tag Object]) 分類用</li><li>externalDocs(External Documentation Object) 額外文件</li><li>servers([Server Object]) Sever 資訊</li></ul><p>webhooks 3.1.0才有的東西，目前不知道有什麼特別作用。</p><h4 id=info-object>Info Object</h4><p>該對象提供有關API的元數據。如果需要，客戶可以使用元數據，並可以在編輯或文檔生成工具中呈現。</p><p><strong>REQUIRED</strong></p><ul><li>title(string)</li><li>version(string)</li></ul><p><strong>OPTIONAL</strong></p><ul><li>summary(string)</li><li>description(string)</li><li>contact(Contact Object)</li><li>license(License Object)</li></ul><h4 id=server-object>Server Object</h4><p><strong>REQUIRED</strong></p><ul><li>url(string) 可以用誇號字段<code>{brackets}</code>搭配<code>variables</code>field來搭配變數使用。</li></ul><p><strong>OPTIONAL</strong></p><ul><li>description</li><li>variables(Map[string, Server Variable Object]) 可以搭配 url 變數使用</li></ul><blockquote><p>This object MAY be extended with Specification Extensions.<br>可以使用<a href=https://spec.openapis.org/oas/v3.1.0#specification-extensions target=_blank rel="noopener noreffer">Specification Extensions</a>作擴展</p></blockquote><h5 id=範例>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>servers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://development.gigantic-server.com/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>Development server</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://staging.gigantic-server.com/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>Staging server</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://api.gigantic-server.com/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>Production server</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>servers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://{username}.gigantic-server.com:{port}/{basePath}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>The production API server</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>variables</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>username</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># note! no enum here means it is an open value</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>default</span><span class=p>:</span><span class=w> </span><span class=l>demo</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>this value is assigned by the service provider, in this example `gigantic-server.com`</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>port</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>enum</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=s1>&#39;8443&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=s1>&#39;443&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>default</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;8443&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>basePath</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># open meaning there is the opportunity to use special base paths as assigned by the provider, default is `v2`</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>default</span><span class=p>:</span><span class=w> </span><span class=l>v2</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=server-variable-object>Server Variable Object</h4><p><strong>REQUIRED</strong></p><ul><li>default(string) If the enum is defined, the value MUST exist in the enum’s values</li></ul><p><strong>OPTIONAL</strong></p><ul><li>enum</li><li>description</li></ul><h4 id=components-object>Components Object</h4><ul><li>schemas (Map[string, Schema Object])</li><li>responses (Map[string, Response Object | Reference Object])</li><li>parameters (Map[string, Parameter Object | Reference Object])</li><li>examples (Map[string, Example Object | Reference Object])</li><li>requestBodies (Map[string, Request Body Object | Reference Object])</li><li>headers (Map[string, Header Object | Reference Object])</li><li>securitySchemes (Map[string, Security Scheme Object | Reference Object])</li><li>links (Map[string, Link Object | Reference Object])</li><li>callbacks (Map[string, Callback Object | Reference Object])</li><li>pathItems (Map[string, Path Item Object | Reference Object])</li></ul><p>This object MAY be extended with Specification Extensions.</p><p>All the fixed fields declared above are objects that MUST use keys that match the regular expression: ^[a-zA-Z0-9.-_]+$.</p><h4 id=paths-object>Paths Object</h4><ul><li>/{path} (Path Item Object)</li></ul><p>必須要<code>/</code>開頭。規則上面<code>Path Templating</code>有提到</p><p>This object MAY be extended with Specification Extensions.</p><p><a href=https://spec.openapis.org/oas/v3.1.0#paths-object-example target=_blank rel="noopener noreffer">Paths Object Example</a></p><h4 id=path-item-object>Path Item Object</h4><ul><li>$ref (string)</li><li>summary (string)</li><li>description (string)</li><li>get (Operation Object)</li><li>put (Operation Object)</li><li>post (Operation Object)</li><li>delete (Operation Object)</li><li>options (Operation Object)</li><li>head (Operation Object)</li><li>patch (Operation Object)</li><li>trace (Operation Object)</li><li>servers ([Server Object])</li><li>parameters ([Parameter Object | Reference Object])</li></ul><p>這邊文件有特別說明 Paramters</p><ol><li>這些參數可以在操作級別上覆蓋，但不能在此處刪除。</li><li>該列表不得包含重複的參數。 <strong>MUST NOT</strong></li><li>唯一參數由<code>name</code>和<code>location</code>的組合定義。<br>這邊名稱是指<a href=https://spec.openapis.org/oas/v3.1.0#parameterName target=_blank rel="noopener noreffer">這個(name)</a>、location是指<a href=https://spec.openapis.org/oas/v3.1.0#parameterIn target=_blank rel="noopener noreffer">這個(in)</a></li><li>該列表可以使用參考對象鏈接到 OpenAPI Object’s components/parameters的參數。</li></ol><h4 id=operation-object>Operation Object</h4><p><a href=https://spec.openapis.org/oas/v3.1.0#operation-object target=_blank rel="noopener noreffer">Operation Object</a><br>這邊比較意外沒有必填寫項目。<br>我把我覺得重要的簡單寫一下。先前寫過事項就不再寫了</p><ul><li>operationId (string)<br>用于標識操作的惟一字符串。id在API中描述的所有操作中必須是唯一的。operationId區分大小寫。工具和庫可以使用operationId來唯一標識一個操作，因此，建議遵循通用的編程命名約定。</li><li>tags</li><li>summary</li><li>description</li><li>requestBody(Request Body Object | Reference Object)<br>在其他情況下，HTTP規格模糊（例如GET，HEAD和DELETE），請求機體被允許但沒有明確定義的語義，應避免使用。 ==>這邊我是認為 POST時候可能就會用到這個</li><li>responses (Responses Object)<br>從執行此操作返回的可能responses的列表。</li><li>deprecated (boolean)<br>聲明此操作要棄用。消費者應避免使用聲明的操作。默認值為false。</li><li>security ([Security Requirement Object])</li><li>servers ([Server Object])</li></ul><h4 id=parameter-object>Parameter Object</h4><p>這邊注意用的參數有四種類型，請看下面。</p><h5 id=parameter-locations>Parameter Locations</h5><p>There are four possible parameter locations specified by the <code>in</code> field:</p><ul><li>path - Used together with Path Templating, where the parameter value is actually part of the operation’s URL. This does not include the host or base path of the API. For example, in /items/{itemId}, the path parameter is itemId.</li><li>query - Parameters that are appended to the URL. For example, in /items?id=###, the query parameter is id.</li><li>header - Custom headers that are expected as part of the request. Note that [RFC7230] states header names are case insensitive.</li><li>cookie - Used to pass a specific cookie value to the API.</li></ul><p>看似應該沒有BODY內容，這邊需要注意一下。</p><h5 id=fixed-fields>Fixed Fields</h5><p><strong>REQUIRED</strong></p><ul><li>name (string)<br>區分大小寫</li><li>in (string) 只有四種"query", &ldquo;header&rdquo;, &ldquo;path&rdquo; or &ldquo;cookie&rdquo;</li></ul><p><strong>OPTIONAL</strong></p><ul><li>description</li><li>required paramter location(in) 選擇 path 就必須預設值為<code>true</code>。但是其他的話預設為 <code>false</code>。</li><li>deprecated</li><li>allowEmptyValue</li></ul><p>這邊特別紀錄</p><h5 id=style>Style</h5><p>一般我們知道很多後端傳送值都有自己的樣式，這邊可以特別調整。這邊我就不詳細記錄</p><p><a href=https://spec.openapis.org/oas/v3.1.0#style-values target=_blank rel="noopener noreffer">Style Values</a></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/VRmrRi8.png data-srcset="https://i.imgur.com/VRmrRi8.png, https://i.imgur.com/VRmrRi8.png 1.5x, https://i.imgur.com/VRmrRi8.png 2x" data-sizes=auto alt=https://i.imgur.com/VRmrRi8.png title=https://i.imgur.com/VRmrRi8.png></p><h5 id=範例-1>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>token</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>in</span><span class=p>:</span><span class=w> </span><span class=l>header</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>token to be passed as a header</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>required</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>array</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>items</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>integer</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>format</span><span class=p>:</span><span class=w> </span><span class=l>int64</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>style</span><span class=p>:</span><span class=w> </span><span class=l>simple</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=request-body-object>Request Body Object</h4><p><strong>REQUIRED</strong></p><ul><li>content (Map[string, Media Type Object]) e.g. text/plain overrides text/*</li></ul><p><strong>OPTIONAL</strong></p><ul><li>description (string)</li><li>required (boolean) Defaults to false.</li></ul><h5 id=範例-2>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>user to add to the system</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>required</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>text/plain</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>array</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>items</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=media-type-object>Media Type Object</h4><ul><li>schema (Schema Object)</li><li>example (Any)<br>example object 應為Media Type Objec指定的正確格式<br>if referencing a schema which contains an example, the examples value SHALL override the example provided by the schema.(example object會把 $ref覆蓋掉)<br>examples字段與example字段互斥(看似應該擇一填寫?)</li><li>examples (Map[ string, Example Object | Reference Object])</li><li>encoding (Map[string, Encoding Object])</li></ul><h5 id=considerations-for-file-uploads>Considerations for File Uploads</h5><p>上傳檔案</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c># a PNG image as a binary file:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image/png</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># an arbitrary binary file:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>application/octet-stream</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>推薦用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>requestBody</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>multipart/form-data</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>properties</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=c># The property name &#39;file&#39; will be used for all files.</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>file</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>array</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>items</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h5 id=support-for-x-www-form-urlencoded-request-bodies-post常用>Support for x-www-form-urlencoded Request Bodies (POST常用)</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>requestBody</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>application/x-www-form-urlencoded</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>object</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>properties</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>id</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>format</span><span class=p>:</span><span class=w> </span><span class=l>uuid</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>address</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c># complex types are stringified to support RFC 1866</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>object</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>properties</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=responses-object>Responses Object</h4><p><a href=https://spec.openapis.org/oas/v3.1.0#responses-object target=_blank rel="noopener noreffer">OpenAPI Specification v3.1.0 | Introduction, Definitions, & More</a></p><h5 id=fixed-fields-1>Fixed Fields</h5><ul><li>default (Response Object | Reference Object)</li></ul><h5 id=patterned-fields>Patterned Fields</h5><ul><li>HTTP Status Code (Response Object | Reference Object)</li></ul><h5 id=範例-3>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>&#39;200&#39;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>a pet to be returned</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>content</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>application/json</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/Pet&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>default</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>Unexpected error</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>application/json</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/ErrorModel&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=response-object>Response Object</h4><p>This object MAY be extended with Specification Extensions.</p><h5 id=fixed-fields-2>Fixed Fields</h5><p><strong>REQUIRED</strong></p><ul><li>description (string) 第一次看到敘述必填。</li></ul><p><strong>OPTIONAL</strong></p><ul><li>headers (Map[string, Header Object | Reference Object]) 這邊不能設定"Content-Type" header</li><li>content (Map[string, Media Type Object])</li><li>links (Map[string, Link Object | Reference Object])</li></ul><h5 id=範例-4>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>A complex object array response</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>content</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>application/json</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>array</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>items</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/VeryComplexType&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>純文字</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>A simple string response</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>text/plain</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>with header</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>A simple string response</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>text/plain</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>string</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>example</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;whoa!&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>headers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>X-Rate-Limit-Limit</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>The number of allowed requests in the current period</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>integer</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>X-Rate-Limit-Remaining</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>The number of remaining requests in the current period</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>integer</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>X-Rate-Limit-Reset</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>The number of seconds left in the current period</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>integer</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>沒會應東西</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>object created</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=example-object>Example Object</h4><ul><li>summary (string)</li><li>description (string)</li><li>value (Any)</li><li>externalValue (string) The value field and externalValue field則一填寫</li></ul><h5 id=範例-5>範例</h5><p>In a request body:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>requestBody</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>content</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>&#39;application/json&#39;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/Address&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>examples</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>foo</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>summary</span><span class=p>:</span><span class=w> </span><span class=l>A foo example</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span>{<span class=nt>&#34;foo&#34;: </span><span class=s2>&#34;bar&#34;</span>}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>bar</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>summary</span><span class=p>:</span><span class=w> </span><span class=l>A bar example</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span>{<span class=nt>&#34;bar&#34;: </span><span class=s2>&#34;baz&#34;</span>}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>&#39;application/xml&#39;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>examples</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>xmlExample</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>summary</span><span class=p>:</span><span class=w> </span><span class=l>This is an example in XML</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>externalValue</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;https://example.org/examples/address-example.xml&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>&#39;text/plain&#39;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>examples</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>textExample</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>summary</span><span class=p>:</span><span class=w> </span><span class=l>This is a text example</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>externalValue</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;https://foo.bar/examples/address-example.txt&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>In a parameter:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>parameters</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;zipCode&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>in</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;query&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;string&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>format</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;zip-code&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>examples</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>zip-example</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/examples/zip-example&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>In a response:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>responses</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>&#39;200&#39;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>your car appointment has been booked</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>content</span><span class=p>:</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>application/json</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/SuccessResponse&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>examples</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>confirmation-success</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/examples/confirmation-success&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=link-object>Link Object</h4><p>先不深入研究，好像也很重要。</p><p><a href=https://spec.openapis.org/oas/v3.1.0#runtime-expressions target=_blank rel="noopener noreffer">OpenAPI Specification v3.1.0 | Introduction, Definitions, & More</a></p><h4 id=header-object>Header Object</h4><p><a href=https://spec.openapis.org/oas/v3.1.0#header-object target=_blank rel="noopener noreffer">OpenAPI Specification v3.1.0 | Introduction, Definitions, & More</a></p><p>跟 Paramter Object 一樣，但不能寫<code>in</code>和<code>name</code>。<br>第一次看這個會覺得怎麼不能寫<code>name</code>很奇怪，但上層是<code>Map[string,Header Object]</code>所以就這麼單純。</p><h5 id=範例-6>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>The number of allowed requests in the current period</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>schema</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>integer</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=tag-object>Tag Object</h4><h5 id=fixed-fields-3>Fixed Fields</h5><p><strong>REQUIRED</strong><br>name</p><p><strong>OPTIONAL</strong><br>description</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>pet</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>description</span><span class=p>:</span><span class=w> </span><span class=l>Pets operations</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=reference-object>Reference Object</h4><p><strong>REQUIRED</strong></p><ul><li>$ref (string) URI</li></ul><p><strong>OPTIONAL</strong></p><ul><li>summary (string)</li><li>description (string)</li></ul><h5 id=範例-7>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/Pet&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=schema-object>Schema Object</h4><p>我覺得這邊很玄學。就先跳過這章節，我覺得看範例可以很快知道要怎麼用。<br>好像規格定義在裡面https://spec.openapis.org/oas/3.1/dialect/base</p><p><a href=https://spec.openapis.org/oas/v3.1.0#schema-object-examples target=_blank rel="noopener noreffer">官方範例</a></p><p>雖然我跳過，但這個我還是覺得很重要。</p><h4 id=discriminator-object>Discriminator Object</h4><p>看起來是分辨物件用。</p><blockquote><p>The discriminator object is legal only when using one of the composite keywords oneOf, anyOf, allOf.</p></blockquote><p>Discriminator Object 僅在使用一個複合關鍵字之一 oneOf, anyOf, allOf時才是合法的。</p><h5 id=fixed-field>Fixed Field</h5><p><strong>REQUIRED</strong></p><ul><li>propertyName (string) 定義 type 範例</li></ul><p><strong>OPTIONAL</strong></p><ul><li>mapping (Map[string, string]) 定義 type 名稱指定schema</li></ul><p>這邊推薦看 <a href=https://github.com/line/line-bot-sdk-java/blob/cbcb096023f2de84684751839656a0c458f6ee41/line-bot-model/src/main/java/com/linecorp/bot/model/narrowcast/filter/DemographicFilter.java target=_blank rel="noopener noreffer">line-bot-sdk-java/DemographicFilter.java at cbcb096023f2de84684751839656a0c458f6ee41 · line/line-bot-sdk-java</a> 他們實作才看得懂這邊在做什麼?</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>JsonTypeInfo</span><span class=o>(</span><span class=n>use</span> <span class=o>=</span> <span class=n>Id</span><span class=o>.</span><span class=na>NAME</span><span class=o>,</span> <span class=n>property</span> <span class=o>=</span> <span class=s>&#34;type&#34;</span><span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=nd>@JsonSubTypes</span><span class=o>({</span>
+</span></span><span class=line><span class=cl>        <span class=nd>@JsonSubTypes.Type</span><span class=o>(</span><span class=n>GenderDemographicFilter</span><span class=o>.</span><span class=na>class</span><span class=o>),</span>
+</span></span><span class=line><span class=cl>        <span class=nd>@JsonSubTypes.Type</span><span class=o>(</span><span class=n>AgeDemographicFilter</span><span class=o>.</span><span class=na>class</span><span class=o>),</span>
+</span></span><span class=line><span class=cl>        <span class=nd>@JsonSubTypes.Type</span><span class=o>(</span><span class=n>AppTypeDemographicFilter</span><span class=o>.</span><span class=na>class</span><span class=o>),</span>
+</span></span><span class=line><span class=cl>        <span class=nd>@JsonSubTypes.Type</span><span class=o>(</span><span class=n>AreaDemographicFilter</span><span class=o>.</span><span class=na>class</span><span class=o>),</span>
+</span></span><span class=line><span class=cl>        <span class=nd>@JsonSubTypes.Type</span><span class=o>(</span><span class=n>SubscriptionPeriodDemographicFilter</span><span class=o>.</span><span class=na>class</span><span class=o>),</span>
+</span></span><span class=line><span class=cl>        <span class=nd>@JsonSubTypes.Type</span><span class=o>(</span><span class=n>OperatorDemographicFilter</span><span class=o>.</span><span class=na>class</span><span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>})</span>
+</span></span><span class=line><span class=cl><span class=kd>public</span> <span class=kd>interface</span> <span class=nc>DemographicFilter</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>這部分支援還要看有沒有找到相關方法去解決這段處理。</p><h5 id=範例-8>範例</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>MyResponseType</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>oneOf</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/Cat&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/Dog&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>$ref</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;#/components/schemas/Lizard&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>discriminator</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>propertyName</span><span class=p>:</span><span class=w> </span><span class=l>petType</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h4 id=security-scheme-object>Security Scheme Object</h4><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/ez4MbLT.png data-srcset="https://i.imgur.com/ez4MbLT.png, https://i.imgur.com/ez4MbLT.png 1.5x, https://i.imgur.com/ez4MbLT.png 2x" data-sizes=auto alt=https://i.imgur.com/ez4MbLT.png title=https://i.imgur.com/ez4MbLT.png></p><ul><li>type => &ldquo;apiKey&rdquo;, &ldquo;http&rdquo;, &ldquo;mutualTLS&rdquo;, &ldquo;oauth2&rdquo;, &ldquo;openIdConnect&rdquo;.</li></ul><p>我覺得這章節看範例比較快。</p><h5 id=範例-9>範例</h5><p><a href=https://spec.openapis.org/oas/v3.1.0#security-scheme-object-example target=_blank rel="noopener noreffer">OpenAPI Specification v3.1.0 | Introduction, Definitions, & More</a></p><h2 id=彩蛋>彩蛋</h2><p><a href=https://www.slideshare.net/kewang/openapi-webhooks target=_blank rel="noopener noreffer">如何利用 OpenAPI 及 WebHooks 讓老舊的網路服務也可程式化</a></p><p><a href=https://medium.com/hobo-engineer/ricky%E7%AD%86%E8%A8%98-postman-%E5%B8%B8%E8%A6%8B%E7%9A%84-content-type-b17a75396668 target=_blank rel="noopener noreffer">[筆記] Postman 常見的 Content-type. 使用 Postman 來測試 Restful API 是相當方便的，但對於… | by R. H. | hobo engineer | Medium</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-01-09</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/ data-title="OpenAPI Spec 撰寫小記" data-hashtags=openapi><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/ data-hashtag=openapi><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/ data-title="OpenAPI Spec 撰寫小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/ data-title="OpenAPI Spec 撰寫小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/ data-title="OpenAPI Spec 撰寫小記" data-image=https://user-images.githubusercontent.com/6058558/211311624-e706807d-52bb-4e15-86ce-e5602bbf1ed2.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/openapi/>openapi</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/ class=prev rel=prev title="程式使用 Web Proxy 那些事和指令測試方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>程式使用 Web Proxy 那些事和指令測試方法</a>
+<a href=/blog/posts/OpenAPI-Code-Generation-%E7%94%A2%E7%94%9F%E7%A8%8B%E5%BC%8F%E7%A2%BC/ class=next rel=next title="OpenAPI Code Generation 產生程式碼">OpenAPI Code Generation 產生程式碼<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.109.0">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
