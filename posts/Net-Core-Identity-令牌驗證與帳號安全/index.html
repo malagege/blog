@@ -1,0 +1,371 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>.Net Core Identity 令牌驗證與帳號安全 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content=".Net Core Identity 令牌驗證與帳號安全"><meta property="og:description" content="本篇筆記紀錄使用 Net Core Identity 產生 Token 所做令牌做一些驗證信處理，帳號登入錯誤太多次，我們可以設定安全規則，在多次登入失敗可以封鎖幾分鐘帳號。我們可以產生令牌，令牌是有時效的，超過時間就會過期，這邊令牌非一般 JWT ，他是有 Data Protection API 做一層加密，這邊不會探討這部分。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-01-30T23:00:02+08:00"><meta property="article:modified_time" content="2023-01-30T23:00:02+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content=".Net Core Identity 令牌驗證與帳號安全"><meta name=twitter:description content="本篇筆記紀錄使用 Net Core Identity 產生 Token 所做令牌做一些驗證信處理，帳號登入錯誤太多次，我們可以設定安全規則，在多次登入失敗可以封鎖幾分鐘帳號。我們可以產生令牌，令牌是有時效的，超過時間就會過期，這邊令牌非一般 JWT ，他是有 Data Protection API 做一層加密，這邊不會探討這部分。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/><link rel=prev href=https://malagege.github.io/blog/posts/DotNet-Core-Identity-%E5%81%9A-Authorize/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":".Net Core Identity 令牌驗證與帳號安全","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8\/"},"genre":"posts","keywords":".netcore, identity, token","wordcount":717,"url":"https:\/\/malagege.github.io\/blog\/posts\/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8\/","datePublished":"2023-01-30T23:00:02+08:00","dateModified":"2023-01-30T23:00:02+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">.Net Core Identity 令牌驗證與帳號安全</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/.Net-Core/><i class="far fa-folder fa-fw" aria-hidden=true></i>.Net Core</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-01-30>2023-01-30</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;717 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;4 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png data-srcset="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png, https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png 1.5x, https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png title=https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#阻止帳號未驗證信箱登入>阻止帳號未驗證信箱登入</a></li><li><a href=#電子信箱確認令牌>電子信箱確認令牌</a><ul><li><a href=#產生-notsupportedexception-no-iusertwofactortokenprovidertuser-named-default-is-registered-錯誤>產生 NotSupportedException: No IUserTwoFactorTokenProvider&lt;TUser> named &lsquo;Default&rsquo; is registered. 錯誤</a></li><li><a href=#你可能會忽略程式錯誤但使用者新增上去>你可能會忽略程式錯誤但使用者新增上去</a></li><li><a href=#第三方令牌做信箱驗證>第三方令牌做信箱驗證</a></li></ul></li><li><a href=#啟用帳號>啟用帳號</a></li><li><a href=#密碼重置功能>密碼重置功能</a></li><li><a href=#修改令牌時效限制>修改令牌時效限制</a><ul><li><a href=#特定權杖時效限制>特定權杖時效限制</a></li></ul></li><li><a href=#其他-usermanager-小功能紀錄>其他 userManager 小功能紀錄</a></li><li><a href=#設定密碼太多次錯誤停用帳號>設定密碼太多次錯誤停用帳號</a></li><li><a href=#心得>心得</a></li><li><a href=#彩蛋>彩蛋</a></li></ul></nav></div></div><div class=content id=content><p>本篇筆記紀錄使用 Net Core Identity 產生 Token 所做令牌做一些驗證信處理，帳號登入錯誤太多次，我們可以設定安全規則，在多次登入失敗可以封鎖幾分鐘帳號。我們可以產生令牌，令牌是有時效的，超過時間就會過期，這邊令牌非一般 JWT ，他是有 Data Protection API 做一層加密，這邊不會探討這部分。</p><h2 id=阻止帳號未驗證信箱登入>阻止帳號未驗證信箱登入</h2><p><code>AspNetUsers</code>有一個 <code>EmailConfirmed</code> 可以確認是否有驗證信箱。使用前需要在 <code>Startup.cs</code> 的<code>ConfigureServices()</code>中的 <code>RequireConfirmedEmail</code> 屬性設定為<code>true</code>。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>IdentityOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>SignIn</span><span class=p>.</span><span class=n>RequireConfirmedEmail</span> <span class=p>=</span> <span class=k>true</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>                <span class=c1>// 沒有這一個判斷會走到「登入失敗，請重試」，注意這邊要做這個判斷，使用者才知道是什麼錯誤。</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=n>user</span> <span class=p>!=</span> <span class=k>null</span> <span class=p>&amp;</span> <span class=p>!</span><span class=n>user</span><span class=p>.</span><span class=n>EmailConfirmed</span> <span class=p>&amp;&amp;</span>
+</span></span><span class=line><span class=cl>                    <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>CheckPasswordAsync</span><span class=p>(</span><span class=n>user</span><span class=p>,</span> <span class=n>model</span><span class=p>.</span><span class=n>Password</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>ModelState</span><span class=p>.</span><span class=n>AddModelError</span><span class=p>(</span><span class=kt>string</span><span class=p>.</span><span class=n>Empty</span><span class=p>,</span> <span class=s>&#34;你的信箱尚為進行驗證&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                    <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=n>model</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>GIT: <a href=https://github.com/malagege/NetCoreAuthSample/commit/92872ccafa9e85cecdb64d150b6b5ebd150b7b2c target=_blank rel="noopener noreffer">使用者登入做信箱驗證動作 · malagege/NetCoreAuthSample@92872cc</a></p><h2 id=電子信箱確認令牌>電子信箱確認令牌</h2><p>電子令牌需要使用<code>_userManager.GenerateEmailConfirmationTokenAsync(user)</code>產生令牌(Token)。</p><p>這邊可以用<code>Url.Action</code>產生Email驗證頁面連結。透過 <code>_userManager.ConfirmEmailAsync(user,token)</code>進行驗證。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>        <span class=k>public</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=n>IActionResult</span><span class=p>&gt;</span> <span class=n>RegisterAsync</span><span class=p>(</span><span class=n>RegisterViewModel</span> <span class=n>model</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=n>ModelState</span><span class=p>.</span><span class=n>IsValid</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=kt>var</span> <span class=n>user</span> <span class=p>=</span> <span class=k>new</span> <span class=n>ApplicationUser</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>UserName</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                    <span class=n>Email</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                    <span class=n>City</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>City</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=p>};</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=kt>var</span> <span class=n>result</span> <span class=p>=</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>CreateAsync</span><span class=p>(</span><span class=n>user</span><span class=p>,</span> <span class=n>model</span><span class=p>.</span><span class=n>Password</span><span class=p>);</span>  <span class=c1>// 第二個參數密碼要放，沒放不會檢核密碼規則</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=n>result</span><span class=p>.</span><span class=n>Succeeded</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=kt>string</span> <span class=n>confirmationLink</span> <span class=p>=</span> <span class=k>await</span> <span class=n>GenerateConfirmactionLinkAsync</span><span class=p>(</span><span class=n>user</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=c1>//當前 admin 新增帳號，導回使用者清單</span>
+</span></span><span class=line><span class=cl>                    <span class=k>if</span><span class=p>(</span><span class=n>_signInManager</span><span class=p>.</span><span class=n>IsSignedIn</span><span class=p>(</span><span class=n>User</span><span class=p>)</span> <span class=p>&amp;&amp;</span> <span class=n>User</span><span class=p>.</span><span class=n>IsInRole</span><span class=p>(</span><span class=s>&#34;Admin&#34;</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                    <span class=p>{</span>
+</span></span><span class=line><span class=cl>                        <span class=k>return</span> <span class=n>RedirectToAction</span><span class=p>(</span><span class=s>&#34;userlist&#34;</span><span class=p>,</span> <span class=s>&#34;admin&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=n>ViewBag</span><span class=p>.</span><span class=n>ErrorTitle</span> <span class=p>=</span> <span class=s>&#34;註冊成功&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                    <span class=n>ViewBag</span><span class=p>.</span><span class=n>ErrorMessage</span> <span class=p>=</span> <span class=s>&#34;已經發送一組驗證信，請進行驗證。&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                    <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=s>&#34;Error&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>foreach</span> <span class=p>(</span><span class=kt>var</span> <span class=n>error</span> <span class=k>in</span> <span class=n>result</span><span class=p>.</span><span class=n>Errors</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>ModelState</span><span class=p>.</span><span class=n>AddModelError</span><span class=p>(</span><span class=kt>string</span><span class=p>.</span><span class=n>Empty</span><span class=p>,</span> <span class=n>error</span><span class=p>.</span><span class=n>Description</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=n>model</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>private</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=kt>string</span><span class=p>&gt;</span> <span class=n>GenerateConfirmactionLinkAsync</span><span class=p>(</span><span class=n>ApplicationUser</span> <span class=n>user</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>token</span> <span class=p>=</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>GenerateEmailConfirmationTokenAsync</span><span class=p>(</span><span class=n>user</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>confirmationLink</span> <span class=p>=</span> <span class=n>Url</span><span class=p>.</span><span class=n>Action</span><span class=p>(</span><span class=s>&#34;ConfirmEmail&#34;</span><span class=p>,</span> <span class=s>&#34;Account&#34;</span><span class=p>,</span> <span class=k>new</span> <span class=p>{</span> <span class=n>userId</span> <span class=p>=</span> <span class=n>user</span><span class=p>.</span><span class=n>Id</span><span class=p>,</span> <span class=n>token</span> <span class=p>=</span> <span class=n>token</span> <span class=p>},</span> <span class=n>Request</span><span class=p>.</span><span class=n>Scheme</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>confirmationLink</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>這邊特別提一下，<code>Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);</code>裡面的Request.Scheme是什麼，正常這個參數是填寫<code>http</code>或<code>https</code>，但使用這個<a href="https://docs.microsoft.com/zh-tw/dotnet/api/microsoft.aspnetcore.http.httprequest.scheme?view=aspnetcore-6.0#microsoft-aspnetcore-http-httprequest-scheme" target=_blank rel="noopener noreffer">HttpRequest</a>物件可以對應Server 設定。</p><h3 id=產生-notsupportedexception-no-iusertwofactortokenprovidertuser-named-default-is-registered-錯誤>產生 NotSupportedException: No IUserTwoFactorTokenProvider&lt;TUser> named &lsquo;Default&rsquo; is registered. 錯誤</h3><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/CF5QGAb.png data-srcset="https://i.imgur.com/CF5QGAb.png, https://i.imgur.com/CF5QGAb.png 1.5x, https://i.imgur.com/CF5QGAb.png 2x" data-sizes=auto alt=https://i.imgur.com/CF5QGAb.png title=https://i.imgur.com/CF5QGAb.png></p><p>需要在<code>ConfigureServices()</code>方法添加<code>AddDefaultTokenProviders()</code>，該方法可以用來信箱令牌驗證、密碼重製、雙因子驗證。</p><p>接下來就把 View 頁面用上去就完成</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=p>&lt;</span><span class=n>h1</span><span class=p>&gt;</span><span class=err>你的電子信箱已經驗證成功</span><span class=p>&lt;/</span><span class=n>h1</span><span class=p>&gt;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=你可能會忽略程式錯誤但使用者新增上去>你可能會忽略程式錯誤但使用者新增上去</h3><p>理論上我猜Identity 相關 function 裡面有做 <code>SaveChange()</code>，所以我嘗試外面加 <code>TransactionScope</code> 就能解決這個問題。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>        <span class=k>public</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=n>IActionResult</span><span class=p>&gt;</span> <span class=n>RegisterAsync</span><span class=p>(</span><span class=n>RegisterViewModel</span> <span class=n>model</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>using</span> <span class=nn>var</span> <span class=n>scope</span> <span class=p>=</span> <span class=k>new</span> <span class=n>TransactionScope</span><span class=p>(</span><span class=n>TransactionScopeAsyncFlowOption</span><span class=p>.</span><span class=n>Enabled</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=n>ModelState</span><span class=p>.</span><span class=n>IsValid</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=kt>var</span> <span class=n>user</span> <span class=p>=</span> <span class=k>new</span> <span class=n>ApplicationUser</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>UserName</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                    <span class=n>Email</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                    <span class=n>City</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>City</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=p>};</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=kt>var</span> <span class=n>result</span> <span class=p>=</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>CreateAsync</span><span class=p>(</span><span class=n>user</span><span class=p>,</span> <span class=n>model</span><span class=p>.</span><span class=n>Password</span><span class=p>);</span>  <span class=c1>// 第二個參數密碼要放，沒放不會檢核密碼規則</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=n>result</span><span class=p>.</span><span class=n>Succeeded</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>scope</span><span class=p>.</span><span class=n>Complete</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>                    <span class=kt>string</span> <span class=n>confirmationLink</span> <span class=p>=</span> <span class=k>await</span> <span class=n>GenerateConfirmactionLinkAsync</span><span class=p>(</span><span class=n>user</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                    <span class=n>_logger</span><span class=p>.</span><span class=n>LogInformation</span><span class=p>(</span><span class=s>$&#34;發送驗證信連結:{confirmationLink}&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=c1>//當前 admin 新增帳號，導回使用者清單</span>
+</span></span><span class=line><span class=cl>                    <span class=k>if</span><span class=p>(</span><span class=n>_signInManager</span><span class=p>.</span><span class=n>IsSignedIn</span><span class=p>(</span><span class=n>User</span><span class=p>)</span> <span class=p>&amp;&amp;</span> <span class=n>User</span><span class=p>.</span><span class=n>IsInRole</span><span class=p>(</span><span class=s>&#34;Admin&#34;</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                    <span class=p>{</span>
+</span></span><span class=line><span class=cl>                        <span class=k>return</span> <span class=n>RedirectToAction</span><span class=p>(</span><span class=s>&#34;userlist&#34;</span><span class=p>,</span> <span class=s>&#34;admin&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=n>ViewBag</span><span class=p>.</span><span class=n>ErrorTitle</span> <span class=p>=</span> <span class=s>&#34;註冊成功&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                    <span class=n>ViewBag</span><span class=p>.</span><span class=n>ErrorMessage</span> <span class=p>=</span> <span class=s>&#34;已經發送一組驗證信，請進行驗證。&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                    <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=s>&#34;Error&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>foreach</span> <span class=p>(</span><span class=kt>var</span> <span class=n>error</span> <span class=k>in</span> <span class=n>result</span><span class=p>.</span><span class=n>Errors</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>ModelState</span><span class=p>.</span><span class=n>AddModelError</span><span class=p>(</span><span class=kt>string</span><span class=p>.</span><span class=n>Empty</span><span class=p>,</span> <span class=n>error</span><span class=p>.</span><span class=n>Description</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=n>model</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>GIT: <a href=https://github.com/malagege/NetCoreAuthSample/commit/3fbb828f0de81cdb4d72a8d8c719f3c945fb2bc5 target=_blank rel="noopener noreffer">申請帳號發送驗證信動作與檢查 · malagege/NetCoreAuthSample@3fbb828</a></p><h3 id=第三方令牌做信箱驗證>第三方令牌做信箱驗證</h3><p>跟上面邏輯一樣，由於這邊範例是信箱為key，通常第三方登入綁定原帳號不一定是用信箱，所以這邊就不實作了，不一定要做信箱驗證。</p><h2 id=啟用帳號>啟用帳號</h2><p>過了超過驗證信箱時間，我們需要重新發送驗證信功能。更上面差不多事情就不細講，參照GITHUB設定。</p><p>GIT: <a href=https://github.com/malagege/NetCoreAuthSample/commit/f06b336511fca9ba8a5eabbd76c2fea6272f0932 target=_blank rel="noopener noreffer">忘記密碼功能 · malagege/NetCoreAuthSample@f06b336</a></p><p>主要重點<code>_userManager.GeneratePasswordResetTokenAsync</code>產生 token。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>        [HttpPost]</span>
+</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=n>IActionResult</span><span class=p>&gt;</span> <span class=n>ForgetPasswordAsync</span><span class=p>(</span><span class=n>EmailAddressViewModel</span> <span class=n>model</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=n>ModelState</span><span class=p>.</span><span class=n>IsValid</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=c1>// 用信箱查詢帳號</span>
+</span></span><span class=line><span class=cl>                <span class=n>ApplicationUser</span> <span class=n>user</span> <span class=p>=</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>FindByNameAsync</span><span class=p>(</span><span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=c1>// 通過驗證才能用此功能</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span><span class=p>(</span> <span class=n>user</span> <span class=p>!=</span> <span class=k>null</span> <span class=p>&amp;&amp;</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>IsEmailConfirmedAsync</span><span class=p>(</span><span class=n>user</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=kt>string</span> <span class=n>token</span> <span class=p>=</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>GeneratePasswordResetTokenAsync</span><span class=p>(</span><span class=n>user</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                    <span class=kt>var</span> <span class=n>passwordResetLink</span> <span class=p>=</span> <span class=n>Url</span><span class=p>.</span><span class=n>Action</span><span class=p>(</span><span class=s>&#34;ResetPassword&#34;</span><span class=p>,</span> <span class=s>&#34;Account&#34;</span><span class=p>,</span> <span class=k>new</span> <span class=p>{</span> <span class=n>email</span> <span class=p>=</span> <span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>,</span> <span class=n>token</span> <span class=p>},</span> <span class=n>Request</span><span class=p>.</span><span class=n>Scheme</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=n>_logger</span><span class=p>.</span><span class=n>LogInformation</span><span class=p>(</span><span class=s>$&#34;發送驗證信連結:{passwordResetLink}&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=s>&#34;ForgetPasswordConfirmation&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>                <span class=c1>// 為了防暴力攻擊，不回應任何訊息</span>
+</span></span><span class=line><span class=cl>                <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=s>&#34;ForgetPasswordConfirmation&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=n>model</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=密碼重置功能>密碼重置功能</h2><p>ViewModel 原本 DataAnntation 比較密碼第一個參數改成<code>nameof(Password)</code>，可以讓程式可維護性。最近看到 EF 5 設定 Index也是這樣用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>        [Compare(&#34;Password&#34;,ErrorMessage = &#34;密碼不一置，請重新確認&#34;)]</span>
+</span></span></code></pre></td></tr></table></div></div><p>改成</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>        [Compare(nameof(Password),ErrorMessage = &#34;密碼不一置，請重新確認&#34;)]</span>
+</span></span></code></pre></td></tr></table></div></div><p>相關設定也請看GIT。</p><p>GIT: <a href=https://github.com/malagege/NetCoreAuthSample/commit/7507387e10b9116fc7a3066374fa67596cfd2f9e target=_blank rel="noopener noreffer">重置密碼功能 · malagege/NetCoreAuthSample@7507387</a></p><h2 id=修改令牌時效限制>修改令牌時效限制</h2><p>令牌時效為<code>1天</code>。修改時間方法參照下面程式，這一段我就不放到GIT。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>DataProtectionTokenProviderOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>TokenLifespan</span> <span class=p>=</span> <span class=n>TimeSpan</span><span class=p>.</span><span class=n>FromSeconds</span><span class=p>(</span><span class=m>10</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=特定權杖時效限制>特定權杖時效限制</h3><p>參照這篇設定<a href="https://docs.microsoft.com/zh-tw/aspnet/core/security/authentication/accconfirm?view=aspnetcore-6.0&tabs=visual-studio#change-the-email-token-lifespan" target=_blank rel="noopener noreffer">變更電子郵件權杖生命週期</a>，這邊簡單紀錄，但不記到 GIT。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=k>public</span> <span class=k>class</span> <span class=nc>CustomEmailConfirmationTokenProvider</span><span class=p>&lt;</span><span class=n>TUser</span><span class=p>&gt;</span>
+</span></span><span class=line><span class=cl>                              <span class=p>:</span>  <span class=n>DataProtectorTokenProvider</span><span class=p>&lt;</span><span class=n>TUser</span><span class=p>&gt;</span> <span class=k>where</span> <span class=n>TUser</span> <span class=p>:</span> <span class=k>class</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=n>CustomEmailConfirmationTokenProvider</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>        <span class=n>IDataProtectionProvider</span> <span class=n>dataProtectionProvider</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=n>IOptions</span><span class=p>&lt;</span><span class=n>EmailConfirmationTokenProviderOptions</span><span class=p>&gt;</span> <span class=n>options</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=n>ILogger</span><span class=p>&lt;</span><span class=n>DataProtectorTokenProvider</span><span class=p>&lt;</span><span class=n>TUser</span><span class=p>&gt;&gt;</span> <span class=n>logger</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                                       <span class=p>:</span> <span class=k>base</span><span class=p>(</span><span class=n>dataProtectionProvider</span><span class=p>,</span> <span class=n>options</span><span class=p>,</span> <span class=n>logger</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=k>class</span> <span class=nc>EmailConfirmationTokenProviderOptions</span> <span class=p>:</span> <span class=n>DataProtectionTokenProviderOptions</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=n>EmailConfirmationTokenProviderOptions</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>Name</span> <span class=p>=</span> <span class=s>&#34;EmailDataProtectorTokenProvider&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>TokenLifespan</span> <span class=p>=</span> <span class=n>TimeSpan</span><span class=p>.</span><span class=n>FromHours</span><span class=p>(</span><span class=m>4</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=n>builder</span><span class=p>.</span><span class=n>Services</span><span class=p>.</span><span class=n>AddDefaultIdentity</span><span class=p>&lt;</span><span class=n>IdentityUser</span><span class=p>&gt;(</span><span class=n>config</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>config</span><span class=p>.</span><span class=n>SignIn</span><span class=p>.</span><span class=n>RequireConfirmedEmail</span> <span class=p>=</span> <span class=k>true</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=n>config</span><span class=p>.</span><span class=n>Tokens</span><span class=p>.</span><span class=n>ProviderMap</span><span class=p>.</span><span class=n>Add</span><span class=p>(</span><span class=s>&#34;CustomEmailConfirmation&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=k>new</span> <span class=n>TokenProviderDescriptor</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>            <span class=k>typeof</span><span class=p>(</span><span class=n>CustomEmailConfirmationTokenProvider</span><span class=p>&lt;</span><span class=n>IdentityUser</span><span class=p>&gt;)));</span>
+</span></span><span class=line><span class=cl>    <span class=n>config</span><span class=p>.</span><span class=n>Tokens</span><span class=p>.</span><span class=n>EmailConfirmationTokenProvider</span> <span class=p>=</span> <span class=s>&#34;CustomEmailConfirmation&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}).</span><span class=n>AddEntityFrameworkStores</span><span class=p>&lt;</span><span class=n>ApplicationDbContext</span><span class=p>&gt;();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>builder</span><span class=p>.</span><span class=n>Services</span><span class=p>.</span><span class=n>AddTransient</span><span class=p>&lt;</span><span class=n>CustomEmailConfirmationTokenProvider</span><span class=p>&lt;</span><span class=n>IdentityUser</span><span class=p>&gt;&gt;();</span>
+</span></span></code></pre></td></tr></table></div></div><p>簡單跟 Claim 和 Handle 處理有點類似。</p><h2 id=其他-usermanager-小功能紀錄>其他 userManager 小功能紀錄</h2><ul><li>現有帳號更改密碼<code>_userManager.ChangePasswordAsync(user, 舊密碼,新密碼)</code>。</li><li>第三方沒設置密碼，新增密碼。<code>_userManager.AddPasswordAsync(user, 新密碼)</code>，理論上可能用不到這個功能。後續登入中使用者要用<code>_userManager.RefreshSignInAsync(user)</code>更新使用者登入。</li></ul><h2 id=設定密碼太多次錯誤停用帳號>設定密碼太多次錯誤停用帳號</h2><ol><li><code>services.Configure&lt;IdentityOptions></code>加入設定</li><li><code>_signInManager.PasswordSignInAsync</code>第四個參數記得要修改成<code>true</code></li></ol><p>參考如下:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>IdentityOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=p>...</span>
+</span></span><span class=line><span class=cl>                
+</span></span><span class=line><span class=cl>                <span class=c1>// 預設帳號密碼輸入五次會封鎖15分鐘(封鎖時間預設是5分鐘)</span>
+</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Lockout</span><span class=p>.</span><span class=n>MaxFailedAccessAttempts</span> <span class=p>=</span> <span class=m>5</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Lockout</span><span class=p>.</span><span class=n>DefaultLockoutTimeSpan</span> <span class=p>=</span> <span class=n>TimeSpan</span><span class=p>.</span><span class=n>FromMinutes</span><span class=p>(</span><span class=m>15</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><p><code>_signInManager.PasswordSignInAsync</code>第四個參數記得要修改成<code>true</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=n>Microsoft</span><span class=p>.</span><span class=n>AspNetCore</span><span class=p>.</span><span class=n>Identity</span><span class=p>.</span><span class=n>SignInResult</span> <span class=n>result</span> <span class=p>=</span> <span class=k>await</span> <span class=n>_signInManager</span><span class=p>.</span><span class=n>PasswordSignInAsync</span><span class=p>(</span><span class=n>model</span><span class=p>.</span><span class=n>Email</span><span class=p>,</span> <span class=n>model</span><span class=p>.</span><span class=n>Password</span><span class=p>,</span> <span class=n>model</span><span class=p>.</span><span class=n>RememberMe</span><span class=p>,</span> <span class=k>true</span><span class=p>);</span>
+</span></span></code></pre></td></tr></table></div></div><p>我們嘗試輸入多組錯誤密碼明顯看到資料庫有修改。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/vUprCfF.png data-srcset="https://i.imgur.com/vUprCfF.png, https://i.imgur.com/vUprCfF.png 1.5x, https://i.imgur.com/vUprCfF.png 2x" data-sizes=auto alt=https://i.imgur.com/vUprCfF.png title=https://i.imgur.com/vUprCfF.png></p><p>登入中調整登入成功顯示帳號被鎖。重置密碼功能也要設定解除鎖定。</p><p><code>LoginAsync</code> 方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>                <span class=c1>// 使用者封鎖不讓使用者登入，但我建議可以不提示讓使用者知道，可發信通知使用者知道</span>
+</span></span><span class=line><span class=cl>                <span class=c1>//if (result.IsLockedOut)</span>
+</span></span><span class=line><span class=cl>                <span class=c1>//{</span>
+</span></span><span class=line><span class=cl>                <span class=c1>//    return View(&#34;AccountLocked&#34;);</span>
+</span></span><span class=line><span class=cl>                <span class=c1>//}</span>
+</span></span></code></pre></td></tr></table></div></div><p><code>ResetPasswordAsync</code>方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>                    <span class=k>if</span><span class=p>(</span><span class=n>result</span><span class=p>.</span><span class=n>Succeeded</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>                    <span class=p>{</span>
+</span></span><span class=line><span class=cl>                        <span class=c1>// 讓當前已封鎖使用者解除封鎖動作</span>
+</span></span><span class=line><span class=cl>                        <span class=k>if</span> <span class=p>(</span> <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>IsLockedOutAsync</span><span class=p>(</span><span class=n>user</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>                        <span class=p>{</span>
+</span></span><span class=line><span class=cl>                            <span class=k>await</span> <span class=n>_userManager</span><span class=p>.</span><span class=n>SetLockoutEndDateAsync</span><span class=p>(</span><span class=n>user</span><span class=p>,</span> <span class=n>DateTimeOffset</span><span class=p>.</span><span class=n>UtcNow</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                        <span class=k>return</span> <span class=n>View</span><span class=p>(</span><span class=s>&#34;ResetPasswordConfirmation&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                    <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>GIT: <a href=https://github.com/malagege/NetCoreAuthSample/commit/e52ee7805e08b814857c67d22bf13cdd91c0f5a4 target=_blank rel="noopener noreffer">設定密碼太多次錯誤停用帳號 · malagege/NetCoreAuthSample@e52ee78</a></p><h2 id=心得>心得</h2><p>其實還有很多沒有記，但目前先整理到這邊。<br>像是</p><ol><li>Jwtbearer</li><li>AddIdentityServer</li><li>Two-Factor</li></ol><p>很多寶藏還沒挖，有時間再整理研究。</p><h2 id=彩蛋>彩蛋</h2><p><a href=https://stackoverflow.com/questions/44956824/how-to-confirm-a-phone-number-in-asp-net-core-1-1mvc target=_blank rel="noopener noreffer">How to confirm a phone number in ASP.Net Core 1.1MVC - Stack Overflow</a></p><p><a href=https://blog.51cto.com/MyIO/5180716 target=_blank rel="noopener noreffer">ASP.NET Core 自动刷新JWT Token_My IO的技术博客_51CTO博客</a></p><p><a href=https://www.cnblogs.com/CreateMyself/p/11273732.html target=_blank rel="noopener noreffer">ASP.NET Core Web Api之JWT刷新Token(三) - Jeffcky - 博客园</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-01-30</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/ data-title=".Net Core Identity 令牌驗證與帳號安全" data-hashtags=.netcore,identity,token><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/ data-hashtag=.netcore><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/ data-title=".Net Core Identity 令牌驗證與帳號安全"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/ data-title=".Net Core Identity 令牌驗證與帳號安全"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/ data-title=".Net Core Identity 令牌驗證與帳號安全" data-image=https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/.netcore/>.netcore</a>,&nbsp;<a href=/blog/tags/identity/>identity</a>,&nbsp;<a href=/blog/tags/token/>token</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/DotNet-Core-Identity-%E5%81%9A-Authorize/ class=prev rel=prev title=".Net Core Identity 做 Authorize"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>.Net Core Identity 做 Authorize</a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.110.0">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
