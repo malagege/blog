@@ -1,0 +1,390 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>.Net Core Controller 下載檔案/上傳檔案 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content=".Net Core Controller 下載檔案/上傳檔案"><meta property="og:description" content="提到網頁功能一定會有下載檔案/上傳檔案需求，這邊整理會用到方法與遇到上傳檔案問題。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-02-20T19:28:48+08:00"><meta property="article:modified_time" content="2023-02-20T19:28:48+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content=".Net Core Controller 下載檔案/上傳檔案"><meta name=twitter:description content="提到網頁功能一定會有下載檔案/上傳檔案需求，這邊整理會用到方法與遇到上傳檔案問題。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/><link rel=prev href=https://malagege.github.io/blog/posts/SameSite-Cookie-%E5%92%8C-Same-Origin-Policy-%E6%98%AF%E4%BB%80%E9%BA%BC/><link rel=next href=https://malagege.github.io/blog/posts/%E6%AA%94%E6%A1%88%E4%B8%8B%E8%BC%89%E4%B8%80%E7%9B%B4%E6%8A%93%E5%88%B0%E8%88%8A%E6%AA%94%E6%A1%88%E7%9A%84%E5%95%8F%E9%A1%8C/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":".Net Core Controller 下載檔案/上傳檔案","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88\/"},"genre":"posts","keywords":".netcore, upload, download","wordcount":932,"url":"https:\/\/malagege.github.io\/blog\/posts\/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88\/","datePublished":"2023-02-20T19:28:48+08:00","dateModified":"2023-02-20T19:28:48+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">.Net Core Controller 下載檔案/上傳檔案</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/.Net-Core/><i class="far fa-folder fa-fw" aria-hidden=true></i>.Net Core</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-02-20>2023-02-20</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;932 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png data-srcset="https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png, https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png 1.5x, https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png title=https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#下載檔案>下載檔案</a><ul><li><a href=#下載依照-content-type-設定metadata>下載依照 Content-Type 設定metadata</a></li><li><a href=#可接續下載方法>可接續下載方法</a></li><li><a href=#參考>參考</a></li></ul></li><li><a href=#上傳檔案>上傳檔案</a><ul><li><a href=#上傳限制調整>上傳限制調整</a></li><li><a href=#設定-iis-上傳限制>設定 IIS 上傳限制</a></li><li><a href=#request-body-too-large-錯誤>Request body too large 錯誤</a></li><li><a href=#multipart-body-length-limit-134217728-exceeded錯誤>Multipart body length limit 134217728 exceeded錯誤</a></li><li><a href=#nginx-限制上傳大小的錯誤>Nginx 限制上傳大小的錯誤</a></li><li><a href=#kestrel-中的解決方案>Kestrel 中的解決方案</a></li><li><a href=#設定總結>設定總結</a></li><li><a href=#其他相關文件整理前參考>其他相關文件(整理前參考)</a></li></ul></li><li><a href=#彩蛋>彩蛋</a><ul><li><a href=#環境變數>環境變數</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>提到網頁功能一定會有<code>下載檔案/上傳檔案</code>需求，這邊整理會用到方法與遇到上傳檔案問題。</p><h2 id=下載檔案>下載檔案</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>        <span class=k>public</span> <span class=n>IActionResult</span> <span class=n>Get</span><span class=p>([</span><span class=n>FromQuery</span><span class=p>]</span> <span class=n>GetFileDownloadRequest</span> <span class=n>request</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=n>FileTypeEnum</span> <span class=n>fileType</span> <span class=p>=</span> <span class=n>request</span><span class=p>.</span><span class=n>ReqFileType</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>filePath</span> <span class=p>=</span> <span class=s>&#34;&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>...</span> <span class=n>getFilePath</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=kt>string</span><span class=p>.</span><span class=n>IsNullOrEmpty</span><span class=p>(</span><span class=n>filePath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=k>return</span> <span class=n>NotFound</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>fileName</span> <span class=p>=</span> <span class=n>Path</span><span class=p>.</span><span class=n>GetFileName</span><span class=p>(</span><span class=n>filePath</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>PhysicalFile</span><span class=p>(</span><span class=n>filePath</span><span class=p>,</span> <span class=s>&#34;application/octet-stream&#34;</span><span class=p>,</span><span class=n>fileDownloadName</span><span class=p>:</span> <span class=n>fileName</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=下載依照-content-type-設定metadata>下載依照 Content-Type 設定metadata</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>[HttpGet(&#34;[action]</span><span class=s>&#34;)]
+</span></span></span><span class=line><span class=cl><span class=s></span><span class=k>public</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=n>IActionResult</span><span class=p>&gt;</span> <span class=n>GetFile</span><span class=p>(</span><span class=kt>string</span> <span class=n>id</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=kt>var</span> <span class=n>dir</span> <span class=p>=</span> <span class=s>&#34;GetOrBuildYourDirectoryString&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=kt>var</span> <span class=n>fileName</span> <span class=p>=</span> <span class=s>&#34;GetYourFileName&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl> 
+</span></span><span class=line><span class=cl>    <span class=kt>var</span> <span class=n>mimeType</span> <span class=p>=</span> <span class=n>GetMimeType</span><span class=p>(</span><span class=n>fileName</span><span class=p>);</span>
+</span></span><span class=line><span class=cl> 
+</span></span><span class=line><span class=cl>    <span class=kt>var</span> <span class=n>path</span> <span class=p>=</span> <span class=n>Path</span><span class=p>.</span><span class=n>Combine</span><span class=p>(</span><span class=n>dir</span><span class=p>,</span> <span class=n>fileName</span><span class=p>);</span>
+</span></span><span class=line><span class=cl> 
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>PhysicalFile</span><span class=p>(</span><span class=n>path</span><span class=p>,</span> <span class=n>mimeType</span><span class=p>,</span> <span class=n>version</span><span class=p>.</span><span class=n>FileName</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl> 
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=kt>string</span> <span class=n>GetMimeType</span><span class=p>(</span><span class=kt>string</span> <span class=n>fileName</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=kt>var</span> <span class=n>provider</span> <span class=p>=</span> <span class=k>new</span> <span class=n>FileExtensionContentTypeProvider</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>    <span class=kt>string</span> <span class=n>contentType</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(!</span><span class=n>provider</span><span class=p>.</span><span class=n>TryGetContentType</span><span class=p>(</span><span class=n>fileName</span><span class=p>,</span> <span class=k>out</span> <span class=n>contentType</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>contentType</span> <span class=p>=</span> <span class=s>&#34;application/octet-stream&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl> 
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>contentType</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>參考:<a href=https://blog.csdn.net/mzl87/article/details/105082237 target=_blank rel="noopener noreffer">在TypeScript和ASP.NET Core中处理文件上传和受保护的下载_寒冰屋的博客-CSDN博客</a></p><h3 id=可接續下載方法>可接續下載方法</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>[HttpGet(&#34;[action]</span><span class=s>&#34;)]
+</span></span></span><span class=line><span class=cl><span class=s></span><span class=k>public</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=n>IActionResult</span><span class=p>&gt;</span> <span class=n>GetFile</span><span class=p>(</span><span class=kt>string</span> <span class=n>id</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>filePath</span> <span class=p>=</span> <span class=s>&#34;xxx&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>fileName</span> <span class=p>=</span> <span class=n>Path</span><span class=p>.</span><span class=n>GetFileName</span><span class=p>(</span><span class=n>filePath</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=k>new</span> <span class=n>FileExtensionContentTypeProvider</span><span class=p>().</span><span class=n>TryGetContentType</span><span class=p>(</span><span class=n>fileName</span><span class=p>,</span> <span class=k>out</span> <span class=kt>string</span> <span class=n>contentType</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=n>contentType</span> <span class=p>??=</span> <span class=s>&#34;application/octet-stream&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>PhysicalFile</span><span class=p>(</span><span class=n>filePath</span><span class=p>,</span> <span class=n>contentType</span><span class=p>,</span> <span class=n>fileDownloadName</span><span class=p>:</span> <span class=n>fileName</span><span class=p>,</span> <span class=n>enableRangeProcessing</span><span class=p>:</span> <span class=k>true</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>主要是 <code>enableRangeProcessing</code> 設定為 true 就能做到，想當初 PHP 實作這個方法看到吐。</p><p>相關別的程式作法:</p><ul><li><a href=https://gdfan1114.wordpress.com/2015/01/14/php-%E5%AF%A6%E4%BD%9C%E6%94%AF%E6%8F%B4-http-%E7%BA%8C%E5%82%B3%E5%8A%9F%E8%83%BD/ target=_blank rel="noopener noreffer">PHP 實作支援 http 續傳功能及如何進行測試 | GD&rsquo;s blog</a></li><li><a href=https://stackoverflow.com/questions/59877965/set-content-range-in-spring target=_blank rel="noopener noreffer">set content range in spring - Stack Overflow</a></li><li><a href=https://blog.csdn.net/u010900754/article/details/105332202 target=_blank rel="noopener noreffer">【SpringMVC（十五）】HttpRange 分片下载 断点续传_绝世好阿狸的博客-CSDN博客_spring http range</a></li><li><a href=https://laravel.io/forum/09-23-2014-how-to-support-http-byte-serving-in-file-streams target=_blank rel="noopener noreffer">How to support HTTP Byte Serving in file streams? | Laravel.io</a></li></ul><h3 id=參考>參考</h3><ul><li><p><a href=https://blog.miniasp.com/post/2019/12/08/Understanding-File-Providers-in-ASP-NET-Core-and-Download-Physical-File target=_blank rel="noopener noreffer">認識 ASP․NET Core 檔案提供者與透過 Web API 下載實體檔案 | The Will Will Web</a></p></li><li><p><a href=https://www.cnblogs.com/wucy/p/16419496.html target=_blank rel="noopener noreffer">由ASP.NET Core根据路径下载文件异常引发的探究 - yi念之间 - 博客园</a><br><a href=https://imgur.com/GsWVWEc target=_blank rel="noopener noreffer">備份圖</a></p></li><li><p><a href=https://miaostay.com/2020/01/asp-net-core%E7%9A%84%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99/ target=_blank rel="noopener noreffer">asp.net core的文件读写 - 喵星人聚居地</a></p></li><li><p><a href="https://docs.microsoft.com/zh-tw/dotnet/api/microsoft.aspnetcore.mvc.controllerbase.physicalfile?view=aspnetcore-6.0" target=_blank rel="noopener noreffer">ControllerBase.PhysicalFile 方法 (Microsoft.AspNetCore.Mvc) | Microsoft Docs</a></p></li><li><p><a href=https://www.cnblogs.com/panpanwelcome/p/14082660.html target=_blank rel="noopener noreffer">FileResult In ASP.NET Core MVC - PanPan003 - 博客园</a></p></li><li><p><a href="https://docs.microsoft.com/zh-tw/aspnet/core/fundamentals/file-providers?view=aspnetcore-6.0" target=_blank rel="noopener noreffer">ASP.NET Core 中的檔案提供者 | Microsoft Docs</a></p></li><li><p><a href=https://www.buguagaoshu.com/archives/net%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9heepheaders target=_blank rel="noopener noreffer">.Net 如何修改 HttpHeaders 中的 Content-Disposition | 不挂高数</a></p></li><li><p><a href=https://www.buguagaoshu.com/archives/aspnet5%E4%BC%A0%E8%BE%93%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6%E6%97%A0%E6%B3%95%E5%BF%AB%E8%BF%9B target=_blank rel="noopener noreffer">解决 Asp.Net5 在视频文件下载预览时无法快进的问题 | 不挂高数</a></p></li></ul><h2 id=上傳檔案>上傳檔案</h2><p><strong>推薦看下官方文件，裡面有滿多東西</strong><br><strong>推薦看下官方文件，裡面有滿多東西</strong><br><strong>推薦看下官方文件，裡面有滿多東西</strong><br><a href="https://docs.microsoft.com/zh-tw/aspnet/core/mvc/models/file-uploads?view=aspnetcore-6.0" target=_blank rel="noopener noreffer">在 ASP.NET Core 中上傳檔案 | Microsoft Docs</a></p><p>這邊先紀錄單純上傳方法，可能沒官方有做一些嚴謹判斷，有空再來開一篇記錄。(有空的話😜)</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>        <span class=c1>// 自行注入</span>
+</span></span><span class=line><span class=cl>        <span class=k>private</span> <span class=k>readonly</span> <span class=n>IConfiguration</span> <span class=n>_configuration</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=k>private</span> <span class=k>readonly</span> <span class=n>IWebHostEnvironment</span> <span class=n>_env</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=na>
+</span></span></span><span class=line><span class=cl><span class=na>
+</span></span></span><span class=line><span class=cl><span class=na>        [HttpPost]</span>
+</span></span><span class=line><span class=cl><span class=na>        [Route(&#34;[controller]</span><span class=s>&#34;)]
+</span></span></span><span class=line><span class=cl><span class=s></span>        <span class=k>public</span> <span class=n>IActionResult</span> <span class=n>Post</span><span class=p>([</span><span class=n>FromForm</span><span class=p>]</span><span class=n>Request</span> <span class=n>request</span><span class=p>){</span>
+</span></span><span class=line><span class=cl>            <span class=p>...</span>
+</span></span><span class=line><span class=cl>            <span class=n>UploadFile</span><span class=p>(...,</span><span class=n>request</span><span class=p>.</span><span class=n>UploadFile</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>...</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>private</span> <span class=k>void</span> <span class=n>UploadFile</span><span class=p>(</span><span class=kt>string</span> <span class=n>paramPathName</span><span class=p>,</span> <span class=n>IFormFile</span> <span class=n>uploadFile</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>filepath</span> <span class=p>=</span> <span class=n>ProcessUploadedFile</span><span class=p>(</span><span class=n>paramPathName</span><span class=p>,</span> <span class=s>&#34;paramFileTypePath&#34;</span><span class=p>,</span> <span class=n>uploadFile</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=p>...</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>private</span> <span class=kt>string</span> <span class=n>ProcessUploadedFile</span><span class=p>(</span><span class=kt>string</span> <span class=n>paramPathName</span><span class=p>,</span> <span class=kt>string</span> <span class=n>directory</span><span class=p>,</span><span class=n>IFormFile</span> <span class=n>formFile</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>uniqueFileName</span> <span class=p>=</span> <span class=k>null</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=kt>string</span><span class=p>.</span><span class=n>IsNullOrWhiteSpace</span><span class=p>(</span><span class=n>_env</span><span class=p>.</span><span class=n>WebRootPath</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>_env</span><span class=p>.</span><span class=n>WebRootPath</span> <span class=p>=</span> <span class=n>System</span><span class=p>.</span><span class=n>IO</span><span class=p>.</span><span class=n>Path</span><span class=p>.</span><span class=n>Combine</span><span class=p>(</span><span class=n>Directory</span><span class=p>.</span><span class=n>GetCurrentDirectory</span><span class=p>(),</span> <span class=s>&#34;wwwroot&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>datePath</span> <span class=p>=</span> <span class=n>DateTime</span><span class=p>.</span><span class=n>Now</span><span class=p>.</span><span class=n>ToString</span><span class=p>(</span><span class=s>&#34;yyyyMMdd&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>rootPath</span> <span class=p>=</span> <span class=n>_configuration</span><span class=p>[</span><span class=s>&#34;UploadFilePath&#34;</span><span class=p>]</span> <span class=p>??</span> <span class=n>_env</span><span class=p>.</span><span class=n>WebRootPath</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>uploadsFolder</span> <span class=p>=</span> <span class=n>Path</span><span class=p>.</span><span class=n>Combine</span><span class=p>(</span><span class=n>rootPath</span><span class=p>,</span> <span class=s>&#34;upload&#34;</span><span class=p>,</span> <span class=n>paramPathName</span><span class=p>,</span> <span class=n>directory</span><span class=p>,</span> <span class=n>datePath</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=n>formFile</span> <span class=p>!=</span> <span class=k>null</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=n>Directory</span><span class=p>.</span><span class=n>CreateDirectory</span><span class=p>(</span><span class=n>uploadsFolder</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=n>uniqueFileName</span> <span class=p>=</span> <span class=n>Guid</span><span class=p>.</span><span class=n>NewGuid</span><span class=p>().</span><span class=n>ToString</span><span class=p>()</span> <span class=p>+</span> <span class=s>&#34;_&#34;</span> <span class=p>+</span> <span class=n>formFile</span><span class=p>.</span><span class=n>FileName</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=kt>string</span> <span class=n>filePath</span> <span class=p>=</span> <span class=n>Path</span><span class=p>.</span><span class=n>Combine</span><span class=p>(</span><span class=n>uploadsFolder</span><span class=p>,</span> <span class=n>uniqueFileName</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>using</span> <span class=nn>var</span> <span class=n>fileStream</span> <span class=p>=</span> <span class=k>new</span> <span class=n>FileStream</span><span class=p>(</span><span class=n>filePath</span><span class=p>,</span> <span class=n>FileMode</span><span class=p>.</span><span class=n>Create</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=n>formFile</span><span class=p>.</span><span class=n>CopyTo</span><span class=p>(</span><span class=n>fileStream</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>Path</span><span class=p>.</span><span class=n>Combine</span><span class=p>(</span><span class=n>uploadsFolder</span><span class=p>,</span> <span class=n>uniqueFileName</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=上傳限制調整>上傳限制調整</h3><p>主要參考這兩個網站整理資訊。</p><ul><li><a href=https://www.jianshu.com/p/738094dafd52 target=_blank rel="noopener noreffer">ASPNetCore上传大文件碰到的一些问题总结 - 簡書</a></li><li><a href=https://www.cnblogs.com/skytitan/p/11325137.html target=_blank rel="noopener noreffer">如何在ASP.NET Core中上传超大文件 - 心如止水，波澜不惊 - 博客园</a></li></ul><h3 id=設定-iis-上傳限制>設定 IIS 上傳限制</h3><p>IIS 的 web.config 設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl> <span class=c>&lt;!--//上传文件大小限制IIS设置 256M --&gt;</span>
+</span></span><span class=line><span class=cl>  <span class=nt>&lt;system.webServer&gt;</span>
+</span></span><span class=line><span class=cl>  <span class=nt>&lt;security&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&lt;requestFiltering&gt;</span>
+</span></span><span class=line><span class=cl>      <span class=nt>&lt;requestLimits</span> <span class=na>maxAllowedContentLength=</span><span class=s>&#34;268435456&#34;</span> <span class=nt>/&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&lt;/requestFiltering&gt;</span>
+</span></span><span class=line><span class=cl>  <span class=nt>&lt;/security&gt;</span>
+</span></span><span class=line><span class=cl><span class=nt>&lt;/system.webServer&gt;</span>
+</span></span></code></pre></td></tr></table></div></div><p>這段程式碼的關鍵：requestLimits maxAllowedContentLength=&ldquo;209715200&rdquo; 。這句話的意思就是把允許上傳的最大檔案設定為256M。這個值，你們可以根據自己項目的需要實際設定。這裡，我們先暫時設定成256M。</p><p>這邊要我們用算的可能很不方便，我這邊有找到這個網站可以算出。</p><ul><li><a href=http://tw.bestconverter.org/unitconverter_number.php target=_blank rel="noopener noreffer">數字換算,單位換算,單位轉換</a></li></ul><p>奇怪怎麼沒有找到前端版本</p><ol start=2><li>這邊 Kestrel 也要設定上限(MaxRequestBodySize)<br>預設的要求本文大小上限為 30,000,000 個位元組，大約是 28.6 MB。</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>     <span class=c1>//上傳文件大小限制Kestrel設置</span>
+</span></span><span class=line><span class=cl>                <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>KestrelServerOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=c1>// Set the limit to 256 MB</span>
+</span></span><span class=line><span class=cl>                    <span class=n>options</span><span class=p>.</span><span class=n>Limits</span><span class=p>.</span><span class=n>MaxRequestBodySize</span> <span class=p>=</span> <span class=m>268435456</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=p>});</span>
+</span></span><span class=line><span class=cl>    <span class=c1>//上傳文件大小限制IIS設置(下面這段可以不用複製)</span>
+</span></span><span class=line><span class=cl>                <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>IISServerOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>                <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=n>options</span><span class=p>.</span><span class=n>MaxRequestBodySize</span> <span class=p>=</span> <span class=kt>long</span><span class=p>.</span><span class=n>Parse</span><span class=p>(</span><span class=n>Configuration</span><span class=p>.</span><span class=n>GetSection</span><span class=p>(</span><span class=s>&#34;Kestrel&#34;</span><span class=p>).</span><span class=n>Value</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><p>但是沒設定的話，會出現<code>Request body too large 錯誤</code>。</p><p><code>IISServerOptions</code>我看這段很奇怪，使用上去沒有成功。後來看到:</p><blockquote><p>獲取或設置 HttpRequest 的最大請求正文大小。請注意，IIS 本身俱有限制 maxAllowedContentLength，它將在 IISServerOptions 中設置的 MaxRequestBodySize 之前處理。更改 MaxRequestBodySize 不會影響 maxAllowedContentLength。要增加 maxAllowedContentLength，請在 web.config 中添加一個條目以將 maxAllowedContentLength 設置為更高的值。有關詳細信息，請參閱配置。</p></blockquote><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/5mT6OXi.png data-srcset="https://i.imgur.com/5mT6OXi.png, https://i.imgur.com/5mT6OXi.png 1.5x, https://i.imgur.com/5mT6OXi.png 2x" data-sizes=auto alt=https://i.imgur.com/5mT6OXi.png title=https://i.imgur.com/5mT6OXi.png></p><p>參考: <a href=https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/host-and-deploy/iis/in-process-hosting.md#application-configuration-1 target=_blank rel="noopener noreffer">AspNetCore.Docs/in-process-hosting.md at main · dotnet/AspNetCore.Docs</a></p><h3 id=request-body-too-large-錯誤>Request body too large 錯誤</h3><p>Post的body大概超過30m就會報這個錯誤，完整的錯誤是<code>Microsoft.AspNetCore.Server.Kestrel.Core.BadHttpRequestException: Request body too large</code><br>解決的方法有二種，一種是在請求的函數前加Attribute</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>[HttpPost(&#34;upload&#34;)]</span>
+</span></span><span class=line><span class=cl><span class=na>[RequestSizeLimit(100_000_000)]</span> <span class=c1>//最大100m左右</span>
+</span></span><span class=line><span class=cl><span class=c1>//[DisableRequestSizeLimit]  //或者取消大小的限制</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=k>async</span> <span class=n>Task</span><span class=p>&lt;</span><span class=kt>string</span><span class=p>&gt;</span> <span class=n>UploadFiles</span><span class=p>(</span><span class=n>ModelTest</span> <span class=n>test</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span></code></pre></td></tr></table></div></div><p>還有一種方法是全域增加請求body的大小或者不限body的大小。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=k>public</span> <span class=k>static</span> <span class=n>IWebHost</span> <span class=n>BuildWebHost</span><span class=p>(</span><span class=kt>string</span><span class=p>[]</span> <span class=n>args</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=kt>var</span> <span class=n>config</span> <span class=p>=</span> <span class=k>new</span> <span class=n>ConfigurationBuilder</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>    <span class=p>.</span><span class=n>AddCommandLine</span><span class=p>(</span><span class=n>args</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>.</span><span class=n>Build</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>WebHost</span><span class=p>.</span><span class=n>CreateDefaultBuilder</span><span class=p>(</span><span class=n>args</span><span class=p>).</span><span class=n>UseConfiguration</span><span class=p>(</span><span class=n>config</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>.</span><span class=n>UseStartup</span><span class=p>&lt;</span><span class=n>Startup</span><span class=p>&gt;().</span><span class=n>UseKestrel</span><span class=p>(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>          <span class=c1>//所有controller都不限制post的body大小</span>
+</span></span><span class=line><span class=cl>            <span class=n>options</span><span class=p>.</span><span class=n>Limits</span><span class=p>.</span><span class=n>MaxRequestBodySize</span> <span class=p>=</span> <span class=k>null</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>})</span>
+</span></span><span class=line><span class=cl>        <span class=p>.</span><span class=n>Build</span><span class=p>();</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=multipart-body-length-limit-134217728-exceeded錯誤>Multipart body length limit 134217728 exceeded錯誤</h3><p>Post的body大概超過100多M會碰到這個錯誤，完整的錯誤資訊是 <code>System.IO.InvalidDataException: Multipart body length limit 134217728 exceeded.</code> 。</p><h4 id=整體設定方法>整體設定方法</h4><p>解決的方法是在 startup.cs 新增程式碼：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=k>public</span> <span class=k>void</span> <span class=n>ConfigureServices</span><span class=p>(</span><span class=n>IServiceCollection</span> <span class=n>services</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>services</span><span class=p>.</span><span class=n>AddMvc</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>    <span class=c1>//解決Multipart body length limit 134217728 exceeded</span>
+</span></span><span class=line><span class=cl>    <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>FormOptions</span><span class=p>&gt;(</span><span class=n>x</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>x</span><span class=p>.</span><span class=n>ValueLengthLimit</span> <span class=p>=</span> <span class=kt>int</span><span class=p>.</span><span class=n>MaxValue</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>x</span><span class=p>.</span><span class=n>MultipartBodyLengthLimit</span> <span class=p>=</span> <span class=kt>int</span><span class=p>.</span><span class=n>MaxValue</span><span class=p>;</span> <span class=c1>// In case of multipart</span>
+</span></span><span class=line><span class=cl>    <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><p>RequestFormLimitsAttribute 用來設定 MultipartBodyLengthLimit 單一頁面或動作的 。</p><h4 id=單一頁面設定放法>單一頁面設定放法</h4><p>這段程式碼的關鍵：requestLimits maxAllowedContentLength=&ldquo;209715200&rdquo; 。這句話的意思就是把允許上傳的最大檔案設定為200M。這個值，你們可以根據自己項目的需要實際設定。這裡，我們先暫時設定成200M。這時，我們再跑一下項目，會發現404錯誤已經不見了，取而代之的是另一種錯誤：</p><p>這段錯誤程式碼的意思是表單上傳的檔案長度超過了134217727KB，要解決這個問題，我們只有在Home控製器裡的Upload方法前加入如下屬性聲明：[RequestFormLimits(MultipartBodyLengthLimit = 209715200)]</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>[HttpPost]</span>
+</span></span><span class=line><span class=cl><span class=na>[RequestFormLimits(MultipartBodyLengthLimit = 209715200)]</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=n>IActionResult</span> <span class=n>Upload</span><span class=p>(</span><span class=n>IFormFile</span> <span class=n>file</span><span class=p>,</span>
+</span></span><span class=line><span class=cl><span class=na>[FromServices]</span> <span class=n>IHostingEnvironment</span> <span class=n>env</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=p>...</span>
+</span></span><span class=line><span class=cl>  <span class=p>...</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl> 
+</span></span></code></pre></td></tr></table></div></div><p>基本上使用 IIS 和 Kestrel 都需要設定的。</p><h3 id=nginx-限制上傳大小的錯誤>Nginx 限制上傳大小的錯誤</h3><p>通過Nginx連接埠對應，請求會先經過Nginx，也需要額外再設定一個參數client_max_body_size，否則上傳大檔案也會有問題</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>location ^~ /sample2/ {
+</span></span><span class=line><span class=cl>    rewrite  ^/sample2/(.*)$ /$1 break;          
+</span></span><span class=line><span class=cl>    proxy_pass http://localhost:5556;
+</span></span><span class=line><span class=cl>    client_max_body_size    300m; #最大接受300m檔案以內的
+</span></span><span class=line><span class=cl>}
+</span></span></code></pre></td></tr></table></div></div><h3 id=kestrel-中的解決方案>Kestrel 中的解決方案</h3><p>如果你的程序時運行在 Kestrel 上，你可以在應用程式等級（整個系統）,或者是 Action 等級控制上傳檔案的大小。</p><p>你如果要在 Action 等級控制上傳檔案的大小，你需要設定兩個屬性[RequestSizeLimit] 和 [RequestFormLimits].</p><p>[RequestSizeLimit]屬性設定請求的最大長度（以位元組為單位），而[RequestFormLimits]設定多部分正文長度的最大長度。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>[HttpPost]</span>
+</span></span><span class=line><span class=cl><span class=na>[RequestFormLimits(MultipartBodyLengthLimit = 209715200)]</span>
+</span></span><span class=line><span class=cl><span class=na>[RequestSizeLimit(209715200)]</span>
+</span></span><span class=line><span class=cl><span class=k>public</span> <span class=n>IActionResult</span> <span class=n>Upload</span><span class=p>(</span><span class=n>IFormFile</span> <span class=n>file</span><span class=p>,</span>
+</span></span><span class=line><span class=cl><span class=na>[FromServices]</span> <span class=n>IHostingEnvironment</span> <span class=n>env</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=p>...</span>
+</span></span><span class=line><span class=cl>  <span class=p>...</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>想要全域設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=k>public</span> <span class=k>static</span> <span class=n>IWebHostBuilder</span> <span class=n>CreateWebHostBuilder</span>
+</span></span><span class=line><span class=cl><span class=p>(</span><span class=kt>string</span><span class=p>[]</span> <span class=n>args</span><span class=p>)</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=n>WebHost</span><span class=p>.</span><span class=n>CreateDefaultBuilder</span><span class=p>(</span><span class=n>args</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>.</span><span class=n>UseStartup</span><span class=p>&lt;</span><span class=n>Startup</span><span class=p>&gt;()</span>
+</span></span><span class=line><span class=cl>        <span class=p>.</span><span class=n>UseKestrel</span><span class=p>(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>        <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=n>options</span><span class=p>.</span><span class=n>Limits</span><span class=p>.</span><span class=n>MaxRequestBodySize</span> <span class=p>=</span> <span class=m>209715200</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><p>也需要設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=k>public</span> <span class=k>void</span> <span class=n>ConfigureServices</span><span class=p>(</span><span class=n>IServiceCollection</span> <span class=n>services</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>services</span><span class=p>.</span><span class=n>AddMvc</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>    <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>FormOptions</span><span class=p>&gt;(</span><span class=n>x</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>x</span><span class=p>.</span><span class=n>MultipartBodyLengthLimit</span> <span class=p>=</span> <span class=m>209715200</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=p>});</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=設定總結>設定總結</h3><p>光一個上傳檔案有這麼多選項，這邊做個整理，剛開始看也不知道差在哪邊。</p><p>用 IIS 通常會要設定 XML requestLimits maxAllowedContentLength，相關 <code>MultipartBodyLengthLimit</code>也要在程式設定。</p><p>用 Kestrel 一樣也要設定這些東西(<code>MaxRequestBodySize</code>、<code>MaxRequestBodySize</code>)，兩個都家都不會有影響。</p><h3 id=其他相關文件整理前參考>其他相關文件(整理前參考)</h3><ul><li><p><a href=https://dashenxian.github.io/post/Asp.net-core%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6 target=_blank rel="noopener noreffer">Asp.net core上传文件大小限制 - dashenxian</a></p></li><li><p><a href=https://codeantenna.com/a/Imjh4g2fMp target=_blank rel="noopener noreffer">.net core 上传文件大小限制 - CodeAntenna</a></p></li></ul><p><a href=https://docs.microsoft.com/en-us/answers/questions/726990/serving-video-file-stream-from-asp-net-core-6-mini.html target=_blank rel="noopener noreffer">Serving video file / stream from ASP Net Core 6 Minimal API - Microsoft Q&A</a></p><ul><li><a href=https://ithelp.ithome.com.tw/articles/10198206 target=_blank rel="noopener noreffer">[C#][ASP.NET] Web API 開發心得 (5) - 使用 Filter 統一 API 的回傳格式和例外處理 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></li></ul><p><a href=https://www.cnblogs.com/wskxy/p/14867122.html target=_blank rel="noopener noreffer">net core api上传下载大文件 413、400错误 IIS服务器 - wskxy - 博客园</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl><span class=na>        [RequestFormLimits(MultipartBodyLengthLimit = 209715200)]</span>
+</span></span><span class=line><span class=cl><span class=na>        [HttpPost(&#34;Up/{id}&#34;)]</span>
+</span></span></code></pre></td></tr></table></div></div><p>或</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>IISServerOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>MaxRequestBodySize</span> <span class=p>=</span> <span class=m>209715200</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>});</span>
+</span></span></code></pre></td></tr></table></div></div><p>參考:<a href=https://www.cnblogs.com/WNpursue/p/10905703.html target=_blank rel="noopener noreffer">.net Core 解决Form value count limit 1024 exceeded. （文件上传过大） - Pursue - 博客园</a></p><p>怎流一個上傳檔案容量限制就有這麼多種設定方法。</p><ul><li><a href=https://hackmd.io/@CloudyWing/BylLCdYMo target=_blank rel="noopener noreffer">在 ASP.NET Core MVC 使用 HTML5 實現多檔案上傳 - HackMD</a></li></ul><h2 id=彩蛋>彩蛋</h2><p><a href=https://www.ipshop.xyz/1155.html target=_blank rel="noopener noreffer">ASP.NET Core 一行程式碼搞定檔案上傳-知識星球</a></p><h3 id=環境變數>環境變數</h3><ul><li><a href=https://juejin.cn/post/7126360295567523877 target=_blank rel="noopener noreffer">在 ASP.NET Core 中上传文件 - 掘金</a></li><li><a href=https://blog.darkthread.net/blog/about-appdata-local-temp/ target=_blank rel="noopener noreffer">Windows AppData\Local\Temp 暫存檔二三事-黑暗執行緒</a></li></ul><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-02-20</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/ data-title=".Net Core Controller 下載檔案/上傳檔案" data-hashtags=.netcore,upload,download><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/ data-hashtag=.netcore><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/ data-title=".Net Core Controller 下載檔案/上傳檔案"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/ data-title=".Net Core Controller 下載檔案/上傳檔案"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Net-Core-Controller-%E4%B8%8B%E8%BC%89%E6%AA%94%E6%A1%88-%E4%B8%8A%E5%82%B3%E6%AA%94%E6%A1%88/ data-title=".Net Core Controller 下載檔案/上傳檔案" data-image=https://user-images.githubusercontent.com/6058558/220094838-bbf7d93c-f01b-4535-a589-4984fef9e58a.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/.netcore/>.netcore</a>,&nbsp;<a href=/blog/tags/upload/>upload</a>,&nbsp;<a href=/blog/tags/download/>download</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/SameSite-Cookie-%E5%92%8C-Same-Origin-Policy-%E6%98%AF%E4%BB%80%E9%BA%BC/ class=prev rel=prev title="SameSite Cookie 和 Same Origin Policy 是什麼"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>SameSite Cookie 和 Same Origin Policy 是什麼</a>
+<a href=/blog/posts/%E6%AA%94%E6%A1%88%E4%B8%8B%E8%BC%89%E4%B8%80%E7%9B%B4%E6%8A%93%E5%88%B0%E8%88%8A%E6%AA%94%E6%A1%88%E7%9A%84%E5%95%8F%E9%A1%8C/ class=next rel=next title=檔案下載一直抓到舊檔案的問題>檔案下載一直抓到舊檔案的問題<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.110.0">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
