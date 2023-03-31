@@ -1,0 +1,380 @@
+<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>2023年樹梅派重裝 Flexget - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="2023年樹梅派重裝 Flexget"><meta property="og:description" content="最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。
+我要有幾個需求
+BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。
+切割磁區和掛載磁區 1 sudo fdisk -l 1 sudo mkfs -t ext4 /dev/sda1 掛載磁區
+1 2 3 4 5 6 7 8 9 sudo mkdir -p /media/extHDD sudo mount /dev/sda1 /media/extHDD sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-03-31T23:54:43+08:00"><meta property="article:modified_time" content="2023-03-31T23:54:43+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="2023年樹梅派重裝 Flexget"><meta name=twitter:description content="最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。
+我要有幾個需求
+BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。
+切割磁區和掛載磁區 1 sudo fdisk -l 1 sudo mkfs -t ext4 /dev/sda1 掛載磁區
+1 2 3 4 5 6 7 8 9 sudo mkdir -p /media/extHDD sudo mount /dev/sda1 /media/extHDD sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/><link rel=prev href=https://malagege.github.io/blog/posts/Net-%E7%A8%8B%E5%BC%8F%E8%B3%87%E6%96%99%E5%BA%AB%E6%86%91%E8%AD%89%E9%8C%AF%E8%AA%A4-A-connection-was-successfully-established-with-the-server-but-then-an-error-occurred-during-the-login-process/><link rel=next href=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"2023年樹梅派重裝 Flexget","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget\/"},"genre":"posts","keywords":"linux, flexget, pi","wordcount":809,"url":"https:\/\/malagege.github.io\/blog\/posts\/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget\/","datePublished":"2023-03-31T23:54:43+08:00","dateModified":"2023-03-31T23:54:43+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
+<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
+<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">2023年樹梅派重裝 Flexget</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-03-31>2023-03-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;809 words&nbsp;
+<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;4 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png data-srcset="https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png, https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png 1.5x, https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png title=https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#切割磁區和掛載磁區>切割磁區和掛載磁區</a></li><li><a href=#安裝-tranmission>安裝 tranmission</a></li><li><a href=#安裝-flexget>安裝 flexget</a></li><li><a href=#安裝-docker>安裝 docker</a></li><li><a href=#caddy-server>caddy-server</a></li><li><a href=#反向代理設定調整>反向代理設定調整</a></li></ul></nav></div></div><div class=content id=content><p>最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。<br>我要有幾個需求</p><ol><li>BT下載機</li><li>外接 USB 硬碟</li><li>自動抓番劇</li><li>線上 Web 存取檔案</li></ol><p>這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。</p><h2 id=切割磁區和掛載磁區>切割磁區和掛載磁區</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>sudo fdisk -l
+</span></span></code></pre></td></tr></table></div></div><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png data-srcset="https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png, https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png 1.5x, https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png title=圖片></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo mkfs -t ext4 /dev/sda1
+</span></span></code></pre></td></tr></table></div></div><p>掛載磁區</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo mkdir -p /media/extHDD
+</span></span><span class=line><span class=cl>sudo mount  /dev/sda1 /media/extHDD
+</span></span><span class=line><span class=cl> sudo blkid
+</span></span><span class=line><span class=cl><span class=c1>#/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34;</span>
+</span></span><span class=line><span class=cl>在/etc/fstab加下面設定
+</span></span><span class=line><span class=cl><span class=nv>UUID</span><span class=o>=</span><span class=s2>&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34;</span> /media/extHDD ext4 rw,defaults,nofail <span class=m>0</span> <span class=m>0</span> 
+</span></span><span class=line><span class=cl><span class=c1># 確認/etc/fstab 設定無錯誤</span>
+</span></span><span class=line><span class=cl>mount -a
+</span></span><span class=line><span class=cl><span class=c1>#可用 df -mh 確認裝置是否有掛載</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=安裝-tranmission>安裝 tranmission</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo apt update
+</span></span><span class=line><span class=cl>sudo apt-get install transmission-daemon
+</span></span></code></pre></td></tr></table></div></div><p><a href=https://linuxconfig.org/how-to-set-up-transmission-daemon-on-a-raspberry-pi-and-control-it-via-web-interface target=_blank rel="noopener noreffer">How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration</a></p><h2 id=安裝-flexget>安裝 flexget</h2><p>已經寫很多次<a href=https://malagege.github.io/blog/posts/%E5%9C%A8%E6%A8%B9%E6%A2%85%E6%B4%BE%E5%AE%89%E8%A3%9D-flexget/ target=_blank rel="noopener noreffer">在樹梅派安裝 flexget - 程式狂想筆記</a>，但沒想到官方有出現教學，這次就照官方操作。</p><blockquote><p>There may be better options for some of the steps, but this works (2022) well.</p></blockquote><p>這個真的很好笑，可能後面幾年就不能跑了。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Python3</span>
+</span></span><span class=line><span class=cl>sudo apt install python3-full libpython3-dev
+</span></span><span class=line><span class=cl><span class=c1># 我是無法抓 官方寫 Install distutils (necessary?)</span>
+</span></span><span class=line><span class=cl><span class=c1># sudo apt install distutils</span>
+</span></span></code></pre></td></tr></table></div></div><p>下載 pip</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>cd</span> /tmp
+</span></span><span class=line><span class=cl>wget https://bootstrap.pypa.io/get-pip.py
+</span></span><span class=line><span class=cl>sudo python3 get-pip.py
+</span></span></code></pre></td></tr></table></div></div><p>設定 pipx</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>python3 -m pip install --user pipx
+</span></span><span class=line><span class=cl>~/.local/bin/pipx ensurepath
+</span></span><span class=line><span class=cl><span class=nb>source</span> ~/.bashrc
+</span></span></code></pre></td></tr></table></div></div><p>下載flexget</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>~/.local/bin/pipx install flexget
+</span></span></code></pre></td></tr></table></div></div><p>這邊注意下載<code>transmission-rpc</code>關聯要這樣做。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl> pipx inject flexget  <span class=s2>&#34;transmission-rpc&gt;=3.0.0,&lt;4.0.0&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>設定開機啟動<br><a href=https://flexget.com/InstallWizard/Linux/Scheduling target=_blank rel="noopener noreffer">Scheduling | FlexGet</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>@reboot /usr/local/bin/flexget daemon start -d
+</span></span></code></pre></td></tr></table></div></div><p>這邊要改成你的 flexget 路徑，不知道可以用 <code>which flexget</code>。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>/home/pi/.local/bin/flexget
+</span></span></code></pre></td></tr></table></div></div><p>設定密碼</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>flexget web passwd &lt;some_password&gt;
+</span></span></code></pre></td></tr></table></div></div><p><a href=http://pi1.local:5050 target=_blank rel="noopener noreffer">http://pi1.local:5050</a> 進去就可以登入進去。</p><p>這邊再把以下設定貼到 Config裡面。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>web_server</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>templates</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>default</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>host</span><span class=p>:</span><span class=w> </span><span class=m>127.0.0.1</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>9091</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>username</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>password</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>add_paused</span><span class=p>:</span><span class=w> </span><span class=kc>no</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/Download/TV/{{task}}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>free_space</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>space</span><span class=p>:</span><span class=w> </span><span class=m>2000</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>from_transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>host</span><span class=p>:</span><span class=w> </span><span class=m>127.0.0.1</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>9091</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>username</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>password</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>only_complete</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>if</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>&#34;&#39;季度全集&#39; in category&#34;: </span><span class=l>reject</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>tasks</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s2>&#34;TV-Re: 從零開始的異世界生活 第二季&#34;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>rss</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://share.dmhy.org/topics/rss/sort_id/2/rss.xml?keyword=%E7%95%B0%E4%B8%96%E7%95%8C%E7%94%9F%E6%B4%BB+team_id%3A604+BIG5+1080+25</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>other_fields</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>category]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>accept_all</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>template</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/Download/TV/202007/{{task[3:]}}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s2>&#34;TV-英雄王 為了窮盡武道而轉生 而後成為世界最強見習騎士&#34;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>rss</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://share.acgnx.se/rss-sort-1.xml?keyword=%E8%8B%B1%E9%9B%84%E7%8E%8B+%E6%84%9B%E6%88%80</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>other_fields</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>category]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>accept_all</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>template</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/Download/TV/202211/{{task[3:]}}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>schedules</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>tasks</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;TV-*&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schedule</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>day_of_week</span><span class=p>:</span><span class=w> </span><span class=l>mon,tue,wed,thu,fri,sat,sun</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>hour</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;4,6,8,11,13,15,17,20&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>jitter</span><span class=p>:</span><span class=w> </span><span class=m>60</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>還學會 crontab 系統開機啟動 flexget 方法。</p><div class="details admonition info open"><div class="details-summary admonition-title"><i class="icon fas fa-info-circle fa-fw" aria-hidden=true></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden=true></i></div><div class=details-content><div class=admonition-content><a href=https://hub.docker.com/r/malagege/flexget target=_blank rel="noopener noreffer">malagege/flexget - Docker Image | Docker Hub</a> 自己參照官方 Dockerfile 產生的，但後來就沒使用，有興趣的人可以用用看。</div></div></div><div class="details admonition info open"><div class="details-summary admonition-title"><i class="icon fas fa-info-circle fa-fw" aria-hidden=true></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden=true></i></div><div class=details-content><div class=admonition-content><code>pipx</code> 第一次安裝，不需要 root 權限就能使用。但做依賴安裝需要搭配 <code>pipx inject</code> 指令去做調整，真的是滿有趣東西。</div></div></div><div class="details admonition warning open"><div class="details-summary admonition-title"><i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden=true></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden=true></i></div><div class=details-content><div class=admonition-content><blockquote><p>我想，您或許會很好奇，咦！那麼通常一般的主機會有多少個 port 呢？！正常來說，所有的 port 是由 1 ~ 65535 這麼多個啦！好啦，那麼在這些 port 上面有沒有保留給系統使用的呢！？是有的！一般而言，只有 root 才可以啟用 1 ~ 1023 以內的 port ，這些 port 就是特殊的埠口，是保留給系統來使用的！至於大於 1024 以上的 port 除了給系統隨機取用來作為連線的需求之外，也可以用來作為服務的 LISTEN 之用。舉例來說，如果您覺得 0~1023 的 port 需要以 root 的身份來啟動，這樣如果該 port 的程序被入侵了，那麼入侵者將擁有 root 的權限，這實在很危險～所以，這個時候您可以以一般身份帳號並使用大於 1024 以上的 port 來啟用某些服務呢！例如 FTP 的 port 預設為 21 ，您也可以將 FTP 以 10021 的 port number 來啟動，並且使用一般身份的帳號來啟用這個 FTP 的服務，會比較安全一點。不過，這樣一來會造成 client 端的困擾，因為一般 FTP Client 軟體都是預設以連接到主機的 port 21 來進行連線的，現在您的主機 FTP 改成 10021 了，除非您的 Client 知道這個設定值，否則 Client 軟體就無法連線成功了。<br>可以參考: <a href=https://linux.vbird.org/linux_server/centos6/0210network-secure/0210port_limit/0210port_limit.php target=_blank rel="noopener noreffer">鳥哥的 Linux 私房菜 &ndash; 限制 Linux 對外的埠口 port limit</a></p></blockquote><p>我這邊在想奇怪一般使用者怎麼能開 port，原來超過1024就不需要 root 權限，這邊不知道 Windows 也是不是這樣?</p></div></div></div><h2 id=安裝-docker>安裝 docker</h2><div class="details admonition warning open"><div class="details-summary admonition-title"><i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden=true></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden=true></i></div><div class=details-content><div class=admonition-content>warning<br>這邊我是為了用 Caddy Server，所以才安裝 Docker，如果你沒有要使用的話可以不用安裝。</div></div></div><p><del><a href=https://docs.docker.com/engine/install/debian/ target=_blank rel="noopener noreffer">Install Docker Engine on Debian</a></del></p><p><del>一代機裝完遇到問題，顯示錯誤<code>docker.service: Failed with result 'core-dump'.</code>。</del></p><p><del><a href=https://raspberrypi.stackexchange.com/questions/93559/docker-core-dump-error-when-starting-service target=_blank rel="noopener noreffer">arm - Docker &lsquo;core-dump&rsquo; error when starting service - Raspberry Pi Stack Exchange</a></del></p><p><del>還遇到載不到deb套件。這邊更改DNS就能抓到package，這邊真的很奇怪。</del></p><p>這邊使用官方用好的 shell ，輸入後正常安裝，參考如下。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>vi /etc/resolv.conf
+</span></span><span class=line><span class=cl># 第一個設定改成 8.8.8.8 ，後續再改回來
+</span></span><span class=line><span class=cl># Generated by resolvconf
+</span></span><span class=line><span class=cl>nameserver 8.8.8.8 # 192.168.1.203 &lt;--這是我的舊的設定
+</span></span><span class=line><span class=cl>nameserver 192.168.1.1
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>curl https://get.docker.com | sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>sudo usermod -G docker -a _username_
+</span></span></code></pre></td></tr></table></div></div><h2 id=caddy-server>caddy-server</h2><p>方便用 web 瀏覽影片。不用 apache 是會有亂碼問題，而且用這個也比較方便。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>mkdir CaddyServer
+</span></span><span class=line><span class=cl><span class=nb>cd</span> CaddyServer
+</span></span></code></pre></td></tr></table></div></div><p>Caddyfile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>http://:80
+</span></span><span class=line><span class=cl>root * /srv/
+</span></span><span class=line><span class=cl>file_server browse
+</span></span><span class=line><span class=cl>basicauth  {
+</span></span><span class=line><span class=cl>    user _hashpassword_
+</span></span><span class=line><span class=cl>}
+</span></span></code></pre></td></tr></table></div></div><p><code>hashpassword</code> 可以用 <code>caddy hash-password --plaintext &lt;password></code> 產生。</p><p>docker-compose.yml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;3&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>services</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>caddy</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>arm32v6/caddy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>unless-stopped</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s2>&#34;80:80&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=l>/media/extHDD/:/srv</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=l>$PWD/Caddyfile:/etc/caddy/Caddyfile</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>docker compose up -d
+</span></span></code></pre></td></tr></table></div></div><p>搞定。</p><h2 id=反向代理設定調整>反向代理設定調整</h2><p>最後把 Caddyfile 做反向代理，這邊研究很久特別紀錄一下。方便用 80 port也能連 flexget。</p><div class="details admonition danger open"><div class="details-summary admonition-title"><i class="icon fas fa-skull-crossbones fa-fw" aria-hidden=true></i>Danger<i class="details-icon fas fa-angle-right fa-fw" aria-hidden=true></i></div><div class=details-content><div class=admonition-content>這邊為什麼我設定 80 port，正常對外網路應該要用 443 port。主要這個服務要用在我和我朋友家，我朋友因為從事網路工作，說正常 https 是防止周邊設備網路竊取，我這邊有提 ISP 外面路由可能會竊取封包問題，他說正常他們不太可能會做這些事情，因為進去設備他們都要送什麼簽核單之類的，正常不會有人做擷取動作，這邊就不使用 https。(反正也沒有很重要資料)</div></div></div><p>flexget 設定 base_url。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>web_server</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>base_url</span><span class=p>:</span><span class=w> </span><span class=l>flexget</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>templates</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>default</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>host</span><span class=p>:</span><span class=w> </span><span class=m>127.0.0.1</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>9091</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>username</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>password</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>add_paused</span><span class=p>:</span><span class=w> </span><span class=kc>no</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/Download/TV/{{task}}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>free_space</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>space</span><span class=p>:</span><span class=w> </span><span class=m>2000</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>from_transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>host</span><span class=p>:</span><span class=w> </span><span class=m>127.0.0.1</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>9091</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>username</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>password</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>only_complete</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>if</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>&#34;&#39;季度全集&#39; in category&#34;: </span><span class=l>reject</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>tasks</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s2>&#34;TV-Re: 從零開始的異世界生活 第二季&#34;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>rss</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://share.dmhy.org/topics/rss/sort_id/2/rss.xml?keyword=%E7%95%B0%E4%B8%96%E7%95%8C%E7%94%9F%E6%B4%BB+team_id%3A604+BIG5+1080+25</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>other_fields</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>category]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>accept_all</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>template</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/Download/TV/202007/{{task[3:]}}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s2>&#34;TV-英雄王，為了窮盡武道而轉生～而後成為世界最強見習騎士♀～&#34;</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>rss</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>https://share.acgnx.se/rss-sort-1.xml?keyword=%E7%82%BA%E4%BA%86%E7%AA%AE%E7%9B%A1%E6%AD%A6%E9%81%93%E8%80%8C%E8%BD%89%E7%94%9F+%E6%84%9B%E6%88%80+%E7%B9%81</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>other_fields</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=l>category]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>accept_all</span><span class=p>:</span><span class=w> </span><span class=kc>yes</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>template</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>transmission</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/media/extHDD/Download/TV/202211/{{task[3:]}}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>schedules</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>tasks</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;TV-*&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>schedule</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>day_of_week</span><span class=p>:</span><span class=w> </span><span class=l>mon,tue,wed,thu,fri,sat,sun</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>hour</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;4,6,8,11,13,15,17,20&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>jitter</span><span class=p>:</span><span class=w> </span><span class=m>60</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Caddyfile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>http://:80
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>root * /srv/
+</span></span><span class=line><span class=cl>file_server browse
+</span></span><span class=line><span class=cl>basicauth  {
+</span></span><span class=line><span class=cl>    user $2a$14$
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>handle_path /flexget/* {
+</span></span><span class=line><span class=cl>    rewrite * /flexget{path}
+</span></span><span class=line><span class=cl>    reverse_proxy host.docker.internal:5050
+</span></span><span class=line><span class=cl>}
+</span></span></code></pre></td></tr></table></div></div><p>docker-compose.yml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;3&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>services</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>caddy</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>arm32v6/caddy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>unless-stopped</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>extra_hosts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s2>&#34;host.docker.internal:host-gateway&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=s2>&#34;80:80&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=l>/media/extHDD/:/srv</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=l>$PWD/Caddyfile:/etc/caddy/Caddyfile</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
+<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-03-31</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/ data-title="2023年樹梅派重裝 Flexget" data-hashtags=linux,flexget,pi><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/ data-hashtag=linux><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/ data-title="2023年樹梅派重裝 Flexget"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/ data-title="2023年樹梅派重裝 Flexget"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/ data-title="2023年樹梅派重裝 Flexget" data-image=https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/Linux/>Linux</a>,&nbsp;<a href=/blog/tags/flexget/>flexget</a>,&nbsp;<a href=/blog/tags/pi/>pi</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Net-%E7%A8%8B%E5%BC%8F%E8%B3%87%E6%96%99%E5%BA%AB%E6%86%91%E8%AD%89%E9%8C%AF%E8%AA%A4-A-connection-was-successfully-established-with-the-server-but-then-an-error-occurred-during-the-login-process/ class=prev rel=prev title="Net 程式資料庫憑證錯誤 a Connection Was Successfully Established With the Server, but Then an Error Occurred During the Login Process"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Net 程式資料庫憑證錯誤 a Connection Was Successfully Established With the Server, but Then an Error Occurred During the Login Process</a>
+<a href=/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ class=next rel=next title="Raspberry Pi 2023 年安裝安裝 OS">Raspberry Pi 2023 年安裝安裝 OS<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
+</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
