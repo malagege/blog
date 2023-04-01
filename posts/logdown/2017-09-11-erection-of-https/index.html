@@ -1,152 +1,451 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證) - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><meta property="og:description" content="最近想讓動物機增加安全性，有看到免費的letsencrypt教學文
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證) - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)" />
+<meta property="og:description" content="最近想讓動物機增加安全性，有看到免費的letsencrypt教學文
 又好像有工具自動產生憑證
-以經有看到勇者試了，當然也要嘗試:P"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2017-09-11T13:09:00+00:00"><meta property="article:modified_time" content="2022-10-06T22:45:08+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><meta name=twitter:description content="最近想讓動物機增加安全性，有看到免費的letsencrypt教學文
+以經有看到勇者試了，當然也要嘗試:P" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2017-09-11T13:09:00+00:00" />
+<meta property="article:modified_time" content="2022-10-06T22:45:08+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"/>
+<meta name="twitter:description" content="最近想讓動物機增加安全性，有看到免費的letsencrypt教學文
 又好像有工具自動產生憑證
-以經有看到勇者試了，當然也要嘗試:P"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/><link rel=prev href=https://malagege.github.io/blog/posts/logdown/2017-09-10-2375763/><link rel=next href=https://malagege.github.io/blog/posts/logdown/2017-09-15-2463354/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/logdown\/2017-09-11-erection-of-https\/"},"genre":"posts","keywords":"Linux, TLS, SSL, Let’s Encrypt, Certbot","wordcount":517,"url":"https:\/\/malagege.github.io\/blog\/posts\/logdown\/2017-09-11-erection-of-https\/","datePublished":"2017-09-11T13:09:00+00:00","dateModified":"2022-10-06T22:45:08+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2017-09-11>2017-09-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;517 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents></nav></div></div><div class=content id=content><p>最近想讓動物機增加安全性，有看到免費的letsencrypt教學文<br>又好像有工具自動產生憑證<br>以經有看到勇者試了，當然也要嘗試:P</p><p>本來想說應該會很順利吧<br>結果沒有&mldr;</p><p><a href=https://www.weblink.idv.tw/2017/74 target=_blank rel="noopener noreffer">申請Let’s Encrypt－以Raspberry Pi為例 </a>，<br>再做這篇的時候會跳出版本太舊</p><p><code>sudo ./certbot-auto --apache --domain=**網域** certonly</code></p><p>動物機好像說版本太舊</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>$ sudo apt-get remove libaugeas0 augeas-tools libaugeas-dev
-</span></span><span class=line><span class=cl>$ sudo apt-get install libreadline6-dev libxml2-dev
-</span></span><span class=line><span class=cl>$ cd /tmp
-</span></span><span class=line><span class=cl>$ wget http://download.augeas.net/augeas-1.6.0.tar.gz
-</span></span><span class=line><span class=cl>$ tar -zxf augeas-1.6.0.tar.gz
-</span></span><span class=line><span class=cl>$ cd augeas-1.6.0
-</span></span><span class=line><span class=cl>$ CFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; CPPFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; ./configure
-</span></span><span class=line><span class=cl>$ CFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; CPPFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; make
-</span></span><span class=line><span class=cl>$ sudo make install
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://lordofthemoon.com/blog/2016/08/lets-encrypt-for-the-raspberry-pi-model-b/ target=_blank rel="noopener noreffer">Let’s Encrypt for the Raspberry Pi (model B)</a><br>後來找上面那個方法還是沒用<br>最後<del>賭</del>升級<code>sudo apt-get dist-uprgrade</code><br>升上去就可以跑了&mldr;</p><p>但會出現Timeout狀態<br>(之後有找到原因我的AP的 Virtual Server沒有設定443PORT)<br>不過我最後設完，apache設定沒有自動增加ssl設定</p><p>看來有機會還是要開一個apache筆記</p><p>最後看到另一篇用webroot方法，<a href=https://ezbox.idv.tw/52/free-ssl-lets-encrypt-certbot/ target=_blank rel="noopener noreffer">免費的 SSL 憑證：Let’s Encrypt！</a></p><p><code>sudo ./certbot-auto certonly --webroot -d ***網域***</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Saving debug log to /var/log/letsencrypt/letsencrypt.log
-</span></span><span class=line><span class=cl>Plugins selected: Authenticator webroot, Installer None
-</span></span><span class=line><span class=cl>Obtaining a new certificate
-</span></span><span class=line><span class=cl>Performing the following challenges:
-</span></span><span class=line><span class=cl>http-01 challenge for ****
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Select the webroot for ****
-</span></span><span class=line><span class=cl>-------------------------------------------------------------------------------
-</span></span><span class=line><span class=cl>1: Enter a new webroot
-</span></span><span class=line><span class=cl>-------------------------------------------------------------------------------
-</span></span><span class=line><span class=cl>Press 1 [enter] to confirm the selection (press &#39;c&#39; to cancel):
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>** Invalid input **
-</span></span><span class=line><span class=cl>Press 1 [enter] to confirm the selection (press &#39;c&#39; to cancel): 1
-</span></span><span class=line><span class=cl>Input the webroot for ******: (Enter &#39;c&#39; to cancel):
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>-------------------------------------------------------------------------------
-</span></span><span class=line><span class=cl>does not exist or is not a directory
-</span></span><span class=line><span class=cl>-------------------------------------------------------------------------------
-</span></span><span class=line><span class=cl>Input the webroot for ********: (Enter &#39;c&#39; to cancel): /var/www/
-</span></span><span class=line><span class=cl>Waiting for verification...
-</span></span><span class=line><span class=cl>Cleaning up challenges
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>IMPORTANT NOTES:
-</span></span><span class=line><span class=cl>- Congratulations! Your certificate and chain have been saved at:
-</span></span><span class=line><span class=cl>  /etc/letsencrypt/live/****/fullchain.pem
-</span></span><span class=line><span class=cl>  Your key file has been saved at:
-</span></span><span class=line><span class=cl>  /etc/letsencrypt/live/****/privkey.pem
-</span></span><span class=line><span class=cl>  Your cert will expire on 2017-12-10. To obtain a new or tweaked
-</span></span><span class=line><span class=cl>  version of this certificate in the future, simply run certbot-auto
-</span></span><span class=line><span class=cl>  again. To non-interactively renew *all* of your certificates, run
-</span></span><span class=line><span class=cl>  &#34;certbot-auto renew&#34;
-</span></span><span class=line><span class=cl>- If you like Certbot, please consider supporting our work by:
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>  Donating to ISRG / Let&#39;s Encrypt:   https://letsencrypt.org/donate
-</span></span><span class=line><span class=cl>  Donating to EFF:                    https://eff.org/donate-le
-</span></span></code></pre></td></tr></table></div></div><p>看到這個就表示成功</p><blockquote><p>申請的網域的SSL憑證<br>cert.pem: Your domain&rsquo;s certificate<br>Let&rsquo;s Encrypt 的 鏈證書<br>chain.pem: The Let&rsquo;s Encrypt chain certificate<br>cert.pem 和 chain.pem 的合併檔<br>fullchain.pem: cert.pem and chain.pem combined<br>SSL憑證的私鑰，千千萬萬要飽護好<br>privkey.pem: Your certificate&rsquo;s private key</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>&lt;VirtualHost *:443&gt;
-</span></span><span class=line><span class=cl>        ServerAdmin service@**網域**
-</span></span><span class=line><span class=cl>        DocumentRoot /var/www/
-</span></span><span class=line><span class=cl>        ServerName **網域**
-</span></span><span class=line><span class=cl>        ServerAlias **網域**
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        SSLEngine On
-</span></span><span class=line><span class=cl>        SSLCertificateFile /etc/letsencrypt/live/**網域**/cert.pem
-</span></span><span class=line><span class=cl>        SSLCertificateKeyFile /etc/letsencrypt/live/**網域**/privkey.pem
-</span></span><span class=line><span class=cl>        SSLCertificateChainFile /etc/letsencrypt/live/**網域**/chain.pem
-</span></span><span class=line><span class=cl>        SSLCACertificateFile /etc/letsencrypt/live/**網域**/fullchain.pem
-</span></span><span class=line><span class=cl>&lt;/VirtualHost&gt;
-</span></span></code></pre></td></tr></table></div></div><p><code>Invalid command 'SSLEngine', perhaps misspelled or defined by a module not included in the server configuration</code><br>這個錯誤訊息是 沒有啟用ssl模組<br>啟用<br><code>sudo a2dismod ssl</code></p><p>但後來發現怎麼很多沒有教關閉<br>爬文一下就找到了</p><p>關閉<br><code>sudo a2enmod ssl</code></p><p>因為先前發現不能連webroot可以產生<br>但還是連不到443port<br>後來發現是Virtual Server沒設<br>設定完OK<br>想說試試第一個方法跑一次<br>結果跑出另一個憑證</p><p>爬文找刪除<br>直接刪資料夾是不能解決問題的XD</p><h1 id=回收憑證>回收憑證</h1><p>　　<code>certbot revoke --cert-path /etc/letsencrypt/live/example.com/cert.pem</code></p><p>　　<code>certbot delete --cert-name example.com</code></p><p>Ubuntu 12.04啟用apache的 SSL<br><a href=http://kirby86a.pixnet.net/blog/post/95136568-ubuntu-12.04%E5%95%9F%E7%94%A8apache%E7%9A%84-ssl target=_blank rel="noopener noreffer">http://kirby86a.pixnet.net/blog/post/95136568-ubuntu-12.04%E5%95%9F%E7%94%A8apache%E7%9A%84-ssl</a><br>免費的 SSL 憑證：Let’s Encrypt！<br><a href=https://ezbox.idv.tw/52/free-ssl-lets-encrypt-certbot/ target=_blank rel="noopener noreffer">https://ezbox.idv.tw/52/free-ssl-lets-encrypt-certbot/</a></p><p>番外apache mod rewrite功能</p><p><code>sudo a2enmod rewrite</code></p><p>or</p><p><code>sudo ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load</code></p><p>在/etc/apache2/sites-enabled/000-default</p><p><code>AllowOverride None</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>RewriteEngine on
-</span></span><span class=line><span class=cl>RewriteCond  %{HTTPS} !=on
-</span></span><span class=line><span class=cl>#RewriteRule  ^(.*) https://%{SERVER_NAME}$1 [L,R]
-</span></span><span class=line><span class=cl> RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R]
-</span></span></code></pre></td></tr></table></div></div><p>這樣http就能導到https了</p><p>我有擋國外IP要怎麼自動更新憑證</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ssl_renew.sh data-lang=ssl_renew.sh><span class=line><span class=cl>iptables -F
-</span></span><span class=line><span class=cl>/usr/local/bin/certbot-auto renew --quiet
-</span></span><span class=line><span class=cl>sh /etc/network/iptables.sh
-</span></span></code></pre></td></tr></table></div></div><p>自動更新憑證<br><code>30 2 1 * * sh /root/ssl_bot.sh</code></p><p><strong>2017/10/17</strong><br>發現網站憑證日期怎麼沒有更新&mldr;<br>以為設定有問題<br>Google查了一下</p><blockquote><p>這是因為certbot-auto renew 會讀取 /etc/letsencrypt/renewal 下的設定<br>檢查每個授權是否距離過期時間只剩30天，如果是才執行更新<br>( 參考：https://tiicle.com/items/15/ubuntu-1404-using-the-let-s-configuration-is-security-to-encrypt-nginx-https-server )</p></blockquote><p>待下個月再檢查</p><p>參考來源: <a href=https://www.tipga.com/e/597853093286fe2b8f7a56e5 target=_blank rel="noopener noreffer">https://www.tipga.com/e/597853093286fe2b8f7a56e5</a></p><hr><p>在RT1900AC上使用Let&rsquo;s Encrypt的SSL憑證-半殘版<br><a href=https://darkdragon-darkdragon.blogspot.com/2017/05/rt1900aclets-encryptssl.html target=_blank rel="noopener noreffer">https://darkdragon-darkdragon.blogspot.com/2017/05/rt1900aclets-encryptssl.html</a><br>NGINX 使用 Let’s Encrypt 免費 SSL 憑證設定 HTTPS 安全加密網頁教學<br><a href=https://blog.gtwang.org/linux/secure-nginx-with-lets-encrypt-ssl-certificate-on-ubuntu-and-debian/ target=_blank rel="noopener noreffer">https://blog.gtwang.org/linux/secure-nginx-with-lets-encrypt-ssl-certificate-on-ubuntu-and-debian/</a></p><p>啟動 Ubuntu 下的 Apache mod rewrite 與相關設定<br><a href=http://asika.windspeaker.co/post/3471-start-with-ubuntu-apache-the-mod-the-rewrite-set target=_blank rel="noopener noreffer">http://asika.windspeaker.co/post/3471-start-with-ubuntu-apache-the-mod-the-rewrite-set</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2022-10-06</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/ data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)" data-hashtags="Linux,TLS,SSL,Let’s Encrypt,Certbot"><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/ data-hashtag=Linux><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/ data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/ data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/ data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/Linux/>Linux</a>,&nbsp;<a href=/blog/tags/TLS/>TLS</a>,&nbsp;<a href=/blog/tags/SSL/>SSL</a>,&nbsp;<a href=/blog/tags/Lets-Encrypt/>Let’s Encrypt</a>,&nbsp;<a href=/blog/tags/Certbot/>Certbot</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/logdown/2017-09-10-2375763/ class=prev rel=prev title=修改iptables設定筆記><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>修改iptables設定筆記</a>
-<a href=/blog/posts/logdown/2017-09-15-2463354/ class=next rel=next title="electron 新手轉exe筆記">electron 新手轉exe筆記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+以經有看到勇者試了，當然也要嘗試:P"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" /><link rel="prev" href="https://malagege.github.io/blog/posts/logdown/2017-09-10-2375763/" /><link rel="next" href="https://malagege.github.io/blog/posts/logdown/2017-09-15-2463354/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2017-09-11-erection-of-https\/"
+        },"genre": "posts","keywords": "Linux, TLS, SSL, Let’s Encrypt, Certbot","wordcount":  517 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2017-09-11-erection-of-https\/","datePublished": "2017-09-11T13:09:00+00:00","dateModified": "2022-10-06T22:45:08+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2017-09-11">2017-09-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;517 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
+            </div><div class="content" id="content"><p>最近想讓動物機增加安全性，有看到免費的letsencrypt教學文<br>
+又好像有工具自動產生憑證<br>
+以經有看到勇者試了，當然也要嘗試:P</p>
+<p>本來想說應該會很順利吧<br>
+結果沒有&hellip;</p>
+<p><a href="https://www.weblink.idv.tw/2017/74" target="_blank" rel="noopener noreffer ">申請Let’s Encrypt－以Raspberry Pi為例 </a>，<br>
+再做這篇的時候會跳出版本太舊</p>
+<p><code>sudo ./certbot-auto --apache --domain=**網域** certonly</code></p>
+<p>動物機好像說版本太舊</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ sudo apt-get remove libaugeas0 augeas-tools libaugeas-dev
+</span></span><span class="line"><span class="cl">$ sudo apt-get install libreadline6-dev libxml2-dev
+</span></span><span class="line"><span class="cl">$ cd /tmp
+</span></span><span class="line"><span class="cl">$ wget http://download.augeas.net/augeas-1.6.0.tar.gz
+</span></span><span class="line"><span class="cl">$ tar -zxf augeas-1.6.0.tar.gz
+</span></span><span class="line"><span class="cl">$ cd augeas-1.6.0
+</span></span><span class="line"><span class="cl">$ CFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; CPPFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; ./configure
+</span></span><span class="line"><span class="cl">$ CFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; CPPFLAGS=&#39;-march=armv6 -mfpu=vfp -mfloat-abi=hard&#39; make
+</span></span><span class="line"><span class="cl">$ sudo make install
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://lordofthemoon.com/blog/2016/08/lets-encrypt-for-the-raspberry-pi-model-b/" target="_blank" rel="noopener noreffer ">Let’s Encrypt for the Raspberry Pi (model B)</a><br>
+後來找上面那個方法還是沒用<br>
+最後<del>賭</del>升級<code>sudo apt-get dist-uprgrade</code><br>
+升上去就可以跑了&hellip;</p>
+<p>但會出現Timeout狀態<br>
+(之後有找到原因我的AP的 Virtual Server沒有設定443PORT)<br>
+不過我最後設完，apache設定沒有自動增加ssl設定</p>
+<p>看來有機會還是要開一個apache筆記</p>
+<p>最後看到另一篇用webroot方法，<a href="https://ezbox.idv.tw/52/free-ssl-lets-encrypt-certbot/" target="_blank" rel="noopener noreffer ">免費的 SSL 憑證：Let’s Encrypt！</a></p>
+<p><code>sudo ./certbot-auto certonly --webroot -d ***網域***</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Saving debug log to /var/log/letsencrypt/letsencrypt.log
+</span></span><span class="line"><span class="cl">Plugins selected: Authenticator webroot, Installer None
+</span></span><span class="line"><span class="cl">Obtaining a new certificate
+</span></span><span class="line"><span class="cl">Performing the following challenges:
+</span></span><span class="line"><span class="cl">http-01 challenge for ****
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Select the webroot for ****
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">1: Enter a new webroot
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">Press 1 [enter] to confirm the selection (press &#39;c&#39; to cancel):
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">** Invalid input **
+</span></span><span class="line"><span class="cl">Press 1 [enter] to confirm the selection (press &#39;c&#39; to cancel): 1
+</span></span><span class="line"><span class="cl">Input the webroot for ******: (Enter &#39;c&#39; to cancel):
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">does not exist or is not a directory
+</span></span><span class="line"><span class="cl">-------------------------------------------------------------------------------
+</span></span><span class="line"><span class="cl">Input the webroot for ********: (Enter &#39;c&#39; to cancel): /var/www/
+</span></span><span class="line"><span class="cl">Waiting for verification...
+</span></span><span class="line"><span class="cl">Cleaning up challenges
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">IMPORTANT NOTES:
+</span></span><span class="line"><span class="cl">- Congratulations! Your certificate and chain have been saved at:
+</span></span><span class="line"><span class="cl">  /etc/letsencrypt/live/****/fullchain.pem
+</span></span><span class="line"><span class="cl">  Your key file has been saved at:
+</span></span><span class="line"><span class="cl">  /etc/letsencrypt/live/****/privkey.pem
+</span></span><span class="line"><span class="cl">  Your cert will expire on 2017-12-10. To obtain a new or tweaked
+</span></span><span class="line"><span class="cl">  version of this certificate in the future, simply run certbot-auto
+</span></span><span class="line"><span class="cl">  again. To non-interactively renew *all* of your certificates, run
+</span></span><span class="line"><span class="cl">  &#34;certbot-auto renew&#34;
+</span></span><span class="line"><span class="cl">- If you like Certbot, please consider supporting our work by:
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  Donating to ISRG / Let&#39;s Encrypt:   https://letsencrypt.org/donate
+</span></span><span class="line"><span class="cl">  Donating to EFF:                    https://eff.org/donate-le
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>看到這個就表示成功</p>
+<blockquote>
+<p>申請的網域的SSL憑證<br>
+cert.pem: Your domain&rsquo;s certificate<br>
+Let&rsquo;s Encrypt 的 鏈證書<br>
+chain.pem: The Let&rsquo;s Encrypt chain certificate<br>
+cert.pem 和 chain.pem 的合併檔<br>
+fullchain.pem: cert.pem and chain.pem combined<br>
+SSL憑證的私鑰，千千萬萬要飽護好<br>
+privkey.pem: Your certificate&rsquo;s private key</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">&lt;VirtualHost *:443&gt;
+</span></span><span class="line"><span class="cl">        ServerAdmin service@**網域**
+</span></span><span class="line"><span class="cl">        DocumentRoot /var/www/
+</span></span><span class="line"><span class="cl">        ServerName **網域**
+</span></span><span class="line"><span class="cl">        ServerAlias **網域**
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        SSLEngine On
+</span></span><span class="line"><span class="cl">        SSLCertificateFile /etc/letsencrypt/live/**網域**/cert.pem
+</span></span><span class="line"><span class="cl">        SSLCertificateKeyFile /etc/letsencrypt/live/**網域**/privkey.pem
+</span></span><span class="line"><span class="cl">        SSLCertificateChainFile /etc/letsencrypt/live/**網域**/chain.pem
+</span></span><span class="line"><span class="cl">        SSLCACertificateFile /etc/letsencrypt/live/**網域**/fullchain.pem
+</span></span><span class="line"><span class="cl">&lt;/VirtualHost&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>Invalid command 'SSLEngine', perhaps misspelled or defined by a module not included in the server configuration</code><br>
+這個錯誤訊息是  沒有啟用ssl模組<br>
+啟用<br>
+<code>sudo a2dismod ssl</code></p>
+<p>但後來發現怎麼很多沒有教關閉<br>
+爬文一下就找到了</p>
+<p>關閉<br>
+<code>sudo a2enmod ssl</code></p>
+<p>因為先前發現不能連webroot可以產生<br>
+但還是連不到443port<br>
+後來發現是Virtual Server沒設<br>
+設定完OK<br>
+想說試試第一個方法跑一次<br>
+結果跑出另一個憑證</p>
+<p>爬文找刪除<br>
+直接刪資料夾是不能解決問題的XD</p>
+<h1 id="回收憑證">回收憑證</h1>
+<p>　　<code>certbot revoke --cert-path /etc/letsencrypt/live/example.com/cert.pem</code></p>
+<p>　　<code>certbot delete --cert-name example.com</code></p>
+<p>Ubuntu 12.04啟用apache的 SSL<br>
+<a href="http://kirby86a.pixnet.net/blog/post/95136568-ubuntu-12.04%E5%95%9F%E7%94%A8apache%E7%9A%84-ssl" target="_blank" rel="noopener noreffer ">http://kirby86a.pixnet.net/blog/post/95136568-ubuntu-12.04%E5%95%9F%E7%94%A8apache%E7%9A%84-ssl</a><br>
+免費的 SSL 憑證：Let’s Encrypt！<br>
+<a href="https://ezbox.idv.tw/52/free-ssl-lets-encrypt-certbot/" target="_blank" rel="noopener noreffer ">https://ezbox.idv.tw/52/free-ssl-lets-encrypt-certbot/</a></p>
+<p>番外apache mod rewrite功能</p>
+<p><code>sudo a2enmod rewrite</code></p>
+<p>or</p>
+<p><code> sudo ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load</code></p>
+<p>在/etc/apache2/sites-enabled/000-default</p>
+<p><code> AllowOverride None</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">RewriteEngine on
+</span></span><span class="line"><span class="cl">RewriteCond  %{HTTPS} !=on
+</span></span><span class="line"><span class="cl">#RewriteRule  ^(.*) https://%{SERVER_NAME}$1 [L,R]
+</span></span><span class="line"><span class="cl"> RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R]
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這樣http就能導到https了</p>
+<p>我有擋國外IP要怎麼自動更新憑證</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ssl_renew.sh" data-lang="ssl_renew.sh"><span class="line"><span class="cl">iptables -F
+</span></span><span class="line"><span class="cl">/usr/local/bin/certbot-auto renew --quiet
+</span></span><span class="line"><span class="cl">sh /etc/network/iptables.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>自動更新憑證<br>
+<code>30 2 1 * * sh /root/ssl_bot.sh</code></p>
+<p><strong>2017/10/17</strong><br>
+發現網站憑證日期怎麼沒有更新&hellip;<br>
+以為設定有問題<br>
+Google查了一下</p>
+<blockquote>
+<p>這是因為certbot-auto renew 會讀取 /etc/letsencrypt/renewal 下的設定<br>
+檢查每個授權是否距離過期時間只剩30天，如果是才執行更新<br>
+( 參考：https://tiicle.com/items/15/ubuntu-1404-using-the-let-s-configuration-is-security-to-encrypt-nginx-https-server )</p>
+</blockquote>
+<p>待下個月再檢查</p>
+<p>參考來源: <a href="https://www.tipga.com/e/597853093286fe2b8f7a56e5" target="_blank" rel="noopener noreffer ">https://www.tipga.com/e/597853093286fe2b8f7a56e5</a></p>
+<hr>
+<p>在RT1900AC上使用Let&rsquo;s Encrypt的SSL憑證-半殘版<br>
+<a href="https://darkdragon-darkdragon.blogspot.com/2017/05/rt1900aclets-encryptssl.html" target="_blank" rel="noopener noreffer ">https://darkdragon-darkdragon.blogspot.com/2017/05/rt1900aclets-encryptssl.html</a><br>
+NGINX 使用 Let’s Encrypt 免費 SSL 憑證設定 HTTPS 安全加密網頁教學<br>
+<a href="https://blog.gtwang.org/linux/secure-nginx-with-lets-encrypt-ssl-certificate-on-ubuntu-and-debian/" target="_blank" rel="noopener noreffer ">https://blog.gtwang.org/linux/secure-nginx-with-lets-encrypt-ssl-certificate-on-ubuntu-and-debian/</a></p>
+<p>啟動 Ubuntu 下的 Apache mod rewrite 與相關設定<br>
+<a href="http://asika.windspeaker.co/post/3471-start-with-ubuntu-apache-the-mod-the-rewrite-set" target="_blank" rel="noopener noreffer ">http://asika.windspeaker.co/post/3471-start-with-ubuntu-apache-the-mod-the-rewrite-set</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2022-10-06</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)" data-hashtags="Linux,TLS,SSL,Let’s Encrypt,Certbot"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" data-hashtag="Linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/logdown/2017-09-11-erection-of-https/" data-title="Raspberry PI 自動設定Let’s Encrypt！ TLS(SSL 憑證)"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/Linux/">Linux</a>,&nbsp;<a href="/blog/tags/TLS/">TLS</a>,&nbsp;<a href="/blog/tags/SSL/">SSL</a>,&nbsp;<a href="/blog/tags/Lets-Encrypt/">Let’s Encrypt</a>,&nbsp;<a href="/blog/tags/Certbot/">Certbot</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/logdown/2017-09-10-2375763/" class="prev" rel="prev" title="修改iptables設定筆記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>修改iptables設定筆記</a>
+            <a href="/blog/posts/logdown/2017-09-15-2463354/" class="next" rel="next" title="electron 新手轉exe筆記">electron 新手轉exe筆記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

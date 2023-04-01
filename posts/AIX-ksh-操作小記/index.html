@@ -1,102 +1,409 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>AIX(ksh) 操作小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="AIX(ksh) 操作小記"><meta property="og:description" content="最近做某個專案主機是用AIX，裡面的 command line 跟以往的 Bash 不一樣，沒有 autocompute 功能，也沒有 bash 上下找 History 功能。有時按方向鍵反而不是我想要的結果，搜尋一下，才發現使用操作上跟 vi 一樣。
-簡單說一下 AIX，是一個 UNIX 系統，功能比 Linux 少很多功能樣子，使用上跟 Bash 差很多，沒 watch, top &mldr;等等功能，真的不習慣。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-10-09T23:33:54+00:00"><meta property="article:modified_time" content="2021-10-09T23:33:54+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="AIX(ksh) 操作小記"><meta name=twitter:description content="最近做某個專案主機是用AIX，裡面的 command line 跟以往的 Bash 不一樣，沒有 autocompute 功能，也沒有 bash 上下找 History 功能。有時按方向鍵反而不是我想要的結果，搜尋一下，才發現使用操作上跟 vi 一樣。
-簡單說一下 AIX，是一個 UNIX 系統，功能比 Linux 少很多功能樣子，使用上跟 Bash 差很多，沒 watch, top &mldr;等等功能，真的不習慣。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/Hexo-Next-theme-%E5%8A%A0%E5%85%A5-mermaid-%E5%9C%96%E7%A4%BA-Diagrams/><link rel=next href=https://malagege.github.io/blog/posts/Github-Actions-rebuild-native-dependencies-%E6%9C%83%E5%8D%A1%E4%BD%8F%E5%95%8F%E9%A1%8C/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"AIX(ksh) 操作小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"aix, ksh","wordcount":327,"url":"https:\/\/malagege.github.io\/blog\/posts\/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98\/","datePublished":"2021-10-09T23:33:54+00:00","dateModified":"2021-10-09T23:33:54+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">AIX(ksh) 操作小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Aix/><i class="far fa-folder fa-fw" aria-hidden=true></i>Aix</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-10-09>2021-10-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;327 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><ul><li><a href=#模式切換到-vi>模式切換到 vi</a></li><li><a href=#anything-is-vi>anything is vi</a></li><li><a href=#ksh-版本>ksh 版本</a></li><li><a href=#auto-completion>auto completion</a></li><li><a href=#公司使用-ksh-tab-沒有反應>公司使用 ksh tab 沒有反應</a></li></ul></li><li><a href=#實用指令>實用指令</a></li><li><a href=#devnull>/dev/null</a></li><li><a href=#aix-其他指令>aix 其他指令</a><ul><li><a href=#參考來源>參考來源</a></li></ul></li><li><a href=#中文亂碼>中文亂碼</a></li></ul></nav></div></div><div class=content id=content><p>最近做某個專案主機是用AIX，裡面的 command line 跟以往的 Bash 不一樣，沒有 autocompute 功能，也沒有 bash 上下找 History 功能。有時按方向鍵反而不是我想要的結果，搜尋一下，才發現使用操作上跟 vi 一樣。</p><p>簡單說一下 AIX，是一個 UNIX 系統，功能比 Linux 少很多功能樣子，使用上跟 Bash 差很多，沒 watch, top &mldr;等等功能，真的不習慣。</p><h3 id=模式切換到-vi>模式切換到 vi</h3><p>按裝預設可能不是設定 vi，可以設定到 .profile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>set</span> -o vi
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://www.unix.com/unix-for-dummies-questions-and-answers/122586-how-invoke-esc-k.html target=_blank rel="noopener noreffer">How to invoke ESC+K</a></p><h3 id=anything-is-vi>anything is vi</h3><ol><li><p>command line 操做方向都是 hjkl(左下上右)。</p></li><li><p>有查到網路上看查歷史使用<code>ESC+K</code>(上)+<code>ESC+J</code>(下)。</p></li><li><p>正常方向鍵都不能使用，跟第一點<code>hjkl(左下上右)</code>操做是一樣的。</p></li><li><p>插入打字是<code>a,i,r</code>(跟 vi 打字一模一樣)。</p></li></ol><p><a href=https://alvinalexander.com/linux/vi-vim-delete-line-commands-to-end/ target=_blank rel="noopener noreffer">vi/vim delete commands and examples | alvinalexander.com</a></p><h3 id=ksh-版本>ksh 版本</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>WIN-A5LTRLM4VQ5:/mnt/c/Users/Administrator$ ksh
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Command &#39;ksh&#39; not found, but can be installed with:
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>sudo apt install ksh    # version 2020.0.0-5, or
-</span></span><span class=line><span class=cl>sudo apt install ksh93  # version 93u+20120801-7
-</span></span><span class=line><span class=cl>sudo apt install mksh   # version 58-1
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://www.cyberciti.biz/faq/unix-linux-appleosx-get-ksh-version-check-ksh-version/ target=_blank rel="noopener noreffer">How To: Find Out KSH ( Korn Shell ) Version on Linux or Unix-like system - nixCraft</a></p><p>aix 好像是用<code>ksh93</code>。</p><h3 id=auto-completion>auto completion</h3><p>找了很多篇，沒特別說明，剛好翻到這篇<a href=https://www.oreilly.com/library/view/shell-scripting-expert/9781118166321/c11-anchor-12.xhtml target=_blank rel="noopener noreffer">Tab Completion - Shell Scripting: Expert Recipes for Linux, Bash, and More [Book]</a><br>，原來是這樣用的orz。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ksh$ ca&lt;TAB&gt;&lt;TAB&gt;
-</span></span><span class=line><span class=cl> 1<span class=o>)</span> /usr/bin/cancel
-</span></span><span class=line><span class=cl> 2<span class=o>)</span> /usr/bin/callgrind_annotate
-</span></span><span class=line><span class=cl> 3<span class=o>)</span> /usr/bin/cameratopam
-</span></span><span class=line><span class=cl> 4<span class=o>)</span> /usr/bin/callgrind_control
-</span></span><span class=line><span class=cl> 5<span class=o>)</span> /usr/bin/cancel.cups
-</span></span><span class=line><span class=cl> 6<span class=o>)</span> /usr/bin/cal
-</span></span><span class=line><span class=cl> 7<span class=o>)</span> /usr/bin/captoinfo
-</span></span><span class=line><span class=cl> 8<span class=o>)</span> /usr/bin/catchsegv
-</span></span><span class=line><span class=cl> 9<span class=o>)</span> /usr/bin/card
-</span></span><span class=line><span class=cl>10<span class=o>)</span> /usr/sbin/cacertdir_rehash
-</span></span><span class=line><span class=cl>11<span class=o>)</span> /usr/sbin/callback
-</span></span><span class=line><span class=cl>12<span class=o>)</span> /bin/cat
-</span></span><span class=line><span class=cl>6&lt;TAB&gt;
-</span></span><span class=line><span class=cl>ksh$ /usr/bin/cal
-</span></span><span class=line><span class=cl>     March <span class=m>2011</span>
-</span></span><span class=line><span class=cl>Su Mo Tu We Th Fr Sa
-</span></span><span class=line><span class=cl>       <span class=m>1</span>  <span class=m>2</span>  <span class=m>3</span>  <span class=m>4</span>  <span class=m>5</span>
-</span></span><span class=line><span class=cl> <span class=m>6</span>  <span class=m>7</span>  <span class=m>8</span>  <span class=m>9</span> <span class=m>10</span> <span class=m>11</span> <span class=m>12</span>
-</span></span><span class=line><span class=cl><span class=m>13</span> <span class=m>14</span> <span class=m>15</span> <span class=m>16</span> <span class=m>17</span> <span class=m>18</span> <span class=m>19</span>
-</span></span><span class=line><span class=cl><span class=m>20</span> <span class=m>21</span> <span class=m>22</span> <span class=m>23</span> <span class=m>24</span> <span class=m>25</span> <span class=m>26</span>
-</span></span><span class=line><span class=cl><span class=m>27</span> <span class=m>28</span> <span class=m>29</span> <span class=m>30</span> <span class=m>31</span>
-</span></span><span class=line><span class=cl>$
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>ksh$ cat /etc/host&lt;TAB&gt;&lt;TAB&gt;
-</span></span><span class=line><span class=cl>1<span class=o>)</span> host.conf
-</span></span><span class=line><span class=cl>2<span class=o>)</span> hosts
-</span></span><span class=line><span class=cl>3<span class=o>)</span> hosts.allow
-</span></span><span class=line><span class=cl>4<span class=o>)</span> hosts.deny
-</span></span><span class=line><span class=cl>4&lt;TAB&gt;
-</span></span><span class=line><span class=cl>ksh$ cat /etc/hosts.deny
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/ target=_blank rel="noopener noreffer">https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/</a></p><h3 id=公司使用-ksh-tab-沒有反應>公司使用 ksh tab 沒有反應</h3><p>使用 ksh93 就能用，位置在<code>/usr/bin/ksh93</code></p><p><a href=https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/ target=_blank rel="noopener noreffer">https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/</a></p><h2 id=實用指令>實用指令</h2><p><a href=https://www.cnblogs.com/liuxing0007/p/11009901.html target=_blank rel="noopener noreffer">AIX中的进程管理 - 春风亭牛二哥 - 博客园</a><a href=https://i.imgur.com/1TfZgZ6.png target=_blank rel="noopener noreffer">備份圖</a></p><p><a href="https://www.ibm.com/docs/en/zos/2.1.0?topic=job-canceling-background" target=_blank rel="noopener noreffer">Canceling a background job - IBM Documentation</a></p><p>less -> cat, view</p><h2 id=devnull>/dev/null</h2><p><a href=https://bbs.csdn.net/topics/391867270 target=_blank rel="noopener noreffer">AIX 根目录满了，发现/DEV/null 2>&amp;1文件很大，如何删除-CSDN社区</a></p><h2 id=aix-其他指令>aix 其他指令</h2><p><a href=https://kknews.cc/zh-tw/code/2yboa9r.html target=_blank rel="noopener noreffer">超詳細的AIX系統命令總結（慎重執行） - 每日頭條</a></p><h3 id=參考來源>參考來源</h3><p><a href=https://man.linuxde.net/linux-shell-%E5%AE%8C%E5%85%A8%E8%A9%B3%E8%A7%A3 target=_blank rel="noopener noreffer">Linux-shell-完全詳解命令_Linux Linux-shell-完全詳解 命令用法详解：</a></p><p><a href="https://titanwolf.org/Network/Articles/Article?AID=c5d44a08-ed0a-4730-8ef5-c2071a6ef91a#gsc.tab=0" target=_blank rel="noopener noreffer">aix auto-completion, command history function (finishing)(Others-Community)</a></p><p><a href=https://www.cnblogs.com/zhouhbing/p/4275699.html target=_blank rel="noopener noreffer">set -o vi AIX下shell - 周人假的 - 博客园</a></p><p><a href=http://xxooxp.blogspot.com/2011/09/aixlinux-watch.html target=_blank rel="noopener noreffer">XXOOXp: AIX版的Linux watch指令&mldr;(監控指令的輸出狀態)</a></p><p><a href=https://blog.csdn.net/iteye_20080/article/details/82546705 target=_blank rel="noopener noreffer">AIX ksh使用小技巧_wujay-CSDN博客</a></p><h2 id=中文亂碼>中文亂碼</h2><p>locale 結果看到不是使用 Big5，所以終端機記得要調 big5。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/zyLkI3r.png data-srcset="https://i.imgur.com/zyLkI3r.png, https://i.imgur.com/zyLkI3r.png 1.5x, https://i.imgur.com/zyLkI3r.png 2x" data-sizes=auto alt=https://i.imgur.com/zyLkI3r.png title=https://i.imgur.com/zyLkI3r.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/6k7YnLZ.png data-srcset="https://i.imgur.com/6k7YnLZ.png, https://i.imgur.com/6k7YnLZ.png 1.5x, https://i.imgur.com/6k7YnLZ.png 2x" data-sizes=auto alt=https://i.imgur.com/6k7YnLZ.png title=https://i.imgur.com/6k7YnLZ.png></p><p>括號要加跳脫字元!!跟 AIX 沒什麼關係。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/5wkvx4C.png data-srcset="https://i.imgur.com/5wkvx4C.png, https://i.imgur.com/5wkvx4C.png 1.5x, https://i.imgur.com/5wkvx4C.png 2x" data-sizes=auto alt=https://i.imgur.com/5wkvx4C.png title=https://i.imgur.com/5wkvx4C.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/kB9XV8H.png data-srcset="https://i.imgur.com/kB9XV8H.png, https://i.imgur.com/kB9XV8H.png 1.5x, https://i.imgur.com/kB9XV8H.png 2x" data-sizes=auto alt=https://i.imgur.com/kB9XV8H.png title=https://i.imgur.com/kB9XV8H.png></p><p><a href="https://www.ibm.com/docs/zh-tw/aix/7.1?topic=shell-quotation-characters-in-korn-posix" target=_blank rel="noopener noreffer">在 Korn shell 或 POSIX shell 中以引號括住字元 - IBM Documentation</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-10-09</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/ data-title="AIX(ksh) 操作小記" data-hashtags=aix,ksh><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/ data-hashtag=aix><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/ data-title="AIX(ksh) 操作小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/ data-title="AIX(ksh) 操作小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/ data-title="AIX(ksh) 操作小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/aix/>aix</a>,&nbsp;<a href=/blog/tags/ksh/>ksh</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Hexo-Next-theme-%E5%8A%A0%E5%85%A5-mermaid-%E5%9C%96%E7%A4%BA-Diagrams/ class=prev rel=prev title="Hexo Next theme 加入 mermaid 圖示(Diagrams)"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Hexo Next theme 加入 mermaid 圖示(Diagrams)</a>
-<a href=/blog/posts/Github-Actions-rebuild-native-dependencies-%E6%9C%83%E5%8D%A1%E4%BD%8F%E5%95%8F%E9%A1%8C/ class=next rel=next title="Github Actions  rebuild native dependencies 會卡住問題">Github Actions rebuild native dependencies 會卡住問題<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>AIX(ksh) 操作小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="AIX(ksh) 操作小記" />
+<meta property="og:description" content="最近做某個專案主機是用AIX，裡面的 command line 跟以往的 Bash 不一樣，沒有 autocompute 功能，也沒有 bash 上下找 History 功能。有時按方向鍵反而不是我想要的結果，搜尋一下，才發現使用操作上跟 vi 一樣。
+簡單說一下 AIX，是一個 UNIX 系統，功能比 Linux 少很多功能樣子，使用上跟 Bash 差很多，沒 watch, top &hellip;等等功能，真的不習慣。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-10-09T23:33:54+00:00" />
+<meta property="article:modified_time" content="2021-10-09T23:33:54+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="AIX(ksh) 操作小記"/>
+<meta name="twitter:description" content="最近做某個專案主機是用AIX，裡面的 command line 跟以往的 Bash 不一樣，沒有 autocompute 功能，也沒有 bash 上下找 History 功能。有時按方向鍵反而不是我想要的結果，搜尋一下，才發現使用操作上跟 vi 一樣。
+簡單說一下 AIX，是一個 UNIX 系統，功能比 Linux 少很多功能樣子，使用上跟 Bash 差很多，沒 watch, top &hellip;等等功能，真的不習慣。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Hexo-Next-theme-%E5%8A%A0%E5%85%A5-mermaid-%E5%9C%96%E7%A4%BA-Diagrams/" /><link rel="next" href="https://malagege.github.io/blog/posts/Github-Actions-rebuild-native-dependencies-%E6%9C%83%E5%8D%A1%E4%BD%8F%E5%95%8F%E9%A1%8C/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "AIX(ksh) 操作小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "aix, ksh","wordcount":  327 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98\/","datePublished": "2021-10-09T23:33:54+00:00","dateModified": "2021-10-09T23:33:54+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">AIX(ksh) 操作小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Aix/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Aix</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-10-09">2021-10-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;327 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#模式切換到-vi">模式切換到 vi</a></li>
+        <li><a href="#anything-is-vi">anything is vi</a></li>
+        <li><a href="#ksh-版本">ksh 版本</a></li>
+        <li><a href="#auto-completion">auto completion</a></li>
+        <li><a href="#公司使用-ksh-tab-沒有反應">公司使用 ksh tab 沒有反應</a></li>
+      </ul>
+    </li>
+    <li><a href="#實用指令">實用指令</a></li>
+    <li><a href="#devnull">/dev/null</a></li>
+    <li><a href="#aix-其他指令">aix 其他指令</a>
+      <ul>
+        <li><a href="#參考來源">參考來源</a></li>
+      </ul>
+    </li>
+    <li><a href="#中文亂碼">中文亂碼</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近做某個專案主機是用AIX，裡面的 command line 跟以往的 Bash 不一樣，沒有 autocompute 功能，也沒有 bash 上下找 History 功能。有時按方向鍵反而不是我想要的結果，搜尋一下，才發現使用操作上跟 vi 一樣。</p>
+<p>簡單說一下 AIX，是一個 UNIX 系統，功能比 Linux 少很多功能樣子，使用上跟 Bash 差很多，沒 watch, top &hellip;等等功能，真的不習慣。</p>
+<h3 id="模式切換到-vi">模式切換到 vi</h3>
+<p>按裝預設可能不是設定 vi，可以設定到 .profile</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="nb">set</span> -o vi
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://www.unix.com/unix-for-dummies-questions-and-answers/122586-how-invoke-esc-k.html" target="_blank" rel="noopener noreffer ">How to invoke ESC+K</a></p>
+<h3 id="anything-is-vi">anything is vi</h3>
+<ol>
+<li>
+<p>command line 操做方向都是 hjkl(左下上右)。</p>
+</li>
+<li>
+<p>有查到網路上看查歷史使用<code>ESC+K</code>(上)+<code>ESC+J</code>(下)。</p>
+</li>
+<li>
+<p>正常方向鍵都不能使用，跟第一點<code>hjkl(左下上右)</code>操做是一樣的。</p>
+</li>
+<li>
+<p>插入打字是<code>a,i,r</code>(跟 vi 打字一模一樣)。</p>
+</li>
+</ol>
+<p><a href="https://alvinalexander.com/linux/vi-vim-delete-line-commands-to-end/" target="_blank" rel="noopener noreffer ">vi/vim delete commands and examples | alvinalexander.com</a></p>
+<h3 id="ksh-版本">ksh 版本</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">WIN-A5LTRLM4VQ5:/mnt/c/Users/Administrator$ ksh
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Command &#39;ksh&#39; not found, but can be installed with:
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo apt install ksh    # version 2020.0.0-5, or
+</span></span><span class="line"><span class="cl">sudo apt install ksh93  # version 93u+20120801-7
+</span></span><span class="line"><span class="cl">sudo apt install mksh   # version 58-1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://www.cyberciti.biz/faq/unix-linux-appleosx-get-ksh-version-check-ksh-version/" target="_blank" rel="noopener noreffer ">How To: Find Out KSH ( Korn Shell ) Version on Linux or Unix-like system - nixCraft</a></p>
+<p>aix 好像是用<code>ksh93</code>。</p>
+<h3 id="auto-completion">auto completion</h3>
+<p>找了很多篇，沒特別說明，剛好翻到這篇<a href="https://www.oreilly.com/library/view/shell-scripting-expert/9781118166321/c11-anchor-12.xhtml" target="_blank" rel="noopener noreffer ">Tab Completion - Shell Scripting: Expert Recipes for Linux, Bash, and More [Book]</a><br>
+，原來是這樣用的orz。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ksh$ ca&lt;TAB&gt;&lt;TAB&gt;
+</span></span><span class="line"><span class="cl"> 1<span class="o">)</span> /usr/bin/cancel
+</span></span><span class="line"><span class="cl"> 2<span class="o">)</span> /usr/bin/callgrind_annotate
+</span></span><span class="line"><span class="cl"> 3<span class="o">)</span> /usr/bin/cameratopam
+</span></span><span class="line"><span class="cl"> 4<span class="o">)</span> /usr/bin/callgrind_control
+</span></span><span class="line"><span class="cl"> 5<span class="o">)</span> /usr/bin/cancel.cups
+</span></span><span class="line"><span class="cl"> 6<span class="o">)</span> /usr/bin/cal
+</span></span><span class="line"><span class="cl"> 7<span class="o">)</span> /usr/bin/captoinfo
+</span></span><span class="line"><span class="cl"> 8<span class="o">)</span> /usr/bin/catchsegv
+</span></span><span class="line"><span class="cl"> 9<span class="o">)</span> /usr/bin/card
+</span></span><span class="line"><span class="cl">10<span class="o">)</span> /usr/sbin/cacertdir_rehash
+</span></span><span class="line"><span class="cl">11<span class="o">)</span> /usr/sbin/callback
+</span></span><span class="line"><span class="cl">12<span class="o">)</span> /bin/cat
+</span></span><span class="line"><span class="cl">6&lt;TAB&gt;
+</span></span><span class="line"><span class="cl">ksh$ /usr/bin/cal
+</span></span><span class="line"><span class="cl">     March <span class="m">2011</span>
+</span></span><span class="line"><span class="cl">Su Mo Tu We Th Fr Sa
+</span></span><span class="line"><span class="cl">       <span class="m">1</span>  <span class="m">2</span>  <span class="m">3</span>  <span class="m">4</span>  <span class="m">5</span>
+</span></span><span class="line"><span class="cl"> <span class="m">6</span>  <span class="m">7</span>  <span class="m">8</span>  <span class="m">9</span> <span class="m">10</span> <span class="m">11</span> <span class="m">12</span>
+</span></span><span class="line"><span class="cl"><span class="m">13</span> <span class="m">14</span> <span class="m">15</span> <span class="m">16</span> <span class="m">17</span> <span class="m">18</span> <span class="m">19</span>
+</span></span><span class="line"><span class="cl"><span class="m">20</span> <span class="m">21</span> <span class="m">22</span> <span class="m">23</span> <span class="m">24</span> <span class="m">25</span> <span class="m">26</span>
+</span></span><span class="line"><span class="cl"><span class="m">27</span> <span class="m">28</span> <span class="m">29</span> <span class="m">30</span> <span class="m">31</span>
+</span></span><span class="line"><span class="cl">$
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ksh$ cat /etc/host&lt;TAB&gt;&lt;TAB&gt;
+</span></span><span class="line"><span class="cl">1<span class="o">)</span> host.conf
+</span></span><span class="line"><span class="cl">2<span class="o">)</span> hosts
+</span></span><span class="line"><span class="cl">3<span class="o">)</span> hosts.allow
+</span></span><span class="line"><span class="cl">4<span class="o">)</span> hosts.deny
+</span></span><span class="line"><span class="cl">4&lt;TAB&gt;
+</span></span><span class="line"><span class="cl">ksh$ cat /etc/hosts.deny
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/" target="_blank" rel="noopener noreffer ">https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/</a></p>
+<h3 id="公司使用-ksh-tab-沒有反應">公司使用 ksh tab 沒有反應</h3>
+<p>使用 ksh93 就能用，位置在<code>/usr/bin/ksh93</code></p>
+<p><a href="https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/" target="_blank" rel="noopener noreffer ">https://ngelinux.com/aix-korn-shell-how-to-set-tab-auto-completion-and-hostname-present-working-directory-path-in-the-terminalps1-variable/</a></p>
+<h2 id="實用指令">實用指令</h2>
+<p><a href="https://www.cnblogs.com/liuxing0007/p/11009901.html" target="_blank" rel="noopener noreffer ">AIX中的进程管理 - 春风亭牛二哥 - 博客园</a><a href="https://i.imgur.com/1TfZgZ6.png" target="_blank" rel="noopener noreffer ">備份圖</a></p>
+<p><a href="https://www.ibm.com/docs/en/zos/2.1.0?topic=job-canceling-background" target="_blank" rel="noopener noreffer ">Canceling a background job - IBM Documentation</a></p>
+<p>less -&gt; cat, view</p>
+<h2 id="devnull">/dev/null</h2>
+<p><a href="https://bbs.csdn.net/topics/391867270" target="_blank" rel="noopener noreffer ">AIX 根目录满了，发现/DEV/null 2&gt;&amp;1文件很大，如何删除-CSDN社区</a></p>
+<h2 id="aix-其他指令">aix 其他指令</h2>
+<p><a href="https://kknews.cc/zh-tw/code/2yboa9r.html" target="_blank" rel="noopener noreffer ">超詳細的AIX系統命令總結（慎重執行） - 每日頭條</a></p>
+<h3 id="參考來源">參考來源</h3>
+<p><a href="https://man.linuxde.net/linux-shell-%E5%AE%8C%E5%85%A8%E8%A9%B3%E8%A7%A3" target="_blank" rel="noopener noreffer ">Linux-shell-完全詳解命令_Linux Linux-shell-完全詳解 命令用法详解：</a></p>
+<p><a href="https://titanwolf.org/Network/Articles/Article?AID=c5d44a08-ed0a-4730-8ef5-c2071a6ef91a#gsc.tab=0" target="_blank" rel="noopener noreffer ">aix auto-completion, command history function (finishing)(Others-Community)</a></p>
+<p><a href="https://www.cnblogs.com/zhouhbing/p/4275699.html" target="_blank" rel="noopener noreffer ">set -o vi AIX下shell - 周人假的 - 博客园</a></p>
+<p><a href="http://xxooxp.blogspot.com/2011/09/aixlinux-watch.html" target="_blank" rel="noopener noreffer ">XXOOXp: AIX版的Linux watch指令&hellip;(監控指令的輸出狀態)</a></p>
+<p><a href="https://blog.csdn.net/iteye_20080/article/details/82546705" target="_blank" rel="noopener noreffer ">AIX ksh使用小技巧_wujay-CSDN博客</a></p>
+<h2 id="中文亂碼">中文亂碼</h2>
+<p>locale 結果看到不是使用 Big5，所以終端機記得要調 big5。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/zyLkI3r.png"
+        data-srcset="https://i.imgur.com/zyLkI3r.png, https://i.imgur.com/zyLkI3r.png 1.5x, https://i.imgur.com/zyLkI3r.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/zyLkI3r.png"
+        title="https://i.imgur.com/zyLkI3r.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/6k7YnLZ.png"
+        data-srcset="https://i.imgur.com/6k7YnLZ.png, https://i.imgur.com/6k7YnLZ.png 1.5x, https://i.imgur.com/6k7YnLZ.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/6k7YnLZ.png"
+        title="https://i.imgur.com/6k7YnLZ.png" /></p>
+<p>括號要加跳脫字元!!跟 AIX 沒什麼關係。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/5wkvx4C.png"
+        data-srcset="https://i.imgur.com/5wkvx4C.png, https://i.imgur.com/5wkvx4C.png 1.5x, https://i.imgur.com/5wkvx4C.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/5wkvx4C.png"
+        title="https://i.imgur.com/5wkvx4C.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/kB9XV8H.png"
+        data-srcset="https://i.imgur.com/kB9XV8H.png, https://i.imgur.com/kB9XV8H.png 1.5x, https://i.imgur.com/kB9XV8H.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/kB9XV8H.png"
+        title="https://i.imgur.com/kB9XV8H.png" /></p>
+<p><a href="https://www.ibm.com/docs/zh-tw/aix/7.1?topic=shell-quotation-characters-in-korn-posix" target="_blank" rel="noopener noreffer ">在 Korn shell 或 POSIX shell 中以引號括住字元 - IBM Documentation</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2021-10-09</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="AIX(ksh) 操作小記" data-hashtags="aix,ksh"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-hashtag="aix"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="AIX(ksh) 操作小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="AIX(ksh) 操作小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/AIX-ksh-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="AIX(ksh) 操作小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/aix/">aix</a>,&nbsp;<a href="/blog/tags/ksh/">ksh</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Hexo-Next-theme-%E5%8A%A0%E5%85%A5-mermaid-%E5%9C%96%E7%A4%BA-Diagrams/" class="prev" rel="prev" title="Hexo Next theme 加入 mermaid 圖示(Diagrams)"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Hexo Next theme 加入 mermaid 圖示(Diagrams)</a>
+            <a href="/blog/posts/Github-Actions-rebuild-native-dependencies-%E6%9C%83%E5%8D%A1%E4%BD%8F%E5%95%8F%E9%A1%8C/" class="next" rel="next" title="Github Actions  rebuild native dependencies 會卡住問題">Github Actions  rebuild native dependencies 會卡住問題<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

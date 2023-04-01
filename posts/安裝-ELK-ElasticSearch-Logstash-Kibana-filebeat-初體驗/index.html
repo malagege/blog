@@ -1,324 +1,875 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><meta property="og:description" content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗" />
+<meta property="og:description" content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗
 本文章參考: Elastic stack（安裝篇) - HackMD
-大量操作參照如上"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-05-02T20:32:04+00:00"><meta property="article:modified_time" content="2021-05-02T20:32:04+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><meta name=twitter:description content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗
+大量操作參照如上" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-05-02T20:32:04+00:00" />
+<meta property="article:modified_time" content="2021-05-02T20:32:04+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"/>
+<meta name="twitter:description" content="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗
 本文章參考: Elastic stack（安裝篇) - HackMD
-大量操作參照如上"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/><link rel=prev href=https://malagege.github.io/blog/posts/Loki-%E5%88%9D%E9%AB%94%E9%A9%97%E6%95%99%E5%AD%B8/><link rel=next href=https://malagege.github.io/blog/posts/Eclipse-%E8%99%95%E7%90%86-Maven-%E5%95%8F%E9%A1%8C/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97\/"},"genre":"posts","keywords":"elasticsearch, logstash, kibana, filebeat","wordcount":1360,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97\/","datePublished":"2021-05-02T20:32:04+00:00","dateModified":"2021-05-02T20:32:04+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/ELK/><i class="far fa-folder fa-fw" aria-hidden=true></i>ELK</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-05-02>2021-05-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1360 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;7 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#安裝-elasticsearch>安裝 Elasticsearch</a><ul><li><a href=#安裝-jdk-這部分請跳過>安裝 JDK (這部分請跳過)</a></li><li><a href=#安裝-elasticsearch-1>安裝 Elasticsearch</a></li><li><a href=#啟動-elasticsearch>啟動 ElasticSearch</a></li></ul></li><li><a href=#設定-elasticsearch>設定 ElasticSearch</a></li><li><a href=#安裝-kinbana>安裝 Kinbana</a><ul><li><a href=#設定-kibana>設定 kibana</a></li></ul></li><li><a href=#logstash>logstash</a><ul><li><a href=#安裝-logstash>安裝 logstash</a></li><li><a href=#hello-world>Hello World</a></li><li><a href=#翻車時間>翻車時間</a></li><li><a href=#設定>設定</a></li><li><a href=#config-設定>config 設定</a></li></ul></li><li><a href=#filebeat>filebeat</a><ul><li><a href=#安裝-filebeat>安裝 filebeat</a></li><li><a href=#設定檔>設定檔</a></li><li><a href=#相關模組>相關模組</a></li><li><a href=#logstash-和-filebeat-關係>logstash 和 filebeat 關係</a></li><li><a href=#kibana-設定filebeat>kibana 設定filebeat</a></li></ul></li><li><a href=#題外話>題外話</a></li><li><a href=#其他不錯文章>其他不錯文章</a></li></ul></nav></div></div><div class=content id=content><h1 id=安裝-elkelasticsearchlogstashkibanafilebeat-初體驗>安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗</h1><p>本文章參考: <a href="https://hackmd.io/@QCZ_Kvv1ScixyAPzRYDKWQ/ry2Inu5HE?type=view" target=_blank rel="noopener noreffer">Elastic stack（安裝篇) - HackMD</a><br>大量操作參照如上</p><h2 id=安裝-elasticsearch>安裝 Elasticsearch</h2><p>官方說明的安裝步驟:<br><a href=https://www.elastic.co/downloads/elasticsearch-no-jdk target=_blank rel="noopener noreffer">Download Elasticsearch Free • Get Started Now | Elastic</a></p><ol><li>Download and install one of the supported JDKs for Elasticsearch</li><li>Download and unzip Elasticsearch</li><li>Run bin/elasticsearch (or bin\elasticsearch.bat on Windows)</li><li>Run curl http://localhost:9200/ or Invoke-RestMethod http://localhost:9200 with PowerShell</li></ol><p>我這邊用 VM 來安裝 ubuntu 還境</p><p><a href=https://app.vagrantup.com/ubuntu/boxes/focal64 target=_blank rel="noopener noreffer">Vagrant box ubuntu/focal64 - Vagrant Cloud</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>vagrant init ubuntu/focal64
-</span></span><span class=line><span class=cl>vagrant up
-</span></span></code></pre></td></tr></table></div></div><p>可能會遇到這個問題<br><a href=https://malagege.github.io/blog/posts/vagrant-%E5%95%9F%E5%8B%95%E7%84%A1%E6%B3%95%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ target=_blank rel="noopener noreffer">vagrant 啟動無法自動掛載解決方法 | 程式狂想筆記</a></p><p>vagrant 建議 RAM 調成 3GB</p><p>VM 設一個可以連的IP</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/5XQeiq0.png data-srcset="https://i.imgur.com/5XQeiq0.png, https://i.imgur.com/5XQeiq0.png 1.5x, https://i.imgur.com/5XQeiq0.png 2x" data-sizes=auto alt=https://i.imgur.com/5XQeiq0.png title=https://i.imgur.com/5XQeiq0.png></p><h3 id=安裝-jdk-這部分請跳過>安裝 JDK (這部分請跳過)</h3><p>因為我安裝 ElasticSearch 遇到could not find java; set JAVA_HOME or ensure java is in PATH<br>好像是 deb 安裝才會遇到這個問題<br>設定 JAVA_HOME 還是無法解決</p><p><a href=https://www.elastic.co/support/matrix#matrix_jvm target=_blank rel="noopener noreffer">Elastic Support Matrix | Elasticsearch</a><br>我選 Elasticsearch 7.12.x<br>JDK 對應版本選 11</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo apt-get install openjdk-11-jdk
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 確認版本</span>
-</span></span><span class=line><span class=cl>java --version
-</span></span><span class=line><span class=cl><span class=c1># openjdk 11.0.11 2021-04-20</span>
-</span></span><span class=line><span class=cl><span class=c1># OpenJDK Runtime Environment (build 11.0.11+9-Ubuntu-0ubuntu2.20.04)</span>
-</span></span><span class=line><span class=cl><span class=c1># OpenJDK 64-Bit Server VM (build 11.0.11+9-Ubuntu-0ubuntu2.20.04, mixed mode, sharing)</span>
-</span></span></code></pre></td></tr></table></div></div><p>設定 JAVA_HOME</p><p><a href=https://stackoverflow.com/questions/24641536/how-to-set-java-home-in-linux-for-all-users target=_blank rel="noopener noreffer">java - How to set JAVA_HOME in Linux for all users - Stack Overflow</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 請查看對印自己Java路徑做調整</span>
-</span></span><span class=line><span class=cl><span class=nv>JAVA_HOME</span><span class=o>=</span>/usr/lib/jvm/java-1.11.0-openjdk-amd64
-</span></span><span class=line><span class=cl><span class=nv>ES_JAVA_HOME</span><span class=o>=</span>/usr/lib/jvm/java-1.11.0-openjdk-amd64
-</span></span></code></pre></td></tr></table></div></div><h3 id=安裝-elasticsearch-1>安裝 Elasticsearch</h3><p><a href=https://www.elastic.co/downloads/elasticsearch-no-jdk target=_blank rel="noopener noreffer">Download Elasticsearch Free • Get Started Now | Elastic</a><br>選對應版本</p><p><a href=https://www.elastic.co/guide/en/elasticsearch/reference/7.12/deb.html#deb-repo target=_blank rel="noopener noreffer">Install Elasticsearch with Debian Package | Elasticsearch Guide [7.12] | Elastic</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.12.1-amd64.deb
-</span></span><span class=line><span class=cl>wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.12.1-amd64.deb.sha512
-</span></span><span class=line><span class=cl>shasum -a <span class=m>512</span> -c elasticsearch-7.12.1-amd64.deb.sha512 
-</span></span><span class=line><span class=cl>sudo dpkg -i elasticsearch-7.12.1-amd64.deb
-</span></span></code></pre></td></tr></table></div></div><h4 id=安裝翻車排除>安裝翻車排除</h4><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/l1KX7wU.png data-srcset="https://i.imgur.com/l1KX7wU.png, https://i.imgur.com/l1KX7wU.png 1.5x, https://i.imgur.com/l1KX7wU.png 2x" data-sizes=auto alt=https://i.imgur.com/l1KX7wU.png title=https://i.imgur.com/l1KX7wU.png></p><p><a href=https://www.cnblogs.com/FengGeBlog/p/10266126.html target=_blank rel="noopener noreffer">elasticsearch之JAVA环境变量报错：could not find java; set JAVA_HOME or ensure java is in PATH - 峰哥ge - 博客园</a></p><p>設定JAVA_HOME 安裝也沒用<br>上面 deb 是函JAVA的<br>目前推估 安裝 deb 才會遇到這個問題</p><p>單純抓zip應該可以設定 JAVA_HOME 解決</p><h3 id=啟動-elasticsearch>啟動 ElasticSearch</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>sudo service elasticsearch start
-</span></span></code></pre></td></tr></table></div></div><p>確認是否成功</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl http://localhost:9200/
-</span></span><span class=line><span class=cl><span class=c1># {</span>
-</span></span><span class=line><span class=cl><span class=c1>#   &#34;name&#34; : &#34;ubuntu-focal&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#   &#34;cluster_name&#34; : &#34;elasticsearch&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#   &#34;cluster_uuid&#34; : &#34;AjrnvASjSG6aWrJIFhzSYg&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#   &#34;version&#34; : {</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;number&#34; : &#34;7.12.1&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;build_flavor&#34; : &#34;default&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;build_type&#34; : &#34;deb&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;build_hash&#34; : &#34;3186837139b9c6b6d23c3200870651f10d3343b7&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;build_date&#34; : &#34;2021-04-20T20:56:39.040728659Z&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;build_snapshot&#34; : false,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;lucene_version&#34; : &#34;8.8.0&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;minimum_wire_compatibility_version&#34; : &#34;6.8.0&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;minimum_index_compatibility_version&#34; : &#34;6.0.0-beta1&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1>#   },</span>
-</span></span><span class=line><span class=cl><span class=c1>#   &#34;tagline&#34; : &#34;You Know, for Search&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1># }</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=設定-elasticsearch>設定 ElasticSearch</h2><p>預設是 localhost 連線<br>要外連預需要設定</p><p>/etc/elasticsearch/elasticsearch.yml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># By default Elasticsearch is only accessible on localhost. Set a different</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c># address here to expose this node on the network:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>#</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>#network.host: 192.168.0.1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>#</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c># By default Elasticsearch listens for HTTP traffic on the first free port it</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c># finds starting at 9200. Set a specific HTTP port here:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>#</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>#http.port: 9200</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=安裝-kinbana>安裝 Kinbana</h2><p><a href=https://www.elastic.co/guide/en/kibana/7.12/deb.html#install-deb target=_blank rel="noopener noreffer">Install Kibana with Debian package | Kibana Guide [7.12] | Elastic</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget https://artifacts.elastic.co/downloads/kibana/kibana-7.12.1-amd64.deb
-</span></span><span class=line><span class=cl>shasum -a <span class=m>512</span> kibana-7.12.1-amd64.deb 
-</span></span><span class=line><span class=cl>sudo dpkg -i kibana-7.12.1-amd64.deb
-</span></span></code></pre></td></tr></table></div></div><h3 id=設定-kibana>設定 kibana</h3><p>設定對外 IP</p><p>補充: 這邊 Vagrant 要設定 VM 對外 IP<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/MH2wTZ9.png data-srcset="https://i.imgur.com/MH2wTZ9.png, https://i.imgur.com/MH2wTZ9.png 1.5x, https://i.imgur.com/MH2wTZ9.png 2x" data-sizes=auto alt=https://i.imgur.com/MH2wTZ9.png title=https://i.imgur.com/MH2wTZ9.png></p><p>要把 kibana 設定這個 IP</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/w9NM5hV.png data-srcset="https://i.imgur.com/w9NM5hV.png, https://i.imgur.com/w9NM5hV.png 1.5x, https://i.imgur.com/w9NM5hV.png 2x" data-sizes=auto alt=https://i.imgur.com/w9NM5hV.png title=https://i.imgur.com/w9NM5hV.png></p><h4 id=kibana-server-is-not-ready-yet>Kibana server is not ready yet</h4><ol><li>確認本機 ElasticSearch 是否啟動</li><li>確認 kibana.yml 裡面 ElasticSearch 設定是否正確(預設為localhost:9200)</li><li><a href=https://blog.csdn.net/FV8023/article/details/96427702 target=_blank rel="noopener noreffer">Kibana server is not ready yet出现的原因_FV8023的博客-CSDN博客</a></li></ol><p>我後來發現 ElasticSearch 重啟的時候<br>沒辦法啟動，後來 RAM 調大(2GB)就正常了</p><h2 id=logstash>logstash</h2><h3 id=安裝-logstash>安裝 logstash</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget https://artifacts.elastic.co/downloads/logstash/logstash-7.12.1-amd64.deb
-</span></span><span class=line><span class=cl>sudo apt install ./logstash-7.12.1-amd64.deb 
-</span></span></code></pre></td></tr></table></div></div><p>安裝時候當機，所以RAM調成 3GB<br>可見這個真的很吃記憶體</p><h3 id=hello-world>Hello World</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>/usr/share/logstash/bin/logstash -e &#39;input { stdin { } } output { stdout {} }&#39;
-</span></span></code></pre></td></tr></table></div></div><p>我這邊沒看到 Hello World<br>基本上就是有問題</p><h3 id=翻車時間>翻車時間</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Using bundled JDK: /usr/share/logstash/jdk
-</span></span><span class=line><span class=cl>OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://tomme.me/hello-world-series-logstash/ target=_blank rel="noopener noreffer">Hello World 系列 - Logstash</a></p><p>後來發現不是翻車，是執行 logstash 需要一段時間(VM效能不好)<br>跑了一下，我看<code>htop</code> CPU 吃到100%<br>所以要等一下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Using bundled JDK: /usr/share/logstash/jdk
-</span></span><span class=line><span class=cl>WARNING: Could not find logstash.yml which is typically located in $LS_HOME/config or /etc/logstash. You can specify the path using --path.settings. Continuing using the defaults
-</span></span><span class=line><span class=cl>Could not find log4j2 configuration at path /usr/share/logstash/config/log4j2.properties. Using default config which logs errors to the console
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:04:55.718 [main] runner - Starting Logstash {&#34;logstash.version&#34;=&gt;&#34;7.12.1&#34;, &#34;jruby.version&#34;=&gt;&#34;jruby 9.2.13.0 (2.5.7) 2020-08-03 9a89c94bcc OpenJDK 64-Bit Server VM 11.0.10+9 on 11.0.10+9 +indy +jit [linux-x86_64]&#34;}
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:04:55.779 [main] writabledirectory - Creating directory {:setting=&gt;&#34;path.queue&#34;, :path=&gt;&#34;/usr/share/logstash/data/queue&#34;}
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:04:55.815 [main] writabledirectory - Creating directory {:setting=&gt;&#34;path.dead_letter_queue&#34;, :path=&gt;&#34;/usr/share/logstash/data/dead_letter_queue&#34;}
-</span></span><span class=line><span class=cl>[WARN ] 2021-05-01 16:04:56.611 [LogStash::Runner] multilocal - Ignoring the &#39;pipelines.yml&#39; file because modules or command line options are specified
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:04:56.666 [LogStash::Runner] agent - No persistent UUID file found. Generating new UUID {:uuid=&gt;&#34;f2a71911-edf5-4c53-bf68-5a31e6ad8dd7&#34;, :path=&gt;&#34;/usr/share/logstash/data/uuid&#34;}
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:04:58.798 [Api Webserver] agent - Successfully started Logstash API endpoint {:port=&gt;9600}
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:05:00.048 [Converge PipelineAction::Create&lt;main&gt;] Reflections - Reflections took 101 ms to scan 1 urls, producing 23 keys and 47 values 
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:05:01.424 [[main]-pipeline-manager] javapipeline - Starting pipeline {:pipeline_id=&gt;&#34;main&#34;, &#34;pipeline.workers&#34;=&gt;2, &#34;pipeline.batch.size&#34;=&gt;125, &#34;pipeline.batch.delay&#34;=&gt;50, &#34;pipeline.max_inflight&#34;=&gt;250, &#34;pipeline.sources&#34;=&gt;[&#34;config string&#34;], :thread=&gt;&#34;#&lt;Thread:0x701b0f11 run&gt;&#34;}
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:05:03.202 [[main]-pipeline-manager] javapipeline - Pipeline Java execution initialization time {&#34;seconds&#34;=&gt;1.77}
-</span></span><span class=line><span class=cl>WARNING: An illegal reflective access operation has occurred
-</span></span><span class=line><span class=cl>WARNING: Illegal reflective access by com.jrubystdinchannel.StdinChannelLibrary$Reader (file:/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/jruby-stdin-channel-0.2.0-java/lib/jruby_stdin_channel/jruby_stdin_channel.jar) to field java.io.FilterInputStream.in
-</span></span><span class=line><span class=cl>WARNING: Please consider reporting this to the maintainers of com.jrubystdinchannel.StdinChannelLibrary$Reader
-</span></span><span class=line><span class=cl>WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-</span></span><span class=line><span class=cl>WARNING: All illegal access operations will be denied in a future release
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:05:03.290 [[main]-pipeline-manager] javapipeline - Pipeline started {&#34;pipeline.id&#34;=&gt;&#34;main&#34;}
-</span></span><span class=line><span class=cl>The stdin plugin is now waiting for input:
-</span></span><span class=line><span class=cl>[INFO ] 2021-05-01 16:05:03.469 [Agent thread] agent - Pipelines running {:count=&gt;1, :running_pipelines=&gt;[:main], :non_running_pipelines=&gt;[]}
-</span></span><span class=line><span class=cl>hello
-</span></span><span class=line><span class=cl>{
-</span></span><span class=line><span class=cl>          &#34;host&#34; =&gt; &#34;ubuntu-focal&#34;,
-</span></span><span class=line><span class=cl>       &#34;message&#34; =&gt; &#34;hello&#34;,
-</span></span><span class=line><span class=cl>      &#34;@version&#34; =&gt; &#34;1&#34;,
-</span></span><span class=line><span class=cl>    &#34;@timestamp&#34; =&gt; 2021-05-01T16:05:55.327Z
-</span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h3 id=設定>設定</h3><ol><li>logstash 預設會先抓/etc/logstash/conf.d 的config檔案</li><li>logstash 預設會先抓/etc/logstash/logstash.yml</li></ol><p><a href=https://mmx362003.gitbooks.io/elk-stack-guide/content/config_of_logstash.html target=_blank rel="noopener noreffer">2.1 Config Of Logstash · ELK Stack 教學</a></p><h3 id=config-設定>config 設定</h3><h4 id=stdin>stdin</h4><p><a href=https://doc.yonyoucloud.com/doc/logstash-best-practice-cn/input/stdin.html target=_blank rel="noopener noreffer">标准输入(Stdin) | Logstash 最佳实践</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>input {
-</span></span><span class=line><span class=cl>    stdin {
-</span></span><span class=line><span class=cl>        add_field =&gt; {&#34;key&#34; =&gt; &#34;value&#34;}
-</span></span><span class=line><span class=cl>        codec =&gt; &#34;plain&#34;
-</span></span><span class=line><span class=cl>        tags =&gt; [&#34;add&#34;]
-</span></span><span class=line><span class=cl>        type =&gt; &#34;std&#34;
-</span></span><span class=line><span class=cl>    }
-</span></span><span class=line><span class=cl>}
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>output{
-</span></span><span class=line><span class=cl>    stdout{}
-</span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 在/usr/share/logstash 執行，stdin.conf 放在這邊執行</span>
-</span></span><span class=line><span class=cl>sudo bin/logstash -f stdin.conf
-</span></span><span class=line><span class=cl><span class=c1># {</span>
-</span></span><span class=line><span class=cl><span class=c1>#           &#34;tags&#34; =&gt; [</span>
-</span></span><span class=line><span class=cl><span class=c1>#         [0] &#34;add&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1>#     ],</span>
-</span></span><span class=line><span class=cl><span class=c1>#           &#34;host&#34; =&gt; &#34;ubuntu-focal&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#           &#34;type&#34; =&gt; &#34;std&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#            &#34;key&#34; =&gt; &#34;value&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#       &#34;@version&#34; =&gt; &#34;1&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#        &#34;message&#34; =&gt; &#34;:q&#34;,</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &#34;@timestamp&#34; =&gt; 2021-05-01T16:38:27.958Z</span>
-</span></span><span class=line><span class=cl><span class=c1># }</span>
-</span></span></code></pre></td></tr></table></div></div><h4 id=file-log>file log</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>input{
-</span></span><span class=line><span class=cl>    file {
-</span></span><span class=line><span class=cl>        path =&gt; [&#34;/var/log/*.log&#34;, &#34;/var/log/message&#34;]
-</span></span><span class=line><span class=cl>        type =&gt; &#34;system&#34;
-</span></span><span class=line><span class=cl>        start_position =&gt; &#34;beginning&#34;
-</span></span><span class=line><span class=cl>    }
-</span></span><span class=line><span class=cl>}
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>output{
-</span></span><span class=line><span class=cl>    stdout{}
-</span></span><span class=line><span class=cl>}
-</span></span><span class=line><span class=cl>~                    
-</span></span></code></pre></td></tr></table></div></div><p>放在 /etc/logstash/conf/ 裡面<br>執行 logstash 就能被觸發</p><p>其他的就不記了<br>可參考下面網址<br><a href=https://doc.yonyoucloud.com/doc/logstash-best-practice-cn/input/index.html target=_blank rel="noopener noreffer">输入插件(Input) | Logstash 最佳实践</a></p><p><a href=https://github.com/chenryn/logstash-best-practice-cn target=_blank rel="noopener noreffer">GitHub - chenryn/logstash-best-practice-cn: 本书已出版《ELK Stack权威指南》</a></p><p><a href=https://github.com/chenryn/ELKstack-guide-cn target=_blank rel="noopener noreffer">GitHub - chenryn/ELKstack-guide-cn: ELK Stack 中文指南</a></p><h4 id=output>output</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>output {
-</span></span><span class=line><span class=cl>    stdout {
-</span></span><span class=line><span class=cl>        codec =&gt; rubydebug
-</span></span><span class=line><span class=cl>        workers =&gt; 2
-</span></span><span class=line><span class=cl>    }
-</span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h4 id=output-file>output file</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>output {
-</span></span><span class=line><span class=cl>    file {
-</span></span><span class=line><span class=cl>        path =&gt; &#34;/path/to/%{+yyyy/MM/dd/HH}/%{host}.log.gz&#34;
-</span></span><span class=line><span class=cl>        message_format =&gt; &#34;%{message}&#34;
-</span></span><span class=line><span class=cl>        gzip =&gt; true
-</span></span><span class=line><span class=cl>    }
-</span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h4 id=output-elasticsearch>output Elasticsearch</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>output {
-</span></span><span class=line><span class=cl>    elasticsearch {
-</span></span><span class=line><span class=cl>        host =&gt; &#34;192.168.0.2&#34;
-</span></span><span class=line><span class=cl>        protocol =&gt; &#34;http&#34;
-</span></span><span class=line><span class=cl>        index =&gt; &#34;logstash-%{type}-%{+YYYY.MM.dd}&#34;
-</span></span><span class=line><span class=cl>        index_type =&gt; &#34;%{type}&#34;
-</span></span><span class=line><span class=cl>        workers =&gt; 5
-</span></span><span class=line><span class=cl>        template_overwrite =&gt; true
-</span></span><span class=line><span class=cl>    }
-</span></span><span class=line><span class=cl>}
-</span></span></code></pre></td></tr></table></div></div><h2 id=filebeat>filebeat</h2><h3 id=安裝-filebeat>安裝 filebeat</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.12.1-amd64.deb
-</span></span><span class=line><span class=cl>sudo apt install ./filebeat-7.12.1-amd64.deb
-</span></span></code></pre></td></tr></table></div></div><h3 id=設定檔>設定檔</h3><p>/etc/filebeat/filebeat.yml<br>裡面有很多 input 都disable<br>output預設連到 localhost:9200 的 elasticsearch<br>假如想用到 logstash 需要手動註解調，並打開logstash output 那邊</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/2AufteG.png data-srcset="https://i.imgur.com/2AufteG.png, https://i.imgur.com/2AufteG.png 1.5x, https://i.imgur.com/2AufteG.png 2x" data-sizes=auto alt=https://i.imgur.com/2AufteG.png title=https://i.imgur.com/2AufteG.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/YdOZW1G.png data-srcset="https://i.imgur.com/YdOZW1G.png, https://i.imgur.com/YdOZW1G.png 1.5x, https://i.imgur.com/YdOZW1G.png 2x" data-sizes=auto alt=https://i.imgur.com/YdOZW1G.png title=https://i.imgur.com/YdOZW1G.png></p><p>請依照需求調整</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 可以看到測試 log</span>
-</span></span><span class=line><span class=cl>filebeat -e
-</span></span><span class=line><span class=cl><span class=c1># 沒問題的話，service 啟動</span>
-</span></span><span class=line><span class=cl>sudo service filebeat start
-</span></span></code></pre></td></tr></table></div></div><h3 id=相關模組>相關模組</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 查看可以用的模組</span>
-</span></span><span class=line><span class=cl>filebeat modules list
-</span></span></code></pre></td></tr></table></div></div><p>這邊先不深入研究<br><a href=https://www.cnblogs.com/zsql/p/13137833.html target=_blank rel="noopener noreffer">一篇文章搞懂filebeat（ELK） - 一寸HUI - 博客园</a></p><p><a href=https://github.com/revolunet/traefik-filebeats-kibana target=_blank rel="noopener noreffer">GitHub - revolunet/traefik-filebeats-kibana: sample docker-compose with traefik and kibana dashboard using filebeats</a></p><h3 id=logstash-和-filebeat-關係>logstash 和 filebeat 關係</h3><p>網路上看到 filebeat 都傳送到 logstash 教學比較多<br>但後來實作發現不是這樣<br>可以依照需求直接傳到 elasticsearch<br>甚至可以做到 LoadBalance 傳到 logstash<br>詳細可以看:<a href=https://codingnote.cc/zh-tw/p/144718/ target=_blank rel="noopener noreffer">搞懂ELK並不是一件特別難的事（ELK） - ⎝⎛CodingNote.cc ⎞⎠</a></p><p>甚是中間可以搭 Message Queue</p><h3 id=kibana-設定filebeat>kibana 設定filebeat</h3><p>去管理設定 Index Mangament<br>點選 Create Index Partten<br>step 1 打 filebeat*<br>step 2 選 @timestamp<br>新增完成，取選 Discover<br>就可以用 KQL 查詢</p><p>不方便截圖，所以這裡就簡單紀錄一下</p><h2 id=題外話>題外話</h2><p>原本目標， Nginx 抓出 Acess Log 做地圖分析<br>不過想說安裝細結清楚一點比較好<br>沒想到就花了不少時間整理</p><p>目前查看我這個抓 Access Log GeoIP 方法</p><ol><li>從 Nginx 下手取 geoip資訊(經緯度、縣市名稱)</li></ol><p><a href=https://faun.pub/total-nginx-monitoring-with-application-performance-and-a-bit-more-using-8fc6d731051b target=_blank rel="noopener noreffer">Total Nginx monitoring, with application performance and a bit more, using Telegraf/InfluxDB/Grafana. | by Alexey Nizhegolenko | FAUN</a></p><ol start=2><li>Logstash Filter GeoIP 模組取得資訊</li></ol><p><a href=https://www.mdeditor.tw/pl/g4XZ/zh-tw target=_blank rel="noopener noreffer">Grafana展示精美的nginx訪問日誌圖表_小小________ - MdEditor</a></p><p>Loki 目前沒有取出來 GeoIP 方法<br><a href=https://github.com/grafana/loki/issues/2120 target=_blank rel="noopener noreffer">Add support for Geo IP · Issue #2120 · grafana/loki · GitHub</a><br>其實 Logstash 也能跟 Loki 串<br><a href=https://grafana.com/docs/loki/latest/clients/logstash/ target=_blank rel="noopener noreffer">Logstash | Grafana Labs</a><br>但說真的 Logstash 效能感覺也不是很好(上面測試跑都要花一點時間，我還以為跑失敗)<br>在樹梅派跑可能也很吃力</p><p>本來想用 docker 執行看看，但官方沒有做 arm 版本<br>就不測試了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>docker run -it  --rm logstash:7.12.1 logstash -e <span class=s1>&#39;input { stdin { } } output { stdout {} }&#39;</span> 
-</span></span></code></pre></td></tr></table></div></div><p>GeoIP 哪貼心血來潮再進行測試<br>這部分也沒有現成包好 docker 可以直接玩</p><h2 id=其他不錯文章>其他不錯文章</h2><p><a href=https://www.jianshu.com/p/f57176a3c03f target=_blank rel="noopener noreffer">ElasticSearch 全文检索技术（一） - 简书</a></p><p><a href=https://www.zhihu.com/question/54058964 target=_blank rel="noopener noreffer">logstash 和filebeat 是什么关系？ - 知乎</a></p><p><a href=https://leriou.github.io/2019-01-09-mongodb-compareto-elasticsearch/ target=_blank rel="noopener noreffer">MongoDB和Elasticsearch的对比 | Leriou&rsquo;s Tavern</a></p><p><a href=https://codingnote.cc/zh-tw/p/144718/ target=_blank rel="noopener noreffer">搞懂ELK並不是一件特別難的事（ELK） - ⎝⎛CodingNote.cc ⎞⎠</a></p><p><a href=https://segmentfault.com/a/1190000022533196 target=_blank rel="noopener noreffer">关于kibana的可视化可能都在这篇文章里了 - SegmentFault 思否</a></p><p><a href=https://blog.csdn.net/qq_41631365/article/details/109773675 target=_blank rel="noopener noreffer">Kibana7.9.2设置elasticsearch索引过期时间，到期自动删除_螺蛳粉不加葱的博客-CSDN博客_es设置索引过期时间</a></p><p><a href=https://godleon.github.io/blog/Elasticsearch/Elasticsearch-getting-started/ target=_blank rel="noopener noreffer">[Elasticsearch] 基本概念 & 搜尋入門 | 小信豬的原始部落</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-05-02</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/ data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗" data-hashtags=elasticsearch,logstash,kibana,filebeat><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/ data-hashtag=elasticsearch><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/ data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/ data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/ data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/elasticsearch/>elasticsearch</a>,&nbsp;<a href=/blog/tags/logstash/>logstash</a>,&nbsp;<a href=/blog/tags/kibana/>kibana</a>,&nbsp;<a href=/blog/tags/filebeat/>filebeat</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Loki-%E5%88%9D%E9%AB%94%E9%A9%97%E6%95%99%E5%AD%B8/ class=prev rel=prev title="Loki 初體驗教學(在Raspberry 啟用 Docker-Loki-Driver)"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Loki 初體驗教學(在Raspberry 啟用 Docker-Loki-Driver)</a>
-<a href=/blog/posts/Eclipse-%E8%99%95%E7%90%86-Maven-%E5%95%8F%E9%A1%8C/ class=next rel=next title="Eclipse 處理 Maven 問題">Eclipse 處理 Maven 問題<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+大量操作參照如上"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Loki-%E5%88%9D%E9%AB%94%E9%A9%97%E6%95%99%E5%AD%B8/" /><link rel="next" href="https://malagege.github.io/blog/posts/Eclipse-%E8%99%95%E7%90%86-Maven-%E5%95%8F%E9%A1%8C/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97\/"
+        },"genre": "posts","keywords": "elasticsearch, logstash, kibana, filebeat","wordcount":  1360 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97\/","datePublished": "2021-05-02T20:32:04+00:00","dateModified": "2021-05-02T20:32:04+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/ELK/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>ELK</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-05-02">2021-05-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1360 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#安裝-elasticsearch">安裝 Elasticsearch</a>
+      <ul>
+        <li><a href="#安裝-jdk-這部分請跳過">安裝 JDK (這部分請跳過)</a></li>
+        <li><a href="#安裝-elasticsearch-1">安裝 Elasticsearch</a></li>
+        <li><a href="#啟動-elasticsearch">啟動 ElasticSearch</a></li>
+      </ul>
+    </li>
+    <li><a href="#設定-elasticsearch">設定 ElasticSearch</a></li>
+    <li><a href="#安裝-kinbana">安裝 Kinbana</a>
+      <ul>
+        <li><a href="#設定-kibana">設定 kibana</a></li>
+      </ul>
+    </li>
+    <li><a href="#logstash">logstash</a>
+      <ul>
+        <li><a href="#安裝-logstash">安裝 logstash</a></li>
+        <li><a href="#hello-world">Hello World</a></li>
+        <li><a href="#翻車時間">翻車時間</a></li>
+        <li><a href="#設定">設定</a></li>
+        <li><a href="#config-設定">config 設定</a></li>
+      </ul>
+    </li>
+    <li><a href="#filebeat">filebeat</a>
+      <ul>
+        <li><a href="#安裝-filebeat">安裝 filebeat</a></li>
+        <li><a href="#設定檔">設定檔</a></li>
+        <li><a href="#相關模組">相關模組</a></li>
+        <li><a href="#logstash-和-filebeat-關係">logstash 和 filebeat 關係</a></li>
+        <li><a href="#kibana-設定filebeat">kibana 設定filebeat</a></li>
+      </ul>
+    </li>
+    <li><a href="#題外話">題外話</a></li>
+    <li><a href="#其他不錯文章">其他不錯文章</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="安裝-elkelasticsearchlogstashkibanafilebeat-初體驗">安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗</h1>
+<p>本文章參考: <a href="https://hackmd.io/@QCZ_Kvv1ScixyAPzRYDKWQ/ry2Inu5HE?type=view" target="_blank" rel="noopener noreffer ">Elastic stack（安裝篇) - HackMD</a><br>
+大量操作參照如上</p>
+<h2 id="安裝-elasticsearch">安裝 Elasticsearch</h2>
+<p>官方說明的安裝步驟:<br>
+<a href="https://www.elastic.co/downloads/elasticsearch-no-jdk" target="_blank" rel="noopener noreffer ">Download Elasticsearch Free • Get Started Now | Elastic</a></p>
+<ol>
+<li>Download and install one of the supported JDKs for Elasticsearch</li>
+<li>Download and unzip Elasticsearch</li>
+<li>Run bin/elasticsearch (or bin\elasticsearch.bat on Windows)</li>
+<li>Run curl http://localhost:9200/ or Invoke-RestMethod http://localhost:9200 with PowerShell</li>
+</ol>
+<p>我這邊用 VM 來安裝 ubuntu 還境</p>
+<p><a href="https://app.vagrantup.com/ubuntu/boxes/focal64" target="_blank" rel="noopener noreffer ">Vagrant box ubuntu/focal64 - Vagrant Cloud</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">vagrant init ubuntu/focal64
+</span></span><span class="line"><span class="cl">vagrant up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可能會遇到這個問題<br>
+<a href="https://malagege.github.io/blog/posts/vagrant-%E5%95%9F%E5%8B%95%E7%84%A1%E6%B3%95%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">vagrant 啟動無法自動掛載解決方法 | 程式狂想筆記</a></p>
+<p>vagrant 建議 RAM 調成 3GB</p>
+<p>VM 設一個可以連的IP</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/5XQeiq0.png"
+        data-srcset="https://i.imgur.com/5XQeiq0.png, https://i.imgur.com/5XQeiq0.png 1.5x, https://i.imgur.com/5XQeiq0.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/5XQeiq0.png"
+        title="https://i.imgur.com/5XQeiq0.png" /></p>
+<h3 id="安裝-jdk-這部分請跳過">安裝 JDK (這部分請跳過)</h3>
+<p>因為我安裝 ElasticSearch 遇到could not find java; set JAVA_HOME or ensure java is in PATH<br>
+好像是 deb 安裝才會遇到這個問題<br>
+設定 JAVA_HOME 還是無法解決</p>
+<p><a href="https://www.elastic.co/support/matrix#matrix_jvm" target="_blank" rel="noopener noreffer ">Elastic Support Matrix | Elasticsearch</a><br>
+我選 Elasticsearch 7.12.x<br>
+JDK 對應版本選 11</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get install openjdk-11-jdk
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 確認版本</span>
+</span></span><span class="line"><span class="cl">java --version
+</span></span><span class="line"><span class="cl"><span class="c1"># openjdk 11.0.11 2021-04-20</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># OpenJDK Runtime Environment (build 11.0.11+9-Ubuntu-0ubuntu2.20.04)</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># OpenJDK 64-Bit Server VM (build 11.0.11+9-Ubuntu-0ubuntu2.20.04, mixed mode, sharing)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>設定 JAVA_HOME</p>
+<p><a href="https://stackoverflow.com/questions/24641536/how-to-set-java-home-in-linux-for-all-users" target="_blank" rel="noopener noreffer ">java - How to set JAVA_HOME in Linux for all users - Stack Overflow</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 請查看對印自己Java路徑做調整</span>
+</span></span><span class="line"><span class="cl"><span class="nv">JAVA_HOME</span><span class="o">=</span>/usr/lib/jvm/java-1.11.0-openjdk-amd64
+</span></span><span class="line"><span class="cl"><span class="nv">ES_JAVA_HOME</span><span class="o">=</span>/usr/lib/jvm/java-1.11.0-openjdk-amd64
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="安裝-elasticsearch-1">安裝 Elasticsearch</h3>
+<p><a href="https://www.elastic.co/downloads/elasticsearch-no-jdk" target="_blank" rel="noopener noreffer ">Download Elasticsearch Free • Get Started Now | Elastic</a><br>
+選對應版本</p>
+<p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.12/deb.html#deb-repo" target="_blank" rel="noopener noreffer ">Install Elasticsearch with Debian Package | Elasticsearch Guide [7.12] | Elastic</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.12.1-amd64.deb
+</span></span><span class="line"><span class="cl">wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.12.1-amd64.deb.sha512
+</span></span><span class="line"><span class="cl">shasum -a <span class="m">512</span> -c elasticsearch-7.12.1-amd64.deb.sha512 
+</span></span><span class="line"><span class="cl">sudo dpkg -i elasticsearch-7.12.1-amd64.deb
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="安裝翻車排除">安裝翻車排除</h4>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/l1KX7wU.png"
+        data-srcset="https://i.imgur.com/l1KX7wU.png, https://i.imgur.com/l1KX7wU.png 1.5x, https://i.imgur.com/l1KX7wU.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/l1KX7wU.png"
+        title="https://i.imgur.com/l1KX7wU.png" /></p>
+<p><a href="https://www.cnblogs.com/FengGeBlog/p/10266126.html" target="_blank" rel="noopener noreffer ">elasticsearch之JAVA环境变量报错：could not find java; set JAVA_HOME or ensure java is in PATH - 峰哥ge - 博客园</a></p>
+<p>設定JAVA_HOME 安裝也沒用<br>
+上面 deb 是函JAVA的<br>
+目前推估 安裝 deb 才會遇到這個問題</p>
+<p>單純抓zip應該可以設定 JAVA_HOME 解決</p>
+<h3 id="啟動-elasticsearch">啟動 ElasticSearch</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo service elasticsearch start
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>確認是否成功</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl http://localhost:9200/
+</span></span><span class="line"><span class="cl"><span class="c1"># {</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   &#34;name&#34; : &#34;ubuntu-focal&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   &#34;cluster_name&#34; : &#34;elasticsearch&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   &#34;cluster_uuid&#34; : &#34;AjrnvASjSG6aWrJIFhzSYg&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   &#34;version&#34; : {</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;number&#34; : &#34;7.12.1&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;build_flavor&#34; : &#34;default&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;build_type&#34; : &#34;deb&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;build_hash&#34; : &#34;3186837139b9c6b6d23c3200870651f10d3343b7&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;build_date&#34; : &#34;2021-04-20T20:56:39.040728659Z&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;build_snapshot&#34; : false,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;lucene_version&#34; : &#34;8.8.0&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;minimum_wire_compatibility_version&#34; : &#34;6.8.0&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;minimum_index_compatibility_version&#34; : &#34;6.0.0-beta1&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   },</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   &#34;tagline&#34; : &#34;You Know, for Search&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># }</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="設定-elasticsearch">設定 ElasticSearch</h2>
+<p>預設是 localhost 連線<br>
+要外連預需要設定</p>
+<p>/etc/elasticsearch/elasticsearch.yml</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># By default Elasticsearch is only accessible on localhost. Set a different</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># address here to expose this node on the network:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#network.host: 192.168.0.1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># By default Elasticsearch listens for HTTP traffic on the first free port it</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># finds starting at 9200. Set a specific HTTP port here:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#http.port: 9200</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="安裝-kinbana">安裝 Kinbana</h2>
+<p><a href="https://www.elastic.co/guide/en/kibana/7.12/deb.html#install-deb" target="_blank" rel="noopener noreffer ">Install Kibana with Debian package | Kibana Guide [7.12] | Elastic</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">wget https://artifacts.elastic.co/downloads/kibana/kibana-7.12.1-amd64.deb
+</span></span><span class="line"><span class="cl">shasum -a <span class="m">512</span> kibana-7.12.1-amd64.deb 
+</span></span><span class="line"><span class="cl">sudo dpkg -i kibana-7.12.1-amd64.deb
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="設定-kibana">設定 kibana</h3>
+<p>設定對外 IP</p>
+<p>補充: 這邊 Vagrant 要設定 VM 對外 IP<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/MH2wTZ9.png"
+        data-srcset="https://i.imgur.com/MH2wTZ9.png, https://i.imgur.com/MH2wTZ9.png 1.5x, https://i.imgur.com/MH2wTZ9.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/MH2wTZ9.png"
+        title="https://i.imgur.com/MH2wTZ9.png" /></p>
+<p>要把 kibana 設定這個 IP</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/w9NM5hV.png"
+        data-srcset="https://i.imgur.com/w9NM5hV.png, https://i.imgur.com/w9NM5hV.png 1.5x, https://i.imgur.com/w9NM5hV.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/w9NM5hV.png"
+        title="https://i.imgur.com/w9NM5hV.png" /></p>
+<h4 id="kibana-server-is-not-ready-yet">Kibana server is not ready yet</h4>
+<ol>
+<li>確認本機 ElasticSearch 是否啟動</li>
+<li>確認 kibana.yml 裡面 ElasticSearch 設定是否正確(預設為localhost:9200)</li>
+<li><a href="https://blog.csdn.net/FV8023/article/details/96427702" target="_blank" rel="noopener noreffer ">Kibana server is not ready yet出现的原因_FV8023的博客-CSDN博客</a></li>
+</ol>
+<p>我後來發現 ElasticSearch 重啟的時候<br>
+沒辦法啟動，後來 RAM 調大(2GB)就正常了</p>
+<h2 id="logstash">logstash</h2>
+<h3 id="安裝-logstash">安裝 logstash</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">wget https://artifacts.elastic.co/downloads/logstash/logstash-7.12.1-amd64.deb
+</span></span><span class="line"><span class="cl">sudo apt install ./logstash-7.12.1-amd64.deb 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>安裝時候當機，所以RAM調成 3GB<br>
+可見這個真的很吃記憶體</p>
+<h3 id="hello-world">Hello World</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/usr/share/logstash/bin/logstash -e &#39;input { stdin { } } output { stdout {} }&#39;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我這邊沒看到 Hello World<br>
+基本上就是有問題</p>
+<h3 id="翻車時間">翻車時間</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Using bundled JDK: /usr/share/logstash/jdk
+</span></span><span class="line"><span class="cl">OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://tomme.me/hello-world-series-logstash/" target="_blank" rel="noopener noreffer ">Hello World 系列 - Logstash</a></p>
+<p>後來發現不是翻車，是執行 logstash 需要一段時間(VM效能不好)<br>
+跑了一下，我看<code>htop</code> CPU 吃到100%<br>
+所以要等一下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Using bundled JDK: /usr/share/logstash/jdk
+</span></span><span class="line"><span class="cl">WARNING: Could not find logstash.yml which is typically located in $LS_HOME/config or /etc/logstash. You can specify the path using --path.settings. Continuing using the defaults
+</span></span><span class="line"><span class="cl">Could not find log4j2 configuration at path /usr/share/logstash/config/log4j2.properties. Using default config which logs errors to the console
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:04:55.718 [main] runner - Starting Logstash {&#34;logstash.version&#34;=&gt;&#34;7.12.1&#34;, &#34;jruby.version&#34;=&gt;&#34;jruby 9.2.13.0 (2.5.7) 2020-08-03 9a89c94bcc OpenJDK 64-Bit Server VM 11.0.10+9 on 11.0.10+9 +indy +jit [linux-x86_64]&#34;}
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:04:55.779 [main] writabledirectory - Creating directory {:setting=&gt;&#34;path.queue&#34;, :path=&gt;&#34;/usr/share/logstash/data/queue&#34;}
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:04:55.815 [main] writabledirectory - Creating directory {:setting=&gt;&#34;path.dead_letter_queue&#34;, :path=&gt;&#34;/usr/share/logstash/data/dead_letter_queue&#34;}
+</span></span><span class="line"><span class="cl">[WARN ] 2021-05-01 16:04:56.611 [LogStash::Runner] multilocal - Ignoring the &#39;pipelines.yml&#39; file because modules or command line options are specified
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:04:56.666 [LogStash::Runner] agent - No persistent UUID file found. Generating new UUID {:uuid=&gt;&#34;f2a71911-edf5-4c53-bf68-5a31e6ad8dd7&#34;, :path=&gt;&#34;/usr/share/logstash/data/uuid&#34;}
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:04:58.798 [Api Webserver] agent - Successfully started Logstash API endpoint {:port=&gt;9600}
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:05:00.048 [Converge PipelineAction::Create&lt;main&gt;] Reflections - Reflections took 101 ms to scan 1 urls, producing 23 keys and 47 values 
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:05:01.424 [[main]-pipeline-manager] javapipeline - Starting pipeline {:pipeline_id=&gt;&#34;main&#34;, &#34;pipeline.workers&#34;=&gt;2, &#34;pipeline.batch.size&#34;=&gt;125, &#34;pipeline.batch.delay&#34;=&gt;50, &#34;pipeline.max_inflight&#34;=&gt;250, &#34;pipeline.sources&#34;=&gt;[&#34;config string&#34;], :thread=&gt;&#34;#&lt;Thread:0x701b0f11 run&gt;&#34;}
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:05:03.202 [[main]-pipeline-manager] javapipeline - Pipeline Java execution initialization time {&#34;seconds&#34;=&gt;1.77}
+</span></span><span class="line"><span class="cl">WARNING: An illegal reflective access operation has occurred
+</span></span><span class="line"><span class="cl">WARNING: Illegal reflective access by com.jrubystdinchannel.StdinChannelLibrary$Reader (file:/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/jruby-stdin-channel-0.2.0-java/lib/jruby_stdin_channel/jruby_stdin_channel.jar) to field java.io.FilterInputStream.in
+</span></span><span class="line"><span class="cl">WARNING: Please consider reporting this to the maintainers of com.jrubystdinchannel.StdinChannelLibrary$Reader
+</span></span><span class="line"><span class="cl">WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+</span></span><span class="line"><span class="cl">WARNING: All illegal access operations will be denied in a future release
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:05:03.290 [[main]-pipeline-manager] javapipeline - Pipeline started {&#34;pipeline.id&#34;=&gt;&#34;main&#34;}
+</span></span><span class="line"><span class="cl">The stdin plugin is now waiting for input:
+</span></span><span class="line"><span class="cl">[INFO ] 2021-05-01 16:05:03.469 [Agent thread] agent - Pipelines running {:count=&gt;1, :running_pipelines=&gt;[:main], :non_running_pipelines=&gt;[]}
+</span></span><span class="line"><span class="cl">hello
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">          &#34;host&#34; =&gt; &#34;ubuntu-focal&#34;,
+</span></span><span class="line"><span class="cl">       &#34;message&#34; =&gt; &#34;hello&#34;,
+</span></span><span class="line"><span class="cl">      &#34;@version&#34; =&gt; &#34;1&#34;,
+</span></span><span class="line"><span class="cl">    &#34;@timestamp&#34; =&gt; 2021-05-01T16:05:55.327Z
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="設定">設定</h3>
+<ol>
+<li>logstash 預設會先抓/etc/logstash/conf.d 的config檔案</li>
+<li>logstash 預設會先抓/etc/logstash/logstash.yml</li>
+</ol>
+<p><a href="https://mmx362003.gitbooks.io/elk-stack-guide/content/config_of_logstash.html" target="_blank" rel="noopener noreffer ">2.1 Config Of Logstash · ELK Stack 教學</a></p>
+<h3 id="config-設定">config 設定</h3>
+<h4 id="stdin">stdin</h4>
+<p><a href="https://doc.yonyoucloud.com/doc/logstash-best-practice-cn/input/stdin.html" target="_blank" rel="noopener noreffer ">标准输入(Stdin) | Logstash 最佳实践</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">input {
+</span></span><span class="line"><span class="cl">    stdin {
+</span></span><span class="line"><span class="cl">        add_field =&gt; {&#34;key&#34; =&gt; &#34;value&#34;}
+</span></span><span class="line"><span class="cl">        codec =&gt; &#34;plain&#34;
+</span></span><span class="line"><span class="cl">        tags =&gt; [&#34;add&#34;]
+</span></span><span class="line"><span class="cl">        type =&gt; &#34;std&#34;
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">output{
+</span></span><span class="line"><span class="cl">    stdout{}
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 在/usr/share/logstash 執行，stdin.conf 放在這邊執行</span>
+</span></span><span class="line"><span class="cl">sudo bin/logstash -f stdin.conf
+</span></span><span class="line"><span class="cl"><span class="c1"># {</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#           &#34;tags&#34; =&gt; [</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         [0] &#34;add&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     ],</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#           &#34;host&#34; =&gt; &#34;ubuntu-focal&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#           &#34;type&#34; =&gt; &#34;std&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#            &#34;key&#34; =&gt; &#34;value&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#       &#34;@version&#34; =&gt; &#34;1&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#        &#34;message&#34; =&gt; &#34;:q&#34;,</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &#34;@timestamp&#34; =&gt; 2021-05-01T16:38:27.958Z</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># }</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="file-log">file log</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">input{
+</span></span><span class="line"><span class="cl">    file {
+</span></span><span class="line"><span class="cl">        path =&gt; [&#34;/var/log/*.log&#34;, &#34;/var/log/message&#34;]
+</span></span><span class="line"><span class="cl">        type =&gt; &#34;system&#34;
+</span></span><span class="line"><span class="cl">        start_position =&gt; &#34;beginning&#34;
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">output{
+</span></span><span class="line"><span class="cl">    stdout{}
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">~                    
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>放在 /etc/logstash/conf/ 裡面<br>
+執行 logstash 就能被觸發</p>
+<p>其他的就不記了<br>
+可參考下面網址<br>
+<a href="https://doc.yonyoucloud.com/doc/logstash-best-practice-cn/input/index.html" target="_blank" rel="noopener noreffer ">输入插件(Input) | Logstash 最佳实践</a></p>
+<p><a href="https://github.com/chenryn/logstash-best-practice-cn" target="_blank" rel="noopener noreffer ">GitHub - chenryn/logstash-best-practice-cn: 本书已出版《ELK Stack权威指南》</a></p>
+<p><a href="https://github.com/chenryn/ELKstack-guide-cn" target="_blank" rel="noopener noreffer ">GitHub - chenryn/ELKstack-guide-cn: ELK Stack 中文指南</a></p>
+<h4 id="output">output</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">output {
+</span></span><span class="line"><span class="cl">    stdout {
+</span></span><span class="line"><span class="cl">        codec =&gt; rubydebug
+</span></span><span class="line"><span class="cl">        workers =&gt; 2
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="output-file">output file</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">output {
+</span></span><span class="line"><span class="cl">    file {
+</span></span><span class="line"><span class="cl">        path =&gt; &#34;/path/to/%{+yyyy/MM/dd/HH}/%{host}.log.gz&#34;
+</span></span><span class="line"><span class="cl">        message_format =&gt; &#34;%{message}&#34;
+</span></span><span class="line"><span class="cl">        gzip =&gt; true
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="output-elasticsearch">output Elasticsearch</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">output {
+</span></span><span class="line"><span class="cl">    elasticsearch {
+</span></span><span class="line"><span class="cl">        host =&gt; &#34;192.168.0.2&#34;
+</span></span><span class="line"><span class="cl">        protocol =&gt; &#34;http&#34;
+</span></span><span class="line"><span class="cl">        index =&gt; &#34;logstash-%{type}-%{+YYYY.MM.dd}&#34;
+</span></span><span class="line"><span class="cl">        index_type =&gt; &#34;%{type}&#34;
+</span></span><span class="line"><span class="cl">        workers =&gt; 5
+</span></span><span class="line"><span class="cl">        template_overwrite =&gt; true
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="filebeat">filebeat</h2>
+<h3 id="安裝-filebeat">安裝 filebeat</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.12.1-amd64.deb
+</span></span><span class="line"><span class="cl">sudo apt install ./filebeat-7.12.1-amd64.deb
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="設定檔">設定檔</h3>
+<p>/etc/filebeat/filebeat.yml<br>
+裡面有很多 input 都disable<br>
+output預設連到 localhost:9200 的 elasticsearch<br>
+假如想用到 logstash 需要手動註解調，並打開logstash output 那邊</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/2AufteG.png"
+        data-srcset="https://i.imgur.com/2AufteG.png, https://i.imgur.com/2AufteG.png 1.5x, https://i.imgur.com/2AufteG.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/2AufteG.png"
+        title="https://i.imgur.com/2AufteG.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/YdOZW1G.png"
+        data-srcset="https://i.imgur.com/YdOZW1G.png, https://i.imgur.com/YdOZW1G.png 1.5x, https://i.imgur.com/YdOZW1G.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/YdOZW1G.png"
+        title="https://i.imgur.com/YdOZW1G.png" /></p>
+<p>請依照需求調整</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 可以看到測試 log</span>
+</span></span><span class="line"><span class="cl">filebeat -e
+</span></span><span class="line"><span class="cl"><span class="c1"># 沒問題的話，service 啟動</span>
+</span></span><span class="line"><span class="cl">sudo service filebeat start
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="相關模組">相關模組</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看可以用的模組</span>
+</span></span><span class="line"><span class="cl">filebeat modules list
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊先不深入研究<br>
+<a href="https://www.cnblogs.com/zsql/p/13137833.html" target="_blank" rel="noopener noreffer ">一篇文章搞懂filebeat（ELK） - 一寸HUI - 博客园</a></p>
+<p><a href="https://github.com/revolunet/traefik-filebeats-kibana" target="_blank" rel="noopener noreffer ">GitHub - revolunet/traefik-filebeats-kibana: sample docker-compose with traefik and kibana dashboard using filebeats</a></p>
+<h3 id="logstash-和-filebeat-關係">logstash 和 filebeat 關係</h3>
+<p>網路上看到 filebeat 都傳送到 logstash 教學比較多<br>
+但後來實作發現不是這樣<br>
+可以依照需求直接傳到 elasticsearch<br>
+甚至可以做到 LoadBalance 傳到 logstash<br>
+詳細可以看:<a href="https://codingnote.cc/zh-tw/p/144718/" target="_blank" rel="noopener noreffer ">搞懂ELK並不是一件特別難的事（ELK） - ⎝⎛CodingNote.cc ⎞⎠</a></p>
+<p>甚是中間可以搭 Message Queue</p>
+<h3 id="kibana-設定filebeat">kibana 設定filebeat</h3>
+<p>去管理設定 Index Mangament<br>
+點選 Create Index Partten<br>
+step 1 打 filebeat*<br>
+step 2 選 @timestamp<br>
+新增完成，取選 Discover<br>
+就可以用 KQL 查詢</p>
+<p>不方便截圖，所以這裡就簡單紀錄一下</p>
+<h2 id="題外話">題外話</h2>
+<p>原本目標， Nginx 抓出 Acess Log 做地圖分析<br>
+不過想說安裝細結清楚一點比較好<br>
+沒想到就花了不少時間整理</p>
+<p>目前查看我這個抓 Access Log GeoIP 方法</p>
+<ol>
+<li>從 Nginx 下手取 geoip資訊(經緯度、縣市名稱)</li>
+</ol>
+<p><a href="https://faun.pub/total-nginx-monitoring-with-application-performance-and-a-bit-more-using-8fc6d731051b" target="_blank" rel="noopener noreffer ">Total Nginx monitoring, with application performance and a bit more, using Telegraf/InfluxDB/Grafana. | by Alexey Nizhegolenko | FAUN</a></p>
+<ol start="2">
+<li>Logstash Filter GeoIP 模組取得資訊</li>
+</ol>
+<p><a href="https://www.mdeditor.tw/pl/g4XZ/zh-tw" target="_blank" rel="noopener noreffer ">Grafana展示精美的nginx訪問日誌圖表_小小________ - MdEditor</a></p>
+<p>Loki 目前沒有取出來 GeoIP 方法<br>
+<a href="https://github.com/grafana/loki/issues/2120" target="_blank" rel="noopener noreffer ">Add support for Geo IP · Issue #2120 · grafana/loki · GitHub</a><br>
+其實 Logstash 也能跟 Loki 串<br>
+<a href="https://grafana.com/docs/loki/latest/clients/logstash/" target="_blank" rel="noopener noreffer ">Logstash | Grafana Labs</a><br>
+但說真的 Logstash 效能感覺也不是很好(上面測試跑都要花一點時間，我還以為跑失敗)<br>
+在樹梅派跑可能也很吃力</p>
+<p>本來想用 docker 執行看看，但官方沒有做 arm 版本<br>
+就不測試了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -it  --rm logstash:7.12.1 logstash -e <span class="s1">&#39;input { stdin { } } output { stdout {} }&#39;</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>GeoIP 哪貼心血來潮再進行測試<br>
+這部分也沒有現成包好 docker 可以直接玩</p>
+<h2 id="其他不錯文章">其他不錯文章</h2>
+<p><a href="https://www.jianshu.com/p/f57176a3c03f" target="_blank" rel="noopener noreffer ">ElasticSearch 全文检索技术（一） - 简书</a></p>
+<p><a href="https://www.zhihu.com/question/54058964" target="_blank" rel="noopener noreffer ">logstash 和filebeat 是什么关系？ - 知乎</a></p>
+<p><a href="https://leriou.github.io/2019-01-09-mongodb-compareto-elasticsearch/" target="_blank" rel="noopener noreffer ">MongoDB和Elasticsearch的对比 | Leriou&rsquo;s Tavern</a></p>
+<p><a href="https://codingnote.cc/zh-tw/p/144718/" target="_blank" rel="noopener noreffer ">搞懂ELK並不是一件特別難的事（ELK） - ⎝⎛CodingNote.cc ⎞⎠</a></p>
+<p><a href="https://segmentfault.com/a/1190000022533196" target="_blank" rel="noopener noreffer ">关于kibana的可视化可能都在这篇文章里了 - SegmentFault 思否</a></p>
+<p><a href="https://blog.csdn.net/qq_41631365/article/details/109773675" target="_blank" rel="noopener noreffer ">Kibana7.9.2设置elasticsearch索引过期时间，到期自动删除_螺蛳粉不加葱的博客-CSDN博客_es设置索引过期时间</a></p>
+<p><a href="https://godleon.github.io/blog/Elasticsearch/Elasticsearch-getting-started/" target="_blank" rel="noopener noreffer ">[Elasticsearch] 基本概念 &amp; 搜尋入門 | 小信豬的原始部落</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2021-05-02</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗" data-hashtags="elasticsearch,logstash,kibana,filebeat"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" data-hashtag="elasticsearch"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%AE%89%E8%A3%9D-ELK-ElasticSearch-Logstash-Kibana-filebeat-%E5%88%9D%E9%AB%94%E9%A9%97/" data-title="安裝 ELK(ElasticSearch,Logstash,Kibana),filebeat 初體驗"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/elasticsearch/">elasticsearch</a>,&nbsp;<a href="/blog/tags/logstash/">logstash</a>,&nbsp;<a href="/blog/tags/kibana/">kibana</a>,&nbsp;<a href="/blog/tags/filebeat/">filebeat</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Loki-%E5%88%9D%E9%AB%94%E9%A9%97%E6%95%99%E5%AD%B8/" class="prev" rel="prev" title="Loki 初體驗教學(在Raspberry 啟用 Docker-Loki-Driver)"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Loki 初體驗教學(在Raspberry 啟用 Docker-Loki-Driver)</a>
+            <a href="/blog/posts/Eclipse-%E8%99%95%E7%90%86-Maven-%E5%95%8F%E9%A1%8C/" class="next" rel="next" title="Eclipse 處理 Maven 問題">Eclipse 處理 Maven 問題<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

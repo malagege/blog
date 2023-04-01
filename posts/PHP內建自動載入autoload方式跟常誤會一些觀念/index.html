@@ -1,146 +1,489 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>PHP內建自動載入autoload方式跟常誤會一些觀念 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="PHP內建自動載入autoload方式跟常誤會一些觀念"><meta property="og:description" content="最近有計畫學 Laravel
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>PHP內建自動載入autoload方式跟常誤會一些觀念 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="PHP內建自動載入autoload方式跟常誤會一些觀念" />
+<meta property="og:description" content="最近有計畫學 Laravel
 不過想趁機會把 PHP Namespace搞清楚
 我在想autoload自動載入是甚麼機制的
 最近小小的玩了一下，才知道這個自動載入是怎麼用的
-其實我覺得也不是完全自動載入阿~~終究還是手動需做載入一段程式"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-01-18T20:23:51+00:00"><meta property="article:modified_time" content="2019-01-18T20:23:51+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="PHP內建自動載入autoload方式跟常誤會一些觀念"><meta name=twitter:description content="最近有計畫學 Laravel
+其實我覺得也不是完全自動載入阿~~終究還是手動需做載入一段程式" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-01-18T20:23:51+00:00" />
+<meta property="article:modified_time" content="2019-01-18T20:23:51+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PHP內建自動載入autoload方式跟常誤會一些觀念"/>
+<meta name="twitter:description" content="最近有計畫學 Laravel
 不過想趁機會把 PHP Namespace搞清楚
 我在想autoload自動載入是甚麼機制的
 最近小小的玩了一下，才知道這個自動載入是怎麼用的
-其實我覺得也不是完全自動載入阿~~終究還是手動需做載入一段程式"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/><link rel=prev href=https://malagege.github.io/blog/posts/mysql%E5%AD%97%E4%B8%B2%E8%87%AA%E5%8B%95%E8%BD%89%E6%95%B8%E5%AD%97%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/%E8%AE%80%E5%8F%96%E5%87%BA%E6%96%87%E4%BB%B6%E8%A8%AD%E8%A8%88%E6%9B%B8%E8%A1%A8%E6%A0%BC%E6%A0%BC%E5%BC%8F/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"PHP內建自動載入autoload方式跟常誤會一些觀念","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5\/"},"genre":"posts","keywords":"composer, autoload","wordcount":551,"url":"https:\/\/malagege.github.io\/blog\/posts\/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5\/","datePublished":"2019-01-18T20:23:51+00:00","dateModified":"2019-01-18T20:23:51+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">PHP內建自動載入autoload方式跟常誤會一些觀念</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/PHP/><i class="far fa-folder fa-fw" aria-hidden=true></i>PHP</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-01-18>2019-01-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;551 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#php-原有-autoload-方式>PHP 原有 autoload 方式</a></li><li><a href=#php-autoload>PHP Autoload</a></li><li><a href=#常常搞錯的觀念>常常搞錯的觀念</a><ul><li><a href=#還是需要放置載入程式>還是需要放置載入程式</a></li></ul></li><li><a href=#發現我自己寫的-php-沒辦法-use-使用到>發現我自己寫的 PHP 沒辦法 use 使用到</a></li><li><a href=#發現新增檔案跟修改-class-名稱沒有自動載入到>發現新增檔案跟修改 class 名稱沒有自動載入到</a></li><li><a href=#psr0--psr4>PSR0 , PSR4</a></li><li><a href=#namespace-一些事>Namespace 一些事</a></li></ul></nav></div></div><div class=content id=content><p>最近有計畫學 Laravel<br>不過想趁機會把 PHP <code>Namespace</code>搞清楚<br>我在想<code>autoload</code>自動載入是甚麼機制的<br>最近小小的玩了一下，才知道這個<code>自動載入</code>是怎麼用的<br>其實我覺得也不是完全自動載入阿~~終究還是手動需做載入一段程式</p><h2 id=php-原有-autoload-方式>PHP 原有 autoload 方式</h2><p>include, include_once, require , require_once</p><p>都是載入功能。<br>比較特別注意 include 當載入失敗會跳出警告，但是不會停止程式<br>require 載入失敗會跳出錯誤，不會繼續執行下面程式</p><p>常常忘記哪個會載入錯誤 orz<br>順便記載這邊</p><h2 id=php-autoload>PHP Autoload</h2><p>前面兩個是比較早期的自動載入方式。簡單來講就是自動載入<code>xxx.php</code>方法<br>後面 namespace 可搭配<code>composer</code>實作</p><ul><li>__autoload</li><li>spl_autoload</li><li>autoload 與 namespace</li></ul><p><a href=http://justericgg.logdown.com/posts/196891-php-series-autoload target=_blank rel="noopener noreffer">PHP 系列 - Autoload 自動載入 « Eric G. Huang 不像樣工程師</a> <a href=web1.png rel>備份圖</a><br>上面連結介紹太清楚了。<br>我這邊仔細記錄我實務的問題</p><h2 id=常常搞錯的觀念>常常搞錯的觀念</h2><p>我是有學過 Java，所以對 Java Namespace 不是很陌生<br>但當初看 PHP 的 Namespace 有看沒有懂<br>學得他們很像，但又不是很像<br>但說 Java Namespace 定義很清楚<br>PHP 並沒有那麼清楚(畢竟是腳本語言&mldr;.)</p><h3 id=還是需要放置載入程式>還是需要放置載入程式</h3><p>首先來看看 Laravel 的 Controller.php</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>namespace</span> <span class=nx>App\Http\Controllers</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>use</span> <span class=nx>Illuminate\Foundation\Bus\DispatchesJobs</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>use</span> <span class=nx>Illuminate\Routing\Controller</span> <span class=k>as</span> <span class=nx>BaseController</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>use</span> <span class=nx>Illuminate\Foundation\Validation\ValidatesRequests</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>use</span> <span class=nx>Illuminate\Foundation\Auth\Access\AuthorizesRequests</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>class</span> <span class=nc>Controller</span> <span class=k>extends</span> <span class=nx>BaseController</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>use</span> <span class=nx>AuthorizesRequests</span><span class=p>,</span> <span class=nx>DispatchesJobs</span><span class=p>,</span> <span class=nx>ValidatesRequests</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p><del>看到這個我整個高潮了</del><br>其實我以為 PHP 已經完完整整可以自動載入<br>不過我自己實作卻是不能&mldr;<br>最終爬文還是找到答案</p><p><del>下面那篇 PO 文跟我一樣 HI XD</del><br><a href="https://www.oschina.net/question/123890_135938?sort=default&amp;p=2" target=_blank rel="noopener noreffer">php 的 use 明顯比 require 高端大氣上檔次 - 開源中國</a><br><a href=https://www.oschina.net/question/147332_138188 target=_blank rel="noopener noreffer">php 使用命名空间:导入导出之疑问 - 开源中国</a></p><p>為什麼 Laravel 的 Controller.php 可以自動載入<br>關鍵還是 index.php 的<code>require __DIR__.'/../vendor/autoload.php';</code><br>所以我才說也不是真正的自動載入<br>不過方法真的已經比以前好很多</p><h2 id=發現我自己寫的-php-沒辦法-use-使用到>發現我自己寫的 PHP 沒辦法 use 使用到</h2><p>當以為你以為<code>require 'vendor/autoload.php';</code>可以載入所有 php 檔案內容<br>你可能就大錯特錯了!!!</p><p>composer.json 有一個 classmap 自動載入</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=err>...</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&#34;autoload&#34;</span><span class=p>:</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    	<span class=nt>&#34;classmap&#34;</span><span class=p>:</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    		<span class=nt>&#34;mylib&#34;</span>
-</span></span><span class=line><span class=cl>    	<span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=err>...</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p>~~但不能設定<code>.</code>~~可以設定<code>.</code><br>發現我寫錯了，應該要用陣列才對<br>上面能跑純屬意外</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=err>...</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&#34;autoload&#34;</span><span class=p>:</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    	<span class=nt>&#34;classmap&#34;</span><span class=p>:</span> <span class=p>[</span>
-</span></span><span class=line><span class=cl>    		<span class=s2>&#34;.&#34;</span>
-</span></span><span class=line><span class=cl>    	<span class=p>]</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=err>...</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=發現新增檔案跟修改-class-名稱沒有自動載入到>發現新增檔案跟修改 class 名稱沒有自動載入到</h2><p>當我發現這件事，還以為我哪裡寫錯了<br>其實有看到這篇<a href=http://jsnwork.kiiuo.com/archives/2437/php-composer-json-%e8%a8%ad%e5%ae%9a-classmap-%e6%8c%87%e5%ae%9a%e8%87%aa%e5%8b%95%e8%ae%80%e5%8f%96%e7%9a%84%e6%aa%94%e6%a1%88%e6%88%96%e8%b7%af%e5%be%91/ target=_blank rel="noopener noreffer">php – composer.json 設定 classmap 指定自動讀取的檔案或路徑 | jsnWork</a><br>vendor/composer/autoload_classmap.php</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// autoload_classmap.php @generated by Composer
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$vendorDir</span> <span class=o>=</span> <span class=nx>dirname</span><span class=p>(</span><span class=nx>dirname</span><span class=p>(</span><span class=no>__FILE__</span><span class=p>));</span>
-</span></span><span class=line><span class=cl><span class=nv>$baseDir</span> <span class=o>=</span> <span class=nx>dirname</span><span class=p>(</span><span class=nv>$vendorDir</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>return</span> <span class=k>array</span><span class=p>(</span>
-</span></span><span class=line><span class=cl>    <span class=s1>&#39;mylib\\Test&#39;</span> <span class=o>=&gt;</span> <span class=nv>$baseDir</span> <span class=o>.</span> <span class=s1>&#39;/mylib/test.php&#39;</span><span class=p>,</span>
-</span></span><span class=line><span class=cl><span class=p>);</span>
-</span></span></code></pre></td></tr></table></div></div><p>看到原來自動載入原來不是真的跑每一層資料夾<br>是透過暫存方式載入<br>之前一直還在想有什麼辦法看到目前會自動載入哪些<br>看來還是有辦法知道的</p><h2 id=psr0--psr4>PSR0 , PSR4</h2><p>看了一下好像都是自動載入<br>PSR0 命名規則跟 JAVA 很像<br>但是 PSR4 規則也不一定要跟 JAVA 擺放位置一樣<br>我也沒看很詳細，有空再仔細吸收&mldr;.<br><a href=https://segmentfault.com/a/1190000006686978 target=_blank rel="noopener noreffer">psr-0 和 psr-4 的区别 - shuizhuniurou - SegmentFault 思否</a></p><h2 id=namespace-一些事>Namespace 一些事</h2><p>Namespace 是不分大小寫的，跟 class、function 一樣沒有分<br>但是在 use 引用變數(ex:$a)<br>想說 class 會不會跟 function 一樣不能共用一樣名字<br>但測試結果是可以的<br>我還滿驚呆</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl>        <span class=c1>//Enter your code here, enjoy!
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=k>class</span> <span class=nc>A</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=k>function</span> <span class=fm>__toString</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=s1>&#39;A&#39;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>a</span><span class=p>(){</span>
-</span></span><span class=line><span class=cl>    <span class=k>echo</span> <span class=s1>&#39;aa&#39;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=k>new</span> <span class=nx>A</span><span class=p>();</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=s1>&#39;========&#39;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span>  <span class=nx>A</span><span class=p>();</span>
-</span></span></code></pre></td></tr></table></div></div><p>結果</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>A========aa
-</span></span></code></pre></td></tr></table></div></div><p>那同時去做 use A 不知道會<br>但用在 use 呢?!<br>經過小小實驗(未確任是否正確，自己得出的結論)<br>function 要用通常是要用<br><code>use function xxxx</code><br>但是做 classmap 跟 psr-4 都載入不到(不知道為什麼)<br>但有找到<a href=https://stackoverflow.com/questions/24171078/composer-psr-how-to-autoload-functions target=_blank rel="noopener noreffer">Composer/PSR - How to autoload functions? - Stack Overflow</a><br><a href=https://laravel-china.org/topics/1002/deep-composer-autoload target=_blank rel="noopener noreffer">深入 Composer autoload | Laravel China 社区 - 高品质的 Laravel 和 PHP 开发者社区</a><br>要選<code>files</code><br>不過沒有什麼事情還是不要用 function 吧 XD<br>這我就沒實作確認</p><p>感覺 composer,psr0,psr4 之後還是需要好好了解<br>先記錄到這邊</p><p>參考來源：</p><ul><li><a href=https://laravel-china.org/index.php/topics/6998/have-anyone-used-phps-use-function target=_blank rel="noopener noreffer">有人用过 PHP 的 use function 吗？ | Laravel China 社区 - 高品质的 Laravel 和 PHP 开发者社区</a></li><li><a href=http://justericgg.logdown.com/posts/196891-php-series-autoload target=_blank rel="noopener noreffer">PHP 系列 - Autoload 自動載入 « Eric G. Huang 不像樣工程師</a></li><li><a href=http://jonas1011.pixnet.net/blog/post/24303632-%5Bphp%5Drequire-%E5%92%8C-include target=_blank rel="noopener noreffer">[PHP]require 和 include @ Jonas&rsquo;s Blog :: 痞客邦 ::</a></li><li><a href=http://sandbox.onlinephpfunctions.com/ target=_blank rel="noopener noreffer">PHP Sandbox, test PHP online, PHP tester</a></li><li><a href="http://blog.turn.tw/?p=1122" target=_blank rel="noopener noreffer">Composer 進階原理：PHP 命名空間與 PSR-0 | 轉個彎日誌</a> <a href=web2.png rel>備份圖</a></li><li><a href="http://blog.turn.tw/?p=1039" target=_blank rel="noopener noreffer">Composer 設計原理與基本用法 | 轉個彎日誌</a> <a href=web3.png rel>備份圖</a></li><li><a href=http://jsnwork.kiiuo.com/archives/2437/php-composer-json-%E8%A8%AD%E5%AE%9A-classmap-%E6%8C%87%E5%AE%9A%E8%87%AA%E5%8B%95%E8%AE%80%E5%8F%96%E7%9A%84%E6%AA%94%E6%A1%88%E6%88%96%E8%B7%AF%E5%BE%91/ target=_blank rel="noopener noreffer">php – composer.json 設定 classmap 指定自動讀取的檔案或路徑 | jsnWork</a></li><li><a href=https://my.oschina.net/sallency/blog/893518 target=_blank rel="noopener noreffer">composer 自动载入 autoload 的使用详解 psr0/psr4/classmap/files - big_cat - 开源中国</a></li><li><a href=http://jsnwork.kiiuo.com/archives/2618/php-compoer-%E9%9D%9E%E5%B8%B8%E7%B0%A1%E5%96%AE%E7%9A%84%E4%BD%BF%E7%94%A8-psr-4-%E4%BE%86%E5%BB%BA%E7%AB%8B%E8%87%AA%E5%8B%95%E8%AE%80%E5%8F%96%E9%A1%9E%E5%88%A5/ target=_blank rel="noopener noreffer">php – Compoer – 非常簡單的使用 psr-4 來建立自動讀取類別 | jsnWork</a></li><li><a href=http://jsnwork.kiiuo.com/archives/2437/php-composer-json-%e8%a8%ad%e5%ae%9a-classmap-%e6%8c%87%e5%ae%9a%e8%87%aa%e5%8b%95%e8%ae%80%e5%8f%96%e7%9a%84%e6%aa%94%e6%a1%88%e6%88%96%e8%b7%af%e5%be%91/ target=_blank rel="noopener noreffer">php – composer.json 設定 classmap 指定自動讀取的檔案或路徑 | jsnWork</a></li><li><a href=https://segmentfault.com/a/1190000006686978 target=_blank rel="noopener noreffer">psr-0 和 psr-4 的区别 - shuizhuniurou - SegmentFault 思否</a></li><li><a href=https://stackoverflow.com/questions/24868586/what-are-the-differences-between-psr-0-and-psr-4 target=_blank rel="noopener noreffer">php - What Are the Differences Between PSR-0 and PSR-4? - Stack Overflow</a></li><li><a href=https://www.kancloud.cn/xiak/php-node/191121 target=_blank rel="noopener noreffer">PSR-0/PSR-4 命名标准 · php 笔记 · 看云</a></li><li><a href=https://blog.csdn.net/sky_zhe/article/details/38615615 target=_blank rel="noopener noreffer">PHP PSR-4 与 PSR-0 规范 - zHHHe 的专栏 - CSDN 博客</a></li><li><a href="https://www.oschina.net/question/123890_135938?sort=default&amp;p=2" target=_blank rel="noopener noreffer">php 的 use 明顯比 require 高端大氣上檔次 - 開源中國</a></li><li><a href=https://www.oschina.net/question/147332_138188 target=_blank rel="noopener noreffer">php 使用命名空间:导入导出之疑问 - 开源中国</a></li><li><a href=https://laravel-china.org/topics/1002/deep-composer-autoload target=_blank rel="noopener noreffer">深入 Composer autoload | Laravel China 社区 - 高品质的 Laravel 和 PHP 开发者社区</a></li><li><a href=https://oomusou.io/php/php-namespace/ target=_blank rel="noopener noreffer">如何使用 Namespace? | 點燈坊</a></li><li><a href=https://www.codementor.io/jadjoubran/php-tutorial-getting-started-with-composer-8sbn6fb6t target=_blank rel="noopener noreffer">PHP Tutorial: Getting Started with Composer | Codementor</a></li></ul><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-01-18</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/ data-title=PHP內建自動載入autoload方式跟常誤會一些觀念 data-hashtags=composer,autoload><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/ data-hashtag=composer><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/ data-title=PHP內建自動載入autoload方式跟常誤會一些觀念><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/ data-title=PHP內建自動載入autoload方式跟常誤會一些觀念><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/ data-title=PHP內建自動載入autoload方式跟常誤會一些觀念><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/composer/>composer</a>,&nbsp;<a href=/blog/tags/autoload/>autoload</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/mysql%E5%AD%97%E4%B8%B2%E8%87%AA%E5%8B%95%E8%BD%89%E6%95%B8%E5%AD%97%E5%B0%8F%E8%A8%98/ class=prev rel=prev title=mysql字串自動轉數字小記><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>mysql字串自動轉數字小記</a>
-<a href=/blog/posts/%E8%AE%80%E5%8F%96%E5%87%BA%E6%96%87%E4%BB%B6%E8%A8%AD%E8%A8%88%E6%9B%B8%E8%A1%A8%E6%A0%BC%E6%A0%BC%E5%BC%8F/ class=next rel=next title=從MySQL裡面直接(select)讀取出文件設計書表格格式>從MySQL裡面直接(select)讀取出文件設計書表格格式<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+其實我覺得也不是完全自動載入阿~~終究還是手動需做載入一段程式"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" /><link rel="prev" href="https://malagege.github.io/blog/posts/mysql%E5%AD%97%E4%B8%B2%E8%87%AA%E5%8B%95%E8%BD%89%E6%95%B8%E5%AD%97%E5%B0%8F%E8%A8%98/" /><link rel="next" href="https://malagege.github.io/blog/posts/%E8%AE%80%E5%8F%96%E5%87%BA%E6%96%87%E4%BB%B6%E8%A8%AD%E8%A8%88%E6%9B%B8%E8%A1%A8%E6%A0%BC%E6%A0%BC%E5%BC%8F/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "PHP內建自動載入autoload方式跟常誤會一些觀念",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5\/"
+        },"genre": "posts","keywords": "composer, autoload","wordcount":  551 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5\/","datePublished": "2019-01-18T20:23:51+00:00","dateModified": "2019-01-18T20:23:51+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">PHP內建自動載入autoload方式跟常誤會一些觀念</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/PHP/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>PHP</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-01-18">2019-01-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;551 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#php-原有-autoload-方式">PHP 原有 autoload 方式</a></li>
+    <li><a href="#php-autoload">PHP Autoload</a></li>
+    <li><a href="#常常搞錯的觀念">常常搞錯的觀念</a>
+      <ul>
+        <li><a href="#還是需要放置載入程式">還是需要放置載入程式</a></li>
+      </ul>
+    </li>
+    <li><a href="#發現我自己寫的-php-沒辦法-use-使用到">發現我自己寫的 PHP 沒辦法 use 使用到</a></li>
+    <li><a href="#發現新增檔案跟修改-class-名稱沒有自動載入到">發現新增檔案跟修改 class 名稱沒有自動載入到</a></li>
+    <li><a href="#psr0--psr4">PSR0 , PSR4</a></li>
+    <li><a href="#namespace-一些事">Namespace 一些事</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近有計畫學 Laravel<br>
+不過想趁機會把 PHP <code>Namespace</code>搞清楚<br>
+我在想<code>autoload</code>自動載入是甚麼機制的<br>
+最近小小的玩了一下，才知道這個<code>自動載入</code>是怎麼用的<br>
+其實我覺得也不是完全自動載入阿~~終究還是手動需做載入一段程式</p>
+<h2 id="php-原有-autoload-方式">PHP 原有 autoload 方式</h2>
+<p>include, include_once, require , require_once</p>
+<p>都是載入功能。<br>
+比較特別注意 include 當載入失敗會跳出警告，但是不會停止程式<br>
+require 載入失敗會跳出錯誤，不會繼續執行下面程式</p>
+<p>常常忘記哪個會載入錯誤 orz<br>
+順便記載這邊</p>
+<h2 id="php-autoload">PHP Autoload</h2>
+<p>前面兩個是比較早期的自動載入方式。簡單來講就是自動載入<code>xxx.php</code>方法<br>
+後面 namespace 可搭配<code>composer</code>實作</p>
+<ul>
+<li>__autoload</li>
+<li>spl_autoload</li>
+<li>autoload 與 namespace</li>
+</ul>
+<p><a href="http://justericgg.logdown.com/posts/196891-php-series-autoload" target="_blank" rel="noopener noreffer ">PHP 系列 - Autoload 自動載入 « Eric G. Huang 不像樣工程師</a> <a href="web1.png" rel="">備份圖</a><br>
+上面連結介紹太清楚了。<br>
+我這邊仔細記錄我實務的問題</p>
+<h2 id="常常搞錯的觀念">常常搞錯的觀念</h2>
+<p>我是有學過 Java，所以對 Java Namespace 不是很陌生<br>
+但當初看 PHP 的 Namespace 有看沒有懂<br>
+學得他們很像，但又不是很像<br>
+但說 Java Namespace 定義很清楚<br>
+PHP 並沒有那麼清楚(畢竟是腳本語言&hellip;.)</p>
+<h3 id="還是需要放置載入程式">還是需要放置載入程式</h3>
+<p>首先來看看 Laravel 的 Controller.php</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">namespace</span> <span class="nx">App\Http\Controllers</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">use</span> <span class="nx">Illuminate\Foundation\Bus\DispatchesJobs</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">use</span> <span class="nx">Illuminate\Routing\Controller</span> <span class="k">as</span> <span class="nx">BaseController</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">use</span> <span class="nx">Illuminate\Foundation\Validation\ValidatesRequests</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">use</span> <span class="nx">Illuminate\Foundation\Auth\Access\AuthorizesRequests</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Controller</span> <span class="k">extends</span> <span class="nx">BaseController</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">use</span> <span class="nx">AuthorizesRequests</span><span class="p">,</span> <span class="nx">DispatchesJobs</span><span class="p">,</span> <span class="nx">ValidatesRequests</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><del>看到這個我整個高潮了</del><br>
+其實我以為 PHP 已經完完整整可以自動載入<br>
+不過我自己實作卻是不能&hellip;<br>
+最終爬文還是找到答案</p>
+<p><del>下面那篇 PO 文跟我一樣 HI XD</del><br>
+<a href="https://www.oschina.net/question/123890_135938?sort=default&amp;p=2" target="_blank" rel="noopener noreffer ">php 的 use 明顯比 require 高端大氣上檔次 - 開源中國</a><br>
+<a href="https://www.oschina.net/question/147332_138188" target="_blank" rel="noopener noreffer ">php 使用命名空间:导入导出之疑问 - 开源中国</a></p>
+<p>為什麼 Laravel 的 Controller.php 可以自動載入<br>
+關鍵還是 index.php 的<code>require __DIR__.'/../vendor/autoload.php';</code><br>
+所以我才說也不是真正的自動載入<br>
+不過方法真的已經比以前好很多</p>
+<h2 id="發現我自己寫的-php-沒辦法-use-使用到">發現我自己寫的 PHP 沒辦法 use 使用到</h2>
+<p>當以為你以為<code>require 'vendor/autoload.php';</code>可以載入所有 php 檔案內容<br>
+你可能就大錯特錯了!!!</p>
+<p>composer.json 有一個 classmap 自動載入</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="err">...</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;autoload&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    	<span class="nt">&#34;classmap&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    		<span class="nt">&#34;mylib&#34;</span>
+</span></span><span class="line"><span class="cl">    	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="err">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>~~但不能設定<code>.</code>~~可以設定<code>.</code><br>
+發現我寫錯了，應該要用陣列才對<br>
+上面能跑純屬意外</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="err">...</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;autoload&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    	<span class="nt">&#34;classmap&#34;</span><span class="p">:</span> <span class="p">[</span>
+</span></span><span class="line"><span class="cl">    		<span class="s2">&#34;.&#34;</span>
+</span></span><span class="line"><span class="cl">    	<span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="err">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="發現新增檔案跟修改-class-名稱沒有自動載入到">發現新增檔案跟修改 class 名稱沒有自動載入到</h2>
+<p>當我發現這件事，還以為我哪裡寫錯了<br>
+其實有看到這篇<a href="http://jsnwork.kiiuo.com/archives/2437/php-composer-json-%e8%a8%ad%e5%ae%9a-classmap-%e6%8c%87%e5%ae%9a%e8%87%aa%e5%8b%95%e8%ae%80%e5%8f%96%e7%9a%84%e6%aa%94%e6%a1%88%e6%88%96%e8%b7%af%e5%be%91/" target="_blank" rel="noopener noreffer ">php – composer.json 設定 classmap 指定自動讀取的檔案或路徑 | jsnWork</a><br>
+vendor/composer/autoload_classmap.php</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// autoload_classmap.php @generated by Composer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$vendorDir</span> <span class="o">=</span> <span class="nx">dirname</span><span class="p">(</span><span class="nx">dirname</span><span class="p">(</span><span class="no">__FILE__</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$baseDir</span> <span class="o">=</span> <span class="nx">dirname</span><span class="p">(</span><span class="nv">$vendorDir</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">return</span> <span class="k">array</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;mylib\\Test&#39;</span> <span class="o">=&gt;</span> <span class="nv">$baseDir</span> <span class="o">.</span> <span class="s1">&#39;/mylib/test.php&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>看到原來自動載入原來不是真的跑每一層資料夾<br>
+是透過暫存方式載入<br>
+之前一直還在想有什麼辦法看到目前會自動載入哪些<br>
+看來還是有辦法知道的</p>
+<h2 id="psr0--psr4">PSR0 , PSR4</h2>
+<p>看了一下好像都是自動載入<br>
+PSR0 命名規則跟 JAVA 很像<br>
+但是 PSR4 規則也不一定要跟 JAVA 擺放位置一樣<br>
+我也沒看很詳細，有空再仔細吸收&hellip;.<br>
+<a href="https://segmentfault.com/a/1190000006686978" target="_blank" rel="noopener noreffer ">psr-0 和 psr-4 的区别 - shuizhuniurou - SegmentFault 思否</a></p>
+<h2 id="namespace-一些事">Namespace 一些事</h2>
+<p>Namespace 是不分大小寫的，跟 class、function 一樣沒有分<br>
+但是在 use 引用變數(ex:$a)<br>
+想說 class 會不會跟 function 一樣不能共用一樣名字<br>
+但測試結果是可以的<br>
+我還滿驚呆</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">//Enter your code here, enjoy!
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">A</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">public</span> <span class="k">function</span> <span class="fm">__toString</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="s1">&#39;A&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">a</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">echo</span> <span class="s1">&#39;aa&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="k">new</span> <span class="nx">A</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s1">&#39;========&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span>  <span class="nx">A</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>結果</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">A========aa
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>那同時去做 use A 不知道會<br>
+但用在 use 呢?!<br>
+經過小小實驗(未確任是否正確，自己得出的結論)<br>
+function 要用通常是要用<br>
+<code>use function xxxx</code><br>
+但是做 classmap 跟 psr-4 都載入不到(不知道為什麼)<br>
+但有找到<a href="https://stackoverflow.com/questions/24171078/composer-psr-how-to-autoload-functions" target="_blank" rel="noopener noreffer ">Composer/PSR - How to autoload functions? - Stack Overflow</a><br>
+<a href="https://laravel-china.org/topics/1002/deep-composer-autoload" target="_blank" rel="noopener noreffer ">深入 Composer autoload | Laravel China 社区 - 高品质的 Laravel 和 PHP 开发者社区</a><br>
+要選<code>files</code><br>
+不過沒有什麼事情還是不要用 function 吧 XD<br>
+這我就沒實作確認</p>
+<p>感覺 composer,psr0,psr4 之後還是需要好好了解<br>
+先記錄到這邊</p>
+<p>參考來源：</p>
+<ul>
+<li><a href="https://laravel-china.org/index.php/topics/6998/have-anyone-used-phps-use-function" target="_blank" rel="noopener noreffer ">有人用过 PHP 的 use function 吗？ | Laravel China 社区 - 高品质的 Laravel 和 PHP 开发者社区</a></li>
+<li><a href="http://justericgg.logdown.com/posts/196891-php-series-autoload" target="_blank" rel="noopener noreffer ">PHP 系列 - Autoload 自動載入 « Eric G. Huang 不像樣工程師</a></li>
+<li><a href="http://jonas1011.pixnet.net/blog/post/24303632-%5Bphp%5Drequire-%E5%92%8C-include" target="_blank" rel="noopener noreffer ">[PHP]require 和 include @ Jonas&rsquo;s Blog :: 痞客邦 ::</a></li>
+<li><a href="http://sandbox.onlinephpfunctions.com/" target="_blank" rel="noopener noreffer ">PHP Sandbox, test PHP online, PHP tester</a></li>
+<li><a href="http://blog.turn.tw/?p=1122" target="_blank" rel="noopener noreffer ">Composer 進階原理：PHP 命名空間與 PSR-0 | 轉個彎日誌</a> <a href="web2.png" rel="">備份圖</a></li>
+<li><a href="http://blog.turn.tw/?p=1039" target="_blank" rel="noopener noreffer ">Composer 設計原理與基本用法 | 轉個彎日誌</a> <a href="web3.png" rel="">備份圖</a></li>
+<li><a href="http://jsnwork.kiiuo.com/archives/2437/php-composer-json-%E8%A8%AD%E5%AE%9A-classmap-%E6%8C%87%E5%AE%9A%E8%87%AA%E5%8B%95%E8%AE%80%E5%8F%96%E7%9A%84%E6%AA%94%E6%A1%88%E6%88%96%E8%B7%AF%E5%BE%91/" target="_blank" rel="noopener noreffer ">php – composer.json 設定 classmap 指定自動讀取的檔案或路徑 | jsnWork</a></li>
+<li><a href="https://my.oschina.net/sallency/blog/893518" target="_blank" rel="noopener noreffer ">composer 自动载入 autoload 的使用详解 psr0/psr4/classmap/files - big_cat - 开源中国</a></li>
+<li><a href="http://jsnwork.kiiuo.com/archives/2618/php-compoer-%E9%9D%9E%E5%B8%B8%E7%B0%A1%E5%96%AE%E7%9A%84%E4%BD%BF%E7%94%A8-psr-4-%E4%BE%86%E5%BB%BA%E7%AB%8B%E8%87%AA%E5%8B%95%E8%AE%80%E5%8F%96%E9%A1%9E%E5%88%A5/" target="_blank" rel="noopener noreffer ">php – Compoer – 非常簡單的使用 psr-4 來建立自動讀取類別 | jsnWork</a></li>
+<li><a href="http://jsnwork.kiiuo.com/archives/2437/php-composer-json-%e8%a8%ad%e5%ae%9a-classmap-%e6%8c%87%e5%ae%9a%e8%87%aa%e5%8b%95%e8%ae%80%e5%8f%96%e7%9a%84%e6%aa%94%e6%a1%88%e6%88%96%e8%b7%af%e5%be%91/" target="_blank" rel="noopener noreffer ">php – composer.json 設定 classmap 指定自動讀取的檔案或路徑 | jsnWork</a></li>
+<li><a href="https://segmentfault.com/a/1190000006686978" target="_blank" rel="noopener noreffer ">psr-0 和 psr-4 的区别 - shuizhuniurou - SegmentFault 思否</a></li>
+<li><a href="https://stackoverflow.com/questions/24868586/what-are-the-differences-between-psr-0-and-psr-4" target="_blank" rel="noopener noreffer ">php - What Are the Differences Between PSR-0 and PSR-4? - Stack Overflow</a></li>
+<li><a href="https://www.kancloud.cn/xiak/php-node/191121" target="_blank" rel="noopener noreffer ">PSR-0/PSR-4 命名标准 · php 笔记 · 看云</a></li>
+<li><a href="https://blog.csdn.net/sky_zhe/article/details/38615615" target="_blank" rel="noopener noreffer ">PHP PSR-4 与 PSR-0 规范 - zHHHe 的专栏 - CSDN 博客</a></li>
+<li><a href="https://www.oschina.net/question/123890_135938?sort=default&amp;p=2" target="_blank" rel="noopener noreffer ">php 的 use 明顯比 require 高端大氣上檔次 - 開源中國</a></li>
+<li><a href="https://www.oschina.net/question/147332_138188" target="_blank" rel="noopener noreffer ">php 使用命名空间:导入导出之疑问 - 开源中国</a></li>
+<li><a href="https://laravel-china.org/topics/1002/deep-composer-autoload" target="_blank" rel="noopener noreffer ">深入 Composer autoload | Laravel China 社区 - 高品质的 Laravel 和 PHP 开发者社区</a></li>
+<li><a href="https://oomusou.io/php/php-namespace/" target="_blank" rel="noopener noreffer ">如何使用 Namespace? | 點燈坊</a></li>
+<li><a href="https://www.codementor.io/jadjoubran/php-tutorial-getting-started-with-composer-8sbn6fb6t" target="_blank" rel="noopener noreffer ">PHP Tutorial: Getting Started with Composer | Codementor</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-01-18</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" data-title="PHP內建自動載入autoload方式跟常誤會一些觀念" data-hashtags="composer,autoload"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" data-hashtag="composer"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" data-title="PHP內建自動載入autoload方式跟常誤會一些觀念"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" data-title="PHP內建自動載入autoload方式跟常誤會一些觀念"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/PHP%E5%85%A7%E5%BB%BA%E8%87%AA%E5%8B%95%E8%BC%89%E5%85%A5autoload%E6%96%B9%E5%BC%8F%E8%B7%9F%E5%B8%B8%E8%AA%A4%E6%9C%83%E4%B8%80%E4%BA%9B%E8%A7%80%E5%BF%B5/" data-title="PHP內建自動載入autoload方式跟常誤會一些觀念"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/composer/">composer</a>,&nbsp;<a href="/blog/tags/autoload/">autoload</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/mysql%E5%AD%97%E4%B8%B2%E8%87%AA%E5%8B%95%E8%BD%89%E6%95%B8%E5%AD%97%E5%B0%8F%E8%A8%98/" class="prev" rel="prev" title="mysql字串自動轉數字小記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>mysql字串自動轉數字小記</a>
+            <a href="/blog/posts/%E8%AE%80%E5%8F%96%E5%87%BA%E6%96%87%E4%BB%B6%E8%A8%AD%E8%A8%88%E6%9B%B8%E8%A1%A8%E6%A0%BC%E6%A0%BC%E5%BC%8F/" class="next" rel="next" title="從MySQL裡面直接(select)讀取出文件設計書表格格式">從MySQL裡面直接(select)讀取出文件設計書表格格式<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

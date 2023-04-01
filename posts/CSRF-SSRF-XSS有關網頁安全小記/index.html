@@ -1,106 +1,428 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>CSRF , SSRF , XSS 有關網頁安全小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="CSRF , SSRF , XSS 有關網頁安全小記"><meta property="og:description" content="最近看到相關網頁安全東西
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>CSRF , SSRF , XSS 有關網頁安全小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="CSRF , SSRF , XSS 有關網頁安全小記" />
+<meta property="og:description" content="最近看到相關網頁安全東西
 XSS,CSRF 我也比較長看到
 但是 SSRF 就沒什麼聽過
-筆記筆記"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-05-26T16:24:44+00:00"><meta property="article:modified_time" content="2019-05-26T16:24:44+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="CSRF , SSRF , XSS 有關網頁安全小記"><meta name=twitter:description content="最近看到相關網頁安全東西
+筆記筆記" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-05-26T16:24:44+00:00" />
+<meta property="article:modified_time" content="2019-05-26T16:24:44+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="CSRF , SSRF , XSS 有關網頁安全小記"/>
+<meta name="twitter:description" content="最近看到相關網頁安全東西
 XSS,CSRF 我也比較長看到
 但是 SSRF 就沒什麼聽過
-筆記筆記"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/PHP-FPM-%E6%89%93%E9%96%8B-error-log-%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/Codeigniter-%E5%AE%89%E5%85%A8%E6%80%A7%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"CSRF , SSRF , XSS 有關網頁安全小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"CSRF, SSRF, XSS","wordcount":430,"url":"https:\/\/malagege.github.io\/blog\/posts\/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98\/","datePublished":"2019-05-26T16:24:44+00:00","dateModified":"2019-05-26T16:24:44+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">CSRF , SSRF , XSS 有關網頁安全小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/><i class="far fa-folder fa-fw" aria-hidden=true></i>程式心法</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-05-26>2019-05-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;430 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><ul><li><a href=#laravel-ajax-解法>Laravel AJAX 解法</a></li></ul></li><li><a href=#axios-搭配用-laravel-ajax-免設定>AXIOS 搭配用 Laravel AJAX 免設定</a></li></ul></nav></div></div><div class=content id=content><p>最近看到相關網頁安全東西<br>XSS,CSRF 我也比較長看到<br>但是 SSRF 就沒什麼聽過<br>筆記筆記</p><p>找到資訊</p><ul><li><p><a href=https://zhuanlan.zhihu.com/p/28657325 target=_blank rel="noopener noreffer">【庖丁解牛】CSRF 和 SSRF，是如何攻防？ - 知乎</a></p></li><li><p><a href=https://blog.csdn.net/sdb5858874/article/details/80896784 target=_blank rel="noopener noreffer">XSS,CSRF,SSRF 三种漏洞的区别和共同点 - 18 年 3 月萌新白帽子 - CSDN 博客</a></p></li><li><p><a href=https://www.jianshu.com/p/2f60dbd68eb8 target=_blank rel="noopener noreffer">csrf 以及 ssrf - 简书</a></p></li><li><p><a href=https://ctf-wiki.github.io/ctf-wiki/web/ssrf/ target=_blank rel="noopener noreffer">SSRF 服务端请求伪造 - CTF Wiki</a></p><p>傳接 API 需不需要加入 CSRF 判斷<br>所以查了一篇<br>好像也沒有一定答案<br>但有說串接 API 需要帶 Key</p></li><li><p><a href=https://ruby-china.org/topics/32166 target=_blank rel="noopener noreffer">请教大家 app 接口需要防护 csrf 吗？ · Ruby China</a></p></li></ul><p>無相關小記</p><ul><li><a href=https://juejin.im/post/5b17de31f265da6e397b70f4 target=_blank rel="noopener noreffer">WWDC 中提到的浏览器 Fingerprinting 有多可怕？ - 掘金</a></li><li><a href=https://codertw.com/%E4%BC%BA%E6%9C%8D%E5%99%A8/165196/ target=_blank rel="noopener noreffer">資料庫讀寫分離架構實踐 | 程式前沿</a></li></ul><p>有時間找到再補充</p><p><strong>2019-07-01</strong></p><p>最近用 CI 做 CSRF<br>在頁面 form 和 ajax 做 CSRF<br>PS: <code>$config['csrf_protection'] = TRUE;</code> 設定<br>方法是用<code>data: {'&lt;?php echo $this->security->get_csrf_token_name(); ?>':'&lt;?php echo $this->security->get_csrf_hash(); ?>'</code><br>但在 SPA 做 CSRF 就會遇到 token 過期<br>因為 CSRF token 只能用一次<br>這個一不小心就踩到的問題</p><p><a href=http://blog.twbryce.com/codeigniter-%E4%BD%BF%E7%94%A8csrf-token/ target=_blank rel="noopener noreffer">codeigniter 使用 CSRF Token 含 AJAX 驗證 – Bryce&rsquo;S Note</a><br>網路找幾個方案</p><ol><li>Cookies 來抓 CSRF，因為 CSRF 是從 cookies 那邊設定</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-js data-lang=js><span class=line><span class=cl><span class=nx>$</span><span class=p>(</span><span class=kd>function</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>  <span class=nx>$</span><span class=p>(</span><span class=s2>&#34;#btn&#34;</span><span class=p>).</span><span class=nx>click</span><span class=p>(</span><span class=kd>function</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=nx>$</span><span class=p>.</span><span class=nx>ajax</span><span class=p>({</span>
-</span></span><span class=line><span class=cl>      <span class=nx>type</span><span class=o>:</span> <span class=s2>&#34;POST&#34;</span><span class=p>,</span>
-</span></span><span class=line><span class=cl>      <span class=nx>url</span><span class=o>:</span> <span class=s2>&#34;/ajax&#34;</span><span class=p>,</span> <span class=c1>//ajax接收的server端
-</span></span></span><span class=line><span class=cl><span class=c1></span>      <span class=nx>data</span><span class=o>:</span>
-</span></span><span class=line><span class=cl>        <span class=nx>$</span><span class=p>(</span><span class=s2>&#34;#form&#34;</span><span class=p>).</span><span class=nx>serialize</span><span class=p>()</span> <span class=o>+</span>
-</span></span><span class=line><span class=cl>        <span class=s2>&#34;&amp;csrf_test_name=&#34;</span> <span class=o>+</span>
-</span></span><span class=line><span class=cl>        <span class=nx>getCookie</span><span class=p>(</span><span class=s2>&#34;csrf_test_name&#34;</span><span class=p>),</span>
-</span></span><span class=line><span class=cl>      <span class=nx>success</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>data</span><span class=p>)</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=nx>alert</span><span class=p>(</span><span class=nx>data</span><span class=p>.</span><span class=nx>msg</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>      <span class=p>},</span>
-</span></span><span class=line><span class=cl>      <span class=nx>dataType</span><span class=o>:</span> <span class=s2>&#34;json&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=p>});</span>
-</span></span><span class=line><span class=cl>  <span class=p>});</span>
-</span></span><span class=line><span class=cl><span class=p>});</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=kd>function</span> <span class=nx>getCookie</span><span class=p>(</span><span class=nx>name</span><span class=p>)</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>  <span class=kd>var</span> <span class=nx>arr</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>cookie</span><span class=p>.</span><span class=nx>match</span><span class=p>(</span><span class=k>new</span> <span class=nb>RegExp</span><span class=p>(</span><span class=s2>&#34;(^| )&#34;</span> <span class=o>+</span> <span class=nx>name</span> <span class=o>+</span> <span class=s2>&#34;=([^;]*)(;|$)&#34;</span><span class=p>));</span>
-</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=p>(</span><span class=nx>arr</span> <span class=o>!=</span> <span class=kc>null</span><span class=p>)</span> <span class=k>return</span> <span class=nx>unescape</span><span class=p>(</span><span class=nx>arr</span><span class=p>[</span><span class=mi>2</span><span class=p>]);</span>
-</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=kc>null</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://blog.hsin.tw/2011/codeigniter-csrf-protection-form-ajax/ target=_blank rel="noopener noreffer">Codeigniter 開啟 csrf protection 時 傳送表單(or ajax) | [lifeIs: tooShort to: waste]</a></p><h3 id=laravel-ajax-解法>Laravel AJAX 解法</h3><p>先說說一般用法<br><code>@csrf</code></p><ol><li></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-js data-lang=js><span class=line><span class=cl><span class=nx>$</span><span class=p>.</span><span class=nx>ajaxSetup</span><span class=p>({</span>
-</span></span><span class=line><span class=cl>  <span class=nx>headers</span><span class=o>:</span> <span class=p>{</span> <span class=s2>&#34;X-CSRF-TOKEN&#34;</span><span class=o>:</span> <span class=s2>&#34;{{ csrf_token() }}&#34;</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>});</span>
-</span></span></code></pre></td></tr></table></div></div><ol start=2><li></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=line><span class=cl><span class=p>&lt;</span><span class=nt>meta</span> <span class=na>name</span><span class=o>=</span><span class=s>&#34;_token&#34;</span> <span class=na>content</span><span class=o>=</span><span class=s>&#34;{{ csrf_token() }}&#34;</span> <span class=p>/&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><p>再用 js</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>$.ajaxSetup({
-</span></span><span class=line><span class=cl>   headers: {
-</span></span><span class=line><span class=cl>       &#39;X-CSRF-TOKEN&#39;: $(&#39;meta[name=&#34;_token&#34;]&#39;).attr(&#39;content&#39;)
-</span></span><span class=line><span class=cl>   }
-</span></span><span class=line><span class=cl>});
-</span></span></code></pre></td></tr></table></div></div><ol start=3><li>從 cookie 那邊得來 CSRF，跟上面 CI 方法很像，異曲同工之妙。</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-js data-lang=js><span class=line><span class=cl><span class=nx>$</span><span class=p>.</span><span class=nx>ajaxSetup</span><span class=p>({</span>
-</span></span><span class=line><span class=cl>  <span class=nx>headers</span><span class=o>:</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=s2>&#34;X-XSRF-TOKEN&#34;</span><span class=o>:</span> <span class=nx>$</span><span class=p>.</span><span class=nx>cookie</span><span class=p>(</span><span class=s2>&#34;XSRF-TOKEN&#34;</span><span class=p>)</span>
-</span></span><span class=line><span class=cl>  <span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>});</span>
-</span></span></code></pre></td></tr></table></div></div><p>我同事有找到一篇，先打 ajax 取 csrf，在發送表單&mldr;<br>不過我們都覺得不優 XD</p><p>PS: Laravel 會把 CSRF 寫在 XSRF-TOKEN</p><p><a href=https://blog.huli.tw/2017/03/12/csrf-introduction/ target=_blank rel="noopener noreffer">讓我們來談談 CSRF - Huli&rsquo;s blog</a> <a href=web1.png rel>備份圖</a><br><a href=https://eyehere.net/2015/laravel-ajax-csrf/ target=_blank rel="noopener noreffer">Laravel 中 Ajax 调用时的 CSRF 对策 – 目光博客</a><br><a href=https://learnku.com/docs/laravel/5.5/csrf/1295 target=_blank rel="noopener noreffer">CSRF 保护 |《Laravel 5.5 中文文档》| Laravel China 社区</a><br><a href=http://blog.twbryce.com/codeigniter-%E4%BD%BF%E7%94%A8csrf-token/ target=_blank rel="noopener noreffer">codeigniter 使用 CSRF Token 含 AJAX 驗證 – Bryce&rsquo;S Note</a></p><h2 id=axios-搭配用-laravel-ajax-免設定>AXIOS 搭配用 Laravel AJAX 免設定</h2><p><a href=https://github.com/axios/axios target=_blank rel="noopener noreffer">axios/axios: Promise based HTTP client for the browser and node.js</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-mysql data-lang=mysql><span class=line><span class=cl><span class=w> </span><span class=o>//</span><span class=w> </span><span class=o>`</span><span class=n>xsrfCookieName</span><span class=o>`</span><span class=w> </span><span class=k>is</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=n>of</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=n>cookie</span><span class=w> </span><span class=k>to</span><span class=w> </span><span class=k>use</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=n>value</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=n>xsrf</span><span class=w> </span><span class=n>token</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>xsrfCookieName</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;XSRF-TOKEN&#39;</span><span class=p>,</span><span class=w> </span><span class=o>//</span><span class=w> </span><span class=k>default</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>//</span><span class=w> </span><span class=o>`</span><span class=n>xsrfHeaderName</span><span class=o>`</span><span class=w> </span><span class=k>is</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=n>of</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=n>http</span><span class=w> </span><span class=n>header</span><span class=w> </span><span class=n>that</span><span class=w> </span><span class=n>carries</span><span class=w> </span><span class=n>the</span><span class=w> </span><span class=n>xsrf</span><span class=w> </span><span class=n>token</span><span class=w> </span><span class=n>value</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>xsrfHeaderName</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;X-XSRF-TOKEN&#39;</span><span class=p>,</span><span class=w> </span><span class=o>//</span><span class=w> </span><span class=k>default</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>設定 axios，可以不需要設定 CSRF<br>前端套件幫你處理了 XD</p><p>我覺得有空來實作看看</p><p><strong>2019-07-05</strong></p><p>今天看到</p><ul><li><a href=https://zhuanlan.zhihu.com/p/31715835 target=_blank rel="noopener noreffer">IE 的一个通用 Cookie 跨域漏洞 - 知乎</a></li><li><a href=https://github.com/aszx87410/blog/issues/16 target=_blank rel="noopener noreffer">讓我們來談談 CSRF · Issue #16 · aszx87410/blog</a></li><li><a href=https://github.com/twtrubiks/CSRF-tutorial target=_blank rel="noopener noreffer">twtrubiks/CSRF-tutorial: Use Django To Introduce CSRF and Cookies , Session 📝</a></li></ul><p>講到</p><ul><li>Synchronizer Token Pattern ( STP )</li><li>Double Submit Cookie</li></ul><blockquote><p>其中的"某些 CSRF 防禦"特指 Double Cookie Submit。（雙 Cookie 遞交認證，指的是在 GET 參數及 HTTP 請求中同時包含一個隨機的字符串，如果服務器判斷 GET 參數和 Cookie 參數相等，那麼沒有受到 CSRF 攻擊）由於這是 OWASP 欽定的防禦方法，人們往往會忽略 IE Cookie 漏洞對其的繞過。<br><a href=https://zhuanlan.zhihu.com/p/31715835 target=_blank rel="noopener noreffer">IE 的一個通用 Cookie 跨域漏洞 - 知乎</a></p></blockquote><p>這個寫得很清楚是什麼意思</p><p>我覺寫得不錯!!</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-05-26</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/ data-title="CSRF , SSRF , XSS 有關網頁安全小記" data-hashtags=CSRF,SSRF,XSS><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/ data-hashtag=CSRF><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/ data-title="CSRF , SSRF , XSS 有關網頁安全小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/ data-title="CSRF , SSRF , XSS 有關網頁安全小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/ data-title="CSRF , SSRF , XSS 有關網頁安全小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/CSRF/>CSRF</a>,&nbsp;<a href=/blog/tags/SSRF/>SSRF</a>,&nbsp;<a href=/blog/tags/XSS/>XSS</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/PHP-FPM-%E6%89%93%E9%96%8B-error-log-%E6%96%B9%E6%B3%95/ class=prev rel=prev title="PHP-FPM 打開 error log 方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>PHP-FPM 打開 error log 方法</a>
-<a href=/blog/posts/Codeigniter-%E5%AE%89%E5%85%A8%E6%80%A7%E5%B0%8F%E8%A8%98/ class=next rel=next title="Codeigniter 安全性小記">Codeigniter 安全性小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+筆記筆記"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/PHP-FPM-%E6%89%93%E9%96%8B-error-log-%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/Codeigniter-%E5%AE%89%E5%85%A8%E6%80%A7%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "CSRF , SSRF , XSS 有關網頁安全小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "CSRF, SSRF, XSS","wordcount":  430 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98\/","datePublished": "2019-05-26T16:24:44+00:00","dateModified": "2019-05-26T16:24:44+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">CSRF , SSRF , XSS 有關網頁安全小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-05-26">2019-05-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;430 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#laravel-ajax-解法">Laravel AJAX 解法</a></li>
+      </ul>
+    </li>
+    <li><a href="#axios-搭配用-laravel-ajax-免設定">AXIOS 搭配用 Laravel AJAX 免設定</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近看到相關網頁安全東西<br>
+XSS,CSRF 我也比較長看到<br>
+但是 SSRF 就沒什麼聽過<br>
+筆記筆記</p>
+<p>找到資訊</p>
+<ul>
+<li>
+<p><a href="https://zhuanlan.zhihu.com/p/28657325" target="_blank" rel="noopener noreffer ">【庖丁解牛】CSRF 和 SSRF，是如何攻防？ - 知乎</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/sdb5858874/article/details/80896784" target="_blank" rel="noopener noreffer ">XSS,CSRF,SSRF 三种漏洞的区别和共同点 - 18 年 3 月萌新白帽子 - CSDN 博客</a></p>
+</li>
+<li>
+<p><a href="https://www.jianshu.com/p/2f60dbd68eb8" target="_blank" rel="noopener noreffer ">csrf 以及 ssrf - 简书</a></p>
+</li>
+<li>
+<p><a href="https://ctf-wiki.github.io/ctf-wiki/web/ssrf/" target="_blank" rel="noopener noreffer ">SSRF 服务端请求伪造 - CTF Wiki</a></p>
+<p>傳接 API 需不需要加入 CSRF 判斷<br>
+所以查了一篇<br>
+好像也沒有一定答案<br>
+但有說串接 API 需要帶 Key</p>
+</li>
+<li>
+<p><a href="https://ruby-china.org/topics/32166" target="_blank" rel="noopener noreffer ">请教大家 app 接口需要防护 csrf 吗？ · Ruby China</a></p>
+</li>
+</ul>
+<p>無相關小記</p>
+<ul>
+<li><a href="https://juejin.im/post/5b17de31f265da6e397b70f4" target="_blank" rel="noopener noreffer ">WWDC 中提到的浏览器 Fingerprinting 有多可怕？ - 掘金</a></li>
+<li><a href="https://codertw.com/%E4%BC%BA%E6%9C%8D%E5%99%A8/165196/" target="_blank" rel="noopener noreffer ">資料庫讀寫分離架構實踐 | 程式前沿</a></li>
+</ul>
+<p>有時間找到再補充</p>
+<p><strong>2019-07-01</strong></p>
+<p>最近用 CI 做 CSRF<br>
+在頁面 form 和 ajax 做 CSRF<br>
+PS: <code>$config['csrf_protection'] = TRUE;</code> 設定<br>
+方法是用<code>data: {'&lt;?php echo $this-&gt;security-&gt;get_csrf_token_name(); ?&gt;':'&lt;?php echo $this-&gt;security-&gt;get_csrf_hash(); ?&gt;'</code><br>
+但在 SPA 做 CSRF 就會遇到 token 過期<br>
+因為 CSRF token 只能用一次<br>
+這個一不小心就踩到的問題</p>
+<p><a href="http://blog.twbryce.com/codeigniter-%E4%BD%BF%E7%94%A8csrf-token/" target="_blank" rel="noopener noreffer ">codeigniter 使用 CSRF Token 含 AJAX 驗證 – Bryce&rsquo;S Note</a><br>
+網路找幾個方案</p>
+<ol>
+<li>Cookies 來抓 CSRF，因為 CSRF 是從 cookies 那邊設定</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">$</span><span class="p">(</span><span class="s2">&#34;#btn&#34;</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">      <span class="nx">type</span><span class="o">:</span> <span class="s2">&#34;POST&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="nx">url</span><span class="o">:</span> <span class="s2">&#34;/ajax&#34;</span><span class="p">,</span> <span class="c1">//ajax接收的server端
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>      <span class="nx">data</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">$</span><span class="p">(</span><span class="s2">&#34;#form&#34;</span><span class="p">).</span><span class="nx">serialize</span><span class="p">()</span> <span class="o">+</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&amp;csrf_test_name=&#34;</span> <span class="o">+</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">getCookie</span><span class="p">(</span><span class="s2">&#34;csrf_test_name&#34;</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">      <span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">alert</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">msg</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">      <span class="p">},</span>
+</span></span><span class="line"><span class="cl">      <span class="nx">dataType</span><span class="o">:</span> <span class="s2">&#34;json&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">});</span>
+</span></span><span class="line"><span class="cl">  <span class="p">});</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">function</span> <span class="nx">getCookie</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">var</span> <span class="nx">arr</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">&#34;(^| )&#34;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&#34;=([^;]*)(;|$)&#34;</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">(</span><span class="nx">arr</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="k">return</span> <span class="nx">unescape</span><span class="p">(</span><span class="nx">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://blog.hsin.tw/2011/codeigniter-csrf-protection-form-ajax/" target="_blank" rel="noopener noreffer ">Codeigniter 開啟 csrf protection 時 傳送表單(or ajax) | [lifeIs: tooShort to: waste]</a></p>
+<h3 id="laravel-ajax-解法">Laravel AJAX 解法</h3>
+<p>先說說一般用法<br>
+<code>@csrf</code></p>
+<ol>
+<li></li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="nx">$</span><span class="p">.</span><span class="nx">ajaxSetup</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span> <span class="s2">&#34;X-CSRF-TOKEN&#34;</span><span class="o">:</span> <span class="s2">&#34;{{ csrf_token() }}&#34;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="2">
+<li></li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="cl"><span class="p">&lt;</span><span class="nt">meta</span> <span class="na">name</span><span class="o">=</span><span class="s">&#34;_token&#34;</span> <span class="na">content</span><span class="o">=</span><span class="s">&#34;{{ csrf_token() }}&#34;</span> <span class="p">/&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>再用 js</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$.ajaxSetup({
+</span></span><span class="line"><span class="cl">   headers: {
+</span></span><span class="line"><span class="cl">       &#39;X-CSRF-TOKEN&#39;: $(&#39;meta[name=&#34;_token&#34;]&#39;).attr(&#39;content&#39;)
+</span></span><span class="line"><span class="cl">   }
+</span></span><span class="line"><span class="cl">});
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>從 cookie 那邊得來 CSRF，跟上面 CI 方法很像，異曲同工之妙。</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="nx">$</span><span class="p">.</span><span class="nx">ajaxSetup</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;X-XSRF-TOKEN&#34;</span><span class="o">:</span> <span class="nx">$</span><span class="p">.</span><span class="nx">cookie</span><span class="p">(</span><span class="s2">&#34;XSRF-TOKEN&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我同事有找到一篇，先打 ajax 取 csrf，在發送表單&hellip;<br>
+不過我們都覺得不優 XD</p>
+<p>PS: Laravel 會把 CSRF 寫在 XSRF-TOKEN</p>
+<p><a href="https://blog.huli.tw/2017/03/12/csrf-introduction/" target="_blank" rel="noopener noreffer ">讓我們來談談 CSRF - Huli&rsquo;s blog</a> <a href="web1.png" rel="">備份圖</a><br>
+<a href="https://eyehere.net/2015/laravel-ajax-csrf/" target="_blank" rel="noopener noreffer ">Laravel 中 Ajax 调用时的 CSRF 对策 – 目光博客</a><br>
+<a href="https://learnku.com/docs/laravel/5.5/csrf/1295" target="_blank" rel="noopener noreffer ">CSRF 保护 |《Laravel 5.5 中文文档》| Laravel China 社区</a><br>
+<a href="http://blog.twbryce.com/codeigniter-%E4%BD%BF%E7%94%A8csrf-token/" target="_blank" rel="noopener noreffer ">codeigniter 使用 CSRF Token 含 AJAX 驗證 – Bryce&rsquo;S Note</a></p>
+<h2 id="axios-搭配用-laravel-ajax-免設定">AXIOS 搭配用 Laravel AJAX 免設定</h2>
+<p><a href="https://github.com/axios/axios" target="_blank" rel="noopener noreffer ">axios/axios: Promise based HTTP client for the browser and node.js</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-mysql" data-lang="mysql"><span class="line"><span class="cl"><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="o">`</span><span class="n">xsrfCookieName</span><span class="o">`</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">cookie</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="k">use</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">xsrf</span><span class="w"> </span><span class="n">token</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">xsrfCookieName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;XSRF-TOKEN&#39;</span><span class="p">,</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="k">default</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">//</span><span class="w"> </span><span class="o">`</span><span class="n">xsrfHeaderName</span><span class="o">`</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">http</span><span class="w"> </span><span class="n">header</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">carries</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">xsrf</span><span class="w"> </span><span class="n">token</span><span class="w"> </span><span class="n">value</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">xsrfHeaderName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;X-XSRF-TOKEN&#39;</span><span class="p">,</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="k">default</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>設定 axios，可以不需要設定 CSRF<br>
+前端套件幫你處理了 XD</p>
+<p>我覺得有空來實作看看</p>
+<p><strong>2019-07-05</strong></p>
+<p>今天看到</p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/31715835" target="_blank" rel="noopener noreffer ">IE 的一个通用 Cookie 跨域漏洞 - 知乎</a></li>
+<li><a href="https://github.com/aszx87410/blog/issues/16" target="_blank" rel="noopener noreffer ">讓我們來談談 CSRF · Issue #16 · aszx87410/blog</a></li>
+<li><a href="https://github.com/twtrubiks/CSRF-tutorial" target="_blank" rel="noopener noreffer ">twtrubiks/CSRF-tutorial: Use Django To Introduce CSRF and Cookies , Session 📝</a></li>
+</ul>
+<p>講到</p>
+<ul>
+<li>Synchronizer Token Pattern ( STP )</li>
+<li>Double Submit Cookie</li>
+</ul>
+<blockquote>
+<p>其中的&quot;某些 CSRF 防禦&quot;特指 Double Cookie Submit。（雙 Cookie 遞交認證，指的是在 GET 參數及 HTTP 請求中同時包含一個隨機的字符串，如果服務器判斷 GET 參數和 Cookie 參數相等，那麼沒有受到 CSRF 攻擊）由於這是 OWASP 欽定的防禦方法，人們往往會忽略 IE Cookie 漏洞對其的繞過。<br>
+<a href="https://zhuanlan.zhihu.com/p/31715835" target="_blank" rel="noopener noreffer ">IE 的一個通用 Cookie 跨域漏洞 - 知乎</a></p>
+</blockquote>
+<p>這個寫得很清楚是什麼意思</p>
+<p>我覺寫得不錯!!</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-05-26</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" data-title="CSRF , SSRF , XSS 有關網頁安全小記" data-hashtags="CSRF,SSRF,XSS"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" data-hashtag="CSRF"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" data-title="CSRF , SSRF , XSS 有關網頁安全小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" data-title="CSRF , SSRF , XSS 有關網頁安全小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/CSRF-SSRF-XSS%E6%9C%89%E9%97%9C%E7%B6%B2%E9%A0%81%E5%AE%89%E5%85%A8%E5%B0%8F%E8%A8%98/" data-title="CSRF , SSRF , XSS 有關網頁安全小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/CSRF/">CSRF</a>,&nbsp;<a href="/blog/tags/SSRF/">SSRF</a>,&nbsp;<a href="/blog/tags/XSS/">XSS</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/PHP-FPM-%E6%89%93%E9%96%8B-error-log-%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="PHP-FPM 打開 error log 方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>PHP-FPM 打開 error log 方法</a>
+            <a href="/blog/posts/Codeigniter-%E5%AE%89%E5%85%A8%E6%80%A7%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="Codeigniter 安全性小記">Codeigniter 安全性小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

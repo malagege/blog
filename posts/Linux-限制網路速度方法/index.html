@@ -1,104 +1,422 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Linux 限制網路速度方法 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Linux 限制網路速度方法"><meta property="og:description" content="最近發現動物機上傳速度高的話
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Linux 限制網路速度方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Linux 限制網路速度方法" />
+<meta property="og:description" content="最近發現動物機上傳速度高的話
 容易造成別台機器網頁不能看(timeout)
 原本想用中華電信小烏龜設定Qos
 但好像沒有效果
-網路上有看到 Linux 控制連線速度"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-04-05T00:00:46+00:00"><meta property="article:modified_time" content="2020-04-05T00:00:46+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Linux 限制網路速度方法"><meta name=twitter:description content="最近發現動物機上傳速度高的話
+網路上有看到 Linux 控制連線速度" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-04-05T00:00:46+00:00" />
+<meta property="article:modified_time" content="2020-04-05T00:00:46+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux 限制網路速度方法"/>
+<meta name="twitter:description" content="最近發現動物機上傳速度高的話
 容易造成別台機器網頁不能看(timeout)
 原本想用中華電信小烏龜設定Qos
 但好像沒有效果
-網路上有看到 Linux 控制連線速度"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/%E7%B6%B2%E7%AB%99%E5%93%80%E5%BC%94%E7%81%B0%E9%9A%8E-CSS-%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/%E4%B8%B2%E6%8E%A5-LINE-message-API-WebHook-%E5%92%8C-LIFF-%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Linux 限制網路速度方法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"linux, 限速","wordcount":409,"url":"https:\/\/malagege.github.io\/blog\/posts\/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95\/","datePublished":"2020-04-05T00:00:46+00:00","dateModified":"2020-04-05T00:00:46+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux 限制網路速度方法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-04-05>2020-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;409 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#wondershaper>wondershaper</a><ul><li><a href=#如何移除>如何移除</a></li><li><a href=#使用方法>使用方法</a></li></ul></li><li><a href=#算傳輸速度>算傳輸速度</a><ul><li><a href=#設定服務>設定服務</a></li></ul></li><li><a href=#trickle>Trickle</a></li><li><a href=#iptable--tc>iptable + tc</a></li><li><a href=#其他工具>其他工具</a></li></ul></nav></div></div><div class=content id=content><p>最近發現動物機上傳速度高的話<br>容易造成別台機器網頁不能看(timeout)<br>原本想用中華電信小烏龜設定Qos<br>但好像沒有效果<br>網路上有看到 Linux 控制連線速度</p><h2 id=wondershaper>wondershaper</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 以下不能做，不要執行</span>
-</span></span><span class=line><span class=cl>sudo apt install wondershaper
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 使用 apt 安裝執行會出現</span>
-</span></span><span class=line><span class=cl><span class=c1># Please read the man page for the wondershaper and</span>
-</span></span><span class=line><span class=cl><span class=c1># the file /usr/share/doc/wondershaper/README.Debian.gz</span>
-</span></span></code></pre></td></tr></table></div></div><blockquote><p>&mldr;but as of Ubuntu 18.04LTS, the packaged wondershaper does not work correctly out of the box so you have to go direct to the github repo from magnific0</p></blockquote><p>好像&mldr;，apt 裝完不能用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget https://github.com/magnific0/wondershaper/archive/master.zip -c -O wondershaper-tmp.zip <span class=o>&amp;&amp;</span> unzip -o wondershaper-tmp.zip <span class=o>&amp;&amp;</span> rm wondershaper-tmp.zip <span class=o>&amp;&amp;</span> <span class=nb>cd</span> wondershaper-master <span class=o>&amp;&amp;</span> sudo make install <span class=p>;</span> <span class=nb>cd</span> .. <span class=o>&amp;&amp;</span> rm -rf wondershaper-master
-</span></span></code></pre></td></tr></table></div></div><p>其實這些指令是抓檔案下來、解壓縮、刪除壓縮檔進去目錄，安裝程式完便刪除。</p><p>參考:<a href=https://magiclen.org/linux-bandwidth-limit/ target=_blank rel="noopener noreffer">Linux 如何使用wondershaper來限制網路頻寬？ | MagicLen</a></p><h3 id=如何移除>如何移除</h3><p>因為使用 make install 安裝<br>所以不知道怎麼移除<br>到 wondershaper-master 做 <code>sudo make uninstall</code></p><p><a href=https://askubuntu.com/questions/87111/if-i-build-a-package-from-source-how-can-i-uninstall-or-remove-completely target=_blank rel="noopener noreffer">If I build a package from source how can I uninstall or remove completely? - Ask Ubuntu</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>pi@raspberrypi:~/wondershaper-master $ sudo make uninstall
-</span></span><span class=line><span class=cl>rm -f /usr/sbin/wondershaper;
-</span></span><span class=line><span class=cl>rm -f /usr/lib/systemd/system/wondershaper.service;
-</span></span><span class=line><span class=cl>rm -f /etc/conf.d/wondershaper.conf;
-</span></span></code></pre></td></tr></table></div></div><h3 id=使用方法>使用方法</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>MODES:
-</span></span><span class=line><span class=cl>   wondershaper -a &lt;adapter&gt; -d &lt;rate&gt; -u &lt;rate&gt;
-</span></span><span class=line><span class=cl>   wondershaper -c -a &lt;adapter&gt;
-</span></span><span class=line><span class=cl>   wondershaper -s -a &lt;adapter&gt;
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>EXAMPLES:
-</span></span><span class=line><span class=cl>   wondershaper -a eth0 -d 1024 -u 512
-</span></span><span class=line><span class=cl>   wondershaper -a eth0 -u 512
-</span></span><span class=line><span class=cl>   wondershaper -c -a eth0
-</span></span></code></pre></td></tr></table></div></div><p>記得輸入過的 wondershaper 的 interface 要重設速度<br>要做 <code>wondershaper -c -a &lt;interface></code></p><h2 id=算傳輸速度>算傳輸速度</h2><p><a href=https://www.convertunits.com/from/Kbps/to/megabyte/second target=_blank rel="noopener noreffer">Convert Kbps to megabyte/second - Conversion of Measurement Units</a></p><p>EX 限制 2mb 換算 Kbps 16000<br>公式:大概 1mb = 8000kbps<br>但我應該是記不住，靠電腦算就好了XD</p><h3 id=設定服務>設定服務</h3><p>重開機就會清除之前設定<br>他其實你打的指令也不會記錄<br>主要會吃/etc/systemd/wondershaper.conf<br>所以要改在這裏面</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 啟用 service</span>
-</span></span><span class=line><span class=cl>sudo systemctl <span class=nb>enable</span> wondershaper.service
-</span></span><span class=line><span class=cl><span class=c1># 停用 service</span>
-</span></span><span class=line><span class=cl>sudo systemctl disable wondershaper.service
-</span></span></code></pre></td></tr></table></div></div><p>奇怪，那我要設定多個 interface 要怎麼辦<br>我後來查都查不到<br>看到<a href=https://documentation.online.net/en/dedicated-server/tutorials/network/configure-wondershaper target=_blank rel="noopener noreffer">Traffic management with WonderShaper [Documentation - Online.net]</a></p><p>/usr/lib/systemd/system/wondershaper.service</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[Unit]
-</span></span><span class=line><span class=cl>Description=Bandwidth shaper/Network rate limiter
-</span></span><span class=line><span class=cl>After=network.target
-</span></span><span class=line><span class=cl>Wants=network.target
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>[Service]
-</span></span><span class=line><span class=cl>Type=oneshot
-</span></span><span class=line><span class=cl>RemainAfterExit=yes
-</span></span><span class=line><span class=cl>EnvironmentFile=/etc/systemd/wondershaper.conf
-</span></span><span class=line><span class=cl>ExecStart=/usr/bin/wondershaper -a $IFACE -d $DSPEED -u $USPEED
-</span></span><span class=line><span class=cl>ExecStop=/usr/bin/wondershaper -c -a $IFACE
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>[Install]
-</span></span><span class=line><span class=cl>WantedBy=multi-user.target
-</span></span></code></pre></td></tr></table></div></div><p>其實看 ExecStart ，只會幫你帶入一個<br>感覺能透過 EnvironmentFile 加參數<br>透過 ExecStart 和 ExecStop 實現多個 interface 操作</p><p><a href=https://blog.wongcw.com/2019/05/07/linux%E6%9C%8D%E5%8B%99%E5%99%A8%E4%BD%BF%E7%94%A8wondershaper%E9%80%B2%E8%A1%8C%E7%B6%B2%E7%B5%A1%E9%80%9F%E5%BA%A6%E9%99%90%E5%88%B6/ target=_blank rel="noopener noreffer">linux服務器使用WonderShaper進行網絡速度限制 – WONGCW 網誌</a></p><h2 id=trickle>Trickle</h2><p>Trickle 我就不研究了</p><p><a href=https://ching119.pixnet.net/blog/post/59675947 target=_blank rel="noopener noreffer">【系統】Ubuntu : 限制網路頻寬 @ Ching Wei : This is My Life - 工作、攝影、旅遊 :: 痞客邦 ::</a><br><a href=https://kknews.cc/zh-tw/code/3494a8y.html target=_blank rel="noopener noreffer">Linux下使用Trickle限制下載上傳帶寬 - 每日頭條</a><br><a href=https://magiclen.org/linux-bandwidth-limit/ target=_blank rel="noopener noreffer">Linux 如何使用wondershaper來限制網路頻寬？ | MagicLen</a></p><h2 id=iptable--tc>iptable + tc</h2><p>感覺 wondershaper 是用 tc<br>但我看不懂 tc 設定</p><blockquote><p>wondershaper 是一個易用的流量限制腳本. 該腳本提供了以下改進:<br>降低交互流量時的延遲時間<br>允許上傳/下載的同時保留適當的 Web 瀏覽速度<br>確保上傳不會影響到下載<br>確保下載不會影響到上傳</p></blockquote><p><a href=https://wiki.ubuntu.org.cn/Wondershaper%E6%B5%81%E9%87%8F%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7 target=_blank rel="noopener noreffer">Wondershaper流量監控工具 - Ubuntu中文</a></p><p><a href=http://puremonkey2010.blogspot.com/2015/01/linux-tc-traffic-control.html target=_blank rel="noopener noreffer">程式扎記: [Linux 文章收集] TC 入門 (traffic control)</a><br><a href=https://www.cnblogs.com/xingmuxin/p/10793272.html target=_blank rel="noopener noreffer">使用iptables和tc对端口限速 - 行木辛 - 博客园</a><br><a href=https://segmentfault.com/a/1190000000666869 target=_blank rel="noopener noreffer">关于 iptables 和 tc 的限速理解 - 线上猛如虎，线下怂如鼠（WhyNotBetter） - SegmentFault 思否</a><br><a href=https://shofan.blogspot.com/2017/08/linux-tctraffic-control.html target=_blank rel="noopener noreffer">[Linux] TC(traffic control)流量控制實作筆記(1)</a><br><a href=https://www.haxi.cc/archives/iptables-%E9%99%90%E9%80%9F.html target=_blank rel="noopener noreffer">iptables 限速 - 哈希</a></p><h2 id=其他工具>其他工具</h2><p>爬到<a href=https://www.lijiaocn.com/%E6%8A%80%E5%B7%A7/2017/08/10/linux-net-traffic-control.html#trickle target=_blank rel="noopener noreffer">linux的traffic control@小鸟技术笔记</a>有很多工具</p><p>dummynet</p><blockquote><p>dummynet通過創建pipe接管指定的報文，對其進行整型。</p></blockquote><p><a href=https://blog.csdn.net/baidu_zhongce/article/details/46874583 target=_blank rel="noopener noreffer">利用Dummynet模拟恶劣网络环境_运维_baidu_zhongce的博客-CSDN博客</a><br>其他惡劣環境方法:</p><ul><li><a href=https://www.cnblogs.com/jinjiangongzuoshi/p/5272787.html target=_blank rel="noopener noreffer">模拟恶劣网络环境常用的几种解决方案 - 狂师 - 博客园</a></li><li><a href=https://www.shangmayuan.com/a/0fd3247055c54298b214d92c.html target=_blank rel="noopener noreffer">如何模拟弱网测试 - 尚码园</a></li><li><a href=http://www.haxi.cc/archives/Linux%E6%A8%A1%E6%8B%9F%E5%A4%8D%E6%9D%82%E7%BD%91%E7%BB%9C%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84%E4%BC%A0%E8%BE%93-netem%E5%92%8Ctc.html target=_blank rel="noopener noreffer">Linux模拟复杂网络环境下的传输（netem和tc） - 哈希</a></li></ul><p>之前有在想要怎麼創造很糟網路環境，剛好看到這篇</p><p>pyshaper</p><blockquote><p>pyshaper是一個帶有gui的限速工具。</p></blockquote><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-04-05</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/ data-title="Linux 限制網路速度方法" data-hashtags=linux,限速><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/ data-hashtag=linux><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/ data-title="Linux 限制網路速度方法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/ data-title="Linux 限制網路速度方法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/ data-title="Linux 限制網路速度方法"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/Linux/>Linux</a>,&nbsp;<a href=/blog/tags/%E9%99%90%E9%80%9F/>限速</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E7%B6%B2%E7%AB%99%E5%93%80%E5%BC%94%E7%81%B0%E9%9A%8E-CSS-%E6%96%B9%E6%B3%95/ class=prev rel=prev title="網站哀弔灰階 CSS 方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>網站哀弔灰階 CSS 方法</a>
-<a href=/blog/posts/%E4%B8%B2%E6%8E%A5-LINE-message-API-WebHook-%E5%92%8C-LIFF-%E5%B0%8F%E8%A8%98/ class=next rel=next title="串接 LINE message API(WebHook)  和 LIFF 小記">串接 LINE message API(WebHook) 和 LIFF 小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+網路上有看到 Linux 控制連線速度"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E7%B6%B2%E7%AB%99%E5%93%80%E5%BC%94%E7%81%B0%E9%9A%8E-CSS-%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/%E4%B8%B2%E6%8E%A5-LINE-message-API-WebHook-%E5%92%8C-LIFF-%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Linux 限制網路速度方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95\/"
+        },"genre": "posts","keywords": "linux, 限速","wordcount":  409 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95\/","datePublished": "2020-04-05T00:00:46+00:00","dateModified": "2020-04-05T00:00:46+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux 限制網路速度方法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2020-04-05">2020-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;409 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#wondershaper">wondershaper</a>
+      <ul>
+        <li><a href="#如何移除">如何移除</a></li>
+        <li><a href="#使用方法">使用方法</a></li>
+      </ul>
+    </li>
+    <li><a href="#算傳輸速度">算傳輸速度</a>
+      <ul>
+        <li><a href="#設定服務">設定服務</a></li>
+      </ul>
+    </li>
+    <li><a href="#trickle">Trickle</a></li>
+    <li><a href="#iptable--tc">iptable + tc</a></li>
+    <li><a href="#其他工具">其他工具</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近發現動物機上傳速度高的話<br>
+容易造成別台機器網頁不能看(timeout)<br>
+原本想用中華電信小烏龜設定Qos<br>
+但好像沒有效果<br>
+網路上有看到 Linux 控制連線速度</p>
+<h2 id="wondershaper">wondershaper</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 以下不能做，不要執行</span>
+</span></span><span class="line"><span class="cl">sudo apt install wondershaper
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 使用 apt 安裝執行會出現</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Please read the man page for the wondershaper and</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># the file /usr/share/doc/wondershaper/README.Debian.gz</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>&hellip;but as of Ubuntu 18.04LTS, the packaged wondershaper does not work correctly out of the box so you have to go direct to the github repo from magnific0</p>
+</blockquote>
+<p>好像&hellip;，apt 裝完不能用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">wget https://github.com/magnific0/wondershaper/archive/master.zip -c -O wondershaper-tmp.zip <span class="o">&amp;&amp;</span> unzip -o wondershaper-tmp.zip <span class="o">&amp;&amp;</span> rm wondershaper-tmp.zip <span class="o">&amp;&amp;</span> <span class="nb">cd</span> wondershaper-master <span class="o">&amp;&amp;</span> sudo make install <span class="p">;</span> <span class="nb">cd</span> .. <span class="o">&amp;&amp;</span> rm -rf wondershaper-master
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其實這些指令是抓檔案下來、解壓縮、刪除壓縮檔進去目錄，安裝程式完便刪除。</p>
+<p>參考:<a href="https://magiclen.org/linux-bandwidth-limit/" target="_blank" rel="noopener noreffer ">Linux 如何使用wondershaper來限制網路頻寬？ | MagicLen</a></p>
+<h3 id="如何移除">如何移除</h3>
+<p>因為使用 make install 安裝<br>
+所以不知道怎麼移除<br>
+到 wondershaper-master 做 <code>sudo make uninstall</code></p>
+<p><a href="https://askubuntu.com/questions/87111/if-i-build-a-package-from-source-how-can-i-uninstall-or-remove-completely" target="_blank" rel="noopener noreffer ">If I build a package from source how can I uninstall or remove completely? - Ask Ubuntu</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">pi@raspberrypi:~/wondershaper-master $ sudo make uninstall
+</span></span><span class="line"><span class="cl">rm -f /usr/sbin/wondershaper;
+</span></span><span class="line"><span class="cl">rm -f /usr/lib/systemd/system/wondershaper.service;
+</span></span><span class="line"><span class="cl">rm -f /etc/conf.d/wondershaper.conf;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用方法">使用方法</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">MODES:
+</span></span><span class="line"><span class="cl">   wondershaper -a &lt;adapter&gt; -d &lt;rate&gt; -u &lt;rate&gt;
+</span></span><span class="line"><span class="cl">   wondershaper -c -a &lt;adapter&gt;
+</span></span><span class="line"><span class="cl">   wondershaper -s -a &lt;adapter&gt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">EXAMPLES:
+</span></span><span class="line"><span class="cl">   wondershaper -a eth0 -d 1024 -u 512
+</span></span><span class="line"><span class="cl">   wondershaper -a eth0 -u 512
+</span></span><span class="line"><span class="cl">   wondershaper -c -a eth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>記得輸入過的 wondershaper 的 interface 要重設速度<br>
+要做 <code>wondershaper -c -a &lt;interface&gt;</code></p>
+<h2 id="算傳輸速度">算傳輸速度</h2>
+<p><a href="https://www.convertunits.com/from/Kbps/to/megabyte/second" target="_blank" rel="noopener noreffer ">Convert Kbps to megabyte/second - Conversion of Measurement Units</a></p>
+<p>EX 限制 2mb 換算 Kbps 16000<br>
+公式:大概 1mb = 8000kbps<br>
+但我應該是記不住，靠電腦算就好了XD</p>
+<h3 id="設定服務">設定服務</h3>
+<p>重開機就會清除之前設定<br>
+他其實你打的指令也不會記錄<br>
+主要會吃/etc/systemd/wondershaper.conf<br>
+所以要改在這裏面</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 啟用 service</span>
+</span></span><span class="line"><span class="cl">sudo systemctl <span class="nb">enable</span> wondershaper.service
+</span></span><span class="line"><span class="cl"><span class="c1"># 停用 service</span>
+</span></span><span class="line"><span class="cl">sudo systemctl disable wondershaper.service
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>奇怪，那我要設定多個 interface 要怎麼辦<br>
+我後來查都查不到<br>
+看到<a href="https://documentation.online.net/en/dedicated-server/tutorials/network/configure-wondershaper" target="_blank" rel="noopener noreffer ">Traffic management with WonderShaper [Documentation - Online.net]</a></p>
+<p>/usr/lib/systemd/system/wondershaper.service</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[Unit]
+</span></span><span class="line"><span class="cl">Description=Bandwidth shaper/Network rate limiter
+</span></span><span class="line"><span class="cl">After=network.target
+</span></span><span class="line"><span class="cl">Wants=network.target
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[Service]
+</span></span><span class="line"><span class="cl">Type=oneshot
+</span></span><span class="line"><span class="cl">RemainAfterExit=yes
+</span></span><span class="line"><span class="cl">EnvironmentFile=/etc/systemd/wondershaper.conf
+</span></span><span class="line"><span class="cl">ExecStart=/usr/bin/wondershaper -a $IFACE -d $DSPEED -u $USPEED
+</span></span><span class="line"><span class="cl">ExecStop=/usr/bin/wondershaper -c -a $IFACE
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[Install]
+</span></span><span class="line"><span class="cl">WantedBy=multi-user.target
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其實看 ExecStart ，只會幫你帶入一個<br>
+感覺能透過 EnvironmentFile 加參數<br>
+透過 ExecStart 和 ExecStop 實現多個 interface 操作</p>
+<p><a href="https://blog.wongcw.com/2019/05/07/linux%E6%9C%8D%E5%8B%99%E5%99%A8%E4%BD%BF%E7%94%A8wondershaper%E9%80%B2%E8%A1%8C%E7%B6%B2%E7%B5%A1%E9%80%9F%E5%BA%A6%E9%99%90%E5%88%B6/" target="_blank" rel="noopener noreffer ">linux服務器使用WonderShaper進行網絡速度限制 – WONGCW 網誌</a></p>
+<h2 id="trickle">Trickle</h2>
+<p>Trickle 我就不研究了</p>
+<p><a href="https://ching119.pixnet.net/blog/post/59675947" target="_blank" rel="noopener noreffer ">【系統】Ubuntu : 限制網路頻寬 @ Ching Wei : This is My Life - 工作、攝影、旅遊 :: 痞客邦 ::</a><br>
+<a href="https://kknews.cc/zh-tw/code/3494a8y.html" target="_blank" rel="noopener noreffer ">Linux下使用Trickle限制下載上傳帶寬 - 每日頭條</a><br>
+<a href="https://magiclen.org/linux-bandwidth-limit/" target="_blank" rel="noopener noreffer ">Linux 如何使用wondershaper來限制網路頻寬？ | MagicLen</a></p>
+<h2 id="iptable--tc">iptable + tc</h2>
+<p>感覺 wondershaper 是用 tc<br>
+但我看不懂 tc 設定</p>
+<blockquote>
+<p>wondershaper 是一個易用的流量限制腳本. 該腳本提供了以下改進:<br>
+降低交互流量時的延遲時間<br>
+允許上傳/下載的同時保留適當的 Web 瀏覽速度<br>
+確保上傳不會影響到下載<br>
+確保下載不會影響到上傳</p>
+</blockquote>
+<p><a href="https://wiki.ubuntu.org.cn/Wondershaper%E6%B5%81%E9%87%8F%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7" target="_blank" rel="noopener noreffer ">Wondershaper流量監控工具 - Ubuntu中文</a></p>
+<p><a href="http://puremonkey2010.blogspot.com/2015/01/linux-tc-traffic-control.html" target="_blank" rel="noopener noreffer ">程式扎記: [Linux 文章收集] TC 入門 (traffic control)</a><br>
+<a href="https://www.cnblogs.com/xingmuxin/p/10793272.html" target="_blank" rel="noopener noreffer ">使用iptables和tc对端口限速 - 行木辛 - 博客园</a><br>
+<a href="https://segmentfault.com/a/1190000000666869" target="_blank" rel="noopener noreffer ">关于 iptables 和 tc 的限速理解 - 线上猛如虎，线下怂如鼠（WhyNotBetter） - SegmentFault 思否</a><br>
+<a href="https://shofan.blogspot.com/2017/08/linux-tctraffic-control.html" target="_blank" rel="noopener noreffer ">[Linux] TC(traffic control)流量控制實作筆記(1)</a><br>
+<a href="https://www.haxi.cc/archives/iptables-%E9%99%90%E9%80%9F.html" target="_blank" rel="noopener noreffer ">iptables 限速 - 哈希</a></p>
+<h2 id="其他工具">其他工具</h2>
+<p>爬到<a href="https://www.lijiaocn.com/%E6%8A%80%E5%B7%A7/2017/08/10/linux-net-traffic-control.html#trickle" target="_blank" rel="noopener noreffer ">linux的traffic control@小鸟技术笔记</a>有很多工具</p>
+<p>dummynet</p>
+<blockquote>
+<p>dummynet通過創建pipe接管指定的報文，對其進行整型。</p>
+</blockquote>
+<p><a href="https://blog.csdn.net/baidu_zhongce/article/details/46874583" target="_blank" rel="noopener noreffer ">利用Dummynet模拟恶劣网络环境_运维_baidu_zhongce的博客-CSDN博客</a><br>
+其他惡劣環境方法:</p>
+<ul>
+<li><a href="https://www.cnblogs.com/jinjiangongzuoshi/p/5272787.html" target="_blank" rel="noopener noreffer ">模拟恶劣网络环境常用的几种解决方案 - 狂师 - 博客园</a></li>
+<li><a href="https://www.shangmayuan.com/a/0fd3247055c54298b214d92c.html" target="_blank" rel="noopener noreffer ">如何模拟弱网测试 - 尚码园</a></li>
+<li><a href="http://www.haxi.cc/archives/Linux%E6%A8%A1%E6%8B%9F%E5%A4%8D%E6%9D%82%E7%BD%91%E7%BB%9C%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84%E4%BC%A0%E8%BE%93-netem%E5%92%8Ctc.html" target="_blank" rel="noopener noreffer ">Linux模拟复杂网络环境下的传输（netem和tc） - 哈希</a></li>
+</ul>
+<p>之前有在想要怎麼創造很糟網路環境，剛好看到這篇</p>
+<p>pyshaper</p>
+<blockquote>
+<p>pyshaper是一個帶有gui的限速工具。</p>
+</blockquote><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2020-04-05</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" data-title="Linux 限制網路速度方法" data-hashtags="linux,限速"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" data-hashtag="linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" data-title="Linux 限制網路速度方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" data-title="Linux 限制網路速度方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Linux-%E9%99%90%E5%88%B6%E7%B6%B2%E8%B7%AF%E9%80%9F%E5%BA%A6%E6%96%B9%E6%B3%95/" data-title="Linux 限制網路速度方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/Linux/">Linux</a>,&nbsp;<a href="/blog/tags/%E9%99%90%E9%80%9F/">限速</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E7%B6%B2%E7%AB%99%E5%93%80%E5%BC%94%E7%81%B0%E9%9A%8E-CSS-%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="網站哀弔灰階 CSS 方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>網站哀弔灰階 CSS 方法</a>
+            <a href="/blog/posts/%E4%B8%B2%E6%8E%A5-LINE-message-API-WebHook-%E5%92%8C-LIFF-%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="串接 LINE message API(WebHook)  和 LIFF 小記">串接 LINE message API(WebHook)  和 LIFF 小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

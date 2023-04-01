@@ -1,48 +1,308 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>MySQL count 和 Like 查詢大小寫問題小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="MySQL count 和 Like 查詢大小寫問題小記"><meta property="og:description" content="MySQL最近做count時候
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>MySQL count 和 Like 查詢大小寫問題小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="MySQL count 和 Like 查詢大小寫問題小記" />
+<meta property="og:description" content="MySQL最近做count時候
 發現有一個寫法很特別
 特別記錄一下
 另外MySQL like查詢預設不分大小寫
 其他DB我記得預設會分大小寫
-不常寫應該很容易忘記"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-12-19T20:42:04+00:00"><meta property="article:modified_time" content="2018-12-19T20:42:04+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="MySQL count 和 Like 查詢大小寫問題小記"><meta name=twitter:description content="MySQL最近做count時候
+不常寫應該很容易忘記" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-12-19T20:42:04+00:00" />
+<meta property="article:modified_time" content="2018-12-19T20:42:04+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MySQL count 和 Like 查詢大小寫問題小記"/>
+<meta name="twitter:description" content="MySQL最近做count時候
 發現有一個寫法很特別
 特別記錄一下
 另外MySQL like查詢預設不分大小寫
 其他DB我記得預設會分大小寫
-不常寫應該很容易忘記"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/git-push%E7%B0%A1%E5%96%AE%E8%87%AA%E5%8B%95%E9%83%A8%E5%B1%AC%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/date%E5%9C%A8%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E6%B2%92%E5%90%83%E5%88%B0index/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"MySQL count 和 Like 查詢大小寫問題小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"mysql, like","wordcount":297,"url":"https:\/\/malagege.github.io\/blog\/posts\/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98\/","datePublished":"2018-12-19T20:42:04+00:00","dateModified":"2018-12-19T20:42:04+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">MySQL count 和 Like 查詢大小寫問題小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/MySQL/><i class="far fa-folder fa-fw" aria-hidden=true></i>MySQL</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2018-12-19>2018-12-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;297 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#db--like到底有沒有分大小寫呢>DB LIKE到底有沒有分大小寫呢?</a></li><li><a href=#count>count</a></li></ul></nav></div></div><div class=content id=content><p>MySQL最近做<code>count</code>時候<br>發現有一個寫法很特別<br>特別記錄一下</p><p>另外MySQL <code>like</code>查詢預設不分大小寫<br>其他DB我記得預設會分大小寫<br>不常寫應該很容易忘記</p><h2 id=db--like到底有沒有分大小寫呢>DB LIKE到底有沒有分大小寫呢?</h2><p>MySQL , SQL Server沒有分<br>Oracle,DB2有分</p><blockquote><p>要讓mysql查詢區分大小寫，可以：<br>select * from table_name where binary a like &lsquo;a%&rsquo;<br><a href=http://inspiregate.com/programming/mysql/363-mysql-like-queries-are-case-sensitive.html target=_blank rel="noopener noreffer">MySQL 的 LIKE 查詢區分大小寫 | InspireGate 派克空間</a></p></blockquote><ul><li><a href=http://lanfar.pixnet.net/blog/post/40706817-sql%EF%BC%9Aselect%E8%8B%B1%E6%95%B8%E5%AD%97%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E3%80%81%E4%B8%8D%E5%88%86%E5%85%A8%E5%8D%8A%E5%BD%A2%E3%80%81%E5%BF%BD target=_blank rel="noopener noreffer">SQL：SELECT英數字不分大小寫、不分全半形、忽略空白 @ 姊姊❉心得報告 :: 痞客邦 ::</a></li></ul><p><a href=https://stackoverflow.com/questions/14007450/how-do-you-force-mysql-like-to-be-case-sensitive target=_blank rel="noopener noreffer">sql - How do you force mysql LIKE to be case sensitive? - Stack Overflow</a></p><p><a href=http://pclevin.blogspot.com/2014/05/oracle-sql-like.html target=_blank rel="noopener noreffer">Java程式教學甘仔店: Oracle SQL LIKE的用法教學</a></p><h2 id=count>count</h2><p>今天問比較資深工程師會怎麼用<br>他說他會用<code>count(1)</code><br>不過仔細查看了一下<br><code>count(欄位)</code>是我平常使用的方法，我知道當<code>null</code>時候不會算進去<br><code>count(1)</code>會算<code>null</code>值</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>执行效果上：  
-</span></span><span class=line><span class=cl>count(*)包括了所有的列，相当于行数，在统计结果的时候，不会忽略列值为NULL  
-</span></span><span class=line><span class=cl>count(1)包括了忽略所有列，用1代表代码行，在统计结果的时候，不会忽略列值为NULL  
-</span></span><span class=line><span class=cl>count(列名)只包括列名那一列，在统计结果的时候，会忽略列值为空（这里的空不是只空字符串或者0，而是表示null）的计数，即某个字段值为NULL时，不统计。
-</span></span><span class=line><span class=cl>--------------------- 
-</span></span><span class=line><span class=cl>作者：BigoSprite 
-</span></span><span class=line><span class=cl>来源：CSDN 
-</span></span><span class=line><span class=cl>原文：https://blog.csdn.net/iFuMI/article/details/77920767 
-</span></span><span class=line><span class=cl>版权声明：本文为博主原创文章，转载请附上博文链接！
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://blog.csdn.net/iFuMI/article/details/77920767 target=_blank rel="noopener noreffer">count(1)、count(*)与count(列名)的执行区别 - iFuMI的博客 - CSDN博客</a><br><a href=web1.png rel>備份圖</a><br><a href=https://dotblogs.com.tw/jeff-yeh/2011/01/12/20767 target=_blank rel="noopener noreffer">Select Count(*) / Count(1) / Count(欄位名) 的差異 | Jeff 隨手記 - 點部落</a></p><p>最近太忙了，因為還沒有時間消化<br>所以先放在這邊</p><ul><li><a href=https://www.softantenna.com/wp/software/fake2db/ target=_blank rel="noopener noreffer">Fake2db - もっともらしいダミーデータを作る事ができるPythonツール | ソフトアンテナブログ</a></li><li><a href=https://github.com/bhrgu/fake2db-tests target=_blank rel="noopener noreffer">bhrgu/fake2db-tests: Several tests for the fake2db project</a></li><li><a href=https://hk.saowen.com/a/f3d3f46df39716db1ddd1a69d38c07a9e92b5793e5b745b6f5c0e64e07b9056c target=_blank rel="noopener noreffer">MySQL-如何刪除hash表分區 - 掃文資訊</a></li><li><a href=https://www.cnblogs.com/zhishan/p/3285055.html target=_blank rel="noopener noreffer">MYSQL的分区字段，必须包含在主键字段内 - 王 庆 - 博客园</a></li><li><a href=https://blog.csdn.net/barfoo/article/details/4242863 target=_blank rel="noopener noreffer">mysql 的 partition与key的关系、限制 - barfoo的专栏 - CSDN博客</a></li><li><a href=https://hk.saowen.com/a/8354a112014a1c52bfd80f3d81b1ae06d2b2d59b1bc1fd71f57f5e614f42580c target=_blank rel="noopener noreffer">mysql 表分區技術 - 掃文資訊</a></li><li><a href=http://haitian299.github.io/2016/05/26/mysql-partitioning/ target=_blank rel="noopener noreffer">［MySQL］MySQL分区与传统的分库分表 - 海天的笔记本 | haitian-coder</a></li><li><a href=https://stackoverflow.com/questions/47423873/mysql-partitioning-a-varchar60 target=_blank rel="noopener noreffer">MySQL Partitioning a VARCHAR(60) - Stack Overflow</a></li><li><a href=https://segmentfault.com/a/1190000011704687 target=_blank rel="noopener noreffer">聊聊partition的方式 - code-craft - SegmentFault 思否</a></li><li><a href=https://www.cnblogs.com/ivictor/p/5033708.html target=_blank rel="noopener noreffer">MySQL分区总结 - iVictor - 博客园</a></li><li><a href=https://blog.xuite.net/superman23.lin/twblog/155325150-Orcale%E6%90%9C%E5%B0%8B%E8%B3%87%E6%96%99%E4%B8%94%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB target=_blank rel="noopener noreffer">Orcale搜尋資料且不分大小寫 @ 這是林葛格的窩 :: 隨意窩 Xuite日誌</a></li><li><a href=http://lanfar.pixnet.net/blog/post/40706817-sql%EF%BC%9Aselect%E8%8B%B1%E6%95%B8%E5%AD%97%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E3%80%81%E4%B8%8D%E5%88%86%E5%85%A8%E5%8D%8A%E5%BD%A2%E3%80%81%E5%BF%BD target=_blank rel="noopener noreffer">SQL：SELECT英數字不分大小寫、不分全半形、忽略空白 @ 姊姊❉心得報告 :: 痞客邦 ::</a></li><li><a href=https://dotblogs.com.tw/jeff-yeh/2011/01/12/20767 target=_blank rel="noopener noreffer">Select Count(*) / Count(1) / Count(欄位名) 的差異 | Jeff 隨手記 - 點部落</a></li><li><a href=https://blog.csdn.net/iFuMI/article/details/77920767 target=_blank rel="noopener noreffer">count(1)、count(*)与count(列名)的执行区别 - iFuMI的博客 - CSDN博客</a></li><li><a href=https://www.puritys.me/docs-blog/article-17-20%E8%90%AC%E7%AD%86%E8%B3%87%E6%96%99%EF%BC%8CMysql%E8%B3%87%E6%96%99%E5%BA%AB%E5%B0%B1%E8%B7%91%E4%B8%8D%E5%8B%95%E5%9B%89!-%28%E6%8E%92%E5%BA%8F%E7%9B%B8%E9%97%9C%29.html target=_blank rel="noopener noreffer">20萬筆資料，Mysql資料庫就跑不動囉! (排序相關)</a></li><li><a href=https://serverfault.com/questions/586486/how-to-do-the-port-forwarding-from-one-ip-to-another-ip-in-same-network target=_blank rel="noopener noreffer">linux - How to do the port forwarding from one ip to another ip in same network? - Server Fault</a></li><li><a href=http://blog.davidou.org/archives/609 target=_blank rel="noopener noreffer">15個優化你的sql Query的方式 | Davidou的 Blog</a></li><li><a href="https://www.google.com/search?client=firefox-b-ab&amp;q=Undefined+index+php" target=_blank rel="noopener noreffer">Undefined index php - Google 搜尋</a></li><li><a href=http://alfredwebdesign.blogspot.com/2013/05/php-notice-undefined-index.html target=_blank rel="noopener noreffer">網站設計筆記: PHP Notice: undefined index 完美解决方法</a></li><li><a href=https://adon988.logdown.com/posts/4701973 target=_blank rel="noopener noreffer">[解決] PHP Notice: Undefined index和Undefined variable的解决方法 « 關於網路那些事&mldr;</a></li><li><a href=https://blog.gslin.org/archives/2012/07/17/2911/%E5%B0%8D-mysql-%E7%9A%84-varchar-%E6%AC%84%E4%BD%8D%E4%BD%BF%E7%94%A8-index-%E6%99%82%E5%8F%AF%E4%BB%A5%E5%A2%9E%E5%8A%A0%E6%95%88%E7%8E%87%E7%9A%84%E6%96%B9%E6%B3%95/ target=_blank rel="noopener noreffer">對 MySQL 的 VARCHAR 欄位使用 INDEX 時可以增加效率的方法… – Gea-Suan Lin&rsquo;s BLOG</a></li><li><a href=http://lanfar.pixnet.net/blog/post/40706817-sql%EF%BC%9Aselect%E8%8B%B1%E6%95%B8%E5%AD%97%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E3%80%81%E4%B8%8D%E5%88%86%E5%85%A8%E5%8D%8A%E5%BD%A2%E3%80%81%E5%BF%BD target=_blank rel="noopener noreffer">SQL：SELECT英數字不分大小寫、不分全半形、忽略空白 @ 姊姊❉心得報告 :: 痞客邦 ::</a></li><li><a href=http://inspiregate.com/programming/mysql/363-mysql-like-queries-are-case-sensitive.html target=_blank rel="noopener noreffer">MySQL 的 LIKE 查詢區分大小寫 | InspireGate 派克空間</a></li><li><a href=http://hant.ask.helplib.com/oracle/post_706515 target=_blank rel="noopener noreffer">为什么oracle区分大小写？_oracle_帮酷编程问答</a></li><li><a href=https://stackoverflow.com/questions/14007450/how-do-you-force-mysql-like-to-be-case-sensitive target=_blank rel="noopener noreffer">sql - How do you force mysql LIKE to be case sensitive? - Stack Overflow</a></li><li><a href=http://sqlfiddle.com/#!15/9314a/16 target=_blank rel="noopener noreffer">SQL Fiddle</a></li><li><a href=https://stackoverflow.com/questions/8083455/like-case-sensitive-in-mysql target=_blank rel="noopener noreffer">Like Case Sensitive in MySQL - Stack Overflow</a></li><li><a href="https://www.google.com/search?client=firefox-b-ab&amp;q=postgresql+like+case+insensitive&amp;spell=1&amp;sa=X&amp;ved=0ahUKEwi8-LWd-qvfAhWKvbwKHWR6C-kQBQgpKAA&amp;biw=1920&amp;bih=966" target=_blank rel="noopener noreffer">postgresql like case insensitive - Google 搜尋</a></li><li><a href=https://blog.gslin.org/archives/2014/02/09/4237/mysql-%E8%A3%A1%E6%90%9C%E5%B0%8B-charvarchar-string-%E6%AC%84%E4%BD%8D%E6%99%82%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B%E6%83%85/ target=_blank rel="noopener noreffer">MySQL 裡搜尋 CHAR/VARCHAR (String) 欄位時要注意的事情 – Gea-Suan Lin&rsquo;s BLOG</a></li></ul><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2018-12-19</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/ data-title="MySQL count 和 Like 查詢大小寫問題小記" data-hashtags=mysql,like><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/ data-hashtag=mysql><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/ data-title="MySQL count 和 Like 查詢大小寫問題小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/ data-title="MySQL count 和 Like 查詢大小寫問題小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/ data-title="MySQL count 和 Like 查詢大小寫問題小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/mysql/>mysql</a>,&nbsp;<a href=/blog/tags/like/>like</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/git-push%E7%B0%A1%E5%96%AE%E8%87%AA%E5%8B%95%E9%83%A8%E5%B1%AC%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/ class=prev rel=prev title="git push簡單自動部屬程式方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>git push簡單自動部屬程式方法</a>
-<a href=/blog/posts/date%E5%9C%A8%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E6%B2%92%E5%90%83%E5%88%B0index/ class=next rel=next title=date在查詢大量資料沒吃到index>date在查詢大量資料沒吃到index<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+不常寫應該很容易忘記"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/git-push%E7%B0%A1%E5%96%AE%E8%87%AA%E5%8B%95%E9%83%A8%E5%B1%AC%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/date%E5%9C%A8%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E6%B2%92%E5%90%83%E5%88%B0index/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "MySQL count 和 Like 查詢大小寫問題小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "mysql, like","wordcount":  297 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98\/","datePublished": "2018-12-19T20:42:04+00:00","dateModified": "2018-12-19T20:42:04+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">MySQL count 和 Like 查詢大小寫問題小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/MySQL/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>MySQL</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-12-19">2018-12-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;297 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#db--like到底有沒有分大小寫呢">DB  LIKE到底有沒有分大小寫呢?</a></li>
+    <li><a href="#count">count</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>MySQL最近做<code>count</code>時候<br>
+發現有一個寫法很特別<br>
+特別記錄一下</p>
+<p>另外MySQL <code>like</code>查詢預設不分大小寫<br>
+其他DB我記得預設會分大小寫<br>
+不常寫應該很容易忘記</p>
+<h2 id="db--like到底有沒有分大小寫呢">DB  LIKE到底有沒有分大小寫呢?</h2>
+<p>MySQL , SQL Server沒有分<br>
+Oracle,DB2有分</p>
+<blockquote>
+<p>要讓mysql查詢區分大小寫，可以：<br>
+select * from table_name where binary a like &lsquo;a%&rsquo;<br>
+<a href="http://inspiregate.com/programming/mysql/363-mysql-like-queries-are-case-sensitive.html" target="_blank" rel="noopener noreffer ">MySQL 的 LIKE 查詢區分大小寫 | InspireGate 派克空間</a></p>
+</blockquote>
+<ul>
+<li><a href="http://lanfar.pixnet.net/blog/post/40706817-sql%EF%BC%9Aselect%E8%8B%B1%E6%95%B8%E5%AD%97%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E3%80%81%E4%B8%8D%E5%88%86%E5%85%A8%E5%8D%8A%E5%BD%A2%E3%80%81%E5%BF%BD" target="_blank" rel="noopener noreffer ">SQL：SELECT英數字不分大小寫、不分全半形、忽略空白 @ 姊姊❉心得報告 :: 痞客邦 ::</a></li>
+</ul>
+<p><a href="https://stackoverflow.com/questions/14007450/how-do-you-force-mysql-like-to-be-case-sensitive" target="_blank" rel="noopener noreffer ">sql - How do you force mysql LIKE to be case sensitive? - Stack Overflow</a></p>
+<p><a href="http://pclevin.blogspot.com/2014/05/oracle-sql-like.html" target="_blank" rel="noopener noreffer ">Java程式教學甘仔店: Oracle SQL LIKE的用法教學</a></p>
+<h2 id="count">count</h2>
+<p>今天問比較資深工程師會怎麼用<br>
+他說他會用<code>count(1)</code><br>
+不過仔細查看了一下<br>
+<code>count(欄位)</code>是我平常使用的方法，我知道當<code>null</code>時候不會算進去<br>
+<code>count(1)</code>會算<code>null</code>值</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">执行效果上：  
+</span></span><span class="line"><span class="cl">count(*)包括了所有的列，相当于行数，在统计结果的时候，不会忽略列值为NULL  
+</span></span><span class="line"><span class="cl">count(1)包括了忽略所有列，用1代表代码行，在统计结果的时候，不会忽略列值为NULL  
+</span></span><span class="line"><span class="cl">count(列名)只包括列名那一列，在统计结果的时候，会忽略列值为空（这里的空不是只空字符串或者0，而是表示null）的计数，即某个字段值为NULL时，不统计。
+</span></span><span class="line"><span class="cl">--------------------- 
+</span></span><span class="line"><span class="cl">作者：BigoSprite 
+</span></span><span class="line"><span class="cl">来源：CSDN 
+</span></span><span class="line"><span class="cl">原文：https://blog.csdn.net/iFuMI/article/details/77920767 
+</span></span><span class="line"><span class="cl">版权声明：本文为博主原创文章，转载请附上博文链接！
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://blog.csdn.net/iFuMI/article/details/77920767" target="_blank" rel="noopener noreffer ">count(1)、count(*)与count(列名)的执行区别 - iFuMI的博客 - CSDN博客</a><br>
+<a href="web1.png" rel="">備份圖</a><br>
+<a href="https://dotblogs.com.tw/jeff-yeh/2011/01/12/20767" target="_blank" rel="noopener noreffer ">Select Count(*) / Count(1) / Count(欄位名) 的差異 | Jeff 隨手記 - 點部落</a></p>
+<p>最近太忙了，因為還沒有時間消化<br>
+所以先放在這邊</p>
+<ul>
+<li><a href="https://www.softantenna.com/wp/software/fake2db/" target="_blank" rel="noopener noreffer ">Fake2db - もっともらしいダミーデータを作る事ができるPythonツール | ソフトアンテナブログ</a></li>
+<li><a href="https://github.com/bhrgu/fake2db-tests" target="_blank" rel="noopener noreffer ">bhrgu/fake2db-tests: Several tests for the fake2db project</a></li>
+<li><a href="https://hk.saowen.com/a/f3d3f46df39716db1ddd1a69d38c07a9e92b5793e5b745b6f5c0e64e07b9056c" target="_blank" rel="noopener noreffer ">MySQL-如何刪除hash表分區 - 掃文資訊</a></li>
+<li><a href="https://www.cnblogs.com/zhishan/p/3285055.html" target="_blank" rel="noopener noreffer ">MYSQL的分区字段，必须包含在主键字段内 - 王 庆 - 博客园</a></li>
+<li><a href="https://blog.csdn.net/barfoo/article/details/4242863" target="_blank" rel="noopener noreffer ">mysql 的 partition与key的关系、限制 - barfoo的专栏 - CSDN博客</a></li>
+<li><a href="https://hk.saowen.com/a/8354a112014a1c52bfd80f3d81b1ae06d2b2d59b1bc1fd71f57f5e614f42580c" target="_blank" rel="noopener noreffer ">mysql 表分區技術 - 掃文資訊</a></li>
+<li><a href="http://haitian299.github.io/2016/05/26/mysql-partitioning/" target="_blank" rel="noopener noreffer ">［MySQL］MySQL分区与传统的分库分表 - 海天的笔记本 | haitian-coder</a></li>
+<li><a href="https://stackoverflow.com/questions/47423873/mysql-partitioning-a-varchar60" target="_blank" rel="noopener noreffer ">MySQL Partitioning a VARCHAR(60) - Stack Overflow</a></li>
+<li><a href="https://segmentfault.com/a/1190000011704687" target="_blank" rel="noopener noreffer ">聊聊partition的方式 - code-craft - SegmentFault 思否</a></li>
+<li><a href="https://www.cnblogs.com/ivictor/p/5033708.html" target="_blank" rel="noopener noreffer ">MySQL分区总结 - iVictor - 博客园</a></li>
+<li><a href="https://blog.xuite.net/superman23.lin/twblog/155325150-Orcale%E6%90%9C%E5%B0%8B%E8%B3%87%E6%96%99%E4%B8%94%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB" target="_blank" rel="noopener noreffer ">Orcale搜尋資料且不分大小寫 @ 這是林葛格的窩 :: 隨意窩 Xuite日誌</a></li>
+<li><a href="http://lanfar.pixnet.net/blog/post/40706817-sql%EF%BC%9Aselect%E8%8B%B1%E6%95%B8%E5%AD%97%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E3%80%81%E4%B8%8D%E5%88%86%E5%85%A8%E5%8D%8A%E5%BD%A2%E3%80%81%E5%BF%BD" target="_blank" rel="noopener noreffer ">SQL：SELECT英數字不分大小寫、不分全半形、忽略空白 @ 姊姊❉心得報告 :: 痞客邦 ::</a></li>
+<li><a href="https://dotblogs.com.tw/jeff-yeh/2011/01/12/20767" target="_blank" rel="noopener noreffer ">Select Count(*) / Count(1) / Count(欄位名) 的差異 | Jeff 隨手記 - 點部落</a></li>
+<li><a href="https://blog.csdn.net/iFuMI/article/details/77920767" target="_blank" rel="noopener noreffer ">count(1)、count(*)与count(列名)的执行区别 - iFuMI的博客 - CSDN博客</a></li>
+<li><a href="https://www.puritys.me/docs-blog/article-17-20%E8%90%AC%E7%AD%86%E8%B3%87%E6%96%99%EF%BC%8CMysql%E8%B3%87%E6%96%99%E5%BA%AB%E5%B0%B1%E8%B7%91%E4%B8%8D%E5%8B%95%E5%9B%89!-%28%E6%8E%92%E5%BA%8F%E7%9B%B8%E9%97%9C%29.html" target="_blank" rel="noopener noreffer ">20萬筆資料，Mysql資料庫就跑不動囉! (排序相關)</a></li>
+<li><a href="https://serverfault.com/questions/586486/how-to-do-the-port-forwarding-from-one-ip-to-another-ip-in-same-network" target="_blank" rel="noopener noreffer ">linux - How to do the port forwarding from one ip to another ip in same network? - Server Fault</a></li>
+<li><a href="http://blog.davidou.org/archives/609" target="_blank" rel="noopener noreffer ">15個優化你的sql Query的方式 | Davidou的 Blog</a></li>
+<li><a href="https://www.google.com/search?client=firefox-b-ab&amp;q=Undefined&#43;index&#43;php" target="_blank" rel="noopener noreffer ">Undefined index php - Google 搜尋</a></li>
+<li><a href="http://alfredwebdesign.blogspot.com/2013/05/php-notice-undefined-index.html" target="_blank" rel="noopener noreffer ">網站設計筆記: PHP Notice: undefined index 完美解决方法</a></li>
+<li><a href="https://adon988.logdown.com/posts/4701973" target="_blank" rel="noopener noreffer ">[解決] PHP Notice: Undefined index和Undefined variable的解决方法 « 關於網路那些事&hellip;</a></li>
+<li><a href="https://blog.gslin.org/archives/2012/07/17/2911/%E5%B0%8D-mysql-%E7%9A%84-varchar-%E6%AC%84%E4%BD%8D%E4%BD%BF%E7%94%A8-index-%E6%99%82%E5%8F%AF%E4%BB%A5%E5%A2%9E%E5%8A%A0%E6%95%88%E7%8E%87%E7%9A%84%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">對 MySQL 的 VARCHAR 欄位使用 INDEX 時可以增加效率的方法… – Gea-Suan Lin&rsquo;s BLOG</a></li>
+<li><a href="http://lanfar.pixnet.net/blog/post/40706817-sql%EF%BC%9Aselect%E8%8B%B1%E6%95%B8%E5%AD%97%E4%B8%8D%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E3%80%81%E4%B8%8D%E5%88%86%E5%85%A8%E5%8D%8A%E5%BD%A2%E3%80%81%E5%BF%BD" target="_blank" rel="noopener noreffer ">SQL：SELECT英數字不分大小寫、不分全半形、忽略空白 @ 姊姊❉心得報告 :: 痞客邦 ::</a></li>
+<li><a href="http://inspiregate.com/programming/mysql/363-mysql-like-queries-are-case-sensitive.html" target="_blank" rel="noopener noreffer ">MySQL 的 LIKE 查詢區分大小寫 | InspireGate 派克空間</a></li>
+<li><a href="http://hant.ask.helplib.com/oracle/post_706515" target="_blank" rel="noopener noreffer ">为什么oracle区分大小写？_oracle_帮酷编程问答</a></li>
+<li><a href="https://stackoverflow.com/questions/14007450/how-do-you-force-mysql-like-to-be-case-sensitive" target="_blank" rel="noopener noreffer ">sql - How do you force mysql LIKE to be case sensitive? - Stack Overflow</a></li>
+<li><a href="http://sqlfiddle.com/#!15/9314a/16" target="_blank" rel="noopener noreffer ">SQL Fiddle</a></li>
+<li><a href="https://stackoverflow.com/questions/8083455/like-case-sensitive-in-mysql" target="_blank" rel="noopener noreffer ">Like Case Sensitive in MySQL - Stack Overflow</a></li>
+<li><a href="https://www.google.com/search?client=firefox-b-ab&amp;q=postgresql&#43;like&#43;case&#43;insensitive&amp;spell=1&amp;sa=X&amp;ved=0ahUKEwi8-LWd-qvfAhWKvbwKHWR6C-kQBQgpKAA&amp;biw=1920&amp;bih=966" target="_blank" rel="noopener noreffer ">postgresql like case insensitive - Google 搜尋</a></li>
+<li><a href="https://blog.gslin.org/archives/2014/02/09/4237/mysql-%E8%A3%A1%E6%90%9C%E5%B0%8B-charvarchar-string-%E6%AC%84%E4%BD%8D%E6%99%82%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B%E6%83%85/" target="_blank" rel="noopener noreffer ">MySQL 裡搜尋 CHAR/VARCHAR (String) 欄位時要注意的事情 – Gea-Suan Lin&rsquo;s BLOG</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-12-19</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" data-title="MySQL count 和 Like 查詢大小寫問題小記" data-hashtags="mysql,like"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" data-hashtag="mysql"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" data-title="MySQL count 和 Like 查詢大小寫問題小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" data-title="MySQL count 和 Like 查詢大小寫問題小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/MySQL-count-%E5%92%8C-Like-%E6%9F%A5%E8%A9%A2%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" data-title="MySQL count 和 Like 查詢大小寫問題小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/mysql/">mysql</a>,&nbsp;<a href="/blog/tags/like/">like</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/git-push%E7%B0%A1%E5%96%AE%E8%87%AA%E5%8B%95%E9%83%A8%E5%B1%AC%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="git push簡單自動部屬程式方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>git push簡單自動部屬程式方法</a>
+            <a href="/blog/posts/date%E5%9C%A8%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E6%B2%92%E5%90%83%E5%88%B0index/" class="next" rel="next" title="date在查詢大量資料沒吃到index">date在查詢大量資料沒吃到index<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

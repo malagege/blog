@@ -1,310 +1,656 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>vagrant 搭配使用 ansible 和 docker 架設 redis 小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><meta property="og:description" content="常常我們需要做布署安裝
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>vagrant 搭配使用 ansible 和 docker 架設 redis 小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="vagrant 搭配使用 ansible 和 docker 架設 redis 小記" />
+<meta property="og:description" content="常常我們需要做布署安裝
 多台可能需要
 最近看到 vagrant 可以搭配 ansible 使用
 網路上隨便找一個範例小記
-意外發現 /var/run 一些程式設定方法"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-02-15T18:43:43+00:00"><meta property="article:modified_time" content="2020-02-15T18:43:43+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><meta name=twitter:description content="常常我們需要做布署安裝
+意外發現 /var/run 一些程式設定方法" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-02-15T18:43:43+00:00" />
+<meta property="article:modified_time" content="2020-02-15T18:43:43+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"/>
+<meta name="twitter:description" content="常常我們需要做布署安裝
 多台可能需要
 最近看到 vagrant 可以搭配 ansible 使用
 網路上隨便找一個範例小記
-意外發現 /var/run 一些程式設定方法"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/socat-%E5%AF%A6%E7%94%A8%E7%B6%B2%E8%B7%AF%E5%B7%A5%E5%85%B7-%E5%92%8C-%E4%BD%BF%E7%94%A8%E8%A7%A3%E6%9E%90-unix-socket-%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/Redis-%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"vagrant 搭配使用 ansible 和 docker 架設 redis 小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"vagrant, docker, ansible","wordcount":930,"url":"https:\/\/malagege.github.io\/blog\/posts\/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98\/","datePublished":"2020-02-15T18:43:43+00:00","dateModified":"2020-02-15T18:43:43+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">vagrant 搭配使用 ansible 和 docker 架設 redis 小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Vagrant/><i class="far fa-folder fa-fw" aria-hidden=true></i>Vagrant</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-02-15>2020-02-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;930 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#vagrant-使用-ansible-安裝-redis>vagrant 使用 ansible 安裝 redis</a><ul><li><a href=#varrun-引發-redis-無法啟動>/var/run 引發 redis 無法啟動</a></li><li><a href=#etctempfilesd-最佳解法>/etc/tempfiles.d 最佳解法</a></li><li><a href=#小結>小結</a></li></ul></li><li><a href=#linux-install-指令>linux install 指令</a></li><li><a href=#vagrant-搭配-docker>vagrant 搭配 docker</a><ul><li><a href=#vagrant-ssh-登入-container>vagrant ssh 登入 container</a></li><li><a href=#相關-vagrant-連結>相關 vagrant 連結</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>常常我們需要做布署安裝<br>多台可能需要<br>最近看到 vagrant 可以搭配 ansible 使用<br>網路上隨便找一個範例小記<br>意外發現 <code>/var/run</code> 一些程式設定方法</p><h2 id=vagrant-使用-ansible-安裝-redis>vagrant 使用 ansible 安裝 redis</h2><p><a href=https://github.com/mikeblum/redis-playbook target=_blank rel="noopener noreffer">mikeblum/redis-playbook: Ansible playbook for deploying, securing, and optimizing a Redis instance</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>git clone https://github.com/mikeblum/redis-playbook.git
-</span></span><span class=line><span class=cl><span class=nb>cd</span> redis-playbook
-</span></span><span class=line><span class=cl><span class=c1># image 可以改成用過的</span>
-</span></span><span class=line><span class=cl>vagrant up
-</span></span></code></pre></td></tr></table></div></div><p>這時候 redis 都是可以用的<br>但我發現 vagrant reload 重開機後<br>redis 竟然開不起來</p><h3 id=varrun-引發-redis-無法啟動>/var/run 引發 redis 無法啟動</h3><p><code>/var/run</code> 裡面的 redis 重開機竟然就不見了<br>經過 Google 發現由於 ubuntu 預設 /var/run 是用 tmpfs<br>所以重開機資料就不會在</p><p>但我發現裡面有 docker ,mysqld&mldr;，權限也不是 root<br>這又是從哪裡來的呢?</p><p>後來追查發現 <code>/etc/init/</code> 裡面 docker.conf 和 mysql.conf 有做產生檔案改權限相關動作</p><blockquote><p>題外話不過那 <code>/var/log</code> 是怎麼改的?<br>這也是不錯的問題</p></blockquote><p>但是我嘗試使用 apt install redis<br>發現 /etc/init 沒有我要的<br>後來發現 /etc/init.d/ 裡面有相關 redis 設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1>###########################</span>
-</span></span><span class=line><span class=cl><span class=c1>#chkconfig: 2345 10 90</span>
-</span></span><span class=line><span class=cl><span class=c1>#description: Start and Stop redis</span>
-</span></span><span class=line><span class=cl><span class=nv>PATH</span><span class=o>=</span>/usr/local/bin:/sbin:/usr/bin:/bin
-</span></span><span class=line><span class=cl> 
-</span></span><span class=line><span class=cl><span class=nv>REDISPORT</span><span class=o>=</span><span class=m>6379</span>
-</span></span><span class=line><span class=cl><span class=nv>EXEC</span><span class=o>=</span>/usr/local/bin/redis-server
-</span></span><span class=line><span class=cl><span class=nv>REDIS_CLI</span><span class=o>=</span>/usr/local/bin/redis-cli
-</span></span><span class=line><span class=cl><span class=c1>##判断redis是否启动了</span>
-</span></span><span class=line><span class=cl><span class=nv>PIDFILE</span><span class=o>=</span>/var/run/redis_6379.pid
-</span></span><span class=line><span class=cl><span class=nv>CONF</span><span class=o>=</span><span class=s2>&#34;/etc/redis.conf&#34;</span>
-</span></span><span class=line><span class=cl><span class=nv>PASSWORD</span><span class=o>=</span><span class=k>$(</span>cat <span class=nv>$CONF</span><span class=p>|</span>grep <span class=s1>&#39;^\s*requirepass&#39;</span><span class=p>|</span>awk <span class=s1>&#39;{print $2}&#39;</span><span class=p>|</span>sed <span class=s1>&#39;s/&#34;//g&#39;</span><span class=k>)</span>
-</span></span><span class=line><span class=cl> 
-</span></span><span class=line><span class=cl><span class=k>case</span> <span class=s2>&#34;</span><span class=nv>$1</span><span class=s2>&#34;</span> in
-</span></span><span class=line><span class=cl>    start<span class=o>)</span>
-</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>[</span> -f <span class=nv>$PIDFILE</span> <span class=o>]</span>
-</span></span><span class=line><span class=cl>        <span class=k>then</span>
-</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s2>&#34;</span><span class=nv>$PIDFILE</span><span class=s2> exists, process is already running or crashed&#34;</span>
-</span></span><span class=line><span class=cl>        <span class=k>else</span>
-</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s2>&#34;Starting Redis server...&#34;</span>
-</span></span><span class=line><span class=cl>                <span class=nv>$EXEC</span> <span class=nv>$CONF</span>
-</span></span><span class=line><span class=cl>        <span class=k>fi</span>
-</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>[</span> <span class=s2>&#34;</span><span class=nv>$?</span><span class=s2>&#34;</span><span class=o>=</span><span class=s2>&#34;0&#34;</span> <span class=o>]</span>
-</span></span><span class=line><span class=cl>        <span class=k>then</span>
-</span></span><span class=line><span class=cl>              <span class=nb>echo</span> <span class=s2>&#34;Redis is running...&#34;</span>
-</span></span><span class=line><span class=cl>        <span class=k>fi</span>
-</span></span><span class=line><span class=cl>        <span class=p>;;</span>
-</span></span><span class=line><span class=cl>    stop<span class=o>)</span>
-</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>[</span> ! -f <span class=nv>$PIDFILE</span> <span class=o>]</span>
-</span></span><span class=line><span class=cl>        <span class=k>then</span>
-</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s2>&#34;</span><span class=nv>$PIDFILE</span><span class=s2> does not exist, process is not running&#34;</span>
-</span></span><span class=line><span class=cl>        <span class=k>else</span>
-</span></span><span class=line><span class=cl>                <span class=nv>PID</span><span class=o>=</span><span class=k>$(</span>cat <span class=nv>$PIDFILE</span><span class=k>)</span>
-</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s2>&#34;Stopping ...&#34;</span>
-</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>[</span> -z <span class=nv>$PASSWORD</span> <span class=o>]</span>
-</span></span><span class=line><span class=cl><span class=k>then</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$REDIS_CLI</span> -p <span class=nv>$REDISPORT</span> shutdown
-</span></span><span class=line><span class=cl><span class=k>else</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$REDIS_CLI</span> -a <span class=nv>$PASSWORD</span> -p <span class=nv>$REDISPORT</span> shutdown
-</span></span><span class=line><span class=cl><span class=k>fi</span>
-</span></span><span class=line><span class=cl>                <span class=c1>#$REDIS_CLI -p $REDISPORT SHUTDOWN</span>
-</span></span><span class=line><span class=cl>                <span class=k>while</span> <span class=o>[</span> -x <span class=si>${</span><span class=nv>PIDFILE</span><span class=si>}</span> <span class=o>]</span>
-</span></span><span class=line><span class=cl>               <span class=k>do</span>
-</span></span><span class=line><span class=cl>                    <span class=nb>echo</span> <span class=s2>&#34;Waiting for Redis to shutdown ...&#34;</span>
-</span></span><span class=line><span class=cl>                    sleep <span class=m>1</span>
-</span></span><span class=line><span class=cl>                <span class=k>done</span>
-</span></span><span class=line><span class=cl>                <span class=nb>echo</span> <span class=s2>&#34;Redis stopped&#34;</span>
-</span></span><span class=line><span class=cl>        <span class=k>fi</span>
-</span></span><span class=line><span class=cl>        <span class=p>;;</span>
-</span></span><span class=line><span class=cl>   restart<span class=p>|</span>force-reload<span class=o>)</span>
-</span></span><span class=line><span class=cl>        <span class=si>${</span><span class=nv>0</span><span class=si>}</span> stop
-</span></span><span class=line><span class=cl>        <span class=si>${</span><span class=nv>0</span><span class=si>}</span> start
-</span></span><span class=line><span class=cl>        <span class=p>;;</span>
-</span></span><span class=line><span class=cl>  *<span class=o>)</span>
-</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;Usage: /etc/init.d/redis {start|stop|restart|force-reload}&#34;</span> &gt;<span class=p>&amp;</span><span class=m>2</span>
-</span></span><span class=line><span class=cl>        <span class=nb>exit</span> <span class=m>1</span>
-</span></span><span class=line><span class=cl><span class=k>esac</span>
-</span></span><span class=line><span class=cl><span class=c1>##############################</span>
-</span></span></code></pre></td></tr></table></div></div><p>我懶得從 VM 搬出來，參考<a href=https://zhuanlan.zhihu.com/p/73464692 target=_blank rel="noopener noreffer">Redis在Linux上的安装及相关配置 - 知乎</a></p><p>但就沒有專門給 systemctl 設定用的嗎?</p><p>還是有找到方法，但很多都沒有提到<br>是不是大部分 /var/run 沒有掛載到 tmpfs 上面??</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[Unit]
-</span></span><span class=line><span class=cl>Description=Redis In-Memory Data Store
-</span></span><span class=line><span class=cl>After=network.target
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>[Service]
-</span></span><span class=line><span class=cl>PermissionsStartOnly=true
-</span></span><span class=line><span class=cl>ExecStartPre=-/bin/mkdir -p /var/run/redis
-</span></span><span class=line><span class=cl>ExecStartPre=-/bin/chown redis.redis /var/run/redis
-</span></span><span class=line><span class=cl>#PIDFile=/var/run/redis_6379.pid  發現沒用也
-</span></span><span class=line><span class=cl>User=redis
-</span></span><span class=line><span class=cl>Group=redis
-</span></span><span class=line><span class=cl>ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
-</span></span><span class=line><span class=cl>ExecStop=/usr/local/bin/redis-cli shutdown
-</span></span><span class=line><span class=cl>Restart=always
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>[Install]
-</span></span><span class=line><span class=cl>WantedBy=multi-user.target
-</span></span></code></pre></td></tr></table></div></div><p>上面 PIDFile 好像沒加也能正常跑( 可以看 /etc/redis/redis.conf 的 pidfile )<br>主要上 <code>/var/run/redis</code> 資料夾需要建立，並且權限給 redis:redis</p><p>不過這個算是最佳解嗎?<br>我在這篇<a href=https://github.com/DavidWittman/ansible-redis/issues/132 target=_blank rel="noopener noreffer">/var/run/redis_2323 directory cannot be created in systemd service · Issue #132 · DavidWittman/ansible-redis</a>看到<br>最後解決方案<a href=https://github.com/DavidWittman/ansible-redis/commit/9937b2e5ec8c371f77f384b8252049e3344ffce7 target=_blank rel="noopener noreffer">Merge pull request #135 from DavidWittman/132-systemd-tmpfiles · DavidWittman/ansible-redis@9937b2e</a>使用 <code>/etc/tmpfiles.d</code><br>不過我看我現在 linux 系統沒有這個目錄</p><h3 id=etctempfilesd-最佳解法>/etc/tempfiles.d 最佳解法</h3><p><a href=https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29#%E8%87%A8%E6%99%82%E6%AA%94%E6%A1%88 target=_blank rel="noopener noreffer">systemd (正體中文) - ArchWiki</a></p><blockquote><p>/usr/lib/tmpfiles.d/ 和 /etc/tmpfiles.d/ 中的檔案描述了 systemd-tmpfiles 如何創建、清理、删除臨時檔案和目錄，這些檔案和目錄通常存放在 /run 和 /tmp 中。設定檔名稱為 /etc/tmpfiles.d/.conf。此處的配置能覆蓋 /usr/lib/tmpfiles.d/目錄中的同名配置。<br>臨時檔案通常和服務檔案同时提供，以生成守護程序需要的檔案和目錄。例如 Samba 服務需要目錄 /run/samba 存在並設置正確的權限位</p></blockquote><p><a href=https://shazi.info/ubuntu-14-04-16-04-%E5%9C%A8-reboot-%E5%BE%8C%E4%BF%9D%E7%95%99-tmp-%E5%85%A7%E7%9A%84%E6%AA%94%E6%A1%88/ target=_blank rel="noopener noreffer">Ubuntu 16.04 在 reboot 後保留 tmp 內的檔案 | Mr. 沙先生</a></p><p>我 Elementary OS 裡面 <code>/etc/tmpfiles.d/</code> 沒有任何東西，<code>/usr/lib/tmpfiles.d/</code> 底下有<br>不過正常應該是可以用的</p><p>只要在 playbook.yml 下面加</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>create systemd tmpfiles configuration</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>template</span><span class=p>:</span><span class=w> </span><span class=l>src=templates/tmpfiles_redis.conf.j2</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=l>dest=/etc/tmpfiles.d/redis.conf</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=l>mode=0644 </span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>templates/tmpfiles_redis.conf.j2</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>d {{ redis_socket|dirname }} 0755 {{ redis_user }} {{ redis_group }}
-</span></span></code></pre></td></tr></table></div></div><p>就可以正常了</p><h3 id=小結>小結</h3><p>我使用這個 playbook 不是非常完整<br>但他是我第一個網路上找到可以跑的 playbook<br>而且配置上還滿清楚的</p><p>比較多完整配置可以用<a href=https://github.com/DavidWittman/ansible-redis target=_blank rel="noopener noreffer">DavidWittman/ansible-redis: Highly-configurable Ansible role to install Redis and Redis Sentinel from source</a></p><h2 id=linux-install-指令>linux install 指令</h2><p><a href=https://www.geeksforgeeks.org/install-command-in-linux-with-examples/ target=_blank rel="noopener noreffer">install command in Linux with examples - GeeksforGeeks</a></p><p>簡單來說 可以複製檔案並且設定權限<br>這是我從 /etc/init/mysql.conf 看到<br>由於上面我花了一堆時間，這個就先跳過&mldr;</p><h2 id=vagrant-搭配-docker>vagrant 搭配 docker</h2><p>參考<a href=http://samchu.logdown.com/posts/288889-docker-fast-with-vagrant-and-construct-development-and-test-environments target=_blank rel="noopener noreffer">使用Vagrant跟Docker快速建構開發與測試環境 « Sam的程式筆記</a></p><p>執行結果</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Bringing machine &#39;elasticsearch&#39; up with &#39;docker&#39; provider...
-</span></span><span class=line><span class=cl>Bringing machine &#39;postgres&#39; up with &#39;docker&#39; provider...
-</span></span><span class=line><span class=cl>==&gt; elasticsearch: Pruning invalid NFS exports. Administrator privileges will be required...
-</span></span><span class=line><span class=cl>[sudo] password for malagege:     
-</span></span><span class=line><span class=cl>==&gt; elasticsearch: Creating the container...
-</span></span><span class=line><span class=cl>    elasticsearch:   Name: elasticsearch
-</span></span><span class=line><span class=cl>    elasticsearch:  Image: elasticsearch
-</span></span><span class=line><span class=cl>    elasticsearch:   Port: 9200:9200
-</span></span><span class=line><span class=cl>    elasticsearch:   Port: 9300:9300
-</span></span><span class=line><span class=cl>A Docker command executed by Vagrant didn&#39;t complete successfully!
-</span></span><span class=line><span class=cl>The command run along with the output from the command is shown
-</span></span><span class=line><span class=cl>below.
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Command: [&#34;docker&#34;, &#34;run&#34;, &#34;--name&#34;, &#34;elasticsearch&#34;, &#34;-d&#34;, &#34;-p&#34;, &#34;9200:9200&#34;, &#34;-p&#34;, &#34;9300:9300&#34;, &#34;elasticsearch&#34;, {:notify=&gt;[:stdout, :stderr]}]
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Stderr: Unable to find image &#39;elasticsearch:latest&#39; locally
-</span></span><span class=line><span class=cl>/usr/bin/docker: Error response from daemon: manifest for elasticsearch:latest not found: manifest unknown: manifest unknown.
-</span></span><span class=line><span class=cl>See &#39;/usr/bin/docker run --help&#39;.
-</span></span></code></pre></td></tr></table></div></div><p>感覺電腦外層要裝 docker<br><del>NFS 掛載你的 docker unix socket 到裡面開 docker container</del><br>他就只是在 docker 開啟 container&mldr;<br>不過這樣有什麼好處&mldr; 還在想</p><p>所以不能直接<code>vagrant ssh</code><br>需要使用 <code>vagrant docker-*</code> 相關指令<br><a href=https://stackoverflow.com/questions/37191371/vagrant-ssh-to-docker-container target=_blank rel="noopener noreffer">drupal - Vagrant ssh to Docker container - Stack Overflow</a></p><p>當初以為這是在 VM 裝 docker，直接抓 image 開啟 container<br>但跟我想的不一樣</p><p>老實說這有什麼好處，我想可能用 docker-compose 會比較快吧&mldr;<br>但意外發現載入速度滿快的!!!(這不是廢話)</p><h3 id=vagrant-ssh-登入-container>vagrant ssh 登入 container</h3><p>參考: <a href=http://blog.iwonder.tw/2017/08/20/vagrant-ssh-docker/ target=_blank rel="noopener noreffer">如何配置 Vagrant SSH 在 Docker Provider - iWonder Blog</a><br>有找到如何使用 vagrant ssh 進去</p><p>dockerfile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=c># Pull base image</span><span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>FROM</span><span class=s> ubuntu:16.04</span><span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Installation</span><span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> apt-get update<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> apt-get install -y openssh-server sudo<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Create vagrant user with sudo privilege</span><span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> useradd -m -d /home/vagrant -s /bin/bash vagrant<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> <span class=nb>echo</span> <span class=s1>&#39;vagrant:vagrant&#39;</span> <span class=p>|</span> chpasswd<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> <span class=nb>echo</span> <span class=s1>&#39;vagrant ALL=(ALL) NOPASSWD:ALL&#39;</span> &gt; /etc/sudoers.d/vagrant<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> chmod <span class=m>440</span> /etc/sudoers.d/vagrant<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Run SSH service</span><span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> mkdir /var/run/sshd<span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>EXPOSE</span><span class=s> 22</span><span class=err>
-</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>CMD</span> <span class=p>[</span><span class=s2>&#34;/usr/sbin/sshd&#34;</span><span class=p>,</span> <span class=s2>&#34;-D&#34;</span><span class=p>]</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>Vagrantfile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ruby data-lang=ruby><span class=line><span class=cl><span class=c1># Vagrantfile</span>
-</span></span><span class=line><span class=cl><span class=c1># -*- mode: ruby -*-</span>
-</span></span><span class=line><span class=cl><span class=no>Vagrant</span><span class=o>.</span><span class=n>configure</span><span class=p>(</span><span class=s2>&#34;2&#34;</span><span class=p>)</span> <span class=k>do</span> <span class=o>|</span><span class=n>config</span><span class=o>|</span>
-</span></span><span class=line><span class=cl>  <span class=n>config</span><span class=o>.</span><span class=n>vm</span><span class=o>.</span><span class=n>provider</span> <span class=s2>&#34;docker&#34;</span> <span class=k>do</span> <span class=o>|</span><span class=n>d</span><span class=o>|</span>
-</span></span><span class=line><span class=cl>    <span class=n>d</span><span class=o>.</span><span class=n>build_dir</span> <span class=o>=</span> <span class=s2>&#34;.&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=n>d</span><span class=o>.</span><span class=n>has_ssh</span> <span class=o>=</span> <span class=kp>true</span>
-</span></span><span class=line><span class=cl>  <span class=k>end</span>
-</span></span><span class=line><span class=cl>  <span class=n>config</span><span class=o>.</span><span class=n>ssh</span><span class=o>.</span><span class=n>password</span> <span class=o>=</span> <span class=s1>&#39;vagrant&#39;</span>
-</span></span><span class=line><span class=cl><span class=k>end</span>
-</span></span></code></pre></td></tr></table></div></div><p>或</p><p>Vagrantfile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ruby data-lang=ruby><span class=line><span class=cl><span class=c1># Vagrantfile</span>
-</span></span><span class=line><span class=cl><span class=c1># -*- mode: ruby -*-</span>
-</span></span><span class=line><span class=cl><span class=no>Vagrant</span><span class=o>.</span><span class=n>configure</span><span class=p>(</span><span class=s2>&#34;2&#34;</span><span class=p>)</span> <span class=k>do</span> <span class=o>|</span><span class=n>config</span><span class=o>|</span>
-</span></span><span class=line><span class=cl>  <span class=n>config</span><span class=o>.</span><span class=n>vm</span><span class=o>.</span><span class=n>provider</span> <span class=s2>&#34;docker&#34;</span> <span class=k>do</span> <span class=o>|</span><span class=n>d</span><span class=o>|</span>
-</span></span><span class=line><span class=cl>    <span class=n>d</span><span class=o>.</span><span class=n>image</span> <span class=o>=</span> <span class=s2>&#34;wonderchang/baseimage-ssh&#34;</span>
-</span></span><span class=line><span class=cl>    <span class=n>d</span><span class=o>.</span><span class=n>has_ssh</span> <span class=o>=</span> <span class=kp>true</span>
-</span></span><span class=line><span class=cl>  <span class=k>end</span>
-</span></span><span class=line><span class=cl>  <span class=n>config</span><span class=o>.</span><span class=n>ssh</span><span class=o>.</span><span class=n>password</span> <span class=o>=</span> <span class=s1>&#39;vagrant&#39;</span>
-</span></span><span class=line><span class=cl>  <span class=n>config</span><span class=o>.</span><span class=n>vm</span><span class=o>.</span><span class=n>network</span> <span class=s2>&#34;forwarded_port&#34;</span><span class=p>,</span> <span class=ss>guest</span><span class=p>:</span> <span class=mi>80</span><span class=p>,</span> <span class=ss>host</span><span class=p>:</span> <span class=mi>8080</span>
-</span></span><span class=line><span class=cl>  <span class=n>config</span><span class=o>.</span><span class=n>vm</span><span class=o>.</span><span class=n>provision</span> <span class=s2>&#34;shell&#34;</span><span class=p>,</span> <span class=ss>inline</span><span class=p>:</span> <span class=s>&lt;&lt;-SHELL
-</span></span></span><span class=line><span class=cl><span class=s></span>    <span class=n>apt</span><span class=o>-</span><span class=n>get</span> <span class=n>update</span>
-</span></span><span class=line><span class=cl>    <span class=n>apt</span><span class=o>-</span><span class=n>get</span> <span class=n>install</span> <span class=o>-</span><span class=n>y</span> <span class=n>nginx</span>
-</span></span><span class=line><span class=cl>    <span class=n>service</span> <span class=n>nginx</span> <span class=n>start</span>
-</span></span><span class=line><span class=cl>  <span class=no>SHELL</span>
-</span></span><span class=line><span class=cl><span class=k>end</span>
-</span></span></code></pre></td></tr></table></div></div><p>vagrant up 就可以使用，vagrant ssh 就可以使用了</p><h3 id=相關-vagrant-連結>相關 vagrant 連結</h3><p><a href=https://shazi.info/%E6%80%8E%E9%BA%BC%E6%89%BE%E5%88%B0-vagrant-box-%E7%9A%84-ssh-%E4%BD%BF%E7%94%A8%E8%80%85%E8%88%87%E5%AF%86%E7%A2%BC/ target=_blank rel="noopener noreffer">怎麼找到 Vagrant box 的 ssh 使用者與密碼 | Mr. 沙先生</a><br><a href=https://vagrantpi.github.io/2018/02/11/vagrant/ target=_blank rel="noopener noreffer">Vagrant 學習筆記 - VagrantPi Blog</a></p><p>Using default tag: latest<br>Error response from daemon: manifest for elasticsearch:latest not found: manifest unknown: manifest unknown</p><p>docker pull elasticsearch:6.5.0<br><a href=https://github.com/elastic/elasticsearch-docker/issues/215 target=_blank rel="noopener noreffer">Elasticsearch latest not available · Issue #215 · elastic/elasticsearch-docker</a></p><p><a href=http://blog.iwonder.tw/2017/08/20/vagrant-ssh-docker/ target=_blank rel="noopener noreffer">如何配置 Vagrant SSH 在 Docker Provider - iWonder Blog</a></p><p><a href=https://blog.samchu.dev/2019/07/05/Ansible-install-and-introduction/ target=_blank rel="noopener noreffer">Ansible install and introduction | SAM的程式筆記</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-02-15</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/ data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記" data-hashtags=vagrant,docker,ansible><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/ data-hashtag=vagrant><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/ data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/ data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/ data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/vagrant/>vagrant</a>,&nbsp;<a href=/blog/tags/docker/>docker</a>,&nbsp;<a href=/blog/tags/ansible/>ansible</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/socat-%E5%AF%A6%E7%94%A8%E7%B6%B2%E8%B7%AF%E5%B7%A5%E5%85%B7-%E5%92%8C-%E4%BD%BF%E7%94%A8%E8%A7%A3%E6%9E%90-unix-socket-%E6%96%B9%E6%B3%95/ class=prev rel=prev title="socat 實用網路工具 和 使用解析 unix socket 方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>socat 實用網路工具 和 使用解析 unix socket 方法</a>
-<a href=/blog/posts/Redis-%E5%B0%8F%E8%A8%98/ class=next rel=next title="Redis 小記">Redis 小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+意外發現 /var/run 一些程式設定方法"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/socat-%E5%AF%A6%E7%94%A8%E7%B6%B2%E8%B7%AF%E5%B7%A5%E5%85%B7-%E5%92%8C-%E4%BD%BF%E7%94%A8%E8%A7%A3%E6%9E%90-unix-socket-%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/Redis-%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "vagrant 搭配使用 ansible 和 docker 架設 redis 小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "vagrant, docker, ansible","wordcount":  930 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98\/","datePublished": "2020-02-15T18:43:43+00:00","dateModified": "2020-02-15T18:43:43+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">vagrant 搭配使用 ansible 和 docker 架設 redis 小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Vagrant/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Vagrant</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2020-02-15">2020-02-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;930 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#vagrant-使用-ansible-安裝-redis">vagrant 使用 ansible 安裝 redis</a>
+      <ul>
+        <li><a href="#varrun-引發-redis-無法啟動">/var/run 引發 redis 無法啟動</a></li>
+        <li><a href="#etctempfilesd-最佳解法">/etc/tempfiles.d 最佳解法</a></li>
+        <li><a href="#小結">小結</a></li>
+      </ul>
+    </li>
+    <li><a href="#linux-install-指令">linux install 指令</a></li>
+    <li><a href="#vagrant-搭配-docker">vagrant 搭配 docker</a>
+      <ul>
+        <li><a href="#vagrant-ssh-登入-container">vagrant ssh 登入 container</a></li>
+        <li><a href="#相關-vagrant-連結">相關 vagrant 連結</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>常常我們需要做布署安裝<br>
+多台可能需要<br>
+最近看到 vagrant 可以搭配 ansible 使用<br>
+網路上隨便找一個範例小記<br>
+意外發現 <code>/var/run</code> 一些程式設定方法</p>
+<h2 id="vagrant-使用-ansible-安裝-redis">vagrant 使用 ansible 安裝 redis</h2>
+<p><a href="https://github.com/mikeblum/redis-playbook" target="_blank" rel="noopener noreffer ">mikeblum/redis-playbook: Ansible playbook for deploying, securing, and optimizing a Redis instance</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">git clone https://github.com/mikeblum/redis-playbook.git
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> redis-playbook
+</span></span><span class="line"><span class="cl"><span class="c1"># image 可以改成用過的</span>
+</span></span><span class="line"><span class="cl">vagrant up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這時候 redis 都是可以用的<br>
+但我發現 vagrant reload 重開機後<br>
+redis 竟然開不起來</p>
+<h3 id="varrun-引發-redis-無法啟動">/var/run 引發 redis 無法啟動</h3>
+<p><code>/var/run</code> 裡面的 redis 重開機竟然就不見了<br>
+經過 Google 發現由於 ubuntu 預設 /var/run 是用 tmpfs<br>
+所以重開機資料就不會在</p>
+<p>但我發現裡面有 docker ,mysqld&hellip;，權限也不是 root<br>
+這又是從哪裡來的呢?</p>
+<p>後來追查發現 <code>/etc/init/</code> 裡面 docker.conf 和 mysql.conf 有做產生檔案改權限相關動作</p>
+<blockquote>
+<p>題外話不過那 <code>/var/log</code> 是怎麼改的?<br>
+這也是不錯的問題</p>
+</blockquote>
+<p>但是我嘗試使用 apt install redis<br>
+發現 /etc/init 沒有我要的<br>
+後來發現 /etc/init.d/ 裡面有相關 redis 設定</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1">###########################</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#chkconfig: 2345 10 90</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#description: Start and Stop redis</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PATH</span><span class="o">=</span>/usr/local/bin:/sbin:/usr/bin:/bin
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="nv">REDISPORT</span><span class="o">=</span><span class="m">6379</span>
+</span></span><span class="line"><span class="cl"><span class="nv">EXEC</span><span class="o">=</span>/usr/local/bin/redis-server
+</span></span><span class="line"><span class="cl"><span class="nv">REDIS_CLI</span><span class="o">=</span>/usr/local/bin/redis-cli
+</span></span><span class="line"><span class="cl"><span class="c1">##判断redis是否启动了</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PIDFILE</span><span class="o">=</span>/var/run/redis_6379.pid
+</span></span><span class="line"><span class="cl"><span class="nv">CONF</span><span class="o">=</span><span class="s2">&#34;/etc/redis.conf&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PASSWORD</span><span class="o">=</span><span class="k">$(</span>cat <span class="nv">$CONF</span><span class="p">|</span>grep <span class="s1">&#39;^\s*requirepass&#39;</span><span class="p">|</span>awk <span class="s1">&#39;{print $2}&#39;</span><span class="p">|</span>sed <span class="s1">&#39;s/&#34;//g&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span> in
+</span></span><span class="line"><span class="cl">    start<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="o">[</span> -f <span class="nv">$PIDFILE</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">then</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$PIDFILE</span><span class="s2"> exists, process is already running or crashed&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">echo</span> <span class="s2">&#34;Starting Redis server...&#34;</span>
+</span></span><span class="line"><span class="cl">                <span class="nv">$EXEC</span> <span class="nv">$CONF</span>
+</span></span><span class="line"><span class="cl">        <span class="k">fi</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="nv">$?</span><span class="s2">&#34;</span><span class="o">=</span><span class="s2">&#34;0&#34;</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">then</span>
+</span></span><span class="line"><span class="cl">              <span class="nb">echo</span> <span class="s2">&#34;Redis is running...&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">fi</span>
+</span></span><span class="line"><span class="cl">        <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">    stop<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="o">[</span> ! -f <span class="nv">$PIDFILE</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">then</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$PIDFILE</span><span class="s2"> does not exist, process is not running&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span>
+</span></span><span class="line"><span class="cl">                <span class="nv">PID</span><span class="o">=</span><span class="k">$(</span>cat <span class="nv">$PIDFILE</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">echo</span> <span class="s2">&#34;Stopping ...&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="o">[</span> -z <span class="nv">$PASSWORD</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="k">then</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$REDIS_CLI</span> -p <span class="nv">$REDISPORT</span> shutdown
+</span></span><span class="line"><span class="cl"><span class="k">else</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$REDIS_CLI</span> -a <span class="nv">$PASSWORD</span> -p <span class="nv">$REDISPORT</span> shutdown
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">#$REDIS_CLI -p $REDISPORT SHUTDOWN</span>
+</span></span><span class="line"><span class="cl">                <span class="k">while</span> <span class="o">[</span> -x <span class="si">${</span><span class="nv">PIDFILE</span><span class="si">}</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">               <span class="k">do</span>
+</span></span><span class="line"><span class="cl">                    <span class="nb">echo</span> <span class="s2">&#34;Waiting for Redis to shutdown ...&#34;</span>
+</span></span><span class="line"><span class="cl">                    sleep <span class="m">1</span>
+</span></span><span class="line"><span class="cl">                <span class="k">done</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">echo</span> <span class="s2">&#34;Redis stopped&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">fi</span>
+</span></span><span class="line"><span class="cl">        <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">   restart<span class="p">|</span>force-reload<span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="si">${</span><span class="nv">0</span><span class="si">}</span> stop
+</span></span><span class="line"><span class="cl">        <span class="si">${</span><span class="nv">0</span><span class="si">}</span> start
+</span></span><span class="line"><span class="cl">        <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">  *<span class="o">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">echo</span> <span class="s2">&#34;Usage: /etc/init.d/redis {start|stop|restart|force-reload}&#34;</span> &gt;<span class="p">&amp;</span><span class="m">2</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">exit</span> <span class="m">1</span>
+</span></span><span class="line"><span class="cl"><span class="k">esac</span>
+</span></span><span class="line"><span class="cl"><span class="c1">##############################</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我懶得從 VM 搬出來，參考<a href="https://zhuanlan.zhihu.com/p/73464692" target="_blank" rel="noopener noreffer ">Redis在Linux上的安装及相关配置 - 知乎</a></p>
+<p>但就沒有專門給 systemctl 設定用的嗎?</p>
+<p>還是有找到方法，但很多都沒有提到<br>
+是不是大部分 /var/run 沒有掛載到 tmpfs 上面??</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[Unit]
+</span></span><span class="line"><span class="cl">Description=Redis In-Memory Data Store
+</span></span><span class="line"><span class="cl">After=network.target
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[Service]
+</span></span><span class="line"><span class="cl">PermissionsStartOnly=true
+</span></span><span class="line"><span class="cl">ExecStartPre=-/bin/mkdir -p /var/run/redis
+</span></span><span class="line"><span class="cl">ExecStartPre=-/bin/chown redis.redis /var/run/redis
+</span></span><span class="line"><span class="cl">#PIDFile=/var/run/redis_6379.pid  發現沒用也
+</span></span><span class="line"><span class="cl">User=redis
+</span></span><span class="line"><span class="cl">Group=redis
+</span></span><span class="line"><span class="cl">ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+</span></span><span class="line"><span class="cl">ExecStop=/usr/local/bin/redis-cli shutdown
+</span></span><span class="line"><span class="cl">Restart=always
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[Install]
+</span></span><span class="line"><span class="cl">WantedBy=multi-user.target
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面 PIDFile 好像沒加也能正常跑( 可以看 /etc/redis/redis.conf 的 pidfile )<br>
+主要上 <code>/var/run/redis</code> 資料夾需要建立，並且權限給 redis:redis</p>
+<p>不過這個算是最佳解嗎?<br>
+我在這篇<a href="https://github.com/DavidWittman/ansible-redis/issues/132" target="_blank" rel="noopener noreffer ">/var/run/redis_2323 directory cannot be created in systemd service · Issue #132 · DavidWittman/ansible-redis</a>看到<br>
+最後解決方案<a href="https://github.com/DavidWittman/ansible-redis/commit/9937b2e5ec8c371f77f384b8252049e3344ffce7" target="_blank" rel="noopener noreffer ">Merge pull request #135 from DavidWittman/132-systemd-tmpfiles · DavidWittman/ansible-redis@9937b2e</a>使用 <code>/etc/tmpfiles.d</code><br>
+不過我看我現在 linux 系統沒有這個目錄</p>
+<h3 id="etctempfilesd-最佳解法">/etc/tempfiles.d 最佳解法</h3>
+<p><a href="https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29#%E8%87%A8%E6%99%82%E6%AA%94%E6%A1%88" target="_blank" rel="noopener noreffer ">systemd (正體中文) - ArchWiki</a></p>
+<blockquote>
+<p>/usr/lib/tmpfiles.d/ 和 /etc/tmpfiles.d/ 中的檔案描述了 systemd-tmpfiles 如何創建、清理、删除臨時檔案和目錄，這些檔案和目錄通常存放在 /run 和 /tmp 中。設定檔名稱為 /etc/tmpfiles.d/<!-- raw HTML omitted -->.conf。此處的配置能覆蓋 /usr/lib/tmpfiles.d/目錄中的同名配置。<br>
+臨時檔案通常和服務檔案同时提供，以生成守護程序需要的檔案和目錄。例如 Samba 服務需要目錄 /run/samba 存在並設置正確的權限位</p>
+</blockquote>
+<p><a href="https://shazi.info/ubuntu-14-04-16-04-%E5%9C%A8-reboot-%E5%BE%8C%E4%BF%9D%E7%95%99-tmp-%E5%85%A7%E7%9A%84%E6%AA%94%E6%A1%88/" target="_blank" rel="noopener noreffer ">Ubuntu 16.04 在 reboot 後保留 tmp 內的檔案 | Mr. 沙先生</a></p>
+<p>我 Elementary OS 裡面 <code>/etc/tmpfiles.d/</code> 沒有任何東西，<code>/usr/lib/tmpfiles.d/</code> 底下有<br>
+不過正常應該是可以用的</p>
+<p>只要在 playbook.yml 下面加</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">create systemd tmpfiles configuration</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l">src=templates/tmpfiles_redis.conf.j2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="l">dest=/etc/tmpfiles.d/redis.conf</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="l">mode=0644 </span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>templates/tmpfiles_redis.conf.j2</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">d {{ redis_socket|dirname }} 0755 {{ redis_user }} {{ redis_group }}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>就可以正常了</p>
+<h3 id="小結">小結</h3>
+<p>我使用這個 playbook 不是非常完整<br>
+但他是我第一個網路上找到可以跑的 playbook<br>
+而且配置上還滿清楚的</p>
+<p>比較多完整配置可以用<a href="https://github.com/DavidWittman/ansible-redis" target="_blank" rel="noopener noreffer ">DavidWittman/ansible-redis: Highly-configurable Ansible role to install Redis and Redis Sentinel from source</a></p>
+<h2 id="linux-install-指令">linux install 指令</h2>
+<p><a href="https://www.geeksforgeeks.org/install-command-in-linux-with-examples/" target="_blank" rel="noopener noreffer ">install command in Linux with examples - GeeksforGeeks</a></p>
+<p>簡單來說 可以複製檔案並且設定權限<br>
+這是我從 /etc/init/mysql.conf 看到<br>
+由於上面我花了一堆時間，這個就先跳過&hellip;</p>
+<h2 id="vagrant-搭配-docker">vagrant 搭配 docker</h2>
+<p>參考<a href="http://samchu.logdown.com/posts/288889-docker-fast-with-vagrant-and-construct-development-and-test-environments" target="_blank" rel="noopener noreffer ">使用Vagrant跟Docker快速建構開發與測試環境 « Sam的程式筆記</a></p>
+<p>執行結果</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Bringing machine &#39;elasticsearch&#39; up with &#39;docker&#39; provider...
+</span></span><span class="line"><span class="cl">Bringing machine &#39;postgres&#39; up with &#39;docker&#39; provider...
+</span></span><span class="line"><span class="cl">==&gt; elasticsearch: Pruning invalid NFS exports. Administrator privileges will be required...
+</span></span><span class="line"><span class="cl">[sudo] password for malagege:     
+</span></span><span class="line"><span class="cl">==&gt; elasticsearch: Creating the container...
+</span></span><span class="line"><span class="cl">    elasticsearch:   Name: elasticsearch
+</span></span><span class="line"><span class="cl">    elasticsearch:  Image: elasticsearch
+</span></span><span class="line"><span class="cl">    elasticsearch:   Port: 9200:9200
+</span></span><span class="line"><span class="cl">    elasticsearch:   Port: 9300:9300
+</span></span><span class="line"><span class="cl">A Docker command executed by Vagrant didn&#39;t complete successfully!
+</span></span><span class="line"><span class="cl">The command run along with the output from the command is shown
+</span></span><span class="line"><span class="cl">below.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Command: [&#34;docker&#34;, &#34;run&#34;, &#34;--name&#34;, &#34;elasticsearch&#34;, &#34;-d&#34;, &#34;-p&#34;, &#34;9200:9200&#34;, &#34;-p&#34;, &#34;9300:9300&#34;, &#34;elasticsearch&#34;, {:notify=&gt;[:stdout, :stderr]}]
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Stderr: Unable to find image &#39;elasticsearch:latest&#39; locally
+</span></span><span class="line"><span class="cl">/usr/bin/docker: Error response from daemon: manifest for elasticsearch:latest not found: manifest unknown: manifest unknown.
+</span></span><span class="line"><span class="cl">See &#39;/usr/bin/docker run --help&#39;.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>感覺電腦外層要裝 docker<br>
+<del>NFS 掛載你的 docker unix socket 到裡面開 docker container</del><br>
+他就只是在 docker 開啟 container&hellip;<br>
+不過這樣有什麼好處&hellip; 還在想</p>
+<p>所以不能直接<code>vagrant ssh</code><br>
+需要使用 <code>vagrant docker-*</code> 相關指令<br>
+<a href="https://stackoverflow.com/questions/37191371/vagrant-ssh-to-docker-container" target="_blank" rel="noopener noreffer ">drupal - Vagrant ssh to Docker container - Stack Overflow</a></p>
+<p>當初以為這是在 VM 裝 docker，直接抓 image 開啟 container<br>
+但跟我想的不一樣</p>
+<p>老實說這有什麼好處，我想可能用 docker-compose 會比較快吧&hellip;<br>
+但意外發現載入速度滿快的!!!(這不是廢話)</p>
+<h3 id="vagrant-ssh-登入-container">vagrant ssh 登入 container</h3>
+<p>參考: <a href="http://blog.iwonder.tw/2017/08/20/vagrant-ssh-docker/" target="_blank" rel="noopener noreffer ">如何配置 Vagrant SSH 在 Docker Provider - iWonder Blog</a><br>
+有找到如何使用 vagrant ssh 進去</p>
+<p>dockerfile</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="c"># Pull base image</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="s"> ubuntu:16.04</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Installation</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> apt-get update<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> apt-get install -y openssh-server sudo<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Create vagrant user with sudo privilege</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> useradd -m -d /home/vagrant -s /bin/bash vagrant<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> <span class="nb">echo</span> <span class="s1">&#39;vagrant:vagrant&#39;</span> <span class="p">|</span> chpasswd<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> <span class="nb">echo</span> <span class="s1">&#39;vagrant ALL=(ALL) NOPASSWD:ALL&#39;</span> &gt; /etc/sudoers.d/vagrant<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> chmod <span class="m">440</span> /etc/sudoers.d/vagrant<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Run SSH service</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> mkdir /var/run/sshd<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">EXPOSE</span><span class="s"> 22</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">CMD</span> <span class="p">[</span><span class="s2">&#34;/usr/sbin/sshd&#34;</span><span class="p">,</span> <span class="s2">&#34;-D&#34;</span><span class="p">]</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Vagrantfile</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ruby" data-lang="ruby"><span class="line"><span class="cl"><span class="c1"># Vagrantfile</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># -*- mode: ruby -*-</span>
+</span></span><span class="line"><span class="cl"><span class="no">Vagrant</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&#34;2&#34;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provider</span> <span class="s2">&#34;docker&#34;</span> <span class="k">do</span> <span class="o">|</span><span class="n">d</span><span class="o">|</span>
+</span></span><span class="line"><span class="cl">    <span class="n">d</span><span class="o">.</span><span class="n">build_dir</span> <span class="o">=</span> <span class="s2">&#34;.&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">d</span><span class="o">.</span><span class="n">has_ssh</span> <span class="o">=</span> <span class="kp">true</span>
+</span></span><span class="line"><span class="cl">  <span class="k">end</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span><span class="o">.</span><span class="n">ssh</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="s1">&#39;vagrant&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="k">end</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>或</p>
+<p>Vagrantfile</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ruby" data-lang="ruby"><span class="line"><span class="cl"><span class="c1"># Vagrantfile</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># -*- mode: ruby -*-</span>
+</span></span><span class="line"><span class="cl"><span class="no">Vagrant</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&#34;2&#34;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provider</span> <span class="s2">&#34;docker&#34;</span> <span class="k">do</span> <span class="o">|</span><span class="n">d</span><span class="o">|</span>
+</span></span><span class="line"><span class="cl">    <span class="n">d</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="s2">&#34;wonderchang/baseimage-ssh&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">d</span><span class="o">.</span><span class="n">has_ssh</span> <span class="o">=</span> <span class="kp">true</span>
+</span></span><span class="line"><span class="cl">  <span class="k">end</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span><span class="o">.</span><span class="n">ssh</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="s1">&#39;vagrant&#39;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="s2">&#34;forwarded_port&#34;</span><span class="p">,</span> <span class="ss">guest</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span> <span class="ss">host</span><span class="p">:</span> <span class="mi">8080</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&#34;shell&#34;</span><span class="p">,</span> <span class="ss">inline</span><span class="p">:</span> <span class="s">&lt;&lt;-SHELL
+</span></span></span><span class="line"><span class="cl"><span class="s"></span>    <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+</span></span><span class="line"><span class="cl">    <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">nginx</span>
+</span></span><span class="line"><span class="cl">    <span class="n">service</span> <span class="n">nginx</span> <span class="n">start</span>
+</span></span><span class="line"><span class="cl">  <span class="no">SHELL</span>
+</span></span><span class="line"><span class="cl"><span class="k">end</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>vagrant up 就可以使用，vagrant ssh 就可以使用了</p>
+<h3 id="相關-vagrant-連結">相關 vagrant 連結</h3>
+<p><a href="https://shazi.info/%E6%80%8E%E9%BA%BC%E6%89%BE%E5%88%B0-vagrant-box-%E7%9A%84-ssh-%E4%BD%BF%E7%94%A8%E8%80%85%E8%88%87%E5%AF%86%E7%A2%BC/" target="_blank" rel="noopener noreffer ">怎麼找到 Vagrant box 的 ssh 使用者與密碼 | Mr. 沙先生</a><br>
+<a href="https://vagrantpi.github.io/2018/02/11/vagrant/" target="_blank" rel="noopener noreffer ">Vagrant 學習筆記 - VagrantPi Blog</a></p>
+<p>Using default tag: latest<br>
+Error response from daemon: manifest for elasticsearch:latest not found: manifest unknown: manifest unknown</p>
+<p>docker pull elasticsearch:6.5.0<br>
+<a href="https://github.com/elastic/elasticsearch-docker/issues/215" target="_blank" rel="noopener noreffer ">Elasticsearch latest not available · Issue #215 · elastic/elasticsearch-docker</a></p>
+<p><a href="http://blog.iwonder.tw/2017/08/20/vagrant-ssh-docker/" target="_blank" rel="noopener noreffer ">如何配置 Vagrant SSH 在 Docker Provider - iWonder Blog</a></p>
+<p><a href="https://blog.samchu.dev/2019/07/05/Ansible-install-and-introduction/" target="_blank" rel="noopener noreffer ">Ansible install and introduction | SAM的程式筆記</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2020-02-15</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記" data-hashtags="vagrant,docker,ansible"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" data-hashtag="vagrant"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/vagrant-%E6%90%AD%E9%85%8D%E4%BD%BF%E7%94%A8-ansible-%E5%92%8C-docker-%E6%9E%B6%E8%A8%AD-redis-%E5%B0%8F%E8%A8%98/" data-title="vagrant 搭配使用 ansible 和 docker 架設 redis 小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/vagrant/">vagrant</a>,&nbsp;<a href="/blog/tags/docker/">docker</a>,&nbsp;<a href="/blog/tags/ansible/">ansible</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/socat-%E5%AF%A6%E7%94%A8%E7%B6%B2%E8%B7%AF%E5%B7%A5%E5%85%B7-%E5%92%8C-%E4%BD%BF%E7%94%A8%E8%A7%A3%E6%9E%90-unix-socket-%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="socat 實用網路工具 和 使用解析 unix socket 方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>socat 實用網路工具 和 使用解析 unix socket 方法</a>
+            <a href="/blog/posts/Redis-%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="Redis 小記">Redis 小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

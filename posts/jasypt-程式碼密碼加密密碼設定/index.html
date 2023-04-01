@@ -1,164 +1,456 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Jasypt 程式碼密碼加密密碼設定 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Jasypt 程式碼密碼加密密碼設定"><meta property="og:description" content="最近工作上面源掃掃到密碼 Hard Code 程式，有人提供使用 Jasypt 作加密動作，不過，就算改成從 DB 撈出來也會抓到這個問題，所以用 Jasypt 能不能掃到?我也不是很清楚。
-這邊我就簡單做個紀錄。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-02-14T00:02:39+00:00"><meta property="article:modified_time" content="2022-02-14T00:02:39+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Jasypt 程式碼密碼加密密碼設定"><meta name=twitter:description content="最近工作上面源掃掃到密碼 Hard Code 程式，有人提供使用 Jasypt 作加密動作，不過，就算改成從 DB 撈出來也會抓到這個問題，所以用 Jasypt 能不能掃到?我也不是很清楚。
-這邊我就簡單做個紀錄。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/><link rel=prev href=https://malagege.github.io/blog/posts/%E7%B0%A1%E5%96%AE%E6%B8%AC%E8%A9%A6%E4%B8%AD%E6%96%87%E5%AD%97%E5%BD%A2-pdf-%E6%96%B9%E6%B3%95-%E6%9C%AA%E6%B8%AC%E8%A9%A6/><link rel=next href=https://malagege.github.io/blog/posts/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Jasypt 程式碼密碼加密密碼設定","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A\/"},"genre":"posts","keywords":"jasypt, java","wordcount":241,"url":"https:\/\/malagege.github.io\/blog\/posts\/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A\/","datePublished":"2022-02-14T00:02:39+00:00","dateModified":"2022-02-14T00:02:39+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Jasypt 程式碼密碼加密密碼設定</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Java/><i class="far fa-folder fa-fw" aria-hidden=true></i>Java</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2022-02-14>2022-02-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;241 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#了解怎麼載入-properties與標題無關>了解怎麼載入 properties(與標題無關)</a><ul><li><a href=#設定>設定</a></li><li><a href=#讀取值方法>讀取值方法</a></li></ul></li><li><a href=#jasypt-加密動作>Jasypt 加密動作</a></li><li><a href=#如何產生-jasypt-加密key>如何產生 Jasypt 加密key?</a></li></ul></nav></div></div><div class=content id=content><p>最近工作上面源掃掃到密碼 Hard Code 程式，有人提供使用 Jasypt 作加密動作，不過，就算改成從 DB 撈出來也會抓到這個問題，所以用 Jasypt 能不能掃到?我也不是很清楚。</p><p>這邊我就簡單做個紀錄。</p><h2 id=了解怎麼載入-properties與標題無關>了解怎麼載入 properties(與標題無關)</h2><p>這邊跟加密沒有關係，但先了解怎麼從 Spring 載入 properties</p><h3 id=設定>設定</h3><h4 id=方法一-contextproperty-placeholder->方法一 (context:property-placeholder )</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;context:property-placeholder</span> <span class=na>location=</span><span class=s>&#34;classpath:system.properties&#34;</span> <span class=nt>/&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><blockquote><p><code>&lt;context:property-placeholder></code>標簽提供了一種優雅的外在化參數配置的方式，不過該標簽在Spring配置文件中只能存在一份！！！</p></blockquote><blockquote><p>眾所周知，Spring容器是采用反射掃描的發現機制，通過標簽的命名空間實例化實例，當Spring探測到容器中有一個org.springframework.beans.factory.config.PropertyPlaceholderCVonfigurer的Bean就會停止對剩余PropertyPlaceholderConfigurer的掃描，即只能存在一個實例！</p></blockquote><p>參考: <a href=https://www.itread01.com/content/1509782321.html target=_blank rel="noopener noreffer">Spring配置文件<a href=context:property-placeholder rel>context:property-placeholder</a>標簽使用漫談 - IT閱讀</a></p><h4 id=方法二-propertyplaceholderconfigurer--本篇重點>方法二 (PropertyPlaceholderConfigurer) 本篇重點!!</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl>    <span class=nt>&lt;bean</span> <span class=na>class=</span><span class=s>&#34;org.springframework.beans.factory.config.PropertyPlaceholderConfigurer&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=c>&lt;!-- 對於讀取一個配置檔案採取的方案 --&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=c>&lt;!--&lt;property name=&#34;location&#34; value=&#34;classpath:db.properties&#34;/&gt;--&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=c>&lt;!--對於讀取多個配置檔案採取的方案--&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;locations&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;list&gt;</span>
-</span></span><span class=line><span class=cl>                <span class=nt>&lt;value&gt;</span>classpath:db.properties<span class=nt>&lt;/value&gt;</span>
-</span></span><span class=line><span class=cl>                <span class=nt>&lt;value&gt;</span>classpath:db2.properties<span class=nt>&lt;/value&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;/list&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;/property&gt;</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;/bean&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><p>這邊Jaspty 會用這個!! Jaspty 裡面的 EncryptablePropertyPlaceholderConfigurer 繼承這個物件，我們可以使用<code>@value</code>去抓出資料。</p><h4 id=更多方法>更多方法</h4><ol><li><a href=https://www.cnblogs.com/hafiz/p/5876243.html target=_blank rel="noopener noreffer">五种方式让你在java中读取properties文件内容不再是难题 - 阿豪聊干货 - 博客园</a> TODO: 備份</li><li><a href=https://iter01.com/69343.html target=_blank rel="noopener noreffer">spring- properties 讀取的五種方式 | IT人</a></li><li><a href=https://www.itread01.com/content/1550515696.html target=_blank rel="noopener noreffer">Java程式碼中獲取配置檔案(config.properties)中內容的兩種方法 - IT閱讀</a></li><li><a href=https://www.it145.com/9/161940.html target=_blank rel="noopener noreffer">Spring註解@Value及屬性載入組態檔方式 - IT145.com</a></li></ol><h3 id=讀取值方法>讀取值方法</h3><h4 id=value>@value</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl>    <span class=nd>@Value</span><span class=o>(</span><span class=s>&#34;${item.specKey}&#34;</span><span class=o>)</span>
-</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=n>String</span> <span class=n>SPEC_KEY</span> <span class=o>;</span>
-</span></span><span class=line><span class=cl>    
-</span></span><span class=line><span class=cl>    <span class=nd>@Value</span><span class=o>(</span><span class=s>&#34;${item.saltvalueStr}&#34;</span><span class=o>)</span>
-</span></span><span class=line><span class=cl>	<span class=kd>private</span> <span class=n>String</span> <span class=n>SALTVALUE_STR</span> <span class=o>;</span>
-</span></span></code></pre></td></tr></table></div></div><h4 id=讀取方法>讀取方法</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;bean</span> <span class=na>id=</span><span class=s>&#34;xxx&#34;</span> <span class=na>class=</span><span class=s>&#34;xxxxx&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;SPEC_KEY&#34;</span> <span class=na>value=</span><span class=s>&#34;${item.specKey}&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;SALTVALUE_STR&#34;</span> <span class=na>value=</span><span class=s>&#34;${item.saltvalueStr}&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;/bean&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><p>properties</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>item.specKey=Test
-</span></span><span class=line><span class=cl>item.saltvalueStr=Test
-</span></span></code></pre></td></tr></table></div></div><h2 id=jasypt-加密動作>Jasypt 加密動作</h2><p>jasypt</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl>        <span class=nt>&lt;dependency&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;groupId&gt;</span>org.jasypt<span class=nt>&lt;/groupId&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;artifactId&gt;</span>jasypt<span class=nt>&lt;/artifactId&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;version&gt;</span>1.9.3<span class=nt>&lt;/version&gt;</span>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;/dependency&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl>   <span class=nt>&lt;bean</span> <span class=na>id=</span><span class=s>&#34;jasyptConf&#34;</span> <span class=na>class=</span><span class=s>&#34;org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;algorithm&#34;</span> <span class=na>value=</span><span class=s>&#34;PBEWithMD5AndDES&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;password&#34;</span> <span class=na>value=</span><span class=s>&#34;********&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;/bean&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;bean</span> <span class=na>id=</span><span class=s>&#34;jasyptEncryptor&#34;</span> <span class=na>class=</span><span class=s>&#34;org.jasypt.encryption.pbe.StandardPBEStringEncryptor&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;config&#34;</span> <span class=na>ref=</span><span class=s>&#34;jasyptConf&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;/bean&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl> 
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;bean</span> <span class=na>id=</span><span class=s>&#34;propertyConfigurer&#34;</span> <span class=na>class=</span><span class=s>&#34;org.jasypt.spring4.properties.EncryptablePropertyPlaceholderConfigurer&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;constructor-arg</span> <span class=na>ref=</span><span class=s>&#34;jasyptEncryptor&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;locations&#34;</span><span class=nt>&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;list&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>                <span class=nt>&lt;value&gt;</span>classpath*:com/project/npp/persistence/cfg/jdbc.properties<span class=nt>&lt;/value&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>            <span class=nt>&lt;/list&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;/property&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=nt>&lt;property</span> <span class=na>name=</span><span class=s>&#34;ignoreUnresolvablePlaceholders&#34;</span> <span class=na>value=</span><span class=s>&#34;true&#34;</span><span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;/bean&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>jdbc.driverClassName=com.ibm.db2.jcc.DB2Driver
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>jdbc.username=nppuser1
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>jdbc.password=ENC(fAObzokoh7ldKBiVU16pqSdPeURziFjb)
-</span></span></code></pre></td></tr></table></div></div><h2 id=如何產生-jasypt-加密key>如何產生 Jasypt 加密key?</h2><p>官網抓的jar 檔，下已下指令可以得出</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>java -cp jasypt-1.9.3.jar org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI <span class=nv>input</span><span class=o>=</span><span class=s2>&#34;myPassword&#34;</span> <span class=nv>password</span><span class=o>=</span>privatekey <span class=nv>algorithm</span><span class=o>=</span>PBEWithMD5AndDES
-</span></span></code></pre></td></tr></table></div></div><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/gZBKC3e.png data-srcset="https://i.imgur.com/gZBKC3e.png, https://i.imgur.com/gZBKC3e.png 1.5x, https://i.imgur.com/gZBKC3e.png 2x" data-sizes=auto alt=https://i.imgur.com/gZBKC3e.png title=https://i.imgur.com/gZBKC3e.png></p><p>還有一個方法是用官方 shell script 去產生<a href=https://github.com/jasypt/jasypt/releases target=_blank rel="noopener noreffer">Releases · jasypt/jasypt · GitHub</a>，這邊就不特別做紀錄，網路很多是用這個方法。</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2022-02-14</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/ data-title="Jasypt 程式碼密碼加密密碼設定" data-hashtags=jasypt,java><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/ data-hashtag=jasypt><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/ data-title="Jasypt 程式碼密碼加密密碼設定"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/ data-title="Jasypt 程式碼密碼加密密碼設定"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/ data-title="Jasypt 程式碼密碼加密密碼設定"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/jasypt/>jasypt</a>,&nbsp;<a href=/blog/tags/java/>java</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E7%B0%A1%E5%96%AE%E6%B8%AC%E8%A9%A6%E4%B8%AD%E6%96%87%E5%AD%97%E5%BD%A2-pdf-%E6%96%B9%E6%B3%95-%E6%9C%AA%E6%B8%AC%E8%A9%A6/ class=prev rel=prev title="簡單測試中文字形 pdf 方法(未測試)"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>簡單測試中文字形 pdf 方法(未測試)</a>
-<a href=/blog/posts/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85/ class=next rel=next title="Kubernetes pod-network-cidr 設錯會發生什麼事情">Kubernetes pod-network-cidr 設錯會發生什麼事情<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Jasypt 程式碼密碼加密密碼設定 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Jasypt 程式碼密碼加密密碼設定" />
+<meta property="og:description" content="最近工作上面源掃掃到密碼 Hard Code 程式，有人提供使用 Jasypt 作加密動作，不過，就算改成從 DB 撈出來也會抓到這個問題，所以用 Jasypt 能不能掃到?我也不是很清楚。
+這邊我就簡單做個紀錄。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-02-14T00:02:39+00:00" />
+<meta property="article:modified_time" content="2022-02-14T00:02:39+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Jasypt 程式碼密碼加密密碼設定"/>
+<meta name="twitter:description" content="最近工作上面源掃掃到密碼 Hard Code 程式，有人提供使用 Jasypt 作加密動作，不過，就算改成從 DB 撈出來也會抓到這個問題，所以用 Jasypt 能不能掃到?我也不是很清楚。
+這邊我就簡單做個紀錄。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E7%B0%A1%E5%96%AE%E6%B8%AC%E8%A9%A6%E4%B8%AD%E6%96%87%E5%AD%97%E5%BD%A2-pdf-%E6%96%B9%E6%B3%95-%E6%9C%AA%E6%B8%AC%E8%A9%A6/" /><link rel="next" href="https://malagege.github.io/blog/posts/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Jasypt 程式碼密碼加密密碼設定",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A\/"
+        },"genre": "posts","keywords": "jasypt, java","wordcount":  241 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A\/","datePublished": "2022-02-14T00:02:39+00:00","dateModified": "2022-02-14T00:02:39+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Jasypt 程式碼密碼加密密碼設定</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-02-14">2022-02-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;241 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#了解怎麼載入-properties與標題無關">了解怎麼載入 properties(與標題無關)</a>
+      <ul>
+        <li><a href="#設定">設定</a></li>
+        <li><a href="#讀取值方法">讀取值方法</a></li>
+      </ul>
+    </li>
+    <li><a href="#jasypt-加密動作">Jasypt 加密動作</a></li>
+    <li><a href="#如何產生-jasypt-加密key">如何產生 Jasypt 加密key?</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近工作上面源掃掃到密碼 Hard Code 程式，有人提供使用 Jasypt 作加密動作，不過，就算改成從 DB 撈出來也會抓到這個問題，所以用 Jasypt 能不能掃到?我也不是很清楚。</p>
+<p>這邊我就簡單做個紀錄。</p>
+<h2 id="了解怎麼載入-properties與標題無關">了解怎麼載入 properties(與標題無關)</h2>
+<p>這邊跟加密沒有關係，但先了解怎麼從 Spring 載入 properties</p>
+<h3 id="設定">設定</h3>
+<h4 id="方法一-contextproperty-placeholder-">方法一 (context:property-placeholder )</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;context:property-placeholder</span> <span class="na">location=</span><span class="s">&#34;classpath:system.properties&#34;</span> <span class="nt">/&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p><code>&lt;context:property-placeholder&gt;</code>標簽提供了一種優雅的外在化參數配置的方式，不過該標簽在Spring配置文件中只能存在一份！！！</p>
+</blockquote>
+<blockquote>
+<p>眾所周知，Spring容器是采用反射掃描的發現機制，通過標簽的命名空間實例化實例，當Spring探測到容器中有一個org.springframework.beans.factory.config.PropertyPlaceholderCVonfigurer的Bean就會停止對剩余PropertyPlaceholderConfigurer的掃描，即只能存在一個實例！</p>
+</blockquote>
+<p>參考: <a href="https://www.itread01.com/content/1509782321.html" target="_blank" rel="noopener noreffer ">Spring配置文件<a href="context:property-placeholder" rel="">context:property-placeholder</a>標簽使用漫談 - IT閱讀</a></p>
+<h4 id="方法二-propertyplaceholderconfigurer--本篇重點">方法二 (PropertyPlaceholderConfigurer)  本篇重點!!</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;bean</span> <span class="na">class=</span><span class="s">&#34;org.springframework.beans.factory.config.PropertyPlaceholderConfigurer&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="c">&lt;!-- 對於讀取一個配置檔案採取的方案 --&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="c">&lt;!--&lt;property name=&#34;location&#34; value=&#34;classpath:db.properties&#34;/&gt;--&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c">&lt;!--對於讀取多個配置檔案採取的方案--&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;locations&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;list&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;value&gt;</span>classpath:db.properties<span class="nt">&lt;/value&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;value&gt;</span>classpath:db2.properties<span class="nt">&lt;/value&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;/list&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊Jaspty 會用這個!! Jaspty 裡面的 EncryptablePropertyPlaceholderConfigurer 繼承這個物件，我們可以使用<code>@value</code>去抓出資料。</p>
+<h4 id="更多方法">更多方法</h4>
+<ol>
+<li><a href="https://www.cnblogs.com/hafiz/p/5876243.html" target="_blank" rel="noopener noreffer ">五种方式让你在java中读取properties文件内容不再是难题 - 阿豪聊干货 - 博客园</a> TODO: 備份</li>
+<li><a href="https://iter01.com/69343.html" target="_blank" rel="noopener noreffer ">spring- properties 讀取的五種方式 | IT人</a></li>
+<li><a href="https://www.itread01.com/content/1550515696.html" target="_blank" rel="noopener noreffer ">Java程式碼中獲取配置檔案(config.properties)中內容的兩種方法 - IT閱讀</a></li>
+<li><a href="https://www.it145.com/9/161940.html" target="_blank" rel="noopener noreffer ">Spring註解@Value及屬性載入組態檔方式 - IT145.com</a></li>
+</ol>
+<h3 id="讀取值方法">讀取值方法</h3>
+<h4 id="value">@value</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl">    <span class="nd">@Value</span><span class="o">(</span><span class="s">&#34;${item.specKey}&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">private</span> <span class="n">String</span> <span class="n">SPEC_KEY</span> <span class="o">;</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="nd">@Value</span><span class="o">(</span><span class="s">&#34;${item.saltvalueStr}&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">private</span> <span class="n">String</span> <span class="n">SALTVALUE_STR</span> <span class="o">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="讀取方法">讀取方法</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;xxx&#34;</span> <span class="na">class=</span><span class="s">&#34;xxxxx&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;SPEC_KEY&#34;</span> <span class="na">value=</span><span class="s">&#34;${item.specKey}&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;SALTVALUE_STR&#34;</span> <span class="na">value=</span><span class="s">&#34;${item.saltvalueStr}&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>properties</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">item.specKey=Test
+</span></span><span class="line"><span class="cl">item.saltvalueStr=Test
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="jasypt-加密動作">Jasypt 加密動作</h2>
+<p>jasypt</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">        <span class="nt">&lt;dependency&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;groupId&gt;</span>org.jasypt<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;artifactId&gt;</span>jasypt<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;version&gt;</span>1.9.3<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/dependency&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">   <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;jasyptConf&#34;</span> <span class="na">class=</span><span class="s">&#34;org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;algorithm&#34;</span> <span class="na">value=</span><span class="s">&#34;PBEWithMD5AndDES&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;password&#34;</span> <span class="na">value=</span><span class="s">&#34;********&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;jasyptEncryptor&#34;</span> <span class="na">class=</span><span class="s">&#34;org.jasypt.encryption.pbe.StandardPBEStringEncryptor&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;config&#34;</span> <span class="na">ref=</span><span class="s">&#34;jasyptConf&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;propertyConfigurer&#34;</span> <span class="na">class=</span><span class="s">&#34;org.jasypt.spring4.properties.EncryptablePropertyPlaceholderConfigurer&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;constructor-arg</span> <span class="na">ref=</span><span class="s">&#34;jasyptEncryptor&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;locations&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;list&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;value&gt;</span>classpath*:com/project/npp/persistence/cfg/jdbc.properties<span class="nt">&lt;/value&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;/list&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;ignoreUnresolvablePlaceholders&#34;</span> <span class="na">value=</span><span class="s">&#34;true&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">jdbc.driverClassName=com.ibm.db2.jcc.DB2Driver
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">jdbc.username=nppuser1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">jdbc.password=ENC(fAObzokoh7ldKBiVU16pqSdPeURziFjb)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="如何產生-jasypt-加密key">如何產生 Jasypt 加密key?</h2>
+<p>官網抓的jar 檔，下已下指令可以得出</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">java -cp jasypt-1.9.3.jar org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI <span class="nv">input</span><span class="o">=</span><span class="s2">&#34;myPassword&#34;</span> <span class="nv">password</span><span class="o">=</span>privatekey <span class="nv">algorithm</span><span class="o">=</span>PBEWithMD5AndDES
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/gZBKC3e.png"
+        data-srcset="https://i.imgur.com/gZBKC3e.png, https://i.imgur.com/gZBKC3e.png 1.5x, https://i.imgur.com/gZBKC3e.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/gZBKC3e.png"
+        title="https://i.imgur.com/gZBKC3e.png" /></p>
+<p>還有一個方法是用官方 shell script 去產生<a href="https://github.com/jasypt/jasypt/releases" target="_blank" rel="noopener noreffer ">Releases · jasypt/jasypt · GitHub</a>，這邊就不特別做紀錄，網路很多是用這個方法。</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2022-02-14</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" data-title="Jasypt 程式碼密碼加密密碼設定" data-hashtags="jasypt,java"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" data-hashtag="jasypt"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" data-title="Jasypt 程式碼密碼加密密碼設定"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" data-title="Jasypt 程式碼密碼加密密碼設定"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/jasypt-%E7%A8%8B%E5%BC%8F%E7%A2%BC%E5%AF%86%E7%A2%BC%E5%8A%A0%E5%AF%86%E5%AF%86%E7%A2%BC%E8%A8%AD%E5%AE%9A/" data-title="Jasypt 程式碼密碼加密密碼設定"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/jasypt/">jasypt</a>,&nbsp;<a href="/blog/tags/java/">java</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E7%B0%A1%E5%96%AE%E6%B8%AC%E8%A9%A6%E4%B8%AD%E6%96%87%E5%AD%97%E5%BD%A2-pdf-%E6%96%B9%E6%B3%95-%E6%9C%AA%E6%B8%AC%E8%A9%A6/" class="prev" rel="prev" title="簡單測試中文字形 pdf 方法(未測試)"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>簡單測試中文字形 pdf 方法(未測試)</a>
+            <a href="/blog/posts/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85/" class="next" rel="next" title="Kubernetes pod-network-cidr 設錯會發生什麼事情">Kubernetes pod-network-cidr 設錯會發生什麼事情<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

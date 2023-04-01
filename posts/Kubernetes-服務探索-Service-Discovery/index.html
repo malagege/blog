@@ -1,314 +1,723 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Kubernetes 服務探索(Service Discovery) - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 服務探索(Service Discovery)"><meta property="og:description" content="Kubernetes  Service 筆記"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-02-04T21:48:46+00:00"><meta property="article:modified_time" content="2021-02-04T21:48:46+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kubernetes 服務探索(Service Discovery)"><meta name=twitter:description content="Kubernetes  Service 筆記"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/><link rel=prev href=https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-Label-%E5%92%8C-Annotation-%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/Kubernetes-%E4%BD%BF%E7%94%A8-Ingress-%E5%81%9A%E8%B2%A0%E8%BC%89%E5%B9%B3%E8%A1%A1/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Kubernetes 服務探索(Service Discovery)","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery\/"},"genre":"posts","keywords":"Kubernetes, Service","wordcount":876,"url":"https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery\/","datePublished":"2021-02-04T21:48:46+00:00","dateModified":"2021-02-04T21:48:46+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 服務探索(Service Discovery)</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Kubernetes/><i class="far fa-folder fa-fw" aria-hidden=true></i>Kubernetes</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-02-04>2021-02-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;876 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#抽象圖小記>抽象圖小記</a><ul><li><a href=#clusterip>ClusterIP</a></li></ul></li><li><a href=#kubernetes-元件處理-service-流程>Kubernetes 元件處理 Service 流程</a></li><li><a href=#cluster-ip>Cluster IP</a><ul><li><a href=#service-dns>Service DNS</a></li><li><a href=#readiness-prob>Readiness Prob</a></li><li><a href=#用-endpoints-觀察>用 endpoints 觀察</a></li></ul></li><li><a href=#nodeport>NodePort</a></li><li><a href=#loadbalancer>LoadBalancer</a></li><li><a href=#endpoint>Endpoint</a></li><li><a href=#建立-service-yaml>建立 Service yaml</a></li><li><a href=#kube-proxy>kube-proxy</a></li><li><a href=#cluster-ip-環境變數>Cluster IP 環境變數</a></li><li><a href=#清除所有建立物件>清除所有建立物件</a></li></ul></nav></div></div><div class=content id=content><p>Kubernetes Service 筆記</p><h2 id=抽象圖小記>抽象圖小記</h2><div class=mermaid>graph TD
-subgraph Kubernetes Cluster
-A[Service] --> N1[Nginx]
-A --> |Endpoints|N2[Nginx]
-A --> N3[Nginx]
-A --> N4[Nginx]
-APP -->|Access Service 訪問Virutal Server| A
-subgraph Node1
-N1
-N2
-end
-subgraph Node2
-N3
-end
-subgraph Node3
-N4
-APP
-end
-end</div><p>簡單記錄一下，在沒有 Service，有很多服務，要怎麼分享出去使用是一個重要的課題。<br>不可能在程式設定多個IP，Service 透過 Virtual IP做分享內部服務。</p><p>Virtual IP 主要是做備援(HA)機制。不是在做LB。但是K8S是會做SLB。可以看相關 keepalived，<a href="https://www.796t.com/article.php?id=122795" target=_blank rel="noopener noreffer">利用LVS+keepalived的主從模式實現http的高可用性_實用技巧_程式人生</a>，不過我沒有實做過。</p><p>使用上會使用DNS，<code>${service}.${namespade}.cluster.local</code>。</p><p>實現 VIP和 Endpoint 轉化，有:</p><ol><li>Iptable(預設)</li><li>Userspace</li><li>IPVS</li></ol><p>切換方法，是透過 <code>kube-proxy --proxy-mode</code>做切換。</p><p>Kubernates Service Type</p><ul><li>ClusterIP</li><li>NodePort</li><li>Loadbalancer</li><li>ExternalName</li><li>Headless</li></ul><p><a href="https://medium.com/devops-mojo/kubernetes-service-types-overview-introduction-to-k8s-service-types-what-are-types-of-kubernetes-services-ea6db72c3f8c#:~:text=There%20are%20four%20types%20of%20Kubernetes%20services%20%E2%80%94,network.%20Read%20about%20Kubernetes%20Services%20and%20Ingress%201." target=_blank rel="noopener noreffer">Kubernetes — Service Types Overview | by Ashish Patel | DevOps Mojo | Medium</a></p><h3 id=clusterip>ClusterIP</h3><p>來源端必須屬於 Cluster 內部，內部是指「各節點與運行中的Pod」。</p><p>沒有指定type，預設是 clusterIP</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-service</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>MyApp</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>9376</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>範例參考: <a href=https://kubernetes.io/docs/concepts/services-networking/service/ target=_blank rel="noopener noreffer">Service | Kubernetes</a></p><ol><li>Port 對外存取的port。</li><li>targetPort pod上面的對外的 port<br>詳細可看:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#serviceport-v1-core</li></ol><p>ServicePort v1 core裡面有寫詳細。</p><h2 id=kubernetes-元件處理-service-流程>Kubernetes 元件處理 Service 流程</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl run alpaca-prod <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>--image<span class=o>=</span>gcr.io/kuar-demo/kuard-amd64:blue <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>--port<span class=o>=</span><span class=m>8000</span> <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>--labels<span class=o>=</span><span class=s2>&#34;ver=1,app=alpaca,env=prod&#34;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 用 expose 創建一個 service</span>
-</span></span><span class=line><span class=cl>kubectl expose pod alpaca-prod
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 這邊很有趣，看 kubectl describe svc alpaca-prod</span>
-</span></span><span class=line><span class=cl><span class=c1># 裡面</span>
-</span></span><span class=line><span class=cl><span class=c1># spec:</span>
-</span></span><span class=line><span class=cl><span class=c1>#   clusterIP: 10.96.29.232</span>
-</span></span><span class=line><span class=cl><span class=c1>#   ports:</span>
-</span></span><span class=line><span class=cl><span class=c1>#   - port: 8000</span>
-</span></span><span class=line><span class=cl><span class=c1>#     protocol: TCP</span>
-</span></span><span class=line><span class=cl><span class=c1>#     targetPort: 8000</span>
-</span></span><span class=line><span class=cl><span class=c1>#   selector:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     app: alpaca</span>
-</span></span><span class=line><span class=cl><span class=c1>#     env: prod</span>
-</span></span><span class=line><span class=cl><span class=c1>#     ver: &#34;1&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1>#是用 selector 對應</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>kubectl get services -o wide
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span><span class=lnt>9
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 現在 kubectl run 產生 pod ，所以應該可以不用這段</span>
-</span></span><span class=line><span class=cl><span class=c1># 這段是書寫的，之後改成 deployment 再嘗試</span>
-</span></span><span class=line><span class=cl><span class=nv>ALPACA_POD</span><span class=o>=</span><span class=k>$(</span>kubectl get pods -l <span class=nv>app</span><span class=o>=</span>alpaca <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>-o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{.items[0].metadata.name}&#39;</span><span class=k>)</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># $ALPACA_POD =&gt; alapaca-pod</span>
-</span></span><span class=line><span class=cl>kubectl port-forward <span class=nv>$ALPACA_POD</span> 48858:8080
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 執行完成可以用 localhost:48858 看到頁面</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=cluster-ip>Cluster IP</h2><p>Cluster IP 是虛擬 IP，通常會指定一個 DNS，通常 IP 不會更動，這樣就不會有 DNS 快取問題。<br>在 namespace ，我們只需要用 service 名稱連結 pod</p><h3 id=service-dns>Service DNS</h3><p>用剛剛<code>kubectl port-forward $ALPACA_POD 48858:8080</code><br>進去<code>http://localhost:48858/</code>裡面的<code>DNS QUERY</code><br>name 輸入 <code>alpaca-prod</code>就可以找到</p><p><a href=https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/ target=_blank rel="noopener noreffer">Debugging DNS Resolution | Kubernetes</a></p><p>alpaca-prod.default.svc.cluster.local</p><p>這邊可以看到 <code>alpaca-prod</code>後面 <code>default</code> 是 namespace<br>可以在 dns 搜尋 alpaca-prod.default 查詢到東西<br>完整的<code>alpaca-prod.default.svc.cluster.local</code><br>也可以查詢到</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>;; opcode: QUERY, status: NOERROR, id: 22467
-</span></span><span class=line><span class=cl>;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>;; QUESTION SECTION:
-</span></span><span class=line><span class=cl>;alpaca-prod.default.svc.cluster.local.	IN	 A
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>;; ANSWER SECTION:
-</span></span><span class=line><span class=cl>alpaca-prod.default.svc.cluster.local.	30	IN	A	10.99.141.81
-</span></span></code></pre></td></tr></table></div></div><h3 id=readiness-prob>Readiness Prob</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl  edit deployment/alpaca-prod
-</span></span></code></pre></td></tr></table></div></div><p>由於這邊使用 pod 會有<code>Forbidden: pod updates may not change fields other than</code></p><blockquote><p>Kubernetes 對 Pod 的更新做了限制，除了更改 Pod 中容器（包括工作容器與初始化容器）的鏡像，以及 activeDeadlineSeconds （對 Job 類型的 Pod 定義失敗重試的最大時間）， tolerations （Pod 對污點的容忍），修改其它部分將不會產生作用，如我們可以嘗試在前面 Pod 定義文檔 pod-test.yaml 中將宿主機端口 8081 改為 8082，重新執行 kubectl apply， 將提示如下錯誤，</p></blockquote><p>參考:<a href=https://zhuanlan.zhihu.com/p/234793180 target=_blank rel="noopener noreffer">Kubernetes筆記（五）：瞭解Pod（容器組） - 知乎</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nn>...</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>livenessProbe</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>httpGet</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>httpHeaders</span><span class=p>:</span><span class=w> </span><span class=c># 此處header無意義，僅作示例</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>purpose</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>for-test</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>initialDelaySeconds</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>periodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>這邊就先不仔細研究</p><h3 id=用-endpoints-觀察>用 endpoints 觀察</h3><p>使用 endpint 是尋找 service 將流量發送到何處地方，這邊會抓所有pod IP收集。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl get endpoints alpaca-prod --watch
-</span></span></code></pre></td></tr></table></div></div><h2 id=nodeport>NodePort</h2><p>ClusterIP功能都有，除了內部訪問，主機外面的<br>對每個節點(node)IP都可以被訪問Pod。</p><p>port: port Mapping(VIP使用)<br>targetPort: Service 8080 to Pod :80<br>nodePort: Node Port 30123 to Pod :80</p><p>nodePort 範圍 default(30000~32767)，可以用 <code>--service-node-port-range</code>調整。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl edit service alpaca-prod
-</span></span></code></pre></td></tr></table></div></div><p>TYPE 改成 NodeType<br>這個就跟 docker 設定 port 對外很像</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Name:                     alpaca-prod
-</span></span><span class=line><span class=cl>Namespace:                default
-</span></span><span class=line><span class=cl>Labels:                   app=alpaca
-</span></span><span class=line><span class=cl>                          env=prod
-</span></span><span class=line><span class=cl>                          ver=1
-</span></span><span class=line><span class=cl>Annotations:              &lt;none&gt;
-</span></span><span class=line><span class=cl>Selector:                 app=alpaca,env=prod,ver=1
-</span></span><span class=line><span class=cl>Type:                     NodePort
-</span></span><span class=line><span class=cl>IP Families:              &lt;none&gt;
-</span></span><span class=line><span class=cl>IP:                       10.99.141.81
-</span></span><span class=line><span class=cl>IPs:                      &lt;none&gt;
-</span></span><span class=line><span class=cl>Port:                     &lt;unset&gt;  8000/TCP
-</span></span><span class=line><span class=cl>TargetPort:               8000/TCP
-</span></span><span class=line><span class=cl>NodePort:                 &lt;unset&gt;  30306/TCP
-</span></span><span class=line><span class=cl>Endpoints:                10.244.0.6:8000
-</span></span><span class=line><span class=cl>Session Affinity:         None
-</span></span><span class=line><span class=cl>External Traffic Policy:  Cluster
-</span></span><span class=line><span class=cl>Events:                   &lt;none&gt;
-</span></span></code></pre></td></tr></table></div></div><p>這邊注意，由於我們使用 Kind 做測試<br>使用 nodePort 發現怎麼連不到<br>後來我注意到 node ，不應該是指操作 kubectl 主機上 面</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl get node -o wide
-</span></span></code></pre></td></tr></table></div></div><p>但是對 node 主機上 port 還是連不到</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>ssh &lt;ndoe_ip&gt; -L 8080:localhost:30306
-</span></span></code></pre></td></tr></table></div></div><p>不過看來 kind 不支源使用 nodeport</p><ul><li><a href=https://stackoverflow.com/questions/62432961/how-to-use-nodeport-with-kind target=_blank rel="noopener noreffer">docker - How to use NodePort with kind? - Stack Overflow</a></li><li><a href=https://stackoverflow.com/questions/63124127/kubernetes-nodeport-not-listening target=_blank rel="noopener noreffer">nginx - Kubernetes NodePort not listening - Stack Overflow</a></li></ul><p>在考慮之後用 vagrant 環境跑跑看</p><h2 id=loadbalancer>LoadBalancer</h2><p>一般雲端內件有提供這個功能<br>但好像也能自己架<br>這邊就不嘗試<br><a href=https://brobridge.com/bdsres/2019/10/31/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%BB%BA%E6%A7%8B-k8s-loadbalancer/ target=_blank rel="noopener noreffer">如何建構 Kubernetes loadbalancer – BROBRIDGE</a><br><a href=https://ithelp.ithome.com.tw/articles/10221722 target=_blank rel="noopener noreffer">[Day12] 實作 Kubernetes 裸機 Load Balancer Part2 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p><h2 id=endpoint>Endpoint</h2><p>創建 Service 會一同建立 Endpoint</p><p>詳細:<a href=https://godleon.github.io/blog/Kubernetes/k8s-Service-Overview/ target=_blank rel="noopener noreffer">[Kubernetes] Service Overview | 小信豬的原始部落</a><br>感覺是 Service 底層操作元件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl describle endpints alpaca-prod
-</span></span><span class=line><span class=cl><span class=c1># Name:         alpaca-prod</span>
-</span></span><span class=line><span class=cl><span class=c1># Namespace:    default</span>
-</span></span><span class=line><span class=cl><span class=c1># Labels:       app=alpaca</span>
-</span></span><span class=line><span class=cl><span class=c1>#               env=prod</span>
-</span></span><span class=line><span class=cl><span class=c1>#               ver=1</span>
-</span></span><span class=line><span class=cl><span class=c1># Annotations:  &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># Subsets:</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Addresses:          10.244.0.6</span>
-</span></span><span class=line><span class=cl><span class=c1>#   NotReadyAddresses:  &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Ports:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Name     Port  Protocol</span>
-</span></span><span class=line><span class=cl><span class=c1>#     ----     ----  --------</span>
-</span></span><span class=line><span class=cl><span class=c1>#     &lt;unset&gt;  8000  TCP</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># Events:  &lt;none&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get endpints alpaca-prod --watch
-</span></span><span class=line><span class=cl><span class=c1># NAME          ENDPOINTS         AGE</span>
-</span></span><span class=line><span class=cl><span class=c1># alpaca-prod   10.244.0.6:8000   6d2h</span>
-</span></span><span class=line><span class=cl><span class=c1># alpaca-prod   &lt;none&gt;            6d2h  &lt;--  kubectl delete pods alpaca-prod  </span>
-</span></span><span class=line><span class=cl><span class=c1># alpaca-prod   10.244.0.7:8000   6d2h  &lt;--  kubectl run alpaca-prod --image=gcr.io/kuar-demo/kuard-amd64:blue --port=8080 --labels=&#34;ver=1,app=alpaca,env=prod&#34;  </span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=建立-service-yaml>建立 Service yaml</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-service</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>MyApp</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>9376</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>簡單來說 Service 對印 selector 去抓含有 Label 的 <code>Pod</code></p><h2 id=kube-proxy>kube-proxy</h2><p>kube-proxy 每一台 node 主機上面都會有這個東西。<br>kube-proxy 會監測 service 和 endpoint 是否發生變化，會重寫該模組 iptables 規則。</p><p>詳細:</p><ul><li><a href=https://feisky.gitbooks.io/kubernetes/content/components/kube-proxy.html target=_blank rel="noopener noreffer">kube-proxy · Kubernetes指南</a></li><li><a href=https://www.cnblogs.com/kevingrace/p/6655153.html target=_blank rel="noopener noreffer">kubernetes核心组件kube-proxy - 运维笔记 - 散尽浮华 - 博客园</a><a href=web1.png rel>備份圖</a></li></ul><h2 id=cluster-ip-環境變數>Cluster IP 環境變數</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> alpaca-prod -- env
-</span></span><span class=line><span class=cl><span class=c1># PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</span>
-</span></span><span class=line><span class=cl><span class=c1># HOSTNAME=alpaca-prod</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_PORT_443_TCP_PROTO=tcp</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_PORT_8000_TCP_PROTO=tcp</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_SERVICE_HOST=10.96.0.1</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_PORT=tcp://10.96.0.1:443</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_PORT=tcp://10.99.141.81:8000</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_PORT_8000_TCP_PORT=8000</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_SERVICE_PORT_HTTPS=443</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_PORT_443_TCP_PORT=443</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_PORT_8000_TCP=tcp://10.99.141.81:8000</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_PORT_8000_TCP_ADDR=10.99.141.81</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_SERVICE_PORT=443</span>
-</span></span><span class=line><span class=cl><span class=c1># KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_SERVICE_HOST=10.99.141.81</span>
-</span></span><span class=line><span class=cl><span class=c1># ALPACA_PROD_SERVICE_PORT=8000</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=清除所有建立物件>清除所有建立物件</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 查看之前建立有app label 的 pods , services 狀態</span>
-</span></span><span class=line><span class=cl>kubectl get pods,services  -l app
-</span></span><span class=line><span class=cl><span class=c1># 刪除 app label 物件</span>
-</span></span><span class=line><span class=cl>kubectl delete services,deployments,pods -l app
-</span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-02-04</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/ data-title="Kubernetes 服務探索(Service Discovery)" data-hashtags=Kubernetes,Service><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/ data-hashtag=Kubernetes><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/ data-title="Kubernetes 服務探索(Service Discovery)"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/ data-title="Kubernetes 服務探索(Service Discovery)"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/ data-title="Kubernetes 服務探索(Service Discovery)"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/Kubernetes/>Kubernetes</a>,&nbsp;<a href=/blog/tags/Service/>Service</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Kubernetes-%E7%9A%84-Label-%E5%92%8C-Annotation-%E5%B0%8F%E8%A8%98/ class=prev rel=prev title="Kubernetes 的 Label 和 Annotation 小記"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Kubernetes 的 Label 和 Annotation 小記</a>
-<a href=/blog/posts/Kubernetes-%E4%BD%BF%E7%94%A8-Ingress-%E5%81%9A%E8%B2%A0%E8%BC%89%E5%B9%B3%E8%A1%A1/ class=next rel=next title="Kubernetes 使用 Ingress 做負載平衡">Kubernetes 使用 Ingress 做負載平衡<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Kubernetes 服務探索(Service Discovery) - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 服務探索(Service Discovery)" />
+<meta property="og:description" content="Kubernetes  Service 筆記" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-02-04T21:48:46+00:00" />
+<meta property="article:modified_time" content="2021-02-04T21:48:46+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubernetes 服務探索(Service Discovery)"/>
+<meta name="twitter:description" content="Kubernetes  Service 筆記"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Kubernetes-%E7%9A%84-Label-%E5%92%8C-Annotation-%E5%B0%8F%E8%A8%98/" /><link rel="next" href="https://malagege.github.io/blog/posts/Kubernetes-%E4%BD%BF%E7%94%A8-Ingress-%E5%81%9A%E8%B2%A0%E8%BC%89%E5%B9%B3%E8%A1%A1/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Kubernetes 服務探索(Service Discovery)",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery\/"
+        },"genre": "posts","keywords": "Kubernetes, Service","wordcount":  876 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery\/","datePublished": "2021-02-04T21:48:46+00:00","dateModified": "2021-02-04T21:48:46+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 服務探索(Service Discovery)</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Kubernetes/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Kubernetes</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-02-04">2021-02-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;876 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#抽象圖小記">抽象圖小記</a>
+      <ul>
+        <li><a href="#clusterip">ClusterIP</a></li>
+      </ul>
+    </li>
+    <li><a href="#kubernetes-元件處理-service-流程">Kubernetes 元件處理 Service 流程</a></li>
+    <li><a href="#cluster-ip">Cluster IP</a>
+      <ul>
+        <li><a href="#service-dns">Service DNS</a></li>
+        <li><a href="#readiness-prob">Readiness Prob</a></li>
+        <li><a href="#用-endpoints-觀察">用 endpoints 觀察</a></li>
+      </ul>
+    </li>
+    <li><a href="#nodeport">NodePort</a></li>
+    <li><a href="#loadbalancer">LoadBalancer</a></li>
+    <li><a href="#endpoint">Endpoint</a></li>
+    <li><a href="#建立-service-yaml">建立 Service yaml</a></li>
+    <li><a href="#kube-proxy">kube-proxy</a></li>
+    <li><a href="#cluster-ip-環境變數">Cluster IP 環境變數</a></li>
+    <li><a href="#清除所有建立物件">清除所有建立物件</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>Kubernetes  Service 筆記</p>
+<h2 id="抽象圖小記">抽象圖小記</h2>
+<div class="mermaid">graph TD
+    subgraph Kubernetes Cluster
+    A[Service] --> N1[Nginx]
+    A --> |Endpoints|N2[Nginx]
+    A --> N3[Nginx]
+    A --> N4[Nginx]
+    APP -->|Access Service 訪問Virutal Server| A
+    
+    subgraph Node1
+    N1
+    N2
+    end
+
+    subgraph Node2
+    N3
+    end
+
+    subgraph Node3 
+
+    N4
+    APP
+    end
+    end
+</div><p>簡單記錄一下，在沒有 Service，有很多服務，要怎麼分享出去使用是一個重要的課題。<br>
+不可能在程式設定多個IP，Service 透過 Virtual IP做分享內部服務。</p>
+<p>Virtual IP 主要是做備援(HA)機制。不是在做LB。但是K8S是會做SLB。可以看相關 keepalived，<a href="https://www.796t.com/article.php?id=122795" target="_blank" rel="noopener noreffer ">利用LVS+keepalived的主從模式實現http的高可用性_實用技巧_程式人生</a>，不過我沒有實做過。</p>
+<p>使用上會使用DNS，<code>${service}.${namespade}.cluster.local</code>。</p>
+<p>實現 VIP和 Endpoint 轉化，有:</p>
+<ol>
+<li>Iptable(預設)</li>
+<li>Userspace</li>
+<li>IPVS</li>
+</ol>
+<p>切換方法，是透過 <code>kube-proxy --proxy-mode</code>做切換。</p>
+<p>Kubernates Service Type</p>
+<ul>
+<li>ClusterIP</li>
+<li>NodePort</li>
+<li>Loadbalancer</li>
+<li>ExternalName</li>
+<li>Headless</li>
+</ul>
+<p><a href="https://medium.com/devops-mojo/kubernetes-service-types-overview-introduction-to-k8s-service-types-what-are-types-of-kubernetes-services-ea6db72c3f8c#:~:text=There%20are%20four%20types%20of%20Kubernetes%20services%20%E2%80%94,network.%20Read%20about%20Kubernetes%20Services%20and%20Ingress%201." target="_blank" rel="noopener noreffer ">Kubernetes — Service Types Overview | by Ashish Patel | DevOps Mojo | Medium</a></p>
+<h3 id="clusterip">ClusterIP</h3>
+<p>來源端必須屬於 Cluster 內部，內部是指「各節點與運行中的Pod」。</p>
+<p>沒有指定type，預設是 clusterIP</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Service</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">my-service</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l">MyApp</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l">TCP</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="m">80</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="m">9376</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>範例參考: <a href="https://kubernetes.io/docs/concepts/services-networking/service/" target="_blank" rel="noopener noreffer ">Service | Kubernetes</a></p>
+<ol>
+<li>Port  對外存取的port。</li>
+<li>targetPort pod上面的對外的 port<br>
+詳細可看:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#serviceport-v1-core</li>
+</ol>
+<p>ServicePort v1 core裡面有寫詳細。</p>
+<h2 id="kubernetes-元件處理-service-流程">Kubernetes 元件處理 Service 流程</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl run alpaca-prod <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--image<span class="o">=</span>gcr.io/kuar-demo/kuard-amd64:blue <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--port<span class="o">=</span><span class="m">8000</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--labels<span class="o">=</span><span class="s2">&#34;ver=1,app=alpaca,env=prod&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 用 expose 創建一個 service</span>
+</span></span><span class="line"><span class="cl">kubectl expose pod alpaca-prod
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 這邊很有趣，看 kubectl describe svc alpaca-prod</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 裡面</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># spec:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   clusterIP: 10.96.29.232</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   ports:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   - port: 8000</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     protocol: TCP</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     targetPort: 8000</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   selector:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     app: alpaca</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     env: prod</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     ver: &#34;1&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#是用 selector 對應</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">kubectl get services -o wide
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 現在 kubectl run 產生 pod ，所以應該可以不用這段</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 這段是書寫的，之後改成 deployment 再嘗試</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ALPACA_POD</span><span class="o">=</span><span class="k">$(</span>kubectl get pods -l <span class="nv">app</span><span class="o">=</span>alpaca <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># $ALPACA_POD =&gt; alapaca-pod</span>
+</span></span><span class="line"><span class="cl">kubectl port-forward <span class="nv">$ALPACA_POD</span> 48858:8080
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 執行完成可以用 localhost:48858 看到頁面</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="cluster-ip">Cluster IP</h2>
+<p>Cluster IP 是虛擬 IP，通常會指定一個 DNS，通常 IP 不會更動，這樣就不會有 DNS 快取問題。<br>
+在 namespace ，我們只需要用 service 名稱連結 pod</p>
+<h3 id="service-dns">Service DNS</h3>
+<p>用剛剛<code>kubectl port-forward $ALPACA_POD 48858:8080</code><br>
+進去<code>http://localhost:48858/</code>裡面的<code>DNS QUERY</code><br>
+name 輸入 <code>alpaca-prod</code>就可以找到</p>
+<p><a href="https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/" target="_blank" rel="noopener noreffer ">Debugging DNS Resolution | Kubernetes</a></p>
+<p>alpaca-prod.default.svc.cluster.local</p>
+<p>這邊可以看到 <code>alpaca-prod</code>後面 <code>default</code> 是 namespace<br>
+可以在 dns 搜尋 alpaca-prod.default 查詢到東西<br>
+完整的<code>alpaca-prod.default.svc.cluster.local</code><br>
+也可以查詢到</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">;; opcode: QUERY, status: NOERROR, id: 22467
+</span></span><span class="line"><span class="cl">;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">;; QUESTION SECTION:
+</span></span><span class="line"><span class="cl">;alpaca-prod.default.svc.cluster.local.	IN	 A
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">;; ANSWER SECTION:
+</span></span><span class="line"><span class="cl">alpaca-prod.default.svc.cluster.local.	30	IN	A	10.99.141.81
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="readiness-prob">Readiness Prob</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl  edit deployment/alpaca-prod
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由於這邊使用 pod 會有<code>Forbidden: pod updates may not change fields other than</code></p>
+<blockquote>
+<p>Kubernetes 對 Pod 的更新做了限制，除了更改 Pod 中容器（包括工作容器與初始化容器）的鏡像，以及 activeDeadlineSeconds （對 Job 類型的 Pod 定義失敗重試的最大時間）， tolerations （Pod 對污點的容忍），修改其它部分將不會產生作用，如我們可以嘗試在前面 Pod 定義文檔 pod-test.yaml 中將宿主機端口 8081 改為 8082，重新執行 kubectl apply， 將提示如下錯誤，</p>
+</blockquote>
+<p>參考:<a href="https://zhuanlan.zhihu.com/p/234793180" target="_blank" rel="noopener noreffer ">Kubernetes筆記（五）：瞭解Pod（容器組） - 知乎</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nn">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">livenessProbe</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">httpGet</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">/</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="m">80</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">httpHeaders</span><span class="p">:</span><span class="w"> </span><span class="c"># 此處header無意義，僅作示例</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">purpose</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l">for-test</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">initialDelaySeconds</span><span class="p">:</span><span class="w"> </span><span class="m">2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="m">5</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊就先不仔細研究</p>
+<h3 id="用-endpoints-觀察">用 endpoints 觀察</h3>
+<p>使用 endpint 是尋找 service 將流量發送到何處地方，這邊會抓所有pod IP收集。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl get endpoints alpaca-prod --watch
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="nodeport">NodePort</h2>
+<p>ClusterIP功能都有，除了內部訪問，主機外面的<br>
+對每個節點(node)IP都可以被訪問Pod。</p>
+<p>port: port Mapping(VIP使用)<br>
+targetPort: Service 8080 to Pod :80<br>
+nodePort: Node Port  30123 to Pod :80</p>
+<p>nodePort 範圍 default(30000~32767)，可以用 <code>--service-node-port-range</code>調整。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl edit service alpaca-prod
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>TYPE 改成 NodeType<br>
+這個就跟 docker 設定 port 對外很像</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Name:                     alpaca-prod
+</span></span><span class="line"><span class="cl">Namespace:                default
+</span></span><span class="line"><span class="cl">Labels:                   app=alpaca
+</span></span><span class="line"><span class="cl">                          env=prod
+</span></span><span class="line"><span class="cl">                          ver=1
+</span></span><span class="line"><span class="cl">Annotations:              &lt;none&gt;
+</span></span><span class="line"><span class="cl">Selector:                 app=alpaca,env=prod,ver=1
+</span></span><span class="line"><span class="cl">Type:                     NodePort
+</span></span><span class="line"><span class="cl">IP Families:              &lt;none&gt;
+</span></span><span class="line"><span class="cl">IP:                       10.99.141.81
+</span></span><span class="line"><span class="cl">IPs:                      &lt;none&gt;
+</span></span><span class="line"><span class="cl">Port:                     &lt;unset&gt;  8000/TCP
+</span></span><span class="line"><span class="cl">TargetPort:               8000/TCP
+</span></span><span class="line"><span class="cl">NodePort:                 &lt;unset&gt;  30306/TCP
+</span></span><span class="line"><span class="cl">Endpoints:                10.244.0.6:8000
+</span></span><span class="line"><span class="cl">Session Affinity:         None
+</span></span><span class="line"><span class="cl">External Traffic Policy:  Cluster
+</span></span><span class="line"><span class="cl">Events:                   &lt;none&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊注意，由於我們使用 Kind 做測試<br>
+使用 nodePort 發現怎麼連不到<br>
+後來我注意到 node ，不應該是指操作 kubectl 主機上 面</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl get node -o wide
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>但是對 node 主機上 port 還是連不到</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">ssh &lt;ndoe_ip&gt; -L 8080:localhost:30306
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>不過看來 kind 不支源使用 nodeport</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/62432961/how-to-use-nodeport-with-kind" target="_blank" rel="noopener noreffer ">docker - How to use NodePort with kind? - Stack Overflow</a></li>
+<li><a href="https://stackoverflow.com/questions/63124127/kubernetes-nodeport-not-listening" target="_blank" rel="noopener noreffer ">nginx - Kubernetes NodePort not listening - Stack Overflow</a></li>
+</ul>
+<p>在考慮之後用 vagrant 環境跑跑看</p>
+<h2 id="loadbalancer">LoadBalancer</h2>
+<p>一般雲端內件有提供這個功能<br>
+但好像也能自己架<br>
+這邊就不嘗試<br>
+<a href="https://brobridge.com/bdsres/2019/10/31/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%BB%BA%E6%A7%8B-k8s-loadbalancer/" target="_blank" rel="noopener noreffer ">如何建構 Kubernetes loadbalancer – BROBRIDGE</a><br>
+<a href="https://ithelp.ithome.com.tw/articles/10221722" target="_blank" rel="noopener noreffer ">[Day12] 實作 Kubernetes 裸機 Load Balancer Part2 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p>
+<h2 id="endpoint">Endpoint</h2>
+<p>創建 Service 會一同建立 Endpoint</p>
+<p>詳細:<a href="https://godleon.github.io/blog/Kubernetes/k8s-Service-Overview/" target="_blank" rel="noopener noreffer ">[Kubernetes] Service Overview | 小信豬的原始部落</a><br>
+感覺是 Service 底層操作元件</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl describle endpints alpaca-prod
+</span></span><span class="line"><span class="cl"><span class="c1"># Name:         alpaca-prod</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Namespace:    default</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Labels:       app=alpaca</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#               env=prod</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#               ver=1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Annotations:  &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Subsets:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Addresses:          10.244.0.6</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   NotReadyAddresses:  &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Ports:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Name     Port  Protocol</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     ----     ----  --------</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     &lt;unset&gt;  8000  TCP</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Events:  &lt;none&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl get endpints alpaca-prod --watch
+</span></span><span class="line"><span class="cl"><span class="c1"># NAME          ENDPOINTS         AGE</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># alpaca-prod   10.244.0.6:8000   6d2h</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># alpaca-prod   &lt;none&gt;            6d2h  &lt;--  kubectl delete pods alpaca-prod  </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># alpaca-prod   10.244.0.7:8000   6d2h  &lt;--  kubectl run alpaca-prod --image=gcr.io/kuar-demo/kuard-amd64:blue --port=8080 --labels=&#34;ver=1,app=alpaca,env=prod&#34;  </span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="建立-service-yaml">建立 Service yaml</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Service</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">my-service</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l">MyApp</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l">TCP</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="m">80</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="m">9376</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>簡單來說 Service 對印 selector 去抓含有 Label 的 <code>Pod</code></p>
+<h2 id="kube-proxy">kube-proxy</h2>
+<p>kube-proxy 每一台 node 主機上面都會有這個東西。<br>
+kube-proxy 會監測 service 和 endpoint 是否發生變化，會重寫該模組 iptables 規則。</p>
+<p>詳細:</p>
+<ul>
+<li><a href="https://feisky.gitbooks.io/kubernetes/content/components/kube-proxy.html" target="_blank" rel="noopener noreffer ">kube-proxy · Kubernetes指南</a></li>
+<li><a href="https://www.cnblogs.com/kevingrace/p/6655153.html" target="_blank" rel="noopener noreffer ">kubernetes核心组件kube-proxy - 运维笔记 - 散尽浮华 - 博客园</a><a href="web1.png" rel="">備份圖</a></li>
+</ul>
+<h2 id="cluster-ip-環境變數">Cluster IP 環境變數</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl <span class="nb">exec</span> alpaca-prod -- env
+</span></span><span class="line"><span class="cl"><span class="c1"># PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># HOSTNAME=alpaca-prod</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_PORT_443_TCP_PROTO=tcp</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_PORT_8000_TCP_PROTO=tcp</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_SERVICE_HOST=10.96.0.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_PORT=tcp://10.96.0.1:443</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_PORT=tcp://10.99.141.81:8000</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_PORT_8000_TCP_PORT=8000</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_SERVICE_PORT_HTTPS=443</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_PORT_443_TCP_PORT=443</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_PORT_8000_TCP=tcp://10.99.141.81:8000</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_PORT_8000_TCP_ADDR=10.99.141.81</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_SERVICE_PORT=443</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_SERVICE_HOST=10.99.141.81</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ALPACA_PROD_SERVICE_PORT=8000</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="清除所有建立物件">清除所有建立物件</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看之前建立有app label 的 pods , services 狀態</span>
+</span></span><span class="line"><span class="cl">kubectl get pods,services  -l app
+</span></span><span class="line"><span class="cl"><span class="c1"># 刪除 app label 物件</span>
+</span></span><span class="line"><span class="cl">kubectl delete services,deployments,pods -l app
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2021-02-04</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" data-title="Kubernetes 服務探索(Service Discovery)" data-hashtags="Kubernetes,Service"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" data-hashtag="Kubernetes"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" data-title="Kubernetes 服務探索(Service Discovery)"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" data-title="Kubernetes 服務探索(Service Discovery)"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%9C%8D%E5%8B%99%E6%8E%A2%E7%B4%A2-Service-Discovery/" data-title="Kubernetes 服務探索(Service Discovery)"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/Kubernetes/">Kubernetes</a>,&nbsp;<a href="/blog/tags/Service/">Service</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Kubernetes-%E7%9A%84-Label-%E5%92%8C-Annotation-%E5%B0%8F%E8%A8%98/" class="prev" rel="prev" title="Kubernetes 的 Label 和 Annotation 小記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Kubernetes 的 Label 和 Annotation 小記</a>
+            <a href="/blog/posts/Kubernetes-%E4%BD%BF%E7%94%A8-Ingress-%E5%81%9A%E8%B2%A0%E8%BC%89%E5%B9%B3%E8%A1%A1/" class="next" rel="next" title="Kubernetes 使用 Ingress 做負載平衡">Kubernetes 使用 Ingress 做負載平衡<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

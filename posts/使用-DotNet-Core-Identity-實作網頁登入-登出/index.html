@@ -1,160 +1,515 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>使用 .Net Core Identity 實作網頁登入登出 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="使用 .Net Core Identity 實作網頁登入登出"><meta property="og:description" content="這邊重零開始建置 Net Core Identity。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-01-16T19:46:50+08:00"><meta property="article:modified_time" content="2023-01-16T19:46:50+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="使用 .Net Core Identity 實作網頁登入登出"><meta name=twitter:description content="這邊重零開始建置 Net Core Identity。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/><link rel=prev href=https://malagege.github.io/blog/posts/Traefik-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86-Reverse-Proxy-IP-Host-%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/%E7%94%A2%E7%94%9F-JWT-Token-%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"使用 .Net Core Identity 實作網頁登入登出","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA\/"},"genre":"posts","keywords":".netcore, identity","wordcount":680,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA\/","datePublished":"2023-01-16T19:46:50+08:00","dateModified":"2023-01-16T19:46:50+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 .Net Core Identity 實作網頁登入登出</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/.Net-Core/><i class="far fa-folder fa-fw" aria-hidden=true></i>.Net Core</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-01-16>2023-01-16</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;680 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;4 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png data-srcset="https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png, https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png 1.5x, https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png title=https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#步驟>步驟</a><ul><li><a href=#1-net-core-identity-設定>1. Net Core Identity 設定</a></li><li><a href=#2-migration-db>2. Migration DB</a></li><li><a href=#3-註冊帳號頁面處理>3. 註冊帳號頁面處理</a></li><li><a href=#4-註冊密碼檢核設定>4. 註冊密碼檢核設定</a></li><li><a href=#5-自訂錯誤訊息>5. 自訂錯誤訊息</a></li><li><a href=#6-view-判斷是否登入>6. View 判斷是否登入</a></li><li><a href=#7-帳號登入與登出功能>7. 帳號登入與登出功能</a></li></ul></li><li><a href=#重點知識>重點知識</a></li><li><a href=#usermanagersigninmanager>UserManager,SignInManager</a><ul><li><a href=#usermanager>UserManager</a></li><li><a href=#signinmanager>SignInManager</a></li></ul></li><li><a href=#記住密碼-cookies>記住密碼 Cookies</a></li><li><a href=#感想>感想</a></li><li><a href=#相關文章>相關文章</a></li></ul></nav></div></div><div class=content id=content><p>這邊重零開始建置 Net Core Identity。</p><h2 id=步驟>步驟</h2><h3 id=1-net-core-identity-設定>1. Net Core Identity 設定</h3><p>GIT可參考下面</p><ol><li><a href=https://github.com/malagege/NetCoreAuthSample/commit/bcce6fc99c22dcb1c31ed9815e6fd7d986c83ea7 target=_blank rel="noopener noreffer">資料庫設定 · malagege/NetCoreAuthSample@bcce6fc</a></li><li><a href=https://github.com/malagege/NetCoreAuthSample/commit/211ca2598ee46c4247b3c4fa0de5dc349846747f target=_blank rel="noopener noreffer">Identity.EFCore 設定 · malagege/NetCoreAuthSample@211ca25</a></li></ol><p>安裝基本元件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl>    <span class=nt>&lt;PackageReference</span> <span class=na>Include=</span><span class=s>&#34;Microsoft.AspNetCore.Identity.EntityFrameworkCore&#34;</span> <span class=na>Version=</span><span class=s>&#34;5.0.17&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;PackageReference</span> <span class=na>Include=</span><span class=s>&#34;Microsoft.EntityFrameworkCore&#34;</span> <span class=na>Version=</span><span class=s>&#34;5.0.17&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;PackageReference</span> <span class=na>Include=</span><span class=s>&#34;Microsoft.EntityFrameworkCore.Relational&#34;</span> <span class=na>Version=</span><span class=s>&#34;5.0.17&#34;</span> <span class=nt>/&gt;</span>
-</span></span><span class=line><span class=cl>    <span class=nt>&lt;PackageReference</span> <span class=na>Include=</span><span class=s>&#34;Microsoft.EntityFrameworkCore.SqlServer&#34;</span> <span class=na>Version=</span><span class=s>&#34;5.0.17&#34;</span> <span class=nt>/&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><p>注意<code>DbContext</code>繼承要調整 <code>IdentityDbContext</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>    <span class=k>public</span> <span class=k>class</span> <span class=nc>AppDbContext</span> <span class=p>:</span> <span class=n>IdentityDbContext</span>
-</span></span><span class=line><span class=cl>    <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=n>AppDbContext</span><span class=p>(</span><span class=n>DbContextOptions</span><span class=p>&lt;</span><span class=n>AppDbContext</span><span class=p>&gt;</span> <span class=n>options</span><span class=p>)</span> <span class=p>:</span> <span class=k>base</span><span class=p>(</span><span class=n>options</span><span class=p>)</span>
-</span></span><span class=line><span class=cl>        <span class=p>{</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>        <span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p>Startup.cs</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>           <span class=n>services</span><span class=p>.</span><span class=n>AddIdentity</span><span class=p>&lt;</span><span class=n>IdentityUser</span><span class=p>,</span> <span class=n>IdentityRole</span><span class=p>&gt;()</span>
-</span></span><span class=line><span class=cl>                    <span class=p>.</span><span class=n>AddEntityFrameworkStores</span><span class=p>&lt;</span><span class=n>AppDbContext</span><span class=p>&gt;();</span>
-</span></span></code></pre></td></tr></table></div></div><p>剩下看GIT。</p><h3 id=2-migration-db>2. Migration DB</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-powershell data-lang=powershell><span class=line><span class=cl><span class=nb>Add-Migration</span> <span class=n>AddingIdentity</span>
-</span></span></code></pre></td></tr></table></div></div><p>會自動產生<br>參考: <a href=https://github.com/malagege/NetCoreAuthSample/blob/0fad9d029b4097257e365ded0c7727058a3e81ad/AuthSample/Migrations/20220811093637_AddingIdentity.Designer.cs target=_blank rel="noopener noreffer">NetCoreAuthSample/20220811093637_AddingIdentity.Designer.cs at 0fad9d029b4097257e365ded0c7727058a3e81ad · malagege/NetCoreAuthSample</a></p><h3 id=3-註冊帳號頁面處理>3. 註冊帳號頁面處理</h3><p>GIT:<a href=https://github.com/malagege/NetCoreAuthSample/commit/0fad9d029b4097257e365ded0c7727058a3e81ad target=_blank rel="noopener noreffer">註冊帳號 · malagege/NetCoreAuthSample@0fad9d0</a></p><p>新增檔案就不特別寫，都在GIT上。<br>要了解的是</p><ol><li>SignInManager 可以做登入/登出動作</li><li>UserManager 可以新增帳號動作</li></ol><h3 id=4-註冊密碼檢核設定>4. 註冊密碼檢核設定</h3><p>GIT: <a href=https://github.com/malagege/NetCoreAuthSample/commit/a70bc35fcede80f1198b5471198a06ab912832c6 target=_blank rel="noopener noreffer">註冊密碼檢核設定 · malagege/NetCoreAuthSample@a70bc35</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=n>services</span><span class=p>.</span><span class=n>Configure</span><span class=p>&lt;</span><span class=n>IdentityOptions</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=p>{</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼最小長度  (預設值:6)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequiredLength</span> <span class=p>=</span> <span class=m>6</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼中允許最大重複字符數 (ex: &#34;aaa123&#34; ,&#34;abbb123&#34;)  axabac 會過</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequiredUniqueChars</span> <span class=p>=</span> <span class=m>3</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 至少使用非字母數字字符 (預設值: true)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequireNonAlphanumeric</span> <span class=p>=</span> <span class=k>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼是否包含小寫 (預設值: true)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequireLowercase</span> <span class=p>=</span> <span class=k>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼是否包含大寫 (預設值: true)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequireUppercase</span> <span class=p>=</span> <span class=k>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>            <span class=p>});</span>
-</span></span></code></pre></td></tr></table></div></div><p>選上下方法其中一個</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=n>services</span><span class=p>.</span><span class=n>AddIdentity</span><span class=p>&lt;</span><span class=n>IdentityUser</span><span class=p>,</span> <span class=n>IdentityRole</span><span class=p>&gt;(</span><span class=n>options</span> <span class=p>=&gt;</span>
-</span></span><span class=line><span class=cl>            <span class=p>{</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼最小長度  (預設值:6)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequiredLength</span> <span class=p>=</span> <span class=m>6</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼中允許最大重複字符數 (ex: &#34;aaa123&#34; ,&#34;abbb123&#34;)  axabac 會過</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequiredUniqueChars</span> <span class=p>=</span> <span class=m>3</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 至少使用非字母數字字符 (預設值: true)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequireNonAlphanumeric</span> <span class=p>=</span> <span class=k>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼是否包含小寫 (預設值: true)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequireLowercase</span> <span class=p>=</span> <span class=k>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>                <span class=c1>// 密碼是否包含大寫 (預設值: true)</span>
-</span></span><span class=line><span class=cl>                <span class=n>options</span><span class=p>.</span><span class=n>Password</span><span class=p>.</span><span class=n>RequireUppercase</span> <span class=p>=</span> <span class=k>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>            <span class=p>});)</span>
-</span></span></code></pre></td></tr></table></div></div><p>這邊可以設定有</p><ol><li>UserOptions</li><li>SignInOptions</li><li>LockoutOptions</li><li>TokenOptions</li><li>StoreOptions</li><li>ClaimsIdentityOptions</li></ol><h3 id=5-自訂錯誤訊息>5. 自訂錯誤訊息</h3><p>GIT:<a href=https://github.com/malagege/NetCoreAuthSample/commit/b1203f6943b76c59d52aa09f95383b0412cfafdb target=_blank rel="noopener noreffer">自訂義錯誤訊息 · malagege/NetCoreAuthSample@b1203f6</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>    <span class=k>public</span> <span class=k>class</span> <span class=nc>CustomIdentityErrorDescriber</span> <span class=p>:</span> <span class=n>IdentityErrorDescriber</span>
-</span></span><span class=line><span class=cl>    <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>DefaultError</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>DefaultError</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;未知錯誤！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>ConcurrencyFailure</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>ConcurrencyFailure</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;並發錯誤，對象已被修改！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>PasswordMismatch</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Password&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;密碼錯誤！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>InvalidToken</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>InvalidToken</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;無效 token.&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>LoginAlreadyAssociated</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>LoginAlreadyAssociated</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;當前用戶已經登錄！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>InvalidUserName</span><span class=p>(</span><span class=kt>string</span> <span class=n>userName</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;UserName&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;用戶名 &#39;{userName}&#39; 錯誤，只可以包含數字和字母！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>InvalidEmail</span><span class=p>(</span><span class=kt>string</span> <span class=n>email</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Email&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;信箱 &#39;{email}&#39; 格式錯誤！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>DuplicateUserName</span><span class=p>(</span><span class=kt>string</span> <span class=n>userName</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;UserName&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;帳號 &#39;{userName}&#39; 已存在！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>DuplicateEmail</span><span class=p>(</span><span class=kt>string</span> <span class=n>email</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Email&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;信箱 &#39;{email}&#39; 已經存在！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>InvalidRoleName</span><span class=p>(</span><span class=kt>string</span> <span class=n>role</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>InvalidRoleName</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;角色 &#39;{role}&#39; 驗證錯誤！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>DuplicateRoleName</span><span class=p>(</span><span class=kt>string</span> <span class=n>role</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>DuplicateRoleName</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;角色名 &#39;{role}&#39; 已經存在！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>UserAlreadyHasPassword</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>UserAlreadyHasPassword</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;此帳號設定密碼了&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>UserLockoutNotEnabled</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>UserLockoutNotEnabled</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;此帳號未鎖定&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>UserAlreadyInRole</span><span class=p>(</span><span class=kt>string</span> <span class=n>role</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>UserAlreadyInRole</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;使用者已關聯角色 &#39;{role}&#39;.&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>UserNotInRole</span><span class=p>(</span><span class=kt>string</span> <span class=n>role</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=n>nameof</span><span class=p>(</span><span class=n>UserNotInRole</span><span class=p>),</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;使用者沒有關聯角色  &#39;{role}&#39;.&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>PasswordTooShort</span><span class=p>(</span><span class=kt>int</span> <span class=n>length</span><span class=p>)</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Password&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>$&#34;密碼至少 {length} 位！&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>PasswordRequiresNonAlphanumeric</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Password&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;密碼必須至少有一個非字母數字字符.&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>PasswordRequiresDigit</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Password&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;密碼至少有一個數字 (&#39;0&#39;-&#39;9&#39;).&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>PasswordRequiresLower</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Password&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;密碼必須包含小寫字母 (&#39;a&#39;-&#39;z&#39;).&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>        <span class=k>public</span> <span class=k>override</span> <span class=n>IdentityError</span> <span class=n>PasswordRequiresUpper</span><span class=p>()</span> <span class=p>{</span> <span class=k>return</span> <span class=k>new</span> <span class=n>IdentityError</span> <span class=p>{</span> <span class=n>Code</span> <span class=p>=</span> <span class=s>&#34;Password&#34;</span><span class=p>,</span> <span class=n>Description</span> <span class=p>=</span> <span class=s>&#34;密碼必須包含大寫字母 (&#39;A&#39;-&#39;Z&#39;).&#34;</span> <span class=p>};</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p>插入這一行<code>.AddErrorDescriber&lt;CustomIdentityErrorDescriber>()</code>，如下面。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>            services.AddIdentity&lt;IdentityUser, IdentityRole&gt;()
-</span></span><span class=line><span class=cl>                    .AddErrorDescriber&lt;CustomIdentityErrorDescriber&gt;()
-</span></span><span class=line><span class=cl>                    .AddEntityFrameworkStores&lt;AppDbContext&gt;();
-</span></span></code></pre></td></tr></table></div></div><h3 id=6-view-判斷是否登入>6. View 判斷是否登入</h3><p><a href=https://github.com/malagege/NetCoreAuthSample/commit/43c6275ea9e233b967ba5ebb0c62ffcbf7fde630 target=_blank rel="noopener noreffer">View 顯示帳號是否登入方法 · malagege/NetCoreAuthSample@43c6275</a></p><h3 id=7-帳號登入與登出功能>7. 帳號登入與登出功能</h3><p>這段沒有加入，登入功能無法正常，你會發現你登入都遇到失敗。<del>結果是少這兩行</del>，正確來說<code>app.UseAuthentication();</code>就可以解決。不過後續我要做登入權限設定，所以先加。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=c1>// 當帳號沒有檢查到登入資料，請確認這兩個是否加入 Middleware</span>
-</span></span><span class=line><span class=cl>            <span class=n>app</span><span class=p>.</span><span class=n>UseAuthentication</span><span class=p>();</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>            <span class=n>app</span><span class=p>.</span><span class=n>UseAuthorization</span><span class=p>();</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=重點知識>重點知識</h2><h2 id=usermanagersigninmanager>UserManager,SignInManager</h2><h3 id=usermanager>UserManager</h3><p>控制帳號CRUD方法</p><ol><li>CreateAsync</li><li>DeleteAsync</li><li>UpdateAsync</li></ol><h3 id=signinmanager>SignInManager</h3><p>登入/登出判斷</p><ol><li>SignInAsync</li><li>SignOutAsync</li><li>IsSignIn</li></ol><h2 id=記住密碼-cookies>記住密碼 Cookies</h2><p>http://localhost:50000/</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/VG3M7Xo.png data-srcset="https://i.imgur.com/VG3M7Xo.png, https://i.imgur.com/VG3M7Xo.png 1.5x, https://i.imgur.com/VG3M7Xo.png 2x" data-sizes=auto alt=https://i.imgur.com/VG3M7Xo.png title=https://i.imgur.com/VG3M7Xo.png></p><p>關掉瀏覽器重開需要再做登入。<br>有點選記住密碼，下次打開登入狀態會存在。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/df63lFL.png data-srcset="https://i.imgur.com/df63lFL.png, https://i.imgur.com/df63lFL.png 1.5x, https://i.imgur.com/df63lFL.png 2x" data-sizes=auto alt=https://i.imgur.com/df63lFL.png title=https://i.imgur.com/df63lFL.png></p><h2 id=感想>感想</h2><p>Net Core Identity 設定非常簡單，連帳號管理方式和驗證方式都幫你處理好了，你不必自己手寫，可以專心在別的設計上。目前我看過 Spring Boot和 Laravel 帳號管理方式，我覺得這個是最簡單的。這只是開頭，後續計入相關東西。</p><h2 id=相關文章>相關文章</h2><p><a href=https://dotblogs.com.tw/aken1215/2016/01/16/225817 target=_blank rel="noopener noreffer">[MVC] 實作客製化的identity | 朕在coding - 點部落</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-01-16</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/ data-title="使用 .Net Core Identity 實作網頁登入登出" data-hashtags=.netcore,identity><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/ data-hashtag=.netcore><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/ data-title="使用 .Net Core Identity 實作網頁登入登出"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/ data-title="使用 .Net Core Identity 實作網頁登入登出"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/ data-title="使用 .Net Core Identity 實作網頁登入登出" data-image=https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/.netcore/>.netcore</a>,&nbsp;<a href=/blog/tags/identity/>identity</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Traefik-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86-Reverse-Proxy-IP-Host-%E6%96%B9%E6%B3%95/ class=prev rel=prev title="Traefik 反向代理 (Reverse Proxy) IP Host 方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Traefik 反向代理 (Reverse Proxy) IP Host 方法</a>
-<a href=/blog/posts/%E7%94%A2%E7%94%9F-JWT-Token-%E6%96%B9%E6%B3%95/ class=next rel=next title="產生 JWT Token 方法">產生 JWT Token 方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>使用 .Net Core Identity 實作網頁登入登出 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="使用 .Net Core Identity 實作網頁登入登出" />
+<meta property="og:description" content="這邊重零開始建置 Net Core Identity。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-16T19:46:50+08:00" />
+<meta property="article:modified_time" content="2023-01-16T19:46:50+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="使用 .Net Core Identity 實作網頁登入登出"/>
+<meta name="twitter:description" content="這邊重零開始建置 Net Core Identity。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Traefik-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86-Reverse-Proxy-IP-Host-%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/%E7%94%A2%E7%94%9F-JWT-Token-%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "使用 .Net Core Identity 實作網頁登入登出",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA\/"
+        },"genre": "posts","keywords": ".netcore, identity","wordcount":  680 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA\/","datePublished": "2023-01-16T19:46:50+08:00","dateModified": "2023-01-16T19:46:50+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 .Net Core Identity 實作網頁登入登出</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-16">2023-01-16</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;680 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png, https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png 1.5x, https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png"
+        title="https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#步驟">步驟</a>
+      <ul>
+        <li><a href="#1-net-core-identity-設定">1. Net Core Identity 設定</a></li>
+        <li><a href="#2-migration-db">2. Migration DB</a></li>
+        <li><a href="#3-註冊帳號頁面處理">3. 註冊帳號頁面處理</a></li>
+        <li><a href="#4-註冊密碼檢核設定">4. 註冊密碼檢核設定</a></li>
+        <li><a href="#5-自訂錯誤訊息">5. 自訂錯誤訊息</a></li>
+        <li><a href="#6-view-判斷是否登入">6. View 判斷是否登入</a></li>
+        <li><a href="#7-帳號登入與登出功能">7. 帳號登入與登出功能</a></li>
+      </ul>
+    </li>
+    <li><a href="#重點知識">重點知識</a></li>
+    <li><a href="#usermanagersigninmanager">UserManager,SignInManager</a>
+      <ul>
+        <li><a href="#usermanager">UserManager</a></li>
+        <li><a href="#signinmanager">SignInManager</a></li>
+      </ul>
+    </li>
+    <li><a href="#記住密碼-cookies">記住密碼 Cookies</a></li>
+    <li><a href="#感想">感想</a></li>
+    <li><a href="#相關文章">相關文章</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>這邊重零開始建置 Net Core Identity。</p>
+<h2 id="步驟">步驟</h2>
+<h3 id="1-net-core-identity-設定">1. Net Core Identity 設定</h3>
+<p>GIT可參考下面</p>
+<ol>
+<li><a href="https://github.com/malagege/NetCoreAuthSample/commit/bcce6fc99c22dcb1c31ed9815e6fd7d986c83ea7" target="_blank" rel="noopener noreffer ">資料庫設定 · malagege/NetCoreAuthSample@bcce6fc</a></li>
+<li><a href="https://github.com/malagege/NetCoreAuthSample/commit/211ca2598ee46c4247b3c4fa0de5dc349846747f" target="_blank" rel="noopener noreffer ">Identity.EFCore 設定 · malagege/NetCoreAuthSample@211ca25</a></li>
+</ol>
+<p>安裝基本元件</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;PackageReference</span> <span class="na">Include=</span><span class="s">&#34;Microsoft.AspNetCore.Identity.EntityFrameworkCore&#34;</span> <span class="na">Version=</span><span class="s">&#34;5.0.17&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;PackageReference</span> <span class="na">Include=</span><span class="s">&#34;Microsoft.EntityFrameworkCore&#34;</span> <span class="na">Version=</span><span class="s">&#34;5.0.17&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;PackageReference</span> <span class="na">Include=</span><span class="s">&#34;Microsoft.EntityFrameworkCore.Relational&#34;</span> <span class="na">Version=</span><span class="s">&#34;5.0.17&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;PackageReference</span> <span class="na">Include=</span><span class="s">&#34;Microsoft.EntityFrameworkCore.SqlServer&#34;</span> <span class="na">Version=</span><span class="s">&#34;5.0.17&#34;</span> <span class="nt">/&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>注意<code>DbContext</code>繼承要調整 <code>IdentityDbContext</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">    <span class="k">public</span> <span class="k">class</span> <span class="nc">AppDbContext</span> <span class="p">:</span> <span class="n">IdentityDbContext</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="n">AppDbContext</span><span class="p">(</span><span class="n">DbContextOptions</span><span class="p">&lt;</span><span class="n">AppDbContext</span><span class="p">&gt;</span> <span class="n">options</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Startup.cs</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">           <span class="n">services</span><span class="p">.</span><span class="n">AddIdentity</span><span class="p">&lt;</span><span class="n">IdentityUser</span><span class="p">,</span> <span class="n">IdentityRole</span><span class="p">&gt;()</span>
+</span></span><span class="line"><span class="cl">                    <span class="p">.</span><span class="n">AddEntityFrameworkStores</span><span class="p">&lt;</span><span class="n">AppDbContext</span><span class="p">&gt;();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>剩下看GIT。</p>
+<h3 id="2-migration-db">2. Migration DB</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="nb">Add-Migration</span> <span class="n">AddingIdentity</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>會自動產生<br>
+參考: <a href="https://github.com/malagege/NetCoreAuthSample/blob/0fad9d029b4097257e365ded0c7727058a3e81ad/AuthSample/Migrations/20220811093637_AddingIdentity.Designer.cs" target="_blank" rel="noopener noreffer ">NetCoreAuthSample/20220811093637_AddingIdentity.Designer.cs at 0fad9d029b4097257e365ded0c7727058a3e81ad · malagege/NetCoreAuthSample</a></p>
+<h3 id="3-註冊帳號頁面處理">3. 註冊帳號頁面處理</h3>
+<p>GIT:<a href="https://github.com/malagege/NetCoreAuthSample/commit/0fad9d029b4097257e365ded0c7727058a3e81ad" target="_blank" rel="noopener noreffer ">註冊帳號 · malagege/NetCoreAuthSample@0fad9d0</a></p>
+<p>新增檔案就不特別寫，都在GIT上。<br>
+要了解的是</p>
+<ol>
+<li>SignInManager 可以做登入/登出動作</li>
+<li>UserManager   可以新增帳號動作</li>
+</ol>
+<h3 id="4-註冊密碼檢核設定">4. 註冊密碼檢核設定</h3>
+<p>GIT: <a href="https://github.com/malagege/NetCoreAuthSample/commit/a70bc35fcede80f1198b5471198a06ab912832c6" target="_blank" rel="noopener noreffer ">註冊密碼檢核設定 · malagege/NetCoreAuthSample@a70bc35</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">            <span class="n">services</span><span class="p">.</span><span class="n">Configure</span><span class="p">&lt;</span><span class="n">IdentityOptions</span><span class="p">&gt;(</span><span class="n">options</span> <span class="p">=&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼最小長度  (預設值:6)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequiredLength</span> <span class="p">=</span> <span class="m">6</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼中允許最大重複字符數 (ex: &#34;aaa123&#34; ,&#34;abbb123&#34;)  axabac 會過</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequiredUniqueChars</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 至少使用非字母數字字符 (預設值: true)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequireNonAlphanumeric</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼是否包含小寫 (預設值: true)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequireLowercase</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼是否包含大寫 (預設值: true)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequireUppercase</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="p">});</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>選上下方法其中一個</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">            <span class="n">services</span><span class="p">.</span><span class="n">AddIdentity</span><span class="p">&lt;</span><span class="n">IdentityUser</span><span class="p">,</span> <span class="n">IdentityRole</span><span class="p">&gt;(</span><span class="n">options</span> <span class="p">=&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼最小長度  (預設值:6)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequiredLength</span> <span class="p">=</span> <span class="m">6</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼中允許最大重複字符數 (ex: &#34;aaa123&#34; ,&#34;abbb123&#34;)  axabac 會過</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequiredUniqueChars</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 至少使用非字母數字字符 (預設值: true)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequireNonAlphanumeric</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼是否包含小寫 (預設值: true)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequireLowercase</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// 密碼是否包含大寫 (預設值: true)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">options</span><span class="p">.</span><span class="n">Password</span><span class="p">.</span><span class="n">RequireUppercase</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="p">});)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊可以設定有</p>
+<ol>
+<li>UserOptions</li>
+<li>SignInOptions</li>
+<li>LockoutOptions</li>
+<li>TokenOptions</li>
+<li>StoreOptions</li>
+<li>ClaimsIdentityOptions</li>
+</ol>
+<h3 id="5-自訂錯誤訊息">5. 自訂錯誤訊息</h3>
+<p>GIT:<a href="https://github.com/malagege/NetCoreAuthSample/commit/b1203f6943b76c59d52aa09f95383b0412cfafdb" target="_blank" rel="noopener noreffer ">自訂義錯誤訊息 · malagege/NetCoreAuthSample@b1203f6</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">    <span class="k">public</span> <span class="k">class</span> <span class="nc">CustomIdentityErrorDescriber</span> <span class="p">:</span> <span class="n">IdentityErrorDescriber</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">DefaultError</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">DefaultError</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;未知錯誤！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">ConcurrencyFailure</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">ConcurrencyFailure</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;並發錯誤，對象已被修改！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">PasswordMismatch</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Password&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;密碼錯誤！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">InvalidToken</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">InvalidToken</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;無效 token.&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">LoginAlreadyAssociated</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">LoginAlreadyAssociated</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;當前用戶已經登錄！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">InvalidUserName</span><span class="p">(</span><span class="kt">string</span> <span class="n">userName</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;UserName&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;用戶名 &#39;{userName}&#39; 錯誤，只可以包含數字和字母！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">InvalidEmail</span><span class="p">(</span><span class="kt">string</span> <span class="n">email</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Email&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;信箱 &#39;{email}&#39; 格式錯誤！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">DuplicateUserName</span><span class="p">(</span><span class="kt">string</span> <span class="n">userName</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;UserName&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;帳號 &#39;{userName}&#39; 已存在！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">DuplicateEmail</span><span class="p">(</span><span class="kt">string</span> <span class="n">email</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Email&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;信箱 &#39;{email}&#39; 已經存在！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">InvalidRoleName</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">InvalidRoleName</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;角色 &#39;{role}&#39; 驗證錯誤！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">DuplicateRoleName</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">DuplicateRoleName</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;角色名 &#39;{role}&#39; 已經存在！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">UserAlreadyHasPassword</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">UserAlreadyHasPassword</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;此帳號設定密碼了&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">UserLockoutNotEnabled</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">UserLockoutNotEnabled</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;此帳號未鎖定&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">UserAlreadyInRole</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">UserAlreadyInRole</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;使用者已關聯角色 &#39;{role}&#39;.&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">UserNotInRole</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="n">nameof</span><span class="p">(</span><span class="n">UserNotInRole</span><span class="p">),</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;使用者沒有關聯角色  &#39;{role}&#39;.&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">PasswordTooShort</span><span class="p">(</span><span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Password&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">$&#34;密碼至少 {length} 位！&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">PasswordRequiresNonAlphanumeric</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Password&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;密碼必須至少有一個非字母數字字符.&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">PasswordRequiresDigit</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Password&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;密碼至少有一個數字 (&#39;0&#39;-&#39;9&#39;).&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">PasswordRequiresLower</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Password&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;密碼必須包含小寫字母 (&#39;a&#39;-&#39;z&#39;).&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">public</span> <span class="k">override</span> <span class="n">IdentityError</span> <span class="n">PasswordRequiresUpper</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">IdentityError</span> <span class="p">{</span> <span class="n">Code</span> <span class="p">=</span> <span class="s">&#34;Password&#34;</span><span class="p">,</span> <span class="n">Description</span> <span class="p">=</span> <span class="s">&#34;密碼必須包含大寫字母 (&#39;A&#39;-&#39;Z&#39;).&#34;</span> <span class="p">};</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>插入這一行<code>.AddErrorDescriber&lt;CustomIdentityErrorDescriber&gt;()</code>，如下面。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">            services.AddIdentity&lt;IdentityUser, IdentityRole&gt;()
+</span></span><span class="line"><span class="cl">                    .AddErrorDescriber&lt;CustomIdentityErrorDescriber&gt;()
+</span></span><span class="line"><span class="cl">                    .AddEntityFrameworkStores&lt;AppDbContext&gt;();
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="6-view-判斷是否登入">6. View 判斷是否登入</h3>
+<p><a href="https://github.com/malagege/NetCoreAuthSample/commit/43c6275ea9e233b967ba5ebb0c62ffcbf7fde630" target="_blank" rel="noopener noreffer ">View 顯示帳號是否登入方法 · malagege/NetCoreAuthSample@43c6275</a></p>
+<h3 id="7-帳號登入與登出功能">7. 帳號登入與登出功能</h3>
+<p>這段沒有加入，登入功能無法正常，你會發現你登入都遇到失敗。<del>結果是少這兩行</del>，正確來說<code>app.UseAuthentication();</code>就可以解決。不過後續我要做登入權限設定，所以先加。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">            <span class="c1">// 當帳號沒有檢查到登入資料，請確認這兩個是否加入 Middleware</span>
+</span></span><span class="line"><span class="cl">            <span class="n">app</span><span class="p">.</span><span class="n">UseAuthentication</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="n">app</span><span class="p">.</span><span class="n">UseAuthorization</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="重點知識">重點知識</h2>
+<h2 id="usermanagersigninmanager">UserManager,SignInManager</h2>
+<h3 id="usermanager">UserManager</h3>
+<p>控制帳號CRUD方法</p>
+<ol>
+<li>CreateAsync</li>
+<li>DeleteAsync</li>
+<li>UpdateAsync</li>
+</ol>
+<h3 id="signinmanager">SignInManager</h3>
+<p>登入/登出判斷</p>
+<ol>
+<li>SignInAsync</li>
+<li>SignOutAsync</li>
+<li>IsSignIn</li>
+</ol>
+<h2 id="記住密碼-cookies">記住密碼 Cookies</h2>
+<p>http://localhost:50000/</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/VG3M7Xo.png"
+        data-srcset="https://i.imgur.com/VG3M7Xo.png, https://i.imgur.com/VG3M7Xo.png 1.5x, https://i.imgur.com/VG3M7Xo.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/VG3M7Xo.png"
+        title="https://i.imgur.com/VG3M7Xo.png" /></p>
+<p>關掉瀏覽器重開需要再做登入。<br>
+有點選記住密碼，下次打開登入狀態會存在。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/df63lFL.png"
+        data-srcset="https://i.imgur.com/df63lFL.png, https://i.imgur.com/df63lFL.png 1.5x, https://i.imgur.com/df63lFL.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/df63lFL.png"
+        title="https://i.imgur.com/df63lFL.png" /></p>
+<h2 id="感想">感想</h2>
+<p>Net Core Identity 設定非常簡單，連帳號管理方式和驗證方式都幫你處理好了，你不必自己手寫，可以專心在別的設計上。目前我看過 Spring Boot和 Laravel 帳號管理方式，我覺得這個是最簡單的。這只是開頭，後續計入相關東西。</p>
+<h2 id="相關文章">相關文章</h2>
+<p><a href="https://dotblogs.com.tw/aken1215/2016/01/16/225817" target="_blank" rel="noopener noreffer ">[MVC] 實作客製化的identity | 朕在coding - 點部落</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-01-16</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" data-title="使用 .Net Core Identity 實作網頁登入登出" data-hashtags=".netcore,identity"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" data-hashtag=".netcore"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" data-title="使用 .Net Core Identity 實作網頁登入登出"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" data-title="使用 .Net Core Identity 實作網頁登入登出"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-DotNet-Core-Identity-%E5%AF%A6%E4%BD%9C%E7%B6%B2%E9%A0%81%E7%99%BB%E5%85%A5-%E7%99%BB%E5%87%BA/" data-title="使用 .Net Core Identity 實作網頁登入登出" data-image="https://user-images.githubusercontent.com/6058558/212701925-29144b54-56c6-43d8-9bba-1981ede93ff9.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/.netcore/">.netcore</a>,&nbsp;<a href="/blog/tags/identity/">identity</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Traefik-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86-Reverse-Proxy-IP-Host-%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="Traefik 反向代理 (Reverse Proxy) IP Host 方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Traefik 反向代理 (Reverse Proxy) IP Host 方法</a>
+            <a href="/blog/posts/%E7%94%A2%E7%94%9F-JWT-Token-%E6%96%B9%E6%B3%95/" class="next" rel="next" title="產生 JWT Token 方法">產生 JWT Token 方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

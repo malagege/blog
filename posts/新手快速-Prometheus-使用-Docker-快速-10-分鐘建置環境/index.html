@@ -1,202 +1,675 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><meta property="og:description" content="首先，最近再找能跑的 prometheus 的 docker-compose 檔案
-快速建置流程，體驗裡面介面功能"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-04-05T18:20:48+00:00"><meta property="article:modified_time" content="2021-04-05T18:20:48+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><meta name=twitter:description content="首先，最近再找能跑的 prometheus 的 docker-compose 檔案
-快速建置流程，體驗裡面介面功能"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/><link rel=prev href=https://malagege.github.io/blog/posts/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94/><link rel=next href=https://malagege.github.io/blog/posts/Raspberry-Pi-%E9%83%A8%E5%B1%AC-Prometheus/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83\/"},"genre":"posts","keywords":"prometheus, exporter","wordcount":589,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83\/","datePublished":"2021-04-05T18:20:48+00:00","dateModified":"2021-04-05T18:20:48+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Prometheus/><i class="far fa-folder fa-fw" aria-hidden=true></i>Prometheus</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-04-05>2021-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;589 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#快速實例>快速實例</a><ul><li><a href=#設定-grafana>設定 Grafana</a></li><li><a href=#匯入-dashboard>匯入 Dashboard</a></li></ul></li><li><a href=#信箱設定>信箱設定</a><ul><li><a href=#discord-通知>discord 通知</a></li><li><a href=#line-通知>line 通知</a></li><li><a href=#架設-line-notify-gateway>架設 line notify gateway</a></li></ul></li><li><a href=#監控>監控</a></li><li><a href=#使用-vagrant-快速部屬>使用 vagrant 快速部屬</a><ul><li><a href=#安裝-vagrant--virtualbox>安裝 vagrant + virtualbox</a></li><li><a href=#設定-vagrantfile-執行-vagrant>設定 Vagrantfile 執行 vagrant</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>首先，最近再找能跑的 prometheus 的 docker-compose 檔案<br>快速建置流程，體驗裡面介面功能</p><h2 id=快速實例>快速實例</h2><p>使用 GIT 下載 <a href=https://github.com/Kev1nChan/docker-prometheus target=_blank rel="noopener noreffer">Kev1nChan/docker-prometheus: 使用Docker-compose部署Grafana+Prometheus</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>git clone https://github.com/Kev1nChan/docker-prometheus.git
-</span></span></code></pre></td></tr></table></div></div><p>我找到一個 Github 實例，可以馬上 docker-compose 吃到 Node Exporter 設備<br>其他 Project 都不能順利執行&mldr;</p><p>可以先把grafana 版號拿掉，裝最新版</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>grafana/grafana</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>git clone 下來<br>直接執行 <code>docker-compose up -d</code></p><p>這邊<code>docker-compose.yml</code>可以window 可以把 <code>$PWD</code> 改成<code>.</code><br>powershell 才不會執行有問題</p><blockquote><p>使用前请修改Grafana配置文件中密码，当前admin密码为qwe123!@#</p></blockquote><h3 id=設定-grafana>設定 Grafana</h3><p>新增 DataSource ，選擇 Prometheus</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/RsmdEbZ.png data-srcset="https://i.imgur.com/RsmdEbZ.png, https://i.imgur.com/RsmdEbZ.png 1.5x, https://i.imgur.com/RsmdEbZ.png 2x" data-sizes=auto alt=https://i.imgur.com/RsmdEbZ.png title=https://i.imgur.com/RsmdEbZ.png></p><p>注意!!這邊由於是裝在 docker 裡面<br>我們這邊 URL 路徑是要輸入 prometheus:9090</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/pwh7sEL.png data-srcset="https://i.imgur.com/pwh7sEL.png, https://i.imgur.com/pwh7sEL.png 1.5x, https://i.imgur.com/pwh7sEL.png 2x" data-sizes=auto alt=https://i.imgur.com/pwh7sEL.png title=https://i.imgur.com/pwh7sEL.png></p><h3 id=匯入-dashboard>匯入 Dashboard</h3><p>很多教學，都沒有說要怎麼匯入別人寫好的 Dashboard<br>剛用這個新手應該都不會用吧</p><p><a href=https://grafana.com/grafana/dashboards/8919 target=_blank rel="noopener noreffer">https://grafana.com/grafana/dashboards/8919</a><br>這個網站可以找人加分享好用的 Dashboard</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/2UUIdQ3.png data-srcset="https://i.imgur.com/2UUIdQ3.png, https://i.imgur.com/2UUIdQ3.png 1.5x, https://i.imgur.com/2UUIdQ3.png 2x" data-sizes=auto alt=https://i.imgur.com/2UUIdQ3.png title=https://i.imgur.com/2UUIdQ3.png></p><p>這邊 import 進去來後，記得要選 datasource</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/3GpZ9EU.png data-srcset="https://i.imgur.com/3GpZ9EU.png, https://i.imgur.com/3GpZ9EU.png 1.5x, https://i.imgur.com/3GpZ9EU.png 2x" data-sizes=auto alt=https://i.imgur.com/3GpZ9EU.png title=https://i.imgur.com/3GpZ9EU.png></p><p>這邊 Grafana 就設定完了</p><h2 id=信箱設定>信箱設定</h2><p>假設不想用真實信箱，可以用我之前fake stmp email 工具來設定<br><a href=https://malagege.github.io/blog/posts/maildev%E8%A9%A6%E7%94%A8%E7%AD%86%E8%A8%98/ target=_blank rel="noopener noreffer">maildev試用筆記 | 程式狂想筆記</a></p><p>安裝maildev</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>docker run -d -p 1080:80 -p 1025:25 djfarrelly/maildev
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>vim alertmanager/config.yml
-</span></span></code></pre></td></tr></table></div></div><p>設定 stmp 1025, tls = false ，帳號、密碼可以不用理(畢竟是假的&mldr;)</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>global</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c>#163服务器</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>smtp_smarthost</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;192.168.1.113:1025&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c>#发邮件的邮箱</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>smtp_from</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;your-email@foxmail.com&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c>#发邮件的邮箱用户名，也就是你的邮箱　　　　　</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>smtp_auth_username</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;your-email@foxmail.com&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c>#发邮件的邮箱密码</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>smtp_auth_password</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;your-password&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c>#进行tls验证</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>smtp_require_tls</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>route</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>group_by</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s1>&#39;alertname&#39;</span><span class=p>]</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>group_wait</span><span class=p>:</span><span class=w> </span><span class=l>10s</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>group_interval</span><span class=p>:</span><span class=w> </span><span class=l>10s</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>repeat_interval</span><span class=p>:</span><span class=w> </span><span class=l>10m</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>receiver</span><span class=p>:</span><span class=w> </span><span class=l>live-monitoring</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>receivers</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;live-monitoring&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=c>#收邮件的邮箱</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>email_configs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>to</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;your-email@163.com&#39;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>讓你的 alertmanager 發送 mail<br>只需要讓你 node_exporter 結束程式就可以了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>docker-compose stop node_exporter   
-</span></span></code></pre></td></tr></table></div></div><p>執行完，稍後兩分鐘&mldr;(因為設定是兩分鐘)，可以看到mail 會發送到maildev</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/RewTNHy.png data-srcset="https://i.imgur.com/RewTNHy.png, https://i.imgur.com/RewTNHy.png 1.5x, https://i.imgur.com/RewTNHy.png 2x" data-sizes=auto alt=https://i.imgur.com/RewTNHy.png title=https://i.imgur.com/RewTNHy.png></p><p>話說 granafan 也有通知功能</p><h3 id=discord-通知>discord 通知</h3><p><a href=https://github.com/benjojo/alertmanager-discord target=_blank rel="noopener noreffer">GitHub - benjojo/alertmanager-discord: Take your alertmanager alerts, into discord</a></p><p>相關建置我後面文章有講到</p><h3 id=line-通知>line 通知</h3><p><a href=https://xenby.com/b/274-%E6%95%99%E5%AD%B8-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8-line-notify-%E5%B0%8D%E7%BE%A4%E7%B5%84%E9%80%B2%E8%A1%8C%E9%80%9A%E7%9F%A5 target=_blank rel="noopener noreffer">[教學] 如何使用 Line Notify 對群組進行通知 | 辛比誌</a><br>設定 line notify ，不需要服務登入<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/G110MnW.png data-srcset="https://i.imgur.com/G110MnW.png, https://i.imgur.com/G110MnW.png 1.5x, https://i.imgur.com/G110MnW.png 2x" data-sizes=auto alt=https://i.imgur.com/G110MnW.png title=https://i.imgur.com/G110MnW.png></p><p><a href=https://stackoverflow.com/questions/53372935/how-can-i-config-prometheus-alert-with-line-notify target=_blank rel="noopener noreffer">https://stackoverflow.com/questions/53372935/how-can-i-config-prometheus-alert-with-line-notify</a><br>&lt;&ndash;這個連結不能使用</p><p><strong>TOKEN記得要留著，否則之後不會找到</strong></p><p>記得要邀請 line notify 到聊天裡面去<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/Dyf1Fda.png data-srcset="https://i.imgur.com/Dyf1Fda.png, https://i.imgur.com/Dyf1Fda.png 1.5x, https://i.imgur.com/Dyf1Fda.png 2x" data-sizes=auto alt=https://i.imgur.com/Dyf1Fda.png title=https://i.imgur.com/Dyf1Fda.png></p><p>否則不會收到</p><blockquote><p>此帳號尚未被邀請至已連動「測試bot」的群組中。請將此帳號邀請至「去」中。</p></blockquote><h3 id=架設-line-notify-gateway>架設 line notify gateway</h3><p>官方沒推薦使用哪一個line notify<br>可能國外很少用</p><p>這篇有找到<a href=https://nontster.medium.com/line-notify-gateway-2-f117c20c6f62 target=_blank rel="noopener noreffer">line-notify-gateway (2). ใน blog… | by Nont Banditwong | Medium</a><br>雖然看不懂裡面文章<br>但從指令可以看出東西</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>docker run -d -p 18081:18081 -e line-notify.personal-access-token<span class=o>=</span><span class=s1>&#39;{換成你的TOKEN}&#39;</span> --name line-notify-gateway nontster/line-notify-gateway
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>receivers</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>line-noti</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>webhook_configs</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>url</span><span class=p>:</span><span class=w> </span><span class=l>http://192.168.73.161:18081/v1/alertmanager/payload</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>send_resolved</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>測試alertmanager 訊息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -H <span class=s2>&#34;Content-type: application/json&#34;</span> -X POST -d <span class=s1>&#39;{&#34;recei&#34;status&#34;:&#34;firing&#34;,&#34;alerts&#34;:[{&#34;status&#34;:&#34;firing&#34;,&#34;labels&#34;:{&#34;alertname&#34;:&#34;InstanceDown&#34;,&#34;instance&#34;:&#34;director1:9100&#34;,&#34;job&#34;:&#34;ipvs&#34;,&#34;severity&#34;:&#34;critical&#34;},&#34;annotations&#34;:{&#34;description&#34;:&#34;director1:9100 of job ipvs has been down for  more than 5 minutes.&#34;,&#34;summary&#34;:&#34;Instance director1:9100 down&#34;},&#34;startsAt&#34;:&#34;2019-06-09T09:12:56.795099989Z&#34;,&#34;endsAt&#34;:&#34;0001-01-01T00:00:00Z&#34;,&#34;generatorURL&#34;:&#34;http://72426f0cd030:9090/graph?g0.expr=up+%3D%3D+0&amp;g0.tab=1&#34;}],&#34;groupLabels&#34;:{&#34;alertname&#34;:&#34;InstanceDown&#34;},&#34;commonLabels&#34;:{&#34;alertname&#34;:&#34;InstanceDown&#34;,&#34;instance&#34;:&#34;director1:9100&#34;,&#34;job&#34;:&#34;ipvs&#34;,&#34;severity&#34;:&#34;critical&#34;},&#34;commonAnnotations&#34;:{&#34;description&#34;:&#34;director1:9100 of job ipvs has been down for  more than 5 minutes.&#34;,&#34;summary&#34;:&#34;Instance director1:9100 down&#34;},&#34;externalURL&#34;:&#34;http://alertmanager:9093&#34;,&#34;version&#34;:&#34;4&#34;,&#34;groupKey&#34;:&#34;{}:{alertname=\&#34;InstanceDown\&#34;}&#34;}&#39;</span> http://localhost:18081/v1/alertmanager/payload
-</span></span></code></pre></td></tr></table></div></div><p>測試結果可進行運行</p><h2 id=監控>監控</h2><p>裡面有內建設定 exporter 服務沒偵測到兩分鐘會發送通知<br>除了這些外，還有 traefik exporter ,blackbox exporter, 各種 exporter等等</p><p><a href=https://prometheus.io/docs/instrumenting/exporters/ target=_blank rel="noopener noreffer">Exporters and integrations | Prometheus</a></p><p>接下來還有很長一段要學習的路</p><h2 id=使用-vagrant-快速部屬>使用 vagrant 快速部屬</h2><p>因為我沒有做 docker-compose 安裝，特別做個快速做出環境。首先必須安裝 vagrant + virtualbox，這邊網路上還滿多的，可以參照網路設定。</p><h3 id=安裝-vagrant--virtualbox>安裝 vagrant + virtualbox</h3><ul><li><a href=https://school.soft-arch.net/blog/1060/install-vagrant-on-win target=_blank rel="noopener noreffer">在 Windows 上安裝 Vagrant 軟體 | 軟體架構・絮語</a></li><li><a href=https://iter01.com/535414.html target=_blank rel="noopener noreffer">超詳細的 Vagrant 上手指南 | IT人</a></li><li><a href=https://www.cc.ntu.edu.tw/chinese/epaper/0040/20170320_4006.html target=_blank rel="noopener noreffer">使用Vagrant進行伺服器環境部屬</a></li></ul><h3 id=設定-vagrantfile-執行-vagrant>設定 Vagrantfile 執行 vagrant</h3><p>建立 Vagrantfile</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Vagrant.configure(&#34;2&#34;) do |config|
-</span></span><span class=line><span class=cl>  # 設定 vm image, 版本,hostname,名稱
-</span></span><span class=line><span class=cl>  config.vm.box = &#34;bento/ubuntu-18.04&#34;
-</span></span><span class=line><span class=cl>  config.vm.box_version =&#39;201912.14.0&#39;
-</span></span><span class=line><span class=cl>  config.vm.hostname = &#39;dev&#39;
-</span></span><span class=line><span class=cl>  config.vm.define vm_name = &#39;dev&#39;
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>  # provision (Shell Script)
-</span></span><span class=line><span class=cl>  config.vm.provision &#34;shell&#34;, privileged: false,  inline: &lt;&lt;-SHELL
-</span></span><span class=line><span class=cl>    set -e -x -u
-</span></span><span class=line><span class=cl>    export DEBIAN_FRONTEND=noninteractive
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    #change the source.list
-</span></span><span class=line><span class=cl>    sudo apt-get update
-</span></span><span class=line><span class=cl>    sudo apt-get install -y vim git cmake build-essential  bash-completion
-</span></span><span class=line><span class=cl>    # Install Docker
-</span></span><span class=line><span class=cl>    export DOCKER_VERSION=&#34;5:19.03.5~3-0~ubuntu-bionic&#34;
-</span></span><span class=line><span class=cl>    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-</span></span><span class=line><span class=cl>    sudo add-apt-repository &#34;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&#34;
-</span></span><span class=line><span class=cl>    sudo apt-get update
-</span></span><span class=line><span class=cl>    sudo apt-get install -y docker-ce=${DOCKER_VERSION}
-</span></span><span class=line><span class=cl>    sudo usermod -aG docker $USER
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    #Disable swap
-</span></span><span class=line><span class=cl>    #https://github.com/kubernetes/kubernetes/issues/53533
-</span></span><span class=line><span class=cl>    sudo swapoff -a &amp;&amp; sudo sysctl -w vm.swappiness=0
-</span></span><span class=line><span class=cl>    sudo sed &#39;/vagrant--vg-swap/d&#39; -i /etc/fstab
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it
-</span></span><span class=line><span class=cl>    bash ~/.bash_it/install.sh -s
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    # install docker-compose
-</span></span><span class=line><span class=cl>    sudo curl -L &#34;https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)&#34; -o /usr/local/bin/docker-compose
-</span></span><span class=line><span class=cl>    sudo chmod +x /usr/local/bin/docker-compose
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    git clone https://github.com/Kev1nChan/docker-prometheus.git
-</span></span><span class=line><span class=cl>    cd docker-prometheus
-</span></span><span class=line><span class=cl>    sudo /usr/local/bin/docker-compose up -d
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>  SHELL
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>  # 設定IP
-</span></span><span class=line><span class=cl>  config.vm.network :private_network, ip: &#34;172.17.8.111&#34;
-</span></span><span class=line><span class=cl>  #設定硬體
-</span></span><span class=line><span class=cl>  config.vm.provider :virtualbox do |v|
-</span></span><span class=line><span class=cl>      v.customize [&#34;modifyvm&#34;, :id, &#34;--cpus&#34;, 2]
-</span></span><span class=line><span class=cl>      v.customize [&#34;modifyvm&#34;, :id, &#34;--memory&#34;, 4096]
-</span></span><span class=line><span class=cl>      v.customize [&#39;modifyvm&#39;, :id, &#39;--nicpromisc1&#39;, &#39;allow-all&#39;]
-</span></span><span class=line><span class=cl>  end
-</span></span><span class=line><span class=cl>end
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 執行 vagrant</span>
-</span></span><span class=line><span class=cl>vagrant up 
-</span></span></code></pre></td></tr></table></div></div><p>開瀏覽器</p><p>grafana: http://172.17.8.111:3000<br>帳號/密碼: admin/qwe123!@#<br>prometheus: http://172.17.8.111:9090<br>node_exporter: http://172.17.8.111:9100<br>cadvisor: http://172.17.8.111:8080<br>alertmanager: http://172.17.8.111:9093</p><p>這邊就重複上面教的流程</p><ol><li><p>進入設定新增 Prometheus<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/hJ51LOG.png data-srcset="https://i.imgur.com/hJ51LOG.png, https://i.imgur.com/hJ51LOG.png 1.5x, https://i.imgur.com/hJ51LOG.png 2x" data-sizes=auto alt=https://i.imgur.com/hJ51LOG.png title=https://i.imgur.com/hJ51LOG.png><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/LC54mz5.png data-srcset="https://i.imgur.com/LC54mz5.png, https://i.imgur.com/LC54mz5.png 1.5x, https://i.imgur.com/LC54mz5.png 2x" data-sizes=auto alt=https://i.imgur.com/LC54mz5.png title=https://i.imgur.com/LC54mz5.png></p></li><li><p>新增 Prometheus 設定<br>網址可以設定IP或hostname，這邊跟docker網路連線有關係，所以不解釋太多。</p></li></ol><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/YMEJt0o.png data-srcset="https://i.imgur.com/YMEJt0o.png, https://i.imgur.com/YMEJt0o.png 1.5x, https://i.imgur.com/YMEJt0o.png 2x" data-sizes=auto alt=https://i.imgur.com/YMEJt0o.png title=https://i.imgur.com/YMEJt0o.png><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/pwh7sEL.png data-srcset="https://i.imgur.com/pwh7sEL.png, https://i.imgur.com/pwh7sEL.png 1.5x, https://i.imgur.com/pwh7sEL.png 2x" data-sizes=auto alt=https://i.imgur.com/pwh7sEL.png title=https://i.imgur.com/pwh7sEL.png></p><ol start=3><li>新增 dashboard</li></ol><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/FSuhihx.png data-srcset="https://i.imgur.com/FSuhihx.png, https://i.imgur.com/FSuhihx.png 1.5x, https://i.imgur.com/FSuhihx.png 2x" data-sizes=auto alt=https://i.imgur.com/FSuhihx.png title=https://i.imgur.com/FSuhihx.png><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/diVrhAw.png data-srcset="https://i.imgur.com/diVrhAw.png, https://i.imgur.com/diVrhAw.png 1.5x, https://i.imgur.com/diVrhAw.png 2x" data-sizes=auto alt=https://i.imgur.com/diVrhAw.png title=https://i.imgur.com/diVrhAw.png></p><p>大概就這樣</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-04-05</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/ data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境" data-hashtags=prometheus,exporter><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/ data-hashtag=prometheus><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/ data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/ data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/ data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/prometheus/>prometheus</a>,&nbsp;<a href=/blog/tags/exporter/>exporter</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94/ class=prev rel=prev title="Raspberry Pi 調整 swap 虛擬記憶體"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Raspberry Pi 調整 swap 虛擬記憶體</a>
-<a href=/blog/posts/Raspberry-Pi-%E9%83%A8%E5%B1%AC-Prometheus/ class=next rel=next title="Raspberry Pi 部屬 Prometheus">Raspberry Pi 部屬 Prometheus<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境" />
+<meta property="og:description" content="首先，最近再找能跑的 prometheus 的 docker-compose 檔案
+快速建置流程，體驗裡面介面功能" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-04-05T18:20:48+00:00" />
+<meta property="article:modified_time" content="2021-04-05T18:20:48+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"/>
+<meta name="twitter:description" content="首先，最近再找能跑的 prometheus 的 docker-compose 檔案
+快速建置流程，體驗裡面介面功能"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94/" /><link rel="next" href="https://malagege.github.io/blog/posts/Raspberry-Pi-%E9%83%A8%E5%B1%AC-Prometheus/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83\/"
+        },"genre": "posts","keywords": "prometheus, exporter","wordcount":  589 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83\/","datePublished": "2021-04-05T18:20:48+00:00","dateModified": "2021-04-05T18:20:48+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Prometheus/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Prometheus</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-04-05">2021-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;589 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#快速實例">快速實例</a>
+      <ul>
+        <li><a href="#設定-grafana">設定 Grafana</a></li>
+        <li><a href="#匯入-dashboard">匯入 Dashboard</a></li>
+      </ul>
+    </li>
+    <li><a href="#信箱設定">信箱設定</a>
+      <ul>
+        <li><a href="#discord-通知">discord 通知</a></li>
+        <li><a href="#line-通知">line 通知</a></li>
+        <li><a href="#架設-line-notify-gateway">架設 line notify gateway</a></li>
+      </ul>
+    </li>
+    <li><a href="#監控">監控</a></li>
+    <li><a href="#使用-vagrant-快速部屬">使用 vagrant 快速部屬</a>
+      <ul>
+        <li><a href="#安裝-vagrant--virtualbox">安裝 vagrant + virtualbox</a></li>
+        <li><a href="#設定-vagrantfile-執行-vagrant">設定 Vagrantfile 執行 vagrant</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>首先，最近再找能跑的 prometheus 的 docker-compose 檔案<br>
+快速建置流程，體驗裡面介面功能</p>
+<h2 id="快速實例">快速實例</h2>
+<p>使用 GIT 下載 <a href="https://github.com/Kev1nChan/docker-prometheus" target="_blank" rel="noopener noreffer ">Kev1nChan/docker-prometheus: 使用Docker-compose部署Grafana+Prometheus</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">git clone https://github.com/Kev1nChan/docker-prometheus.git
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我找到一個 Github 實例，可以馬上 docker-compose 吃到 Node Exporter 設備<br>
+其他 Project 都不能順利執行&hellip;</p>
+<p>可以先把grafana 版號拿掉，裝最新版</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">grafana/grafana</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>git clone 下來<br>
+直接執行 <code>docker-compose up -d</code></p>
+<p>這邊<code>docker-compose.yml</code>可以window 可以把 <code>$PWD</code> 改成<code>.</code><br>
+powershell 才不會執行有問題</p>
+<blockquote>
+<p>使用前请修改Grafana配置文件中密码，当前admin密码为qwe123!@#</p>
+</blockquote>
+<h3 id="設定-grafana">設定 Grafana</h3>
+<p>新增 DataSource ，選擇 Prometheus</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/RsmdEbZ.png"
+        data-srcset="https://i.imgur.com/RsmdEbZ.png, https://i.imgur.com/RsmdEbZ.png 1.5x, https://i.imgur.com/RsmdEbZ.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/RsmdEbZ.png"
+        title="https://i.imgur.com/RsmdEbZ.png" /></p>
+<p>注意!!這邊由於是裝在 docker 裡面<br>
+我們這邊 URL 路徑是要輸入 prometheus:9090</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/pwh7sEL.png"
+        data-srcset="https://i.imgur.com/pwh7sEL.png, https://i.imgur.com/pwh7sEL.png 1.5x, https://i.imgur.com/pwh7sEL.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/pwh7sEL.png"
+        title="https://i.imgur.com/pwh7sEL.png" /></p>
+<h3 id="匯入-dashboard">匯入 Dashboard</h3>
+<p>很多教學，都沒有說要怎麼匯入別人寫好的 Dashboard<br>
+剛用這個新手應該都不會用吧</p>
+<p><a href="https://grafana.com/grafana/dashboards/8919" target="_blank" rel="noopener noreffer ">https://grafana.com/grafana/dashboards/8919</a><br>
+這個網站可以找人加分享好用的 Dashboard</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/2UUIdQ3.png"
+        data-srcset="https://i.imgur.com/2UUIdQ3.png, https://i.imgur.com/2UUIdQ3.png 1.5x, https://i.imgur.com/2UUIdQ3.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/2UUIdQ3.png"
+        title="https://i.imgur.com/2UUIdQ3.png" /></p>
+<p>這邊 import 進去來後，記得要選 datasource</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/3GpZ9EU.png"
+        data-srcset="https://i.imgur.com/3GpZ9EU.png, https://i.imgur.com/3GpZ9EU.png 1.5x, https://i.imgur.com/3GpZ9EU.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/3GpZ9EU.png"
+        title="https://i.imgur.com/3GpZ9EU.png" /></p>
+<p>這邊 Grafana 就設定完了</p>
+<h2 id="信箱設定">信箱設定</h2>
+<p>假設不想用真實信箱，可以用我之前fake stmp email 工具來設定<br>
+<a href="https://malagege.github.io/blog/posts/maildev%E8%A9%A6%E7%94%A8%E7%AD%86%E8%A8%98/" target="_blank" rel="noopener noreffer ">maildev試用筆記 | 程式狂想筆記</a></p>
+<p>安裝maildev</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker run -d -p 1080:80 -p 1025:25 djfarrelly/maildev
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">vim alertmanager/config.yml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>設定 stmp 1025, tls = false ，帳號、密碼可以不用理(畢竟是假的&hellip;)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">global</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c">#163服务器</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">smtp_smarthost</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;192.168.1.113:1025&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c">#发邮件的邮箱</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">smtp_from</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;your-email@foxmail.com&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c">#发邮件的邮箱用户名，也就是你的邮箱　　　　　</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">smtp_auth_username</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;your-email@foxmail.com&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c">#发邮件的邮箱密码</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">smtp_auth_password</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;your-password&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c">#进行tls验证</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">smtp_require_tls</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">route</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">group_by</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;alertname&#39;</span><span class="p">]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">group_wait</span><span class="p">:</span><span class="w"> </span><span class="l">10s</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">group_interval</span><span class="p">:</span><span class="w"> </span><span class="l">10s</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">repeat_interval</span><span class="p">:</span><span class="w"> </span><span class="l">10m</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">receiver</span><span class="p">:</span><span class="w"> </span><span class="l">live-monitoring</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">receivers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;live-monitoring&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c">#收邮件的邮箱</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">email_configs</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;your-email@163.com&#39;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>讓你的 alertmanager 發送 mail<br>
+只需要讓你 node_exporter 結束程式就可以了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker-compose stop node_exporter   
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>執行完，稍後兩分鐘&hellip;(因為設定是兩分鐘)，可以看到mail 會發送到maildev</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/RewTNHy.png"
+        data-srcset="https://i.imgur.com/RewTNHy.png, https://i.imgur.com/RewTNHy.png 1.5x, https://i.imgur.com/RewTNHy.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/RewTNHy.png"
+        title="https://i.imgur.com/RewTNHy.png" /></p>
+<p>話說 granafan 也有通知功能</p>
+<h3 id="discord-通知">discord 通知</h3>
+<p><a href="https://github.com/benjojo/alertmanager-discord" target="_blank" rel="noopener noreffer ">GitHub - benjojo/alertmanager-discord: Take your alertmanager alerts, into discord</a></p>
+<p>相關建置我後面文章有講到</p>
+<h3 id="line-通知">line 通知</h3>
+<p><a href="https://xenby.com/b/274-%E6%95%99%E5%AD%B8-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8-line-notify-%E5%B0%8D%E7%BE%A4%E7%B5%84%E9%80%B2%E8%A1%8C%E9%80%9A%E7%9F%A5" target="_blank" rel="noopener noreffer ">[教學] 如何使用 Line Notify 對群組進行通知 | 辛比誌</a><br>
+設定 line notify ，不需要服務登入<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/G110MnW.png"
+        data-srcset="https://i.imgur.com/G110MnW.png, https://i.imgur.com/G110MnW.png 1.5x, https://i.imgur.com/G110MnW.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/G110MnW.png"
+        title="https://i.imgur.com/G110MnW.png" /></p>
+<p><a href="https://stackoverflow.com/questions/53372935/how-can-i-config-prometheus-alert-with-line-notify" target="_blank" rel="noopener noreffer ">https://stackoverflow.com/questions/53372935/how-can-i-config-prometheus-alert-with-line-notify</a><br>
+&lt;&ndash;這個連結不能使用</p>
+<p><strong>TOKEN記得要留著，否則之後不會找到</strong></p>
+<p>記得要邀請 line notify 到聊天裡面去<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/Dyf1Fda.png"
+        data-srcset="https://i.imgur.com/Dyf1Fda.png, https://i.imgur.com/Dyf1Fda.png 1.5x, https://i.imgur.com/Dyf1Fda.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/Dyf1Fda.png"
+        title="https://i.imgur.com/Dyf1Fda.png" /></p>
+<p>否則不會收到</p>
+<blockquote>
+<p>此帳號尚未被邀請至已連動「測試bot」的群組中。請將此帳號邀請至「去」中。</p>
+</blockquote>
+<h3 id="架設-line-notify-gateway">架設 line notify gateway</h3>
+<p>官方沒推薦使用哪一個line notify<br>
+可能國外很少用</p>
+<p>這篇有找到<a href="https://nontster.medium.com/line-notify-gateway-2-f117c20c6f62" target="_blank" rel="noopener noreffer ">line-notify-gateway (2). ใน blog… | by Nont Banditwong | Medium</a><br>
+雖然看不懂裡面文章<br>
+但從指令可以看出東西</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -d -p 18081:18081 -e line-notify.personal-access-token<span class="o">=</span><span class="s1">&#39;{換成你的TOKEN}&#39;</span> --name line-notify-gateway nontster/line-notify-gateway
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">receivers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">line-noti</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">webhook_configs</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l">http://192.168.73.161:18081/v1/alertmanager/payload</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">send_resolved</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>測試alertmanager 訊息</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -H <span class="s2">&#34;Content-type: application/json&#34;</span> -X POST -d <span class="s1">&#39;{&#34;recei&#34;status&#34;:&#34;firing&#34;,&#34;alerts&#34;:[{&#34;status&#34;:&#34;firing&#34;,&#34;labels&#34;:{&#34;alertname&#34;:&#34;InstanceDown&#34;,&#34;instance&#34;:&#34;director1:9100&#34;,&#34;job&#34;:&#34;ipvs&#34;,&#34;severity&#34;:&#34;critical&#34;},&#34;annotations&#34;:{&#34;description&#34;:&#34;director1:9100 of job ipvs has been down for  more than 5 minutes.&#34;,&#34;summary&#34;:&#34;Instance director1:9100 down&#34;},&#34;startsAt&#34;:&#34;2019-06-09T09:12:56.795099989Z&#34;,&#34;endsAt&#34;:&#34;0001-01-01T00:00:00Z&#34;,&#34;generatorURL&#34;:&#34;http://72426f0cd030:9090/graph?g0.expr=up+%3D%3D+0&amp;g0.tab=1&#34;}],&#34;groupLabels&#34;:{&#34;alertname&#34;:&#34;InstanceDown&#34;},&#34;commonLabels&#34;:{&#34;alertname&#34;:&#34;InstanceDown&#34;,&#34;instance&#34;:&#34;director1:9100&#34;,&#34;job&#34;:&#34;ipvs&#34;,&#34;severity&#34;:&#34;critical&#34;},&#34;commonAnnotations&#34;:{&#34;description&#34;:&#34;director1:9100 of job ipvs has been down for  more than 5 minutes.&#34;,&#34;summary&#34;:&#34;Instance director1:9100 down&#34;},&#34;externalURL&#34;:&#34;http://alertmanager:9093&#34;,&#34;version&#34;:&#34;4&#34;,&#34;groupKey&#34;:&#34;{}:{alertname=\&#34;InstanceDown\&#34;}&#34;}&#39;</span> http://localhost:18081/v1/alertmanager/payload
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>測試結果可進行運行</p>
+<h2 id="監控">監控</h2>
+<p>裡面有內建設定 exporter 服務沒偵測到兩分鐘會發送通知<br>
+除了這些外，還有 traefik exporter ,blackbox exporter, 各種 exporter等等</p>
+<p><a href="https://prometheus.io/docs/instrumenting/exporters/" target="_blank" rel="noopener noreffer ">Exporters and integrations | Prometheus</a></p>
+<p>接下來還有很長一段要學習的路</p>
+<h2 id="使用-vagrant-快速部屬">使用 vagrant 快速部屬</h2>
+<p>因為我沒有做 docker-compose 安裝，特別做個快速做出環境。首先必須安裝 vagrant + virtualbox，這邊網路上還滿多的，可以參照網路設定。</p>
+<h3 id="安裝-vagrant--virtualbox">安裝 vagrant + virtualbox</h3>
+<ul>
+<li><a href="https://school.soft-arch.net/blog/1060/install-vagrant-on-win" target="_blank" rel="noopener noreffer ">在 Windows 上安裝 Vagrant 軟體 | 軟體架構・絮語</a></li>
+<li><a href="https://iter01.com/535414.html" target="_blank" rel="noopener noreffer ">超詳細的 Vagrant 上手指南 | IT人</a></li>
+<li><a href="https://www.cc.ntu.edu.tw/chinese/epaper/0040/20170320_4006.html" target="_blank" rel="noopener noreffer ">使用Vagrant進行伺服器環境部屬</a></li>
+</ul>
+<h3 id="設定-vagrantfile-執行-vagrant">設定 Vagrantfile 執行 vagrant</h3>
+<p>建立 Vagrantfile</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Vagrant.configure(&#34;2&#34;) do |config|
+</span></span><span class="line"><span class="cl">  # 設定 vm image, 版本,hostname,名稱
+</span></span><span class="line"><span class="cl">  config.vm.box = &#34;bento/ubuntu-18.04&#34;
+</span></span><span class="line"><span class="cl">  config.vm.box_version =&#39;201912.14.0&#39;
+</span></span><span class="line"><span class="cl">  config.vm.hostname = &#39;dev&#39;
+</span></span><span class="line"><span class="cl">  config.vm.define vm_name = &#39;dev&#39;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  # provision (Shell Script)
+</span></span><span class="line"><span class="cl">  config.vm.provision &#34;shell&#34;, privileged: false,  inline: &lt;&lt;-SHELL
+</span></span><span class="line"><span class="cl">    set -e -x -u
+</span></span><span class="line"><span class="cl">    export DEBIAN_FRONTEND=noninteractive
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    #change the source.list
+</span></span><span class="line"><span class="cl">    sudo apt-get update
+</span></span><span class="line"><span class="cl">    sudo apt-get install -y vim git cmake build-essential  bash-completion
+</span></span><span class="line"><span class="cl">    # Install Docker
+</span></span><span class="line"><span class="cl">    export DOCKER_VERSION=&#34;5:19.03.5~3-0~ubuntu-bionic&#34;
+</span></span><span class="line"><span class="cl">    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+</span></span><span class="line"><span class="cl">    sudo add-apt-repository &#34;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&#34;
+</span></span><span class="line"><span class="cl">    sudo apt-get update
+</span></span><span class="line"><span class="cl">    sudo apt-get install -y docker-ce=${DOCKER_VERSION}
+</span></span><span class="line"><span class="cl">    sudo usermod -aG docker $USER
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    #Disable swap
+</span></span><span class="line"><span class="cl">    #https://github.com/kubernetes/kubernetes/issues/53533
+</span></span><span class="line"><span class="cl">    sudo swapoff -a &amp;&amp; sudo sysctl -w vm.swappiness=0
+</span></span><span class="line"><span class="cl">    sudo sed &#39;/vagrant--vg-swap/d&#39; -i /etc/fstab
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it
+</span></span><span class="line"><span class="cl">    bash ~/.bash_it/install.sh -s
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    # install docker-compose
+</span></span><span class="line"><span class="cl">    sudo curl -L &#34;https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)&#34; -o /usr/local/bin/docker-compose
+</span></span><span class="line"><span class="cl">    sudo chmod +x /usr/local/bin/docker-compose
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    git clone https://github.com/Kev1nChan/docker-prometheus.git
+</span></span><span class="line"><span class="cl">    cd docker-prometheus
+</span></span><span class="line"><span class="cl">    sudo /usr/local/bin/docker-compose up -d
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  SHELL
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  # 設定IP
+</span></span><span class="line"><span class="cl">  config.vm.network :private_network, ip: &#34;172.17.8.111&#34;
+</span></span><span class="line"><span class="cl">  #設定硬體
+</span></span><span class="line"><span class="cl">  config.vm.provider :virtualbox do |v|
+</span></span><span class="line"><span class="cl">      v.customize [&#34;modifyvm&#34;, :id, &#34;--cpus&#34;, 2]
+</span></span><span class="line"><span class="cl">      v.customize [&#34;modifyvm&#34;, :id, &#34;--memory&#34;, 4096]
+</span></span><span class="line"><span class="cl">      v.customize [&#39;modifyvm&#39;, :id, &#39;--nicpromisc1&#39;, &#39;allow-all&#39;]
+</span></span><span class="line"><span class="cl">  end
+</span></span><span class="line"><span class="cl">end
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 執行 vagrant</span>
+</span></span><span class="line"><span class="cl">vagrant up 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>開瀏覽器</p>
+<p>grafana: http://172.17.8.111:3000<br>
+帳號/密碼: admin/qwe123!@#<br>
+prometheus: http://172.17.8.111:9090<br>
+node_exporter: http://172.17.8.111:9100<br>
+cadvisor: http://172.17.8.111:8080<br>
+alertmanager: http://172.17.8.111:9093</p>
+<p>這邊就重複上面教的流程</p>
+<ol>
+<li>
+<p>進入設定新增 Prometheus<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/hJ51LOG.png"
+        data-srcset="https://i.imgur.com/hJ51LOG.png, https://i.imgur.com/hJ51LOG.png 1.5x, https://i.imgur.com/hJ51LOG.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/hJ51LOG.png"
+        title="https://i.imgur.com/hJ51LOG.png" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/LC54mz5.png"
+        data-srcset="https://i.imgur.com/LC54mz5.png, https://i.imgur.com/LC54mz5.png 1.5x, https://i.imgur.com/LC54mz5.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/LC54mz5.png"
+        title="https://i.imgur.com/LC54mz5.png" /></p>
+</li>
+<li>
+<p>新增 Prometheus 設定<br>
+網址可以設定IP或hostname，這邊跟docker網路連線有關係，所以不解釋太多。</p>
+</li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/YMEJt0o.png"
+        data-srcset="https://i.imgur.com/YMEJt0o.png, https://i.imgur.com/YMEJt0o.png 1.5x, https://i.imgur.com/YMEJt0o.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/YMEJt0o.png"
+        title="https://i.imgur.com/YMEJt0o.png" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/pwh7sEL.png"
+        data-srcset="https://i.imgur.com/pwh7sEL.png, https://i.imgur.com/pwh7sEL.png 1.5x, https://i.imgur.com/pwh7sEL.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/pwh7sEL.png"
+        title="https://i.imgur.com/pwh7sEL.png" /></p>
+<ol start="3">
+<li>新增 dashboard</li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/FSuhihx.png"
+        data-srcset="https://i.imgur.com/FSuhihx.png, https://i.imgur.com/FSuhihx.png 1.5x, https://i.imgur.com/FSuhihx.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/FSuhihx.png"
+        title="https://i.imgur.com/FSuhihx.png" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/diVrhAw.png"
+        data-srcset="https://i.imgur.com/diVrhAw.png, https://i.imgur.com/diVrhAw.png 1.5x, https://i.imgur.com/diVrhAw.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/diVrhAw.png"
+        title="https://i.imgur.com/diVrhAw.png" /></p>
+<p>大概就這樣</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2021-04-05</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境" data-hashtags="prometheus,exporter"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" data-hashtag="prometheus"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/" data-title="新手快速 Prometheus 使用 Docker 快速 10 分鐘建置環境"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/prometheus/">prometheus</a>,&nbsp;<a href="/blog/tags/exporter/">exporter</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94/" class="prev" rel="prev" title="Raspberry Pi 調整 swap 虛擬記憶體"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Raspberry Pi 調整 swap 虛擬記憶體</a>
+            <a href="/blog/posts/Raspberry-Pi-%E9%83%A8%E5%B1%AC-Prometheus/" class="next" rel="next" title="Raspberry Pi 部屬 Prometheus">Raspberry Pi 部屬 Prometheus<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

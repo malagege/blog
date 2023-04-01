@@ -1,324 +1,822 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>遇到Content-Length不正確到底發生什麼情況 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="遇到Content-Length不正確到底發生什麼情況"><meta property="og:description" content="最近公司有一個案子，對方用程式打 API 竟然會會帶content-length:2，但並未帶 body 值
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>遇到Content-Length不正確到底發生什麼情況 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="遇到Content-Length不正確到底發生什麼情況" />
+<meta property="og:description" content="最近公司有一個案子，對方用程式打 API 竟然會會帶content-length:2，但並未帶 body 值
 導致程式會不正確，但對方說程式已經用現有的 function，所以沒辦法修正
 最後這個問題還是沒法解決
 這幾天研究content-length:2會影響什麼情形
 在公司和家裡測試結果會不太一樣讓我矇 B
 所以測試的時候不知道發生什麼事情
-這邊只記錄我測出來結果"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-04-05T23:50:06+00:00"><meta property="article:modified_time" content="2019-04-05T23:50:06+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="遇到Content-Length不正確到底發生什麼情況"><meta name=twitter:description content="最近公司有一個案子，對方用程式打 API 竟然會會帶content-length:2，但並未帶 body 值
+這邊只記錄我測出來結果" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-04-05T23:50:06+00:00" />
+<meta property="article:modified_time" content="2019-04-05T23:50:06+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="遇到Content-Length不正確到底發生什麼情況"/>
+<meta name="twitter:description" content="最近公司有一個案子，對方用程式打 API 竟然會會帶content-length:2，但並未帶 body 值
 導致程式會不正確，但對方說程式已經用現有的 function，所以沒辦法修正
 最後這個問題還是沒法解決
 這幾天研究content-length:2會影響什麼情形
 在公司和家裡測試結果會不太一樣讓我矇 B
 所以測試的時候不知道發生什麼事情
-這邊只記錄我測出來結果"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/><link rel=prev href=https://malagege.github.io/blog/posts/js-php%E7%9A%84switch%E5%B7%AE%E7%95%B0/><link rel=next href=https://malagege.github.io/blog/posts/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"遇到Content-Length不正確到底發生什麼情況","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81\/"},"genre":"posts","keywords":"nginx, apache","wordcount":1548,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81\/","datePublished":"2019-04-05T23:50:06+00:00","dateModified":"2019-04-05T23:50:06+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">遇到Content-Length不正確到底發生什麼情況</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/%E5%AF%AB%E7%A8%8B%E5%BC%8F%E4%B8%80%E4%BA%9B%E4%BA%8B/><i class="far fa-folder fa-fw" aria-hidden=true></i>寫程式一些事</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-04-05>2019-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1548 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;8 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#介紹-request-content-length>介紹 request Content-Length</a></li><li><a href=#靜態資源>靜態資源</a><ul><li><a href=#http-content-length-數值不正確-可正常執行>HTTP Content-Length 數值不正確 可正常執行</a></li></ul></li><li><a href=#動態資源>動態資源</a></li><li><a href=#https>HTTPS</a></li><li><a href=#content-length-接收的值header-值>Content-Length 接收的值>Header 值</a></li><li><a href=#apache-cotent-length-不會-408>Apache Cotent-Length 不會 408</a></li><li><a href=#web-application-firewall-影響>Web Application Firewall 影響</a></li><li><a href=#nginx-從-phpfpm-那邊調整-改-header-失敗筆記>nginx 從 phpfpm 那邊調整 改 header 失敗筆記</a></li><li><a href=#nginx-post-打靜態資源會-405>nginx POST 打靜態資源會 405</a></li><li><a href=#其他小記>其他小記</a></li><li><a href=#感想與結論>感想與結論</a></li></ul></nav></div></div><div class=content id=content><p>最近公司有一個案子，對方用程式打 API 竟然會會帶<code>content-length:2</code>，但並未帶 body 值<br>導致程式會不正確，但對方說程式已經用現有的 function，所以沒辦法修正<br>最後這個問題還是沒法解決<br>這幾天研究<code>content-length:2</code>會影響什麼情形<br>在<code>公司</code>和<code>家</code>裡測試結果會不太一樣<del>讓我矇 B</del><br>所以測試的時候不知道發生什麼事情<br>這邊只記錄我測出來結果</p><p>注意這邊的 Content-Length 都先只 request header 裡面<br>不是只 response Content-Length</p><h2 id=介紹-request-content-length>介紹 request Content-Length</h2><p>簡單一句話，就是 POST DATA 資料傳給 Server 長度。</p><p>有找到更短詳細介紹</p><blockquote><ul><li>響應為 1xx，204，304 相應或者 head 請求，則直接忽視掉消息實體內容。</li><li>如果有 Transfer-Encoding，則優先採用 Transfer-Encoding 裡面的方法來找到對應的長度。比如說 Chunked 模式。</li><li>「如果 head 中有 Content-Length，那麼這個 Content-Length 既表示實體長度，又表示傳輸長度。如果實體長度和傳輸長度不相等(比如說設置了 Transfer-Encoding)，那麼則不能設置 Content-Length。如果設置了 Transfer-Encoding，那麼 Content-Length 將被忽視」。這句話翻譯的優點饒，其實關鍵就一點：有了 Transfer-Encoding，則不能有 Content-Length。</li><li>通過服務器關閉連接能確定消息的傳輸長度。(請求端不能通過關閉連接來指明請求消息體的結束，因為這樣可以讓服務器沒有機會繼續給予響應)。這種情況主要對應為短連接，即非 keep-alive 模式。<br>HTTP1.1 必須支持 chunk 模式。因為當不確定消息長度的時候，可以通過 chunk 機制來處理這種情況。</li><li>在包含消息內容的 header 中，如果有 content-length 字段，那麼該字段對應的值必須完全和消息主題裡面的長度匹配。<br>其實後面幾條幾乎可以忽視，簡單總結後如下：<br>1、Content-Length 如果存在並且有效的話，則必須和消息內容的傳輸長度完全一致。(經過測試，如果過短則會截斷，過長則會導致超時。)<br>2、如果存在 Transfer-Encoding(重點是 chunked)，則在 header 中不能有 Content-Length，有也會被忽視。<br>3、如果採用短連接，則直接可以通過服務器關閉連接來確定消息的傳輸長度。(這個很容易懂)<br>結合 HTTP 協議其他的特點，比如說 Http1.1 之前的不支持 keep alive。那麼可以得出以下結論：<br>1、在 Http 1.0 及之前版本中，content-length 字段可有可無。<br>2、在 http1.1 及之後版本。如果是 keep alive，則 content-length 和 chunk 必然是二選一。若是非 keep alive，則和 http1.0 一樣。content-length 可有可無。</li></ul></blockquote><h2 id=靜態資源>靜態資源</h2><p>先講一下，這邊靜態資源是指<code>*.jpg,*.png,*js,*.json</code><br>以下測試會以 nginx 為主</p><h3 id=http-content-length-數值不正確-可正常執行>HTTP Content-Length 數值不正確 可正常執行</h3><p>連<code>http</code>時候，<code>靜態</code>資源不管<code>Content-Length</code>帶多少(正確或不正確)，apache,nginx 都可以正常回傳程式<br>我在我的電腦裝 nginx 測試<br>雖然有些網站可能不正常，目前推測可能有防火牆關係<br>防火牆可能會分析這封包不正確，可能會阻擋</p><p>不能正確連線 EX:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>curl -v --request &#34;GET&#34; --header &#34;content-length:2&#34; http://www.cyut.edu.tw/~ywfan/index.htm
-</span></span><span class=line><span class=cl>Note: Unnecessary use of -X or --request, GET is already inferred.
-</span></span><span class=line><span class=cl>*   Trying 163.17.1.15...
-</span></span><span class=line><span class=cl>* TCP_NODELAY set
-</span></span><span class=line><span class=cl>* Connected to www.cyut.edu.tw (163.17.1.15) port 80 (#0)
-</span></span><span class=line><span class=cl>&gt; GET /~ywfan/index.htm HTTP/1.1
-</span></span><span class=line><span class=cl>&gt; Host: www.cyut.edu.tw
-</span></span><span class=line><span class=cl>&gt; User-Agent: curl/7.58.0
-</span></span><span class=line><span class=cl>&gt; Accept: */*
-</span></span><span class=line><span class=cl>&gt; content-length:2
-</span></span><span class=line><span class=cl>&gt;
-</span></span></code></pre></td></tr></table></div></div><p>可以正常連線，這邊隨便有找到一個可正常連線<br>我上面先前我有打可能會跟防火牆(這邊防火牆不是指 OS 防火牆)<br>因為我家可以正常打、公司那邊會不正常<br>所以可能被硬體防火牆(Web Application Firewall)阻擋</p><p>家裡執行指令</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl> curl -v --request &#34;GET&#34; --header &#34;content-length:200&#34; http://jimmypm.ehosting.com.tw/a.htm
-</span></span><span class=line><span class=cl>Note: Unnecessary use of -X or --request, GET is already inferred.
-</span></span><span class=line><span class=cl>*   Trying 203.69.42.72...
-</span></span><span class=line><span class=cl>* TCP_NODELAY set
-</span></span><span class=line><span class=cl>* Connected to jimmypm.ehosting.com.tw (203.69.42.72) port 80 (#0)
-</span></span><span class=line><span class=cl>&gt; GET /a.htm HTTP/1.1
-</span></span><span class=line><span class=cl>&gt; Host: jimmypm.ehosting.com.tw
-</span></span><span class=line><span class=cl>&gt; User-Agent: curl/7.58.0
-</span></span><span class=line><span class=cl>&gt; Accept: */*
-</span></span><span class=line><span class=cl>&gt; content-length:200
-</span></span><span class=line><span class=cl>&gt;
-</span></span><span class=line><span class=cl>&lt; HTTP/1.1 200 OK
-</span></span><span class=line><span class=cl>&lt; Content-Type: text/html
-</span></span><span class=line><span class=cl>&lt; Last-Modified: Thu, 04 Apr 2019 04:12:18 GMT
-</span></span><span class=line><span class=cl>&lt; Accept-Ranges: bytes
-</span></span><span class=line><span class=cl>&lt; ETag: &#34;923231989cead41:0&#34;
-</span></span><span class=line><span class=cl>&lt; Server: Microsoft-IIS/7.5
-</span></span><span class=line><span class=cl>&lt; X-Powered-By: ASP.NET
-</span></span><span class=line><span class=cl>&lt; Date: Fri, 05 Apr 2019 16:23:21 GMT
-</span></span><span class=line><span class=cl>&lt; Content-Length: 48739
-</span></span><span class=line><span class=cl>&lt;
-</span></span></code></pre></td></tr></table></div></div><p>公司執行指令結果</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>$  curl -v --request &#34;GET&#34; --header &#34;content-length:200&#34; http://jimmypm.ehosting.com.tw/a.htm
-</span></span><span class=line><span class=cl>Note: Unnecessary use of -X or --request, GET is already inferred.
-</span></span><span class=line><span class=cl>  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-</span></span><span class=line><span class=cl>                                 Dload  Upload   Total   Spent    Left  Speed
-</span></span><span class=line><span class=cl>  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0*  Trying 203.69.42.72...
-</span></span><span class=line><span class=cl>* TCP_NODELAY set
-</span></span><span class=line><span class=cl>* Connected to jimmypm.ehosting.com.tw (203.69.42.72) port 80 (#0)
-</span></span><span class=line><span class=cl>&gt; GET /a.htm HTTP/1.1
-</span></span><span class=line><span class=cl>&gt; Host: jimmypm.ehosting.com.tw
-</span></span><span class=line><span class=cl>&gt; User-Agent: curl/7.61.1
-</span></span><span class=line><span class=cl>&gt; Accept: */*
-</span></span><span class=line><span class=cl>&gt; content-length:200
-</span></span><span class=line><span class=cl>&gt;
-</span></span><span class=line><span class=cl>  0     0    0     0    0     0      0      0 --:--:--  0:02:18 --:--:--     0*Empty reply from server
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>* Connection #0 to host jimmypm.ehosting.com.tw left intact
-</span></span><span class=line><span class=cl>curl: (52) Empty reply from server
-</span></span></code></pre></td></tr></table></div></div><h2 id=動態資源>動態資源</h2><p>例如<code>*.asp</code>,<code>*.jsp</code>,<code>*.php</code><br>只要做到<code>Content-Length:2</code> 沒有送出<code>data</code>(POST DATA)<br>就會出錯，接收到<code>408</code> 連線逾時。</p><p>這邊簡單詳細講一下，Server 是主動關閉的，這時候 client 會持續等待，使用者關閉頁面，也不會影響結果<br>使用者沒有關閉的話，Server 沒接收 data 資料，就會回傳<code>408</code><br>這時候使用者會接收到<code>408</code></p><p>維基百科</p><blockquote><p>408 Request Timeout<br>請求超時。根據 HTTP 規範，用戶端沒有在伺服器預備等待的時間內完成一個請求的傳送，用戶端可以隨時再次提交這一請求而無需進行任何更改</p></blockquote><h2 id=https>HTTPS</h2><p>不管靜態資源、動態資源都會錯誤</p><ul><li>動態資源</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -v --request <span class=s2>&#34;GET&#34;</span> --header <span class=s2>&#34;Content-Length:3&#34;</span> --data <span class=s2>&#34;12345&#34;</span>  https://tw.yahoo.com                                                                                       ✔  <span class=m>20</span>  15:16:43
-</span></span><span class=line><span class=cl>* Rebuilt URL to: https://tw.yahoo.com/
-</span></span><span class=line><span class=cl>*   Trying 124.108.103.104...
-</span></span><span class=line><span class=cl>* TCP_NODELAY <span class=nb>set</span>
-</span></span><span class=line><span class=cl>* Connected to tw.yahoo.com <span class=o>(</span>124.108.103.104<span class=o>)</span> port <span class=m>443</span> <span class=o>(</span><span class=c1>#0)</span>
-</span></span><span class=line><span class=cl>* ALPN, offering h2
-</span></span><span class=line><span class=cl>* ALPN, offering http/1.1
-</span></span><span class=line><span class=cl>* successfully <span class=nb>set</span> certificate verify locations:
-</span></span><span class=line><span class=cl>*   CAfile: /etc/ssl/certs/ca-certificates.crt
-</span></span><span class=line><span class=cl>  CApath: /etc/ssl/certs
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>OUT<span class=o>)</span>, TLS handshake, Client hello <span class=o>(</span>1<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>IN<span class=o>)</span>, TLS handshake, Server hello <span class=o>(</span>2<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>IN<span class=o>)</span>, TLS handshake, Certificate <span class=o>(</span>11<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>IN<span class=o>)</span>, TLS handshake, Server key exchange <span class=o>(</span>12<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>IN<span class=o>)</span>, TLS handshake, Server finished <span class=o>(</span>14<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>OUT<span class=o>)</span>, TLS handshake, Client key exchange <span class=o>(</span>16<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>OUT<span class=o>)</span>, TLS change cipher, Client hello <span class=o>(</span>1<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>OUT<span class=o>)</span>, TLS handshake, Finished <span class=o>(</span>20<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* TLSv1.2 <span class=o>(</span>IN<span class=o>)</span>, TLS handshake, Finished <span class=o>(</span>20<span class=o>)</span>:
-</span></span><span class=line><span class=cl>* SSL connection using TLSv1.2 / ECDHE-RSA-AES128-GCM-SHA256
-</span></span><span class=line><span class=cl>* ALPN, server accepted to use h2
-</span></span><span class=line><span class=cl>* Server certificate:
-</span></span><span class=line><span class=cl>*  subject: <span class=nv>C</span><span class=o>=</span>US<span class=p>;</span> <span class=nv>ST</span><span class=o>=</span>California<span class=p>;</span> <span class=nv>L</span><span class=o>=</span>Sunnyvale<span class=p>;</span> <span class=nv>O</span><span class=o>=</span>Oath Inc<span class=p>;</span> <span class=nv>CN</span><span class=o>=</span>*.www.yahoo.com
-</span></span><span class=line><span class=cl>*  start date: Feb  <span class=m>1</span> 00:00:00 <span class=m>2019</span> GMT
-</span></span><span class=line><span class=cl>*  expire date: Jul <span class=m>31</span> 12:00:00 <span class=m>2019</span> GMT
-</span></span><span class=line><span class=cl>*  subjectAltName: host <span class=s2>&#34;tw.yahoo.com&#34;</span> matched cert<span class=err>&#39;</span>s <span class=s2>&#34;tw.yahoo.com&#34;</span>
-</span></span><span class=line><span class=cl>*  issuer: <span class=nv>C</span><span class=o>=</span>US<span class=p>;</span> <span class=nv>O</span><span class=o>=</span>DigiCert Inc<span class=p>;</span> <span class=nv>OU</span><span class=o>=</span>www.digicert.com<span class=p>;</span> <span class=nv>CN</span><span class=o>=</span>DigiCert SHA2 High Assurance Server CA
-</span></span><span class=line><span class=cl>*  SSL certificate verify ok.
-</span></span><span class=line><span class=cl>* Using HTTP2, server supports multi-use
-</span></span><span class=line><span class=cl>* Connection state changed <span class=o>(</span>HTTP/2 confirmed<span class=o>)</span>
-</span></span><span class=line><span class=cl>* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: <span class=nv>len</span><span class=o>=</span><span class=m>0</span>
-</span></span><span class=line><span class=cl>* Using Stream ID: <span class=m>1</span> <span class=o>(</span>easy handle 0x55d96331c780<span class=o>)</span>
-</span></span><span class=line><span class=cl>&gt; GET / HTTP/2
-</span></span><span class=line><span class=cl>&gt; Host: tw.yahoo.com
-</span></span><span class=line><span class=cl>&gt; User-Agent: curl/7.58.0
-</span></span><span class=line><span class=cl>&gt; Accept: */*
-</span></span><span class=line><span class=cl>&gt; Content-Length:3
-</span></span><span class=line><span class=cl>&gt; Content-Type: application/x-www-form-urlencoded
-</span></span><span class=line><span class=cl>&gt;
-</span></span><span class=line><span class=cl>* We are completely uploaded and fine
-</span></span><span class=line><span class=cl>* Connection state changed <span class=o>(</span>MAX_CONCURRENT_STREAMS updated<span class=o>)</span>!
-</span></span><span class=line><span class=cl>* Connection <span class=c1>#0 to host tw.yahoo.com left intact</span>
-</span></span><span class=line><span class=cl>curl: <span class=o>(</span>16<span class=o>)</span> Error in the HTTP2 framing layer
-</span></span></code></pre></td></tr></table></div></div><ul><li>靜態資源</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl> curl  --request <span class=s2>&#34;GET&#34;</span> --header <span class=s2>&#34;Content-Length:3&#34;</span>  https://code.jquery.com/jquery-1.11.3.js
-</span></span><span class=line><span class=cl>curl: <span class=o>(</span>52<span class=o>)</span> Empty reply from server
-</span></span></code></pre></td></tr></table></div></div><h2 id=content-length-接收的值header-值>Content-Length 接收的值>Header 值</h2><p>我有簡單寫個 PHP 程式</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=nv>$data</span> <span class=o>=</span> <span class=nx>file_get_contents</span><span class=p>(</span><span class=s1>&#39;php://input&#39;</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=nx>var_dump</span><span class=p>(</span><span class=nv>$data</span><span class=p>);</span>
-</span></span></code></pre></td></tr></table></div></div><p>簡單可以看出 post raw data<br>這邊用 nginx+phpfpm 測出來結果<br>其實會被截斷</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -v --request <span class=s2>&#34;GET&#34;</span> --header <span class=s2>&#34;Content-Length:3&#34;</span> --data <span class=s2>&#34;12345&#34;</span>  http://192.168.1.121:32771/testpost.php
-</span></span><span class=line><span class=cl>*   Trying 192.168.1.121...
-</span></span><span class=line><span class=cl>* TCP_NODELAY <span class=nb>set</span>
-</span></span><span class=line><span class=cl>* Connected to 192.168.1.121 <span class=o>(</span>192.168.1.121<span class=o>)</span> port <span class=m>32771</span> <span class=o>(</span><span class=c1>#0)</span>
-</span></span><span class=line><span class=cl>&gt; GET /testpost.php HTTP/1.1
-</span></span><span class=line><span class=cl>&gt; Host: 192.168.1.121:32771
-</span></span><span class=line><span class=cl>&gt; User-Agent: curl/7.58.0
-</span></span><span class=line><span class=cl>&gt; Accept: */*
-</span></span><span class=line><span class=cl>&gt; Content-Length:3
-</span></span><span class=line><span class=cl>&gt; Content-Type: application/x-www-form-urlencoded
-</span></span><span class=line><span class=cl>&gt;
-</span></span><span class=line><span class=cl>* upload completely sent off: <span class=m>5</span> out of <span class=m>5</span> bytes
-</span></span><span class=line><span class=cl>&lt; HTTP/1.1 <span class=m>200</span> OK
-</span></span><span class=line><span class=cl>&lt; Date: Sat, <span class=m>06</span> Apr <span class=m>2019</span> 07:14:21 GMT
-</span></span><span class=line><span class=cl>&lt; Server: Apache/2.4.25 <span class=o>(</span>Debian<span class=o>)</span>
-</span></span><span class=line><span class=cl>&lt; Content-Length: <span class=m>16</span>
-</span></span><span class=line><span class=cl>&lt; Content-Type: text/html<span class=p>;</span> <span class=nv>charset</span><span class=o>=</span>UTF-8
-</span></span><span class=line><span class=cl>&lt;
-</span></span><span class=line><span class=cl>string<span class=o>(</span>3<span class=o>)</span> <span class=s2>&#34;123&#34;</span>
-</span></span><span class=line><span class=cl>* Connection <span class=c1>#0 to host 192.168.1.121 left intact</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=apache-cotent-length-不會-408>Apache Cotent-Length 不會 408</h2><p>今天發現有一個 PHP 網站，<code>content-length:x</code>都可以正常運作<br>不過發現是用<code>apache+mod_php</code><br>我自己有測試還真的能 work</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl --request <span class=s2>&#34;GET&#34;</span> --header <span class=s2>&#34;Content-Length:3&#34;</span> http://mcu.no-ip.org/
-</span></span></code></pre></td></tr></table></div></div><p>可用這個 docker hub 做簡單測試<br><a href=https://hub.docker.com/r/eboraas/apache-php/dockerfile target=_blank rel="noopener noreffer">eboraas/apache-php Dockerfile - Docker Hub</a></p><p>PS:apache+php-fpm 不會回傳 response，但說奇怪 apache log 會顯示 200</p><p>以下是 apache+php-fpm</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl -v --request <span class=s2>&#34;GET&#34;</span> --header <span class=s2>&#34;Content-Length:3&#34;</span>  http://192.168.1.121:32772/testpost.php
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Note: Unnecessary use of -X or --request, GET is already inferred.
-</span></span><span class=line><span class=cl>*   Trying 192.168.1.121...
-</span></span><span class=line><span class=cl>* TCP_NODELAY <span class=nb>set</span>
-</span></span><span class=line><span class=cl>* Connected to 192.168.1.121 <span class=o>(</span>192.168.1.121<span class=o>)</span> port <span class=m>32772</span> <span class=o>(</span><span class=c1>#0)</span>
-</span></span><span class=line><span class=cl>&gt; GET /phpinfo.php HTTP/1.1
-</span></span><span class=line><span class=cl>&gt; Host: 192.168.1.121:32772
-</span></span><span class=line><span class=cl>&gt; User-Agent: curl/7.58.0
-</span></span><span class=line><span class=cl>&gt; Accept: */*
-</span></span><span class=line><span class=cl>&gt; Content-Length:3
-</span></span><span class=line><span class=cl>&gt;
-</span></span><span class=line><span class=cl>&lt; HTTP/1.1 <span class=m>200</span> OK
-</span></span><span class=line><span class=cl>&lt; Date: Sat, <span class=m>06</span> Apr <span class=m>2019</span> 07:08:31 GMT
-</span></span><span class=line><span class=cl>&lt; Server: Apache/2.4.7 <span class=o>(</span>Ubuntu<span class=o>)</span>
-</span></span><span class=line><span class=cl>&lt; Connection: close
-</span></span><span class=line><span class=cl>&lt;
-</span></span><span class=line><span class=cl>* Closing connection <span class=m>0</span>
-</span></span></code></pre></td></tr></table></div></div><p>什麼 Apache 跟 nginx 結果不太一樣!!!<br>我也冏了!!!不過依然沒有找到相關文獻</p><p>在 Apache 官網文件<a href=https://httpd.apache.org/docs/trunk/en/mod/mod_policy.html target=_blank rel="noopener noreffer">mod_policy - Apache HTTP Server Version 2.5</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>PolicyLength Directive
-</span></span><span class=line><span class=cl>Description:	Enable the content length policy.
-</span></span><span class=line><span class=cl>Syntax:	PolicyLength ignore|log|enforce
-</span></span><span class=line><span class=cl>Default:	ignore
-</span></span><span class=line><span class=cl>Context:	server config, virtual host, directory
-</span></span><span class=line><span class=cl>Status:	Extension
-</span></span><span class=line><span class=cl>Module:	mod_policy
-</span></span><span class=line><span class=cl>Compatibility:	PolicyLength is only available in Apache 2.5.0 and later.
-</span></span></code></pre></td></tr></table></div></div><p>不確定是不是這個關係，目前他說這個選項 Apache2.5 才會有(現在才 Apache2.4)<br>我找不到 2.5 版本= =<br>有可能現在是讓他過</p><h2 id=web-application-firewall-影響>Web Application Firewall 影響</h2><p>有爬到這個，目前猜測公司或有些網站連不到可能之中有類似 WAF<br>這東西影響到<br><a href="https://www.qa-knowhow.com/?p=4679" target=_blank rel="noopener noreffer">Web Application Firewall 的偵測原理 – 軟體品管的專業思維</a></p><blockquote><ol start=6><li>HTTP 標準協議<br>檢查請求的內容是否符合 HTTP 標準協議, 這是一種比較有效且直覺的方式<br>任意修改 HTTP 協議內容可能會導致的攻擊如下:<br><a href=http://capec.mitre.org/data/definitions/220.html target=_blank rel="noopener noreffer">http://capec.mitre.org/data/definitions/220.html</a><br>HTTP 協議中檢查的重點為:<br>MIME 中 filename 檔名<br>URL 合法性<br>Content-Length 數值<br>衝突與重複的 HTTP headers, 例如 keep-alive 與 close 重複與衝突<br>不安全的字元, 例如 ” “, “&lt;“, “>”, “{“, “}”, “|”, “\”, “^”, “~”, “[“, “]”, and “`”.等<br>過濾異常缺少 Http header 的請求, 一般正常的請求會包含 Host, User-Agent, Accept headers, 因此如果缺少或是沒有值都是表示異常<br>Content-Length 不等於 0 但是卻沒有 Content-Type<br>HTTP protocol version</li></ol></blockquote><h2 id=nginx-從-phpfpm-那邊調整-改-header-失敗筆記>nginx 從 phpfpm 那邊調整 改 header 失敗筆記</h2><p>在這裡面<a href=https://www.jianshu.com/p/282db1543a78 target=_blank rel="noopener noreffer">Nginx 之 fastcgi_param 参数详见 - 简书</a><br><code>fastcgi_param CONTENT_LENGTH $content_length; #请求头中的Content-length字段。</code><br>發現這個不會正常執行<br>目前猜測 nginx 在接收 request 封包時候，第一時間不會做更改<br>但當時<code>Content-Length:2</code>會持續等待<br>所以可能在等接收資料，逾時會傳 408<br>所以根本<del>不會做到修改 header 那一段</del>正確來說 php-fpm 那段沒有執行到<br>收不到改 header 那段</p><h2 id=nginx-post-打靜態資源會-405>nginx POST 打靜態資源會 405</h2><p><a href=https://gist.github.com/zxhfighter/7560812 target=_blank rel="noopener noreffer">Nginx 將靜態文件響應 POST 請求，提示 405 錯誤問題</a></p><blockquote><p>Nginx 的 405 錯誤<br>絕大多數服務器，都不允許靜態文件響應 POST 請求(GET 請求靜態文件是天經地義的)，否則會返回 HTTP/1.1 405 Method not allowed 錯誤。<br>然而在前端開發中，前端開發工程師經常模擬後端請求，返回靜態數據來查看頁面效果，怎麼辦？</p></blockquote><h2 id=其他小記>其他小記</h2><p>curl 預設是 Content-Type: application/x-www-form-urlencoded ，假如要傳 raw data 要改成 Content-Type: text/plain</p><blockquote><p>curl&rsquo;s &ndash;data will by default send Content-Type: application/x-www-form-urlencoded in the request header. However, when using Postman&rsquo;s raw body mode, Postman sends Content-Type: text/plain in the request header.<br>So to achieve the same thing as Postman, specify -H &ldquo;Content-Type: text/plain&rdquo; for curl:</p></blockquote><p>重啟 docker nginx<br><a href=https://www.shellhacks.com/docker-reload-nginx-inside-container/ target=_blank rel="noopener noreffer">Docker: Reload Nginx Inside Container - ShellHacks</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>docker container <span class=nb>exec</span> &lt;container&gt; nginx -t
-</span></span><span class=line><span class=cl>docker container <span class=nb>exec</span> &lt;container&gt; nginx -s reload
-</span></span></code></pre></td></tr></table></div></div><p>Keep-Alive 为 close<br>也無法改變 nginx 的 content-length 問題<br>keepalive_timeout 0; ，就可以關掉</p><p>Full request/response body logging in nginx 沒有測試，好像要裝 lua-nginx-module<br><a href=https://gist.github.com/morhekil/1ff0e902ed4de2adcb7a target=_blank rel="noopener noreffer">Full request/response body logging in nginx</a></p><h2 id=感想與結論>感想與結論</h2><p>沒事<strong>還是請傳好正確 content-length:0</strong><br>原本想讓 server 變成 http1.0<br>但好像怎麼用都失敗</p><p>對方說沒辦法改的話<br>最終大絕可能使用<code>apache+php_mod</code>不過最糟的情形還是會被 WAF 阻擋</p><p>這幾天總覺得浪費很多時間找這玩意<br>明明是對方的鍋，還是要想辦法解決<br>但是真的不希望遇到第二次 冏</p><p><strong>2020-05-27</strong></p><p><a href=https://blog.fundebug.com/2019/09/10/understand-http-content-length/ target=_blank rel="noopener noreffer">用了这么久HTTP, 你是否了解Content-Length? | Fundebug博客 - 一行代码搞定BUG监控 - 网站错误监控|JS错误监控|资源加载错误|网络请求错误|小程序错误监控|Java异常监控|监控报警|Source Map|用户行为|可视化重现</a><br>這篇有簡單明確講到我這篇重點</p><p>其他參考來源:</p><ul><li><p><a href=https://nkongkimo.wordpress.com/2010/04/28/http-header%E5%85%A5%E9%96%80/ target=_blank rel="noopener noreffer">Http Header 入門 | CCNP 筆記本</a></p></li><li><p><a href="https://www.qa-knowhow.com/?p=792" target=_blank rel="noopener noreffer">HTTP Request/Response 駭客跟我們想的不一樣 – 軟體品管的專業思維</a></p></li><li><p><a href=https://ssorc.tw/1148 target=_blank rel="noopener noreffer">security apache 與 php 關閉版本顯示 | SSORC.tw</a></p></li><li><p><a href=http://chuehnoneinfonote.blogspot.com/2013/02/apache-http-header.html target=_blank rel="noopener noreffer">資訊手札: Apache Http Header</a></p></li><li><p><a href=http://blog.gitdns.org/2016/06/23/web-server/ target=_blank rel="noopener noreffer">web-server | 平凡備忘錄</a></p></li><li><p><a href=https://www.byvoid.com/zht/blog/http-keep-alive-header target=_blank rel="noopener noreffer">HTTP 協議頭部與 Keep-Alive 模式詳解 - BYVoid</a></p></li><li><p><a href=https://lvtao.net/server/1458.html target=_blank rel="noopener noreffer">nginx 优化的一些建议 - 吕滔博客</a></p></li><li><p><a href=https://www.zhihu.com/question/36007098 target=_blank rel="noopener noreffer">客户端 POST 错误，服务端应该回 200 还是 400？ - 知乎</a></p></li><li><p><a href=https://www.jianshu.com/p/fa2e4e23aaaf target=_blank rel="noopener noreffer">Http 協議中關於 Content-Length 的解讀 - 簡書</a></p></li><li><p><a href=https://www.shellhacks.com/docker-reload-nginx-inside-container/ target=_blank rel="noopener noreffer">Docker: Reload Nginx Inside Container - ShellHacks</a></p></li><li><p><a href=https://www.cnblogs.com/meteoric_cry/archive/2011/06/07/2074150.html target=_blank rel="noopener noreffer">Nginx 设置 Keep-Alive 为 close - meteoric_cry - 博客园</a></p></li><li><p><a href=https://gist.github.com/zxhfighter/7560812 target=_blank rel="noopener noreffer">Nginx 將靜態文件響應 POST 請求，提示 405 錯誤問題</a></p></li><li><p><a href=https://www.qiansw.com/nginx-responds-to-the-post-request-in-the-static-file-and-prompts-405-for-the-error-problem.html target=_blank rel="noopener noreffer">Nginx 将静态文件响应 POST 请求，提示 405 错误问题 - 千思网</a></p></li><li><p><a href=https://gist.github.com/morhekil/1ff0e902ed4de2adcb7a target=_blank rel="noopener noreffer">Full request/response body logging in nginx</a></p></li><li><p><a href=https://blog.csdn.net/qq_25551295/article/details/51744815 target=_blank rel="noopener noreffer">Nginx 安装 lua-nginx-module 模块 - 拼搏的小船长 - CSDN 博客</a></p></li><li><p><a href=https://notfalse.net/42/http-payload target=_blank rel="noopener noreffer">未連線: 潛在的安全性問題</a></p></li><li><p><a href="https://www.qa-knowhow.com/?p=4679" target=_blank rel="noopener noreffer">Web Application Firewall 的偵測原理 – 軟體品管的專業思維</a></p></li><li><p><a href=https://www.oschina.net/question/2547791_2150761 target=_blank rel="noopener noreffer">nginx 的 chunked_transfer_encoding 没有生效 - 开源中国</a></p></li><li><p><a href=https://geekflare.com/open-source-web-application-firewall/#1-ModSecurity target=_blank rel="noopener noreffer">5 Open Source Web Application Firewall for Better Security</a></p></li><li><p><a href=http://cyrilwang.blogspot.com/2014/01/apache-modsecurity.html target=_blank rel="noopener noreffer">不只是資安: [工具介紹] Apache 模組 mod_security - 以阻擋造訪路徑攻擊為例</a></p></li><li><p><a href=https://www.jianshu.com/p/282db1543a78 target=_blank rel="noopener noreffer">Nginx 之 fastcgi_param 参数详见 - 简书</a></p></li><li><p><a href=http://blog.kent-chiu.com/2013/08/14/testing-rest-with-curl-command.html target=_blank rel="noopener noreffer">使用 curl 指令測試 REST 服務</a></p></li><li><p><a href=https://stackoverflow.com/questions/43054195/how-to-post-raw-body-data-with-curl target=_blank rel="noopener noreffer">linux - How to post raw body data with curl? - Stack Overflow</a></p></li><li><p><a href=https://github.com/rlerdorf/php7dev/issues/48 target=_blank rel="noopener noreffer">Where is php-fpm log file? Or how to activate it? Does PHP7 log errors? · Issue #48 · rlerdorf/php7dev</a></p></li><li><p><a href=https://blog.gtwang.org/linux/nginx-enable-php-fpm-status-page-tutorial/ target=_blank rel="noopener noreffer">Nginx 啟用 PHP-FPM 服務狀態監控網頁教學 - G. T. Wang</a></p></li><li><p><a href=https://stackoverflow.com/questions/35190034/where-is-the-default-zsh-history-file target=_blank rel="noopener noreffer">Where is the default zsh history file? - Stack Overflow</a></p></li></ul><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-04-05</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/ data-title=遇到Content-Length不正確到底發生什麼情況 data-hashtags=nginx,apache><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/ data-hashtag=nginx><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/ data-title=遇到Content-Length不正確到底發生什麼情況><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/ data-title=遇到Content-Length不正確到底發生什麼情況><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/ data-title=遇到Content-Length不正確到底發生什麼情況><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/nginx/>nginx</a>,&nbsp;<a href=/blog/tags/Apache/>Apache</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/js-php%E7%9A%84switch%E5%B7%AE%E7%95%B0/ class=prev rel=prev title=js,php的switch差異><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>js,php的switch差異</a>
-<a href=/blog/posts/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/ class=next rel=next title=nginx設定小記>nginx設定小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+這邊只記錄我測出來結果"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" /><link rel="prev" href="https://malagege.github.io/blog/posts/js-php%E7%9A%84switch%E5%B7%AE%E7%95%B0/" /><link rel="next" href="https://malagege.github.io/blog/posts/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "遇到Content-Length不正確到底發生什麼情況",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81\/"
+        },"genre": "posts","keywords": "nginx, apache","wordcount":  1548 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81\/","datePublished": "2019-04-05T23:50:06+00:00","dateModified": "2019-04-05T23:50:06+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">遇到Content-Length不正確到底發生什麼情況</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%AB%E7%A8%8B%E5%BC%8F%E4%B8%80%E4%BA%9B%E4%BA%8B/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>寫程式一些事</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-04-05">2019-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1548 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;8 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#介紹-request-content-length">介紹 request Content-Length</a></li>
+    <li><a href="#靜態資源">靜態資源</a>
+      <ul>
+        <li><a href="#http-content-length-數值不正確-可正常執行">HTTP Content-Length 數值不正確 可正常執行</a></li>
+      </ul>
+    </li>
+    <li><a href="#動態資源">動態資源</a></li>
+    <li><a href="#https">HTTPS</a></li>
+    <li><a href="#content-length-接收的值header-值">Content-Length 接收的值&gt;Header 值</a></li>
+    <li><a href="#apache-cotent-length-不會-408">Apache Cotent-Length 不會 408</a></li>
+    <li><a href="#web-application-firewall-影響">Web Application Firewall 影響</a></li>
+    <li><a href="#nginx-從-phpfpm-那邊調整-改-header-失敗筆記">nginx 從 phpfpm 那邊調整 改 header 失敗筆記</a></li>
+    <li><a href="#nginx-post-打靜態資源會-405">nginx POST 打靜態資源會 405</a></li>
+    <li><a href="#其他小記">其他小記</a></li>
+    <li><a href="#感想與結論">感想與結論</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近公司有一個案子，對方用程式打 API 竟然會會帶<code>content-length:2</code>，但並未帶 body 值<br>
+導致程式會不正確，但對方說程式已經用現有的 function，所以沒辦法修正<br>
+最後這個問題還是沒法解決<br>
+這幾天研究<code>content-length:2</code>會影響什麼情形<br>
+在<code>公司</code>和<code>家</code>裡測試結果會不太一樣<del>讓我矇 B</del><br>
+所以測試的時候不知道發生什麼事情<br>
+這邊只記錄我測出來結果</p>
+<p>注意這邊的 Content-Length 都先只 request header 裡面<br>
+不是只 response Content-Length</p>
+<h2 id="介紹-request-content-length">介紹 request Content-Length</h2>
+<p>簡單一句話，就是 POST DATA 資料傳給 Server 長度。</p>
+<p>有找到更短詳細介紹</p>
+<blockquote>
+<ul>
+<li>響應為 1xx，204，304 相應或者 head 請求，則直接忽視掉消息實體內容。</li>
+<li>如果有 Transfer-Encoding，則優先採用 Transfer-Encoding 裡面的方法來找到對應的長度。比如說 Chunked 模式。</li>
+<li>「如果 head 中有 Content-Length，那麼這個 Content-Length 既表示實體長度，又表示傳輸長度。如果實體長度和傳輸長度不相等(比如說設置了 Transfer-Encoding)，那麼則不能設置 Content-Length。如果設置了 Transfer-Encoding，那麼 Content-Length 將被忽視」。這句話翻譯的優點饒，其實關鍵就一點：有了 Transfer-Encoding，則不能有 Content-Length。</li>
+<li>通過服務器關閉連接能確定消息的傳輸長度。(請求端不能通過關閉連接來指明請求消息體的結束，因為這樣可以讓服務器沒有機會繼續給予響應)。這種情況主要對應為短連接，即非 keep-alive 模式。<br>
+HTTP1.1 必須支持 chunk 模式。因為當不確定消息長度的時候，可以通過 chunk 機制來處理這種情況。</li>
+<li>在包含消息內容的 header 中，如果有 content-length 字段，那麼該字段對應的值必須完全和消息主題裡面的長度匹配。<br>
+其實後面幾條幾乎可以忽視，簡單總結後如下：<br>
+1、Content-Length 如果存在並且有效的話，則必須和消息內容的傳輸長度完全一致。(經過測試，如果過短則會截斷，過長則會導致超時。)<br>
+2、如果存在 Transfer-Encoding(重點是 chunked)，則在 header 中不能有 Content-Length，有也會被忽視。<br>
+3、如果採用短連接，則直接可以通過服務器關閉連接來確定消息的傳輸長度。(這個很容易懂)<br>
+結合 HTTP 協議其他的特點，比如說 Http1.1 之前的不支持 keep alive。那麼可以得出以下結論：<br>
+1、在 Http 1.0 及之前版本中，content-length 字段可有可無。<br>
+2、在 http1.1 及之後版本。如果是 keep alive，則 content-length 和 chunk 必然是二選一。若是非 keep alive，則和 http1.0 一樣。content-length 可有可無。</li>
+</ul>
+</blockquote>
+<h2 id="靜態資源">靜態資源</h2>
+<p>先講一下，這邊靜態資源是指<code>*.jpg,*.png,*js,*.json</code><br>
+以下測試會以 nginx 為主</p>
+<h3 id="http-content-length-數值不正確-可正常執行">HTTP Content-Length 數值不正確 可正常執行</h3>
+<p>連<code>http</code>時候，<code>靜態</code>資源不管<code>Content-Length</code>帶多少(正確或不正確)，apache,nginx 都可以正常回傳程式<br>
+我在我的電腦裝 nginx 測試<br>
+雖然有些網站可能不正常，目前推測可能有防火牆關係<br>
+防火牆可能會分析這封包不正確，可能會阻擋</p>
+<p>不能正確連線 EX:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">curl -v --request &#34;GET&#34; --header &#34;content-length:2&#34; http://www.cyut.edu.tw/~ywfan/index.htm
+</span></span><span class="line"><span class="cl">Note: Unnecessary use of -X or --request, GET is already inferred.
+</span></span><span class="line"><span class="cl">*   Trying 163.17.1.15...
+</span></span><span class="line"><span class="cl">* TCP_NODELAY set
+</span></span><span class="line"><span class="cl">* Connected to www.cyut.edu.tw (163.17.1.15) port 80 (#0)
+</span></span><span class="line"><span class="cl">&gt; GET /~ywfan/index.htm HTTP/1.1
+</span></span><span class="line"><span class="cl">&gt; Host: www.cyut.edu.tw
+</span></span><span class="line"><span class="cl">&gt; User-Agent: curl/7.58.0
+</span></span><span class="line"><span class="cl">&gt; Accept: */*
+</span></span><span class="line"><span class="cl">&gt; content-length:2
+</span></span><span class="line"><span class="cl">&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以正常連線，這邊隨便有找到一個可正常連線<br>
+我上面先前我有打可能會跟防火牆(這邊防火牆不是指 OS 防火牆)<br>
+因為我家可以正常打、公司那邊會不正常<br>
+所以可能被硬體防火牆(Web Application Firewall)阻擋</p>
+<p>家裡執行指令</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"> curl -v --request &#34;GET&#34; --header &#34;content-length:200&#34; http://jimmypm.ehosting.com.tw/a.htm
+</span></span><span class="line"><span class="cl">Note: Unnecessary use of -X or --request, GET is already inferred.
+</span></span><span class="line"><span class="cl">*   Trying 203.69.42.72...
+</span></span><span class="line"><span class="cl">* TCP_NODELAY set
+</span></span><span class="line"><span class="cl">* Connected to jimmypm.ehosting.com.tw (203.69.42.72) port 80 (#0)
+</span></span><span class="line"><span class="cl">&gt; GET /a.htm HTTP/1.1
+</span></span><span class="line"><span class="cl">&gt; Host: jimmypm.ehosting.com.tw
+</span></span><span class="line"><span class="cl">&gt; User-Agent: curl/7.58.0
+</span></span><span class="line"><span class="cl">&gt; Accept: */*
+</span></span><span class="line"><span class="cl">&gt; content-length:200
+</span></span><span class="line"><span class="cl">&gt;
+</span></span><span class="line"><span class="cl">&lt; HTTP/1.1 200 OK
+</span></span><span class="line"><span class="cl">&lt; Content-Type: text/html
+</span></span><span class="line"><span class="cl">&lt; Last-Modified: Thu, 04 Apr 2019 04:12:18 GMT
+</span></span><span class="line"><span class="cl">&lt; Accept-Ranges: bytes
+</span></span><span class="line"><span class="cl">&lt; ETag: &#34;923231989cead41:0&#34;
+</span></span><span class="line"><span class="cl">&lt; Server: Microsoft-IIS/7.5
+</span></span><span class="line"><span class="cl">&lt; X-Powered-By: ASP.NET
+</span></span><span class="line"><span class="cl">&lt; Date: Fri, 05 Apr 2019 16:23:21 GMT
+</span></span><span class="line"><span class="cl">&lt; Content-Length: 48739
+</span></span><span class="line"><span class="cl">&lt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>公司執行指令結果</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$  curl -v --request &#34;GET&#34; --header &#34;content-length:200&#34; http://jimmypm.ehosting.com.tw/a.htm
+</span></span><span class="line"><span class="cl">Note: Unnecessary use of -X or --request, GET is already inferred.
+</span></span><span class="line"><span class="cl">  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+</span></span><span class="line"><span class="cl">                                 Dload  Upload   Total   Spent    Left  Speed
+</span></span><span class="line"><span class="cl">  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0*  Trying 203.69.42.72...
+</span></span><span class="line"><span class="cl">* TCP_NODELAY set
+</span></span><span class="line"><span class="cl">* Connected to jimmypm.ehosting.com.tw (203.69.42.72) port 80 (#0)
+</span></span><span class="line"><span class="cl">&gt; GET /a.htm HTTP/1.1
+</span></span><span class="line"><span class="cl">&gt; Host: jimmypm.ehosting.com.tw
+</span></span><span class="line"><span class="cl">&gt; User-Agent: curl/7.61.1
+</span></span><span class="line"><span class="cl">&gt; Accept: */*
+</span></span><span class="line"><span class="cl">&gt; content-length:200
+</span></span><span class="line"><span class="cl">&gt;
+</span></span><span class="line"><span class="cl">  0     0    0     0    0     0      0      0 --:--:--  0:02:18 --:--:--     0*Empty reply from server
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">* Connection #0 to host jimmypm.ehosting.com.tw left intact
+</span></span><span class="line"><span class="cl">curl: (52) Empty reply from server
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="動態資源">動態資源</h2>
+<p>例如<code>*.asp</code>,<code>*.jsp</code>,<code>*.php</code><br>
+只要做到<code>Content-Length:2</code> 沒有送出<code>data</code>(POST DATA)<br>
+就會出錯，接收到<code>408</code> 連線逾時。</p>
+<p>這邊簡單詳細講一下，Server 是主動關閉的，這時候 client 會持續等待，使用者關閉頁面，也不會影響結果<br>
+使用者沒有關閉的話，Server 沒接收 data 資料，就會回傳<code>408</code><br>
+這時候使用者會接收到<code>408</code></p>
+<p>維基百科</p>
+<blockquote>
+<p>408 Request Timeout<br>
+請求超時。根據 HTTP 規範，用戶端沒有在伺服器預備等待的時間內完成一個請求的傳送，用戶端可以隨時再次提交這一請求而無需進行任何更改</p>
+</blockquote>
+<h2 id="https">HTTPS</h2>
+<p>不管靜態資源、動態資源都會錯誤</p>
+<ul>
+<li>動態資源</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -v --request <span class="s2">&#34;GET&#34;</span> --header <span class="s2">&#34;Content-Length:3&#34;</span> --data <span class="s2">&#34;12345&#34;</span>  https://tw.yahoo.com                                                                                       ✔  <span class="m">20</span>  15:16:43
+</span></span><span class="line"><span class="cl">* Rebuilt URL to: https://tw.yahoo.com/
+</span></span><span class="line"><span class="cl">*   Trying 124.108.103.104...
+</span></span><span class="line"><span class="cl">* TCP_NODELAY <span class="nb">set</span>
+</span></span><span class="line"><span class="cl">* Connected to tw.yahoo.com <span class="o">(</span>124.108.103.104<span class="o">)</span> port <span class="m">443</span> <span class="o">(</span><span class="c1">#0)</span>
+</span></span><span class="line"><span class="cl">* ALPN, offering h2
+</span></span><span class="line"><span class="cl">* ALPN, offering http/1.1
+</span></span><span class="line"><span class="cl">* successfully <span class="nb">set</span> certificate verify locations:
+</span></span><span class="line"><span class="cl">*   CAfile: /etc/ssl/certs/ca-certificates.crt
+</span></span><span class="line"><span class="cl">  CApath: /etc/ssl/certs
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>OUT<span class="o">)</span>, TLS handshake, Client hello <span class="o">(</span>1<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>IN<span class="o">)</span>, TLS handshake, Server hello <span class="o">(</span>2<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>IN<span class="o">)</span>, TLS handshake, Certificate <span class="o">(</span>11<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>IN<span class="o">)</span>, TLS handshake, Server key exchange <span class="o">(</span>12<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>IN<span class="o">)</span>, TLS handshake, Server finished <span class="o">(</span>14<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>OUT<span class="o">)</span>, TLS handshake, Client key exchange <span class="o">(</span>16<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>OUT<span class="o">)</span>, TLS change cipher, Client hello <span class="o">(</span>1<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>OUT<span class="o">)</span>, TLS handshake, Finished <span class="o">(</span>20<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* TLSv1.2 <span class="o">(</span>IN<span class="o">)</span>, TLS handshake, Finished <span class="o">(</span>20<span class="o">)</span>:
+</span></span><span class="line"><span class="cl">* SSL connection using TLSv1.2 / ECDHE-RSA-AES128-GCM-SHA256
+</span></span><span class="line"><span class="cl">* ALPN, server accepted to use h2
+</span></span><span class="line"><span class="cl">* Server certificate:
+</span></span><span class="line"><span class="cl">*  subject: <span class="nv">C</span><span class="o">=</span>US<span class="p">;</span> <span class="nv">ST</span><span class="o">=</span>California<span class="p">;</span> <span class="nv">L</span><span class="o">=</span>Sunnyvale<span class="p">;</span> <span class="nv">O</span><span class="o">=</span>Oath Inc<span class="p">;</span> <span class="nv">CN</span><span class="o">=</span>*.www.yahoo.com
+</span></span><span class="line"><span class="cl">*  start date: Feb  <span class="m">1</span> 00:00:00 <span class="m">2019</span> GMT
+</span></span><span class="line"><span class="cl">*  expire date: Jul <span class="m">31</span> 12:00:00 <span class="m">2019</span> GMT
+</span></span><span class="line"><span class="cl">*  subjectAltName: host <span class="s2">&#34;tw.yahoo.com&#34;</span> matched cert<span class="err">&#39;</span>s <span class="s2">&#34;tw.yahoo.com&#34;</span>
+</span></span><span class="line"><span class="cl">*  issuer: <span class="nv">C</span><span class="o">=</span>US<span class="p">;</span> <span class="nv">O</span><span class="o">=</span>DigiCert Inc<span class="p">;</span> <span class="nv">OU</span><span class="o">=</span>www.digicert.com<span class="p">;</span> <span class="nv">CN</span><span class="o">=</span>DigiCert SHA2 High Assurance Server CA
+</span></span><span class="line"><span class="cl">*  SSL certificate verify ok.
+</span></span><span class="line"><span class="cl">* Using HTTP2, server supports multi-use
+</span></span><span class="line"><span class="cl">* Connection state changed <span class="o">(</span>HTTP/2 confirmed<span class="o">)</span>
+</span></span><span class="line"><span class="cl">* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: <span class="nv">len</span><span class="o">=</span><span class="m">0</span>
+</span></span><span class="line"><span class="cl">* Using Stream ID: <span class="m">1</span> <span class="o">(</span>easy handle 0x55d96331c780<span class="o">)</span>
+</span></span><span class="line"><span class="cl">&gt; GET / HTTP/2
+</span></span><span class="line"><span class="cl">&gt; Host: tw.yahoo.com
+</span></span><span class="line"><span class="cl">&gt; User-Agent: curl/7.58.0
+</span></span><span class="line"><span class="cl">&gt; Accept: */*
+</span></span><span class="line"><span class="cl">&gt; Content-Length:3
+</span></span><span class="line"><span class="cl">&gt; Content-Type: application/x-www-form-urlencoded
+</span></span><span class="line"><span class="cl">&gt;
+</span></span><span class="line"><span class="cl">* We are completely uploaded and fine
+</span></span><span class="line"><span class="cl">* Connection state changed <span class="o">(</span>MAX_CONCURRENT_STREAMS updated<span class="o">)</span>!
+</span></span><span class="line"><span class="cl">* Connection <span class="c1">#0 to host tw.yahoo.com left intact</span>
+</span></span><span class="line"><span class="cl">curl: <span class="o">(</span>16<span class="o">)</span> Error in the HTTP2 framing layer
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>靜態資源</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> curl  --request <span class="s2">&#34;GET&#34;</span> --header <span class="s2">&#34;Content-Length:3&#34;</span>  https://code.jquery.com/jquery-1.11.3.js
+</span></span><span class="line"><span class="cl">curl: <span class="o">(</span>52<span class="o">)</span> Empty reply from server
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="content-length-接收的值header-值">Content-Length 接收的值&gt;Header 值</h2>
+<p>我有簡單寫個 PHP 程式</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$data</span> <span class="o">=</span> <span class="nx">file_get_contents</span><span class="p">(</span><span class="s1">&#39;php://input&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_dump</span><span class="p">(</span><span class="nv">$data</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>簡單可以看出 post raw data<br>
+這邊用 nginx+phpfpm 測出來結果<br>
+其實會被截斷</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -v --request <span class="s2">&#34;GET&#34;</span> --header <span class="s2">&#34;Content-Length:3&#34;</span> --data <span class="s2">&#34;12345&#34;</span>  http://192.168.1.121:32771/testpost.php
+</span></span><span class="line"><span class="cl">*   Trying 192.168.1.121...
+</span></span><span class="line"><span class="cl">* TCP_NODELAY <span class="nb">set</span>
+</span></span><span class="line"><span class="cl">* Connected to 192.168.1.121 <span class="o">(</span>192.168.1.121<span class="o">)</span> port <span class="m">32771</span> <span class="o">(</span><span class="c1">#0)</span>
+</span></span><span class="line"><span class="cl">&gt; GET /testpost.php HTTP/1.1
+</span></span><span class="line"><span class="cl">&gt; Host: 192.168.1.121:32771
+</span></span><span class="line"><span class="cl">&gt; User-Agent: curl/7.58.0
+</span></span><span class="line"><span class="cl">&gt; Accept: */*
+</span></span><span class="line"><span class="cl">&gt; Content-Length:3
+</span></span><span class="line"><span class="cl">&gt; Content-Type: application/x-www-form-urlencoded
+</span></span><span class="line"><span class="cl">&gt;
+</span></span><span class="line"><span class="cl">* upload completely sent off: <span class="m">5</span> out of <span class="m">5</span> bytes
+</span></span><span class="line"><span class="cl">&lt; HTTP/1.1 <span class="m">200</span> OK
+</span></span><span class="line"><span class="cl">&lt; Date: Sat, <span class="m">06</span> Apr <span class="m">2019</span> 07:14:21 GMT
+</span></span><span class="line"><span class="cl">&lt; Server: Apache/2.4.25 <span class="o">(</span>Debian<span class="o">)</span>
+</span></span><span class="line"><span class="cl">&lt; Content-Length: <span class="m">16</span>
+</span></span><span class="line"><span class="cl">&lt; Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>UTF-8
+</span></span><span class="line"><span class="cl">&lt;
+</span></span><span class="line"><span class="cl">string<span class="o">(</span>3<span class="o">)</span> <span class="s2">&#34;123&#34;</span>
+</span></span><span class="line"><span class="cl">* Connection <span class="c1">#0 to host 192.168.1.121 left intact</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="apache-cotent-length-不會-408">Apache Cotent-Length 不會 408</h2>
+<p>今天發現有一個 PHP 網站，<code>content-length:x</code>都可以正常運作<br>
+不過發現是用<code>apache+mod_php</code><br>
+我自己有測試還真的能 work</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl --request <span class="s2">&#34;GET&#34;</span> --header <span class="s2">&#34;Content-Length:3&#34;</span> http://mcu.no-ip.org/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可用這個 docker hub 做簡單測試<br>
+<a href="https://hub.docker.com/r/eboraas/apache-php/dockerfile" target="_blank" rel="noopener noreffer ">eboraas/apache-php Dockerfile - Docker Hub</a></p>
+<p>PS:apache+php-fpm 不會回傳 response，但說奇怪 apache log 會顯示 200</p>
+<p>以下是 apache+php-fpm</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -v --request <span class="s2">&#34;GET&#34;</span> --header <span class="s2">&#34;Content-Length:3&#34;</span>  http://192.168.1.121:32772/testpost.php
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Note: Unnecessary use of -X or --request, GET is already inferred.
+</span></span><span class="line"><span class="cl">*   Trying 192.168.1.121...
+</span></span><span class="line"><span class="cl">* TCP_NODELAY <span class="nb">set</span>
+</span></span><span class="line"><span class="cl">* Connected to 192.168.1.121 <span class="o">(</span>192.168.1.121<span class="o">)</span> port <span class="m">32772</span> <span class="o">(</span><span class="c1">#0)</span>
+</span></span><span class="line"><span class="cl">&gt; GET /phpinfo.php HTTP/1.1
+</span></span><span class="line"><span class="cl">&gt; Host: 192.168.1.121:32772
+</span></span><span class="line"><span class="cl">&gt; User-Agent: curl/7.58.0
+</span></span><span class="line"><span class="cl">&gt; Accept: */*
+</span></span><span class="line"><span class="cl">&gt; Content-Length:3
+</span></span><span class="line"><span class="cl">&gt;
+</span></span><span class="line"><span class="cl">&lt; HTTP/1.1 <span class="m">200</span> OK
+</span></span><span class="line"><span class="cl">&lt; Date: Sat, <span class="m">06</span> Apr <span class="m">2019</span> 07:08:31 GMT
+</span></span><span class="line"><span class="cl">&lt; Server: Apache/2.4.7 <span class="o">(</span>Ubuntu<span class="o">)</span>
+</span></span><span class="line"><span class="cl">&lt; Connection: close
+</span></span><span class="line"><span class="cl">&lt;
+</span></span><span class="line"><span class="cl">* Closing connection <span class="m">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>什麼 Apache 跟 nginx 結果不太一樣!!!<br>
+我也冏了!!!不過依然沒有找到相關文獻</p>
+<p>在 Apache 官網文件<a href="https://httpd.apache.org/docs/trunk/en/mod/mod_policy.html" target="_blank" rel="noopener noreffer ">mod_policy - Apache HTTP Server Version 2.5</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">PolicyLength Directive
+</span></span><span class="line"><span class="cl">Description:	Enable the content length policy.
+</span></span><span class="line"><span class="cl">Syntax:	PolicyLength ignore|log|enforce
+</span></span><span class="line"><span class="cl">Default:	ignore
+</span></span><span class="line"><span class="cl">Context:	server config, virtual host, directory
+</span></span><span class="line"><span class="cl">Status:	Extension
+</span></span><span class="line"><span class="cl">Module:	mod_policy
+</span></span><span class="line"><span class="cl">Compatibility:	PolicyLength is only available in Apache 2.5.0 and later.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>不確定是不是這個關係，目前他說這個選項 Apache2.5 才會有(現在才 Apache2.4)<br>
+我找不到 2.5 版本= =<br>
+有可能現在是讓他過</p>
+<h2 id="web-application-firewall-影響">Web Application Firewall 影響</h2>
+<p>有爬到這個，目前猜測公司或有些網站連不到可能之中有類似 WAF<br>
+這東西影響到<br>
+<a href="https://www.qa-knowhow.com/?p=4679" target="_blank" rel="noopener noreffer ">Web Application Firewall 的偵測原理 – 軟體品管的專業思維</a></p>
+<blockquote>
+<ol start="6">
+<li>HTTP 標準協議<br>
+檢查請求的內容是否符合 HTTP 標準協議, 這是一種比較有效且直覺的方式<br>
+任意修改 HTTP 協議內容可能會導致的攻擊如下:<br>
+<a href="http://capec.mitre.org/data/definitions/220.html" target="_blank" rel="noopener noreffer ">http://capec.mitre.org/data/definitions/220.html</a><br>
+HTTP 協議中檢查的重點為:<br>
+MIME 中 filename 檔名<br>
+URL 合法性<br>
+Content-Length 數值<br>
+衝突與重複的 HTTP headers, 例如 keep-alive 與 close 重複與衝突<br>
+不安全的字元, 例如 ” “, “&lt;“, “&gt;”, “{“, “}”, “|”, “\”, “^”, “~”, “[“, “]”, and “`”.等<br>
+過濾異常缺少 Http header 的請求, 一般正常的請求會包含 Host, User-Agent, Accept headers, 因此如果缺少或是沒有值都是表示異常<br>
+Content-Length 不等於 0 但是卻沒有 Content-Type<br>
+HTTP protocol version</li>
+</ol>
+</blockquote>
+<h2 id="nginx-從-phpfpm-那邊調整-改-header-失敗筆記">nginx 從 phpfpm 那邊調整 改 header 失敗筆記</h2>
+<p>在這裡面<a href="https://www.jianshu.com/p/282db1543a78" target="_blank" rel="noopener noreffer ">Nginx 之 fastcgi_param 参数详见 - 简书</a><br>
+<code>fastcgi_param CONTENT_LENGTH $content_length; #请求头中的Content-length字段。</code><br>
+發現這個不會正常執行<br>
+目前猜測 nginx 在接收 request 封包時候，第一時間不會做更改<br>
+但當時<code>Content-Length:2</code>會持續等待<br>
+所以可能在等接收資料，逾時會傳 408<br>
+所以根本<del>不會做到修改 header 那一段</del>正確來說 php-fpm 那段沒有執行到<br>
+收不到改 header 那段</p>
+<h2 id="nginx-post-打靜態資源會-405">nginx POST 打靜態資源會 405</h2>
+<p><a href="https://gist.github.com/zxhfighter/7560812" target="_blank" rel="noopener noreffer ">Nginx 將靜態文件響應 POST 請求，提示 405 錯誤問題</a></p>
+<blockquote>
+<p>Nginx 的 405 錯誤<br>
+絕大多數服務器，都不允許靜態文件響應 POST 請求(GET 請求靜態文件是天經地義的)，否則會返回 HTTP/1.1 405 Method not allowed 錯誤。<br>
+然而在前端開發中，前端開發工程師經常模擬後端請求，返回靜態數據來查看頁面效果，怎麼辦？</p>
+</blockquote>
+<h2 id="其他小記">其他小記</h2>
+<p>curl 預設是 Content-Type: application/x-www-form-urlencoded ，假如要傳 raw data 要改成 Content-Type: text/plain</p>
+<blockquote>
+<p>curl&rsquo;s &ndash;data will by default send Content-Type: application/x-www-form-urlencoded in the request header. However, when using Postman&rsquo;s raw body mode, Postman sends Content-Type: text/plain in the request header.<br>
+So to achieve the same thing as Postman, specify -H &ldquo;Content-Type: text/plain&rdquo; for curl:</p>
+</blockquote>
+<p>重啟 docker nginx<br>
+<a href="https://www.shellhacks.com/docker-reload-nginx-inside-container/" target="_blank" rel="noopener noreffer ">Docker: Reload Nginx Inside Container - ShellHacks</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker container <span class="nb">exec</span> &lt;container&gt; nginx -t
+</span></span><span class="line"><span class="cl">docker container <span class="nb">exec</span> &lt;container&gt; nginx -s reload
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Keep-Alive 为 close<br>
+也無法改變 nginx 的 content-length 問題<br>
+keepalive_timeout 0; ，就可以關掉</p>
+<p>Full request/response body logging in nginx 沒有測試，好像要裝 lua-nginx-module<br>
+<a href="https://gist.github.com/morhekil/1ff0e902ed4de2adcb7a" target="_blank" rel="noopener noreffer ">Full request/response body logging in nginx</a></p>
+<h2 id="感想與結論">感想與結論</h2>
+<p>沒事<strong>還是請傳好正確 content-length:0</strong><br>
+原本想讓 server 變成 http1.0<br>
+但好像怎麼用都失敗</p>
+<p>對方說沒辦法改的話<br>
+最終大絕可能使用<code>apache+php_mod</code>不過最糟的情形還是會被 WAF 阻擋</p>
+<p>這幾天總覺得浪費很多時間找這玩意<br>
+明明是對方的鍋，還是要想辦法解決<br>
+但是真的不希望遇到第二次 冏</p>
+<p><strong>2020-05-27</strong></p>
+<p><a href="https://blog.fundebug.com/2019/09/10/understand-http-content-length/" target="_blank" rel="noopener noreffer ">用了这么久HTTP, 你是否了解Content-Length? | Fundebug博客 - 一行代码搞定BUG监控 - 网站错误监控|JS错误监控|资源加载错误|网络请求错误|小程序错误监控|Java异常监控|监控报警|Source Map|用户行为|可视化重现</a><br>
+這篇有簡單明確講到我這篇重點</p>
+<p>其他參考來源:</p>
+<ul>
+<li>
+<p><a href="https://nkongkimo.wordpress.com/2010/04/28/http-header%E5%85%A5%E9%96%80/" target="_blank" rel="noopener noreffer ">Http Header 入門 | CCNP 筆記本</a></p>
+</li>
+<li>
+<p><a href="https://www.qa-knowhow.com/?p=792" target="_blank" rel="noopener noreffer ">HTTP Request/Response 駭客跟我們想的不一樣 – 軟體品管的專業思維</a></p>
+</li>
+<li>
+<p><a href="https://ssorc.tw/1148" target="_blank" rel="noopener noreffer ">security apache 與 php 關閉版本顯示 | SSORC.tw</a></p>
+</li>
+<li>
+<p><a href="http://chuehnoneinfonote.blogspot.com/2013/02/apache-http-header.html" target="_blank" rel="noopener noreffer ">資訊手札: Apache Http Header</a></p>
+</li>
+<li>
+<p><a href="http://blog.gitdns.org/2016/06/23/web-server/" target="_blank" rel="noopener noreffer ">web-server | 平凡備忘錄</a></p>
+</li>
+<li>
+<p><a href="https://www.byvoid.com/zht/blog/http-keep-alive-header" target="_blank" rel="noopener noreffer ">HTTP 協議頭部與 Keep-Alive 模式詳解 - BYVoid</a></p>
+</li>
+<li>
+<p><a href="https://lvtao.net/server/1458.html" target="_blank" rel="noopener noreffer ">nginx 优化的一些建议 - 吕滔博客</a></p>
+</li>
+<li>
+<p><a href="https://www.zhihu.com/question/36007098" target="_blank" rel="noopener noreffer ">客户端 POST 错误，服务端应该回 200 还是 400？ - 知乎</a></p>
+</li>
+<li>
+<p><a href="https://www.jianshu.com/p/fa2e4e23aaaf" target="_blank" rel="noopener noreffer ">Http 協議中關於 Content-Length 的解讀 - 簡書</a></p>
+</li>
+<li>
+<p><a href="https://www.shellhacks.com/docker-reload-nginx-inside-container/" target="_blank" rel="noopener noreffer ">Docker: Reload Nginx Inside Container - ShellHacks</a></p>
+</li>
+<li>
+<p><a href="https://www.cnblogs.com/meteoric_cry/archive/2011/06/07/2074150.html" target="_blank" rel="noopener noreffer ">Nginx 设置 Keep-Alive 为 close - meteoric_cry - 博客园</a></p>
+</li>
+<li>
+<p><a href="https://gist.github.com/zxhfighter/7560812" target="_blank" rel="noopener noreffer ">Nginx 將靜態文件響應 POST 請求，提示 405 錯誤問題</a></p>
+</li>
+<li>
+<p><a href="https://www.qiansw.com/nginx-responds-to-the-post-request-in-the-static-file-and-prompts-405-for-the-error-problem.html" target="_blank" rel="noopener noreffer ">Nginx 将静态文件响应 POST 请求，提示 405 错误问题 - 千思网</a></p>
+</li>
+<li>
+<p><a href="https://gist.github.com/morhekil/1ff0e902ed4de2adcb7a" target="_blank" rel="noopener noreffer ">Full request/response body logging in nginx</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/qq_25551295/article/details/51744815" target="_blank" rel="noopener noreffer ">Nginx 安装 lua-nginx-module 模块 - 拼搏的小船长 - CSDN 博客</a></p>
+</li>
+<li>
+<p><a href="https://notfalse.net/42/http-payload" target="_blank" rel="noopener noreffer ">未連線: 潛在的安全性問題</a></p>
+</li>
+<li>
+<p><a href="https://www.qa-knowhow.com/?p=4679" target="_blank" rel="noopener noreffer ">Web Application Firewall 的偵測原理 – 軟體品管的專業思維</a></p>
+</li>
+<li>
+<p><a href="https://www.oschina.net/question/2547791_2150761" target="_blank" rel="noopener noreffer ">nginx 的 chunked_transfer_encoding 没有生效 - 开源中国</a></p>
+</li>
+<li>
+<p><a href="https://geekflare.com/open-source-web-application-firewall/#1-ModSecurity" target="_blank" rel="noopener noreffer ">5 Open Source Web Application Firewall for Better Security</a></p>
+</li>
+<li>
+<p><a href="http://cyrilwang.blogspot.com/2014/01/apache-modsecurity.html" target="_blank" rel="noopener noreffer ">不只是資安: [工具介紹] Apache 模組 mod_security - 以阻擋造訪路徑攻擊為例</a></p>
+</li>
+<li>
+<p><a href="https://www.jianshu.com/p/282db1543a78" target="_blank" rel="noopener noreffer ">Nginx 之 fastcgi_param 参数详见 - 简书</a></p>
+</li>
+<li>
+<p><a href="http://blog.kent-chiu.com/2013/08/14/testing-rest-with-curl-command.html" target="_blank" rel="noopener noreffer ">使用 curl 指令測試 REST 服務</a></p>
+</li>
+<li>
+<p><a href="https://stackoverflow.com/questions/43054195/how-to-post-raw-body-data-with-curl" target="_blank" rel="noopener noreffer ">linux - How to post raw body data with curl? - Stack Overflow</a></p>
+</li>
+<li>
+<p><a href="https://github.com/rlerdorf/php7dev/issues/48" target="_blank" rel="noopener noreffer ">Where is php-fpm log file? Or how to activate it? Does PHP7 log errors? · Issue #48 · rlerdorf/php7dev</a></p>
+</li>
+<li>
+<p><a href="https://blog.gtwang.org/linux/nginx-enable-php-fpm-status-page-tutorial/" target="_blank" rel="noopener noreffer ">Nginx 啟用 PHP-FPM 服務狀態監控網頁教學 - G. T. Wang</a></p>
+</li>
+<li>
+<p><a href="https://stackoverflow.com/questions/35190034/where-is-the-default-zsh-history-file" target="_blank" rel="noopener noreffer ">Where is the default zsh history file? - Stack Overflow</a></p>
+</li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-04-05</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" data-title="遇到Content-Length不正確到底發生什麼情況" data-hashtags="nginx,apache"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" data-hashtag="nginx"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" data-title="遇到Content-Length不正確到底發生什麼情況"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" data-title="遇到Content-Length不正確到底發生什麼情況"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Content-Length%E4%B8%8D%E6%AD%A3%E7%A2%BA%E5%88%B0%E5%BA%95%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E6%83%85%E6%B3%81/" data-title="遇到Content-Length不正確到底發生什麼情況"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/nginx/">nginx</a>,&nbsp;<a href="/blog/tags/Apache/">Apache</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/js-php%E7%9A%84switch%E5%B7%AE%E7%95%B0/" class="prev" rel="prev" title="js,php的switch差異"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>js,php的switch差異</a>
+            <a href="/blog/posts/nginx%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="nginx設定小記">nginx設定小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

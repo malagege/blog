@@ -1,4 +1,11 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Systemd 時間排程筆記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Systemd 時間排程筆記"><meta property="og:description" content="一般我們使用排程都是用 crontab
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Systemd 時間排程筆記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Systemd 時間排程筆記" />
+<meta property="og:description" content="一般我們使用排程都是用 crontab
 再搭配使用flock 去做程式執行管控，這一段也有可能時間寫死程式一個flag，這無疑是要佔用檔案了
 前幾天我看到 systemd 可以做排程設定
 所以就簡單研究一下
@@ -6,7 +13,14 @@
 一直覺得這個東西非常實用
 用配置就能完成程式複雜判斷
 網路上還滿多相關教學
-應該可以用在正式環境上面"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-12-07T23:01:20+00:00"><meta property="article:modified_time" content="2020-12-07T23:01:20+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Systemd 時間排程筆記"><meta name=twitter:description content="一般我們使用排程都是用 crontab
+應該可以用在正式環境上面" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-12-07T23:01:20+00:00" />
+<meta property="article:modified_time" content="2020-12-07T23:01:20+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Systemd 時間排程筆記"/>
+<meta name="twitter:description" content="一般我們使用排程都是用 crontab
 再搭配使用flock 去做程式執行管控，這一段也有可能時間寫死程式一個flag，這無疑是要佔用檔案了
 前幾天我看到 systemd 可以做排程設定
 所以就簡單研究一下
@@ -14,413 +28,1053 @@
 一直覺得這個東西非常實用
 用配置就能完成程式複雜判斷
 網路上還滿多相關教學
-應該可以用在正式環境上面"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/><link rel=next href=https://malagege.github.io/blog/posts/Command-Injection-%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Systemd 時間排程筆記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98\/"},"genre":"posts","keywords":"systemd, crontab","wordcount":1606,"url":"https:\/\/malagege.github.io\/blog\/posts\/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98\/","datePublished":"2020-12-07T23:01:20+00:00","dateModified":"2020-12-07T23:01:20+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Systemd 時間排程筆記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-12-07>2020-12-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1606 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;8 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#了解工具名稱>了解工具名稱</a></li><li><a href=#簡單使用>簡單使用</a><ul><li><a href=#一般-root-使用小記>一般 root 使用小記</a></li><li><a href=#unitserviceinstall>UNIT,Service,Install</a></li></ul></li><li><a href=#systemctl---user>systemctl &ndash;user</a><ul><li><a href=#一般使用者實作>一般使用者實作</a></li></ul></li><li><a href=#timer>timer</a><ul><li><a href=#初始設定>初始設定</a></li></ul></li><li><a href=#操作紀錄>操作紀錄</a><ul><li><a href=#動態延遲執行>動態延遲執行</a></li><li><a href=#運行級別別打錯>運行級別(別打錯)</a></li><li><a href=#查看systemd排程時間點>查看systemd排程時間點</a></li><li><a href=#查看日誌>查看日誌</a></li><li><a href=#calendar>Calendar</a></li></ul></li><li><a href=#socket-觸發啟動>socket 觸發啟動</a></li><li><a href=#搜尋相關文章>搜尋相關文章</a><ul><li><a href=#詳細教學文章>詳細教學文章</a></li><li><a href=#與supervisor-差異>與supervisor 差異</a></li><li><a href=#跟-docker-差異>跟 docker 差異</a></li><li><a href=#failed-to-connect-to-bus-no-such-file-or-directory>Failed to connect to bus: No such file or directory"</a></li><li><a href=#其他參數>其他參數</a></li></ul></li><li><a href=#supervisor>Supervisor</a></li><li><a href=#總結>總結</a></li></ul></nav></div></div><div class=content id=content><p>一般我們使用排程都是用 crontab<br>再搭配使用flock 去做程式執行管控，這一段也有可能時間寫死程式一個flag，這無疑是要佔用檔案了<br>前幾天我看到 systemd 可以做排程設定<br>所以就簡單研究一下</p><p>其實之前就有簡單研究<br>一直覺得這個東西非常實用<br>用配置就能完成程式複雜判斷</p><p>網路上還滿多相關教學<br>應該可以用在正式環境上面</p><h2 id=了解工具名稱>了解工具名稱</h2><p>Systemd 雖然指令叫 <code>systemctl</code>，但網路上看到都叫 systemd。</p><blockquote><p>查看和控制systemd的主要命令是systemctl。該命令可用查看系統狀態和管理系統及服務。詳見systemctl(1)。</p></blockquote><p>參考: <a href=https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29 target=_blank rel="noopener noreffer">systemd (正體中文) - ArchWiki</a></p><h2 id=簡單使用>簡單使用</h2><p>之前<a href=https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/#%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89 target=_blank rel="noopener noreffer">rclone 掛載硬碟小記 | 程式狂想筆記</a>有簡單用過</p><p>後面記得要加<code>sudo systemctl daemon-reload</code><br>後面記得要加<code>sudo systemctl daemon-reload</code><br>後面記得要加<code>sudo systemctl daemon-reload</code></p><p>因為很重要，所以講三遍!!!<br>一不注意就忘記了XD</p><h3 id=一般-root-使用小記>一般 root 使用小記</h3><p>.target</p><h3 id=unitserviceinstall>UNIT,Service,Install</h3><blockquote><p>[Unit] 小節選項</p></blockquote><blockquote><p>單元文件中的 [Unit] 小節 包含與單元類型無關的通用信息。 可用的選項(亦稱"指令"或"屬性")如下：</p></blockquote><p>參考: <a href=http://www.jinbuguo.com/systemd/systemd.unit.html target=_blank rel="noopener noreffer">systemd.unit 中文手册 [金步国]</a></p><p>詳細內容:<a href=https://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html target=_blank rel="noopener noreffer">Systemd 入門教程：實戰篇 - 阮一峰的網絡日誌</a> <a href=web1.png rel>備份圖</a></p><p>感覺上面重點都提到了&mldr;<br><del>我不忍心完整 copy & paste</del>沒大握整理好，可以到裡面看!!<br>這邊整理我覺得之後可能會用到的</p><p>看大多數接學都是用 root 設定 systemd<br><strong>前陣子有看到使用一般 user 操作 systemd</strong><br>本篇重點實作網路案例操作看看</p><h2 id=systemctl---user>systemctl &ndash;user</h2><p>最近爬到一篇 一般user也可以使用<br>一般主機排程都是設定在 root(我之前工作大多數都 這樣)<br>但最近在想是不是應該可以切開一個全縣讓工程師去做設定<br>畢竟大多數 MIS 也看不懂程式&mldr;</p><h3 id=一般使用者實作>一般使用者實作</h3><p>建置一個 Hello-world.service</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>vim ~/.config/systemd/user/hello-world.service 
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[Unit]</span>
-</span></span><span class=line><span class=cl><span class=na>Description</span><span class=o>=</span><span class=s>Hello World Service</span>
-</span></span><span class=line><span class=cl><span class=na>After</span><span class=o>=</span><span class=s>systend-user-sessions.service</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Service]</span>
-</span></span><span class=line><span class=cl><span class=na>Type</span><span class=o>=</span><span class=s>simple</span>
-</span></span><span class=line><span class=cl><span class=na>ExecStart</span><span class=o>=</span><span class=s>/home/malagege/hello-world.sh</span>
-</span></span><span class=line><span class=cl><span class=na>SyslogIdentifier</span><span class=o>=</span><span class=s>HelloWorldService</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Install]</span>
-</span></span><span class=line><span class=cl><span class=na>WantedBy</span><span class=o>=</span><span class=s>default.target</span>
-</span></span></code></pre></td></tr></table></div></div><p>啟用 hello-world.service</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>systemctl --user  <span class=nb>enable</span>  hello-world.service                                                                                   
-</span></span><span class=line><span class=cl>Created symlink /home/malagege/.config/systemd/user/default.target.wants/hello-world.service → /home/malagege/.config/systemd/user/hello-world.service.
-</span></span></code></pre></td></tr></table></div></div><p>~~竟然不用做 systemctl daemon-reload!!! ~~<br><del><strong>我還實有看到有的教學有用</strong><code>systemctl --user daemon-reload</code></del><br>修改 timer 的時候需要 <code>systemctl --user daemon-reload</code> 才會生效</p><p>但我這邊沒使用就能用了<br>沒出現先enable 就會有了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl> systemctl --user  status  hello-world.service
-</span></span><span class=line><span class=cl>● hello-world.service - Hello World Service
-</span></span><span class=line><span class=cl>   Loaded: loaded (/home/malagege/.config/systemd/user/hello-world.service; enabled; vendor preset: enabled)
-</span></span><span class=line><span class=cl>   Active: inactive (dead)
-</span></span><span class=line><span class=cl>systemctl --user  start  hello-world.service
-</span></span><span class=line><span class=cl> ~/.config/systemd/user 
-</span></span><span class=line><span class=cl>systemctl --user  status  hello-world.service
-</span></span><span class=line><span class=cl>● hello-world.service - Hello World Service
-</span></span><span class=line><span class=cl>   Loaded: loaded (/home/malagege/.config/systemd/user/hello-world.service; enabled; vendor preset: enabled)
-</span></span><span class=line><span class=cl>   Active: active (running) since Tue 2020-11-17 23:26:23 CST; 4s ago
-</span></span><span class=line><span class=cl> Main PID: 10483 (hello-world.sh)
-</span></span><span class=line><span class=cl>   CGroup: /user.slice/user-1000.slice/user@1000.service/hello-world.service
-</span></span><span class=line><span class=cl>           ├─10483 /bin/bash /home/malagege/hello-world.sh
-</span></span><span class=line><span class=cl>           └─10485 sleep 30
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>11月 17 23:26:23 malagege-K42JB systemd[1317]: Started Hello World Service.
-</span></span></code></pre></td></tr></table></div></div><p>/home/malagege/.config/systemd/user/default.target.wants 裡面會出現 hello-world.service</p><p>systemctl &ndash;user disable hello-world.service</p><p>成功完成簡單操作</p><h4 id=上面案例執行參數小記>上面案例執行參數小記</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># 標準輸出到
-</span></span><span class=line><span class=cl>StandardOutput=syslog
-</span></span><span class=line><span class=cl># 標準錯誤輸出到
-</span></span><span class=line><span class=cl>StandardError=syslog
-</span></span><span class=line><span class=cl># 設置syslog中log的程序名稱
-</span></span><span class=line><span class=cl>SyslogIdentifier=helloexample
-</span></span><span class=line><span class=cl># 設置syslog中log類型
-</span></span><span class=line><span class=cl>SyslogFacility=local0
-</span></span><span class=line><span class=cl># 設置syslog中log級別，此處為info
-</span></span><span class=line><span class=cl>SyslogLevel=info
-</span></span></code></pre></td></tr></table></div></div><p>Install 需要設定<br>這邊是網路參考去配置的</p><p>參考: <a href=https://exfast.me/2018/11/linux-use-systemd-manage-application-common-instructions/ target=_blank rel="noopener noreffer">[Linux] 利用 Systemd 管理應用程式 – 常用指令 | 從入門到放棄</a></p><h2 id=timer>timer</h2><p>簡單說一下，這邊操作 systemd 的 timer 只有在 user 登入時候才會跑<br>所以需要做到開機跑 timer，需要設定 Linux 配置<br><strong>我這邊有測試桌面登入，登出會有問題，但不確定是不是每個 Linux 就會這樣，但 Command Line 模式都很正常</strong><br>下面會提到</p><h3 id=初始設定>初始設定</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>loginctl show-user <span class=sb>`</span>__user_id__<span class=sb>`</span>
-</span></span></code></pre></td></tr></table></div></div><p>要設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>loginctl enable-linger `id -u` # 後面是放使用者名稱 或 id
-</span></span></code></pre></td></tr></table></div></div><p>會出現</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>...
-</span></span><span class=line><span class=cl>...
-</span></span><span class=line><span class=cl>...
-</span></span><span class=line><span class=cl>Linger=no
-</span></span></code></pre></td></tr></table></div></div><p><code>Linger=no </code>代表沒有啟用<br>一般通常不會打開<br>這個不打開的話<br>只要登出使用者帳號，當下 systemd 的 timer 都不會執行<br><del><strong>這邊要注意!!疑似要用 root 權限設定</strong></del><br><del>像我用一般使用者設定</del><br><del>但登出 timer 就沒有繼續跑了&mldr;</del><br><del>後來嘗試很就，root 設定 loginctl 就成功了</del><br>結果後來桌面登出有時候 systemctl &ndash;user 還是會中斷&mldr;</p><blockquote><p>警告： systemd 服務是 沒有 會話的， 它們在 logind 狀態之外運行， 所以不要在 lingering 中啟用自動登陸的功能，這會導致 會話中斷。</p></blockquote><p>參考:<a href=https://wiki.archlinux.org/index.php/Systemd_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29/User_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29#%E9%9A%8F%E7%B3%BB%E7%BB%9F%E8%87%AA%E5%8A%A8%E5%90%AF%E5%8A%A8systemd%E7%94%A8%E6%88%B7%E5%AE%9E%E4%BE%8B target=_blank rel="noopener noreffer">systemd (簡體中文)/User (簡體中文) - ArchWiki</a></p><p>用別的使用者下<code>ps -fu _user_</code>就可以看到有沒有起 <code>systemd --user</code></p><p>有很大機率是這個原因&mldr;，不過不知道是我的 ElementaryOS 關係<br>顯示自動開啟不是很正確，有時候桌面登出還是會中斷 systemd<br>有空我再用樹梅派實體機器測試&mldr;</p><p><strong>目前猜測用桌面登出會中斷 systemd</strong><br>PS: 我使用的是 ElementaryOS</p><ul><li><a href=https://elementaryos.stackexchange.com/questions/7726/how-to-enable-automatic-login-after-installing-elementary-os-loki target=_blank rel="noopener noreffer">settings - How to enable automatic login after installing elementary OS Loki - elementary OS Stack Exchange</a></li><li><a href=https://unix.stackexchange.com/questions/462845/how-to-apply-lingering-immedeately target=_blank rel="noopener noreffer">systemd - How to apply lingering immedeately - Unix & Linux Stack Exchange</a></li><li><a href=https://blog.fairycat.cn/post/128 target=_blank rel="noopener noreffer">用 systemd 管理 laravel 队列和定时任务 - fairycat</a></li></ul><h2 id=操作紀錄>操作紀錄</h2><p>參考: <a href=https://www.junmajinlong.com/linux/systemd/systemd_timer/#systemd-timer%E5%85%A5%E9%97%A8%E7%A4%BA%E4%BE%8B%EF%BC%9A%E6%AF%8F3%E7%A7%92%E8%BF%90%E8%A1%8C%E4%B8%80%E6%AC%A1 target=_blank rel="noopener noreffer">systemd timer：取代cron和at的定时任务 | 骏马金龙</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[Unit]</span>
-</span></span><span class=line><span class=cl><span class=na>Description</span> <span class=o>=</span> <span class=s>&#34;Hello Timer Description&#34;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Service]</span>
-</span></span><span class=line><span class=cl><span class=na>ExecStart</span> <span class=o>=</span> <span class=s>/home/malagege/hello-timer.sh</span>
-</span></span><span class=line><span class=cl><span class=c1># ExecStart = /usr/bin/curl -s -o /dev/null -w &#39;%{http_code}&#39; &#39;https://www.junmajinlong.com&#39;</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[Unit]</span>
-</span></span><span class=line><span class=cl><span class=na>Description</span> <span class=o>=</span> <span class=s>&#34;run hello timer  every 3 seconds&#34;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Timer]</span>
-</span></span><span class=line><span class=cl><span class=na>OnActiveSec</span> <span class=o>=</span> <span class=s>1s</span>
-</span></span><span class=line><span class=cl><span class=na>OnUnitInactiveSec</span> <span class=o>=</span> <span class=s>3s</span>
-</span></span><span class=line><span class=cl><span class=na>AccuracySec</span> <span class=o>=</span> <span class=s>1us</span>
-</span></span><span class=line><span class=cl><span class=na>RandomizedDelaySec</span> <span class=o>=</span> <span class=s>0</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Install]</span>
-</span></span><span class=line><span class=cl><span class=na>WantedBy</span> <span class=o>=</span> <span class=s>timers.target</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>systemctl --user  start  hello-timer.timer
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>systemctl --user list-timers --all
-</span></span><span class=line><span class=cl>NEXT                         LEFT    LAST                         PASSED UNIT              ACTIVATES
-</span></span><span class=line><span class=cl>Wed 2020-11-18 00:05:38 CST  1s left Wed 2020-11-18 00:05:35 CST  1s ago hello-timer.timer hello-timer.service
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>systemctl --user status  hello-timer.timer
-</span></span><span class=line><span class=cl>● hello-timer.timer - &#34;run hello timer  every 3 seconds&#34;
-</span></span><span class=line><span class=cl>   Loaded: loaded (/home/malagege/.config/systemd/user/hello-timer.timer; enabled; vendor preset: enabled)
-</span></span><span class=line><span class=cl>   Active: active (waiting) since Wed 2020-11-18 00:03:25 CST; 9min ago
-</span></span><span class=line><span class=cl>  Trigger: Wed 2020-11-18 00:13:15 CST; 825ms left
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>11月 18 00:03:25 malagege-K42JB systemd[1317]: Started &#34;run hello timer  every 3 seconds&#34;.
-</span></span><span class=line><span class=cl> ~/.config/systemd/user 
-</span></span><span class=line><span class=cl>systemctl --user status  hello-timer.service
-</span></span><span class=line><span class=cl>● hello-timer.service - &#34;Hello Timer Description&#34;
-</span></span><span class=line><span class=cl>   Loaded: loaded (/home/malagege/.config/systemd/user/hello-timer.service; static; vendor preset: enabled)
-</span></span><span class=line><span class=cl>   Active: inactive (dead) since Wed 2020-11-18 00:13:18 CST; 2s ago
-</span></span><span class=line><span class=cl>  Process: 20922 ExecStart=/home/malagege/hello-timer.sh (code=exited, status=0/SUCCESS)
-</span></span><span class=line><span class=cl> Main PID: 20922 (code=exited, status=0/SUCCESS)
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>11月 18 00:13:18 malagege-K42JB systemd[1317]: Started &#34;Hello Timer Description&#34;.
-</span></span><span class=line><span class=cl>11月 18 00:13:18 malagege-K42JB hello-timer.sh[20922]: hello world
-</span></span></code></pre></td></tr></table></div></div><p>很有趣的是 hello-timer.service 裡面狀態是static<br>不太確定是 .timer 影響到他</p><p>查看 log</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>journalctl --user -u hello-timer.service
-</span></span></code></pre></td></tr></table></div></div><h3 id=動態延遲執行>動態延遲執行</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># 定時器啟動後，再過10分鐘第一次觸發定時任務
-</span></span><span class=line><span class=cl>OnActiveSec=10m
-</span></span><span class=line><span class=cl># 每次執行完任務後，再過15分鐘後再次觸發定時任務
-</span></span><span class=line><span class=cl>OnUnitInactiveSec=15m
-</span></span><span class=line><span class=cl># 觸發事件後，允許推遲0-10分鐘再執行被觸發的任務
-</span></span><span class=line><span class=cl>AccuracySec=10m
-</span></span></code></pre></td></tr></table></div></div><blockquote><p>以上指令的效果是：</p><ul><li>啟動定時器後的10m-20m內的任一時間點觸發第一次定時任務</li><li>之後每隔15m-25m再次觸發定時任務</li></ul></blockquote><p>作者: 骏马金龙<br>链接: <a href=https://www.junmajinlong.com/linux/systemd/systemd_timer/ target=_blank rel="noopener noreffer">https://www.junmajinlong.com/linux/systemd/systemd_timer/</a><br>来源: 骏马金龙<br>著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</p><p>分開看指令，可能不是很了解<br>OnUnitInactiveSec 排程執行完之後會執行 service<br>AccuracySec 會增加起排程時間<br>所以才會變成 15~25 分鐘執行</p><blockquote><p>AccuracySec的默認值為1分鐘，所以如果不定義AccuracySec的話，即使用戶期待的是每秒觸發一次定時任務，但事實卻是會在1s-61s時間段內的一個隨機時間點觸發一次定時任務。(可以自己去觀察一下定時任務執行情況)</p><p>但是，觸發定時任務的時間點並不表示這是執行任務的時間點。觸發了定時任務，還需要根據RandomizedDelaySec的值來決定何時執行定時任務。</p><p>RandomizedDelaySec指定觸發定時任務後還需延遲一個指定範圍內的隨機時長才執行任務。該指令默認值為0，表示觸發後立即執行任務。</p><p>使用RandomizedDelaySec，主要是為了在一個時間範圍內分散大量被同時觸發的定時任務，從而避免這些定時任務集中在同一時間點執行而CPU爭搶。</p><p>可見，AccuracySec和RandomizedDelaySec的目的是相反的：</p><pre><code>前者讓指定範圍內的定時器集中在同一個時間點一次性觸發它們的定時任務
+應該可以用在正式環境上面"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" /><link rel="next" href="https://malagege.github.io/blog/posts/Command-Injection-%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Systemd 時間排程筆記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98\/"
+        },"genre": "posts","keywords": "systemd, crontab","wordcount":  1606 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98\/","datePublished": "2020-12-07T23:01:20+00:00","dateModified": "2020-12-07T23:01:20+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Systemd 時間排程筆記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2020-12-07">2020-12-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1606 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;8 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#了解工具名稱">了解工具名稱</a></li>
+    <li><a href="#簡單使用">簡單使用</a>
+      <ul>
+        <li><a href="#一般-root-使用小記">一般 root 使用小記</a></li>
+        <li><a href="#unitserviceinstall">UNIT,Service,Install</a></li>
+      </ul>
+    </li>
+    <li><a href="#systemctl---user">systemctl &ndash;user</a>
+      <ul>
+        <li><a href="#一般使用者實作">一般使用者實作</a></li>
+      </ul>
+    </li>
+    <li><a href="#timer">timer</a>
+      <ul>
+        <li><a href="#初始設定">初始設定</a></li>
+      </ul>
+    </li>
+    <li><a href="#操作紀錄">操作紀錄</a>
+      <ul>
+        <li><a href="#動態延遲執行">動態延遲執行</a></li>
+        <li><a href="#運行級別別打錯">運行級別(別打錯)</a></li>
+        <li><a href="#查看systemd排程時間點">查看systemd排程時間點</a></li>
+        <li><a href="#查看日誌">查看日誌</a></li>
+        <li><a href="#calendar">Calendar</a></li>
+      </ul>
+    </li>
+    <li><a href="#socket-觸發啟動">socket 觸發啟動</a></li>
+    <li><a href="#搜尋相關文章">搜尋相關文章</a>
+      <ul>
+        <li><a href="#詳細教學文章">詳細教學文章</a></li>
+        <li><a href="#與supervisor-差異">與supervisor 差異</a></li>
+        <li><a href="#跟-docker-差異">跟 docker 差異</a></li>
+        <li><a href="#failed-to-connect-to-bus-no-such-file-or-directory">Failed to connect to bus: No such file or directory&quot;</a></li>
+        <li><a href="#其他參數">其他參數</a></li>
+      </ul>
+    </li>
+    <li><a href="#supervisor">Supervisor</a></li>
+    <li><a href="#總結">總結</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>一般我們使用排程都是用 crontab<br>
+再搭配使用flock 去做程式執行管控，這一段也有可能時間寫死程式一個flag，這無疑是要佔用檔案了<br>
+前幾天我看到 systemd 可以做排程設定<br>
+所以就簡單研究一下</p>
+<p>其實之前就有簡單研究<br>
+一直覺得這個東西非常實用<br>
+用配置就能完成程式複雜判斷</p>
+<p>網路上還滿多相關教學<br>
+應該可以用在正式環境上面</p>
+<h2 id="了解工具名稱">了解工具名稱</h2>
+<p>Systemd 雖然指令叫 <code>systemctl</code>，但網路上看到都叫 systemd。</p>
+<blockquote>
+<p>查看和控制systemd的主要命令是systemctl。該命令可用查看系統狀態和管理系統及服務。詳見systemctl(1)。</p>
+</blockquote>
+<p>參考: <a href="https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer ">systemd (正體中文) - ArchWiki</a></p>
+<h2 id="簡單使用">簡單使用</h2>
+<p>之前<a href="https://malagege.github.io/blog/posts/rclone-%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F%E5%B0%8F%E8%A8%98/#%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89" target="_blank" rel="noopener noreffer ">rclone 掛載硬碟小記 | 程式狂想筆記</a>有簡單用過</p>
+<p>後面記得要加<code>sudo systemctl daemon-reload</code><br>
+後面記得要加<code>sudo systemctl daemon-reload</code><br>
+後面記得要加<code>sudo systemctl daemon-reload</code></p>
+<p>因為很重要，所以講三遍!!!<br>
+一不注意就忘記了XD</p>
+<h3 id="一般-root-使用小記">一般 root 使用小記</h3>
+<p>.target</p>
+<h3 id="unitserviceinstall">UNIT,Service,Install</h3>
+<blockquote>
+<p>[Unit] 小節選項</p>
+</blockquote>
+<blockquote>
+<p>單元文件中的 [Unit] 小節 包含與單元類型無關的通用信息。 可用的選項(亦稱&quot;指令&quot;或&quot;屬性&quot;)如下：</p>
+</blockquote>
+<p>參考: <a href="http://www.jinbuguo.com/systemd/systemd.unit.html" target="_blank" rel="noopener noreffer ">systemd.unit 中文手册 [金步国]</a></p>
+<p>詳細內容:<a href="https://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html" target="_blank" rel="noopener noreffer ">Systemd 入門教程：實戰篇 - 阮一峰的網絡日誌</a> <a href="web1.png" rel="">備份圖</a></p>
+<p>感覺上面重點都提到了&hellip;<br>
+<del>我不忍心完整 copy &amp; paste</del>沒大握整理好，可以到裡面看!!<br>
+這邊整理我覺得之後可能會用到的</p>
+<p>看大多數接學都是用 root 設定 systemd<br>
+<strong>前陣子有看到使用一般 user 操作 systemd</strong><br>
+本篇重點實作網路案例操作看看</p>
+<h2 id="systemctl---user">systemctl &ndash;user</h2>
+<p>最近爬到一篇 一般user也可以使用<br>
+一般主機排程都是設定在 root(我之前工作大多數都 這樣)<br>
+但最近在想是不是應該可以切開一個全縣讓工程師去做設定<br>
+畢竟大多數 MIS 也看不懂程式&hellip;</p>
+<h3 id="一般使用者實作">一般使用者實作</h3>
+<p>建置一個 Hello-world.service</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">vim ~/.config/systemd/user/hello-world.service 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[Unit]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Description</span><span class="o">=</span><span class="s">Hello World Service</span>
+</span></span><span class="line"><span class="cl"><span class="na">After</span><span class="o">=</span><span class="s">systend-user-sessions.service</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Service]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
+</span></span><span class="line"><span class="cl"><span class="na">ExecStart</span><span class="o">=</span><span class="s">/home/malagege/hello-world.sh</span>
+</span></span><span class="line"><span class="cl"><span class="na">SyslogIdentifier</span><span class="o">=</span><span class="s">HelloWorldService</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Install]</span>
+</span></span><span class="line"><span class="cl"><span class="na">WantedBy</span><span class="o">=</span><span class="s">default.target</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>啟用 hello-world.service</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">systemctl --user  <span class="nb">enable</span>  hello-world.service                                                                                   
+</span></span><span class="line"><span class="cl">Created symlink /home/malagege/.config/systemd/user/default.target.wants/hello-world.service → /home/malagege/.config/systemd/user/hello-world.service.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>~~竟然不用做 systemctl daemon-reload!!! ~~<br>
+<del><strong>我還實有看到有的教學有用</strong><code>systemctl --user daemon-reload</code></del><br>
+修改 timer 的時候需要 <code>systemctl --user daemon-reload</code> 才會生效</p>
+<p>但我這邊沒使用就能用了<br>
+沒出現先enable 就會有了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"> systemctl --user  status  hello-world.service
+</span></span><span class="line"><span class="cl">● hello-world.service - Hello World Service
+</span></span><span class="line"><span class="cl">   Loaded: loaded (/home/malagege/.config/systemd/user/hello-world.service; enabled; vendor preset: enabled)
+</span></span><span class="line"><span class="cl">   Active: inactive (dead)
+</span></span><span class="line"><span class="cl">systemctl --user  start  hello-world.service
+</span></span><span class="line"><span class="cl"> ~/.config/systemd/user 
+</span></span><span class="line"><span class="cl">systemctl --user  status  hello-world.service
+</span></span><span class="line"><span class="cl">● hello-world.service - Hello World Service
+</span></span><span class="line"><span class="cl">   Loaded: loaded (/home/malagege/.config/systemd/user/hello-world.service; enabled; vendor preset: enabled)
+</span></span><span class="line"><span class="cl">   Active: active (running) since Tue 2020-11-17 23:26:23 CST; 4s ago
+</span></span><span class="line"><span class="cl"> Main PID: 10483 (hello-world.sh)
+</span></span><span class="line"><span class="cl">   CGroup: /user.slice/user-1000.slice/user@1000.service/hello-world.service
+</span></span><span class="line"><span class="cl">           ├─10483 /bin/bash /home/malagege/hello-world.sh
+</span></span><span class="line"><span class="cl">           └─10485 sleep 30
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">11月 17 23:26:23 malagege-K42JB systemd[1317]: Started Hello World Service.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>/home/malagege/.config/systemd/user/default.target.wants 裡面會出現  hello-world.service</p>
+<p>systemctl &ndash;user  disable  hello-world.service</p>
+<p>成功完成簡單操作</p>
+<h4 id="上面案例執行參數小記">上面案例執行參數小記</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># 標準輸出到
+</span></span><span class="line"><span class="cl">StandardOutput=syslog
+</span></span><span class="line"><span class="cl"># 標準錯誤輸出到
+</span></span><span class="line"><span class="cl">StandardError=syslog
+</span></span><span class="line"><span class="cl"># 設置syslog中log的程序名稱
+</span></span><span class="line"><span class="cl">SyslogIdentifier=helloexample
+</span></span><span class="line"><span class="cl"># 設置syslog中log類型
+</span></span><span class="line"><span class="cl">SyslogFacility=local0
+</span></span><span class="line"><span class="cl"># 設置syslog中log級別，此處為info
+</span></span><span class="line"><span class="cl">SyslogLevel=info
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Install 需要設定<br>
+這邊是網路參考去配置的</p>
+<p>參考:  <a href="https://exfast.me/2018/11/linux-use-systemd-manage-application-common-instructions/" target="_blank" rel="noopener noreffer ">[Linux] 利用 Systemd 管理應用程式 – 常用指令 | 從入門到放棄</a></p>
+<h2 id="timer">timer</h2>
+<p>簡單說一下，這邊操作 systemd 的 timer 只有在 user 登入時候才會跑<br>
+所以需要做到開機跑 timer，需要設定 Linux 配置<br>
+<strong>我這邊有測試桌面登入，登出會有問題，但不確定是不是每個 Linux 就會這樣，但 Command Line 模式都很正常</strong><br>
+下面會提到</p>
+<h3 id="初始設定">初始設定</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">loginctl show-user <span class="sb">`</span>__user_id__<span class="sb">`</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>要設定</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">loginctl enable-linger `id -u` # 後面是放使用者名稱 或 id
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>會出現</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">Linger=no
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>Linger=no </code>代表沒有啟用<br>
+一般通常不會打開<br>
+這個不打開的話<br>
+只要登出使用者帳號，當下 systemd 的 timer 都不會執行<br>
+<del><strong>這邊要注意!!疑似要用 root 權限設定</strong></del><br>
+<del>像我用一般使用者設定</del><br>
+<del>但登出 timer 就沒有繼續跑了&hellip;</del><br>
+<del>後來嘗試很就，root 設定 loginctl 就成功了</del><br>
+結果後來桌面登出有時候 systemctl &ndash;user 還是會中斷&hellip;</p>
+<blockquote>
+<p>警告： systemd 服務是 沒有 會話的， 它們在 logind 狀態之外運行， 所以不要在 lingering 中啟用自動登陸的功能，這會導致 會話中斷。</p>
+</blockquote>
+<p>參考:<a href="https://wiki.archlinux.org/index.php/Systemd_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29/User_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29#%E9%9A%8F%E7%B3%BB%E7%BB%9F%E8%87%AA%E5%8A%A8%E5%90%AF%E5%8A%A8systemd%E7%94%A8%E6%88%B7%E5%AE%9E%E4%BE%8B" target="_blank" rel="noopener noreffer ">systemd (簡體中文)/User (簡體中文) - ArchWiki</a></p>
+<p>用別的使用者下<code>ps -fu _user_</code>就可以看到有沒有起 <code>systemd --user</code></p>
+<p>有很大機率是這個原因&hellip;，不過不知道是我的 ElementaryOS 關係<br>
+顯示自動開啟不是很正確，有時候桌面登出還是會中斷 systemd<br>
+有空我再用樹梅派實體機器測試&hellip;</p>
+<p><strong>目前猜測用桌面登出會中斷 systemd</strong><br>
+PS: 我使用的是 ElementaryOS</p>
+<ul>
+<li><a href="https://elementaryos.stackexchange.com/questions/7726/how-to-enable-automatic-login-after-installing-elementary-os-loki" target="_blank" rel="noopener noreffer ">settings - How to enable automatic login after installing elementary OS Loki - elementary OS Stack Exchange</a></li>
+<li><a href="https://unix.stackexchange.com/questions/462845/how-to-apply-lingering-immedeately" target="_blank" rel="noopener noreffer ">systemd - How to apply lingering immedeately - Unix &amp; Linux Stack Exchange</a></li>
+<li><a href="https://blog.fairycat.cn/post/128" target="_blank" rel="noopener noreffer ">用 systemd 管理 laravel 队列和定时任务 - fairycat</a></li>
+</ul>
+<h2 id="操作紀錄">操作紀錄</h2>
+<p>參考: <a href="https://www.junmajinlong.com/linux/systemd/systemd_timer/#systemd-timer%E5%85%A5%E9%97%A8%E7%A4%BA%E4%BE%8B%EF%BC%9A%E6%AF%8F3%E7%A7%92%E8%BF%90%E8%A1%8C%E4%B8%80%E6%AC%A1" target="_blank" rel="noopener noreffer ">systemd timer：取代cron和at的定时任务 | 骏马金龙</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[Unit]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Description</span> <span class="o">=</span> <span class="s">&#34;Hello Timer Description&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Service]</span>
+</span></span><span class="line"><span class="cl"><span class="na">ExecStart</span> <span class="o">=</span> <span class="s">/home/malagege/hello-timer.sh</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ExecStart = /usr/bin/curl -s -o /dev/null -w &#39;%{http_code}&#39; &#39;https://www.junmajinlong.com&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[Unit]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Description</span> <span class="o">=</span> <span class="s">&#34;run hello timer  every 3 seconds&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Timer]</span>
+</span></span><span class="line"><span class="cl"><span class="na">OnActiveSec</span> <span class="o">=</span> <span class="s">1s</span>
+</span></span><span class="line"><span class="cl"><span class="na">OnUnitInactiveSec</span> <span class="o">=</span> <span class="s">3s</span>
+</span></span><span class="line"><span class="cl"><span class="na">AccuracySec</span> <span class="o">=</span> <span class="s">1us</span>
+</span></span><span class="line"><span class="cl"><span class="na">RandomizedDelaySec</span> <span class="o">=</span> <span class="s">0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Install]</span>
+</span></span><span class="line"><span class="cl"><span class="na">WantedBy</span> <span class="o">=</span> <span class="s">timers.target</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">systemctl --user  start  hello-timer.timer
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">systemctl --user list-timers --all
+</span></span><span class="line"><span class="cl">NEXT                         LEFT    LAST                         PASSED UNIT              ACTIVATES
+</span></span><span class="line"><span class="cl">Wed 2020-11-18 00:05:38 CST  1s left Wed 2020-11-18 00:05:35 CST  1s ago hello-timer.timer hello-timer.service
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">systemctl --user status  hello-timer.timer
+</span></span><span class="line"><span class="cl">● hello-timer.timer - &#34;run hello timer  every 3 seconds&#34;
+</span></span><span class="line"><span class="cl">   Loaded: loaded (/home/malagege/.config/systemd/user/hello-timer.timer; enabled; vendor preset: enabled)
+</span></span><span class="line"><span class="cl">   Active: active (waiting) since Wed 2020-11-18 00:03:25 CST; 9min ago
+</span></span><span class="line"><span class="cl">  Trigger: Wed 2020-11-18 00:13:15 CST; 825ms left
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">11月 18 00:03:25 malagege-K42JB systemd[1317]: Started &#34;run hello timer  every 3 seconds&#34;.
+</span></span><span class="line"><span class="cl"> ~/.config/systemd/user 
+</span></span><span class="line"><span class="cl">systemctl --user status  hello-timer.service
+</span></span><span class="line"><span class="cl">● hello-timer.service - &#34;Hello Timer Description&#34;
+</span></span><span class="line"><span class="cl">   Loaded: loaded (/home/malagege/.config/systemd/user/hello-timer.service; static; vendor preset: enabled)
+</span></span><span class="line"><span class="cl">   Active: inactive (dead) since Wed 2020-11-18 00:13:18 CST; 2s ago
+</span></span><span class="line"><span class="cl">  Process: 20922 ExecStart=/home/malagege/hello-timer.sh (code=exited, status=0/SUCCESS)
+</span></span><span class="line"><span class="cl"> Main PID: 20922 (code=exited, status=0/SUCCESS)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">11月 18 00:13:18 malagege-K42JB systemd[1317]: Started &#34;Hello Timer Description&#34;.
+</span></span><span class="line"><span class="cl">11月 18 00:13:18 malagege-K42JB hello-timer.sh[20922]: hello world
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>很有趣的是 hello-timer.service 裡面狀態是static<br>
+不太確定是 .timer 影響到他</p>
+<p>查看 log</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">journalctl --user -u hello-timer.service
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="動態延遲執行">動態延遲執行</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># 定時器啟動後，再過10分鐘第一次觸發定時任務
+</span></span><span class="line"><span class="cl">OnActiveSec=10m
+</span></span><span class="line"><span class="cl"># 每次執行完任務後，再過15分鐘後再次觸發定時任務
+</span></span><span class="line"><span class="cl">OnUnitInactiveSec=15m
+</span></span><span class="line"><span class="cl"># 觸發事件後，允許推遲0-10分鐘再執行被觸發的任務
+</span></span><span class="line"><span class="cl">AccuracySec=10m
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>以上指令的效果是：</p>
+<ul>
+<li>啟動定時器後的10m-20m內的任一時間點觸發第一次定時任務</li>
+<li>之後每隔15m-25m再次觸發定時任務</li>
+</ul>
+</blockquote>
+<p>作者: 骏马金龙<br>
+链接: <a href="https://www.junmajinlong.com/linux/systemd/systemd_timer/" target="_blank" rel="noopener noreffer ">https://www.junmajinlong.com/linux/systemd/systemd_timer/</a><br>
+来源: 骏马金龙<br>
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</p>
+<p>分開看指令，可能不是很了解<br>
+OnUnitInactiveSec 排程執行完之後會執行 service<br>
+AccuracySec 會增加起排程時間<br>
+所以才會變成 15~25 分鐘執行</p>
+<blockquote>
+<p>AccuracySec的默認值為1分鐘，所以如果不定義AccuracySec的話，即使用戶期待的是每秒觸發一次定時任務，但事實卻是會在1s-61s時間段內的一個隨機時間點觸發一次定時任務。(可以自己去觀察一下定時任務執行情況)</p>
+<p>但是，觸發定時任務的時間點並不表示這是執行任務的時間點。觸發了定時任務，還需要根據RandomizedDelaySec的值來決定何時執行定時任務。</p>
+<p>RandomizedDelaySec指定觸發定時任務後還需延遲一個指定範圍內的隨機時長才執行任務。該指令默認值為0，表示觸發後立即執行任務。</p>
+<p>使用RandomizedDelaySec，主要是為了在一個時間範圍內分散大量被同時觸發的定時任務，從而避免這些定時任務集中在同一時間點執行而CPU爭搶。</p>
+<p>可見，AccuracySec和RandomizedDelaySec的目的是相反的：</p>
+<pre><code>前者讓指定範圍內的定時器集中在同一個時間點一次性觸發它們的定時任務
 後者讓觸發的、將要被執行的任務均勻分散在一個時間段範圍內
-</code></pre><p>根據以上描述，如果用戶想要讓定時任務非常精確度地執行，需要將它們設置的足夠小。例如：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>AccuracySec = 1ms        # 定時器到點就觸發定時任務
-</span></span><span class=line><span class=cl>RandomizedDelaySec = 0   # 定時任務一觸發就立刻執行任務
-</span></span></code></pre></td></tr></table></div></div></blockquote><p>我的感覺選 AccuracySec 應該會比較好</p><h3 id=運行級別別打錯>運行級別(別打錯)</h3><p><a href=https://www.junmajinlong.com/linux/systemd/runlevel/ target=_blank rel="noopener noreffer">systemd時代的運行級別 | 駿馬金龍</a></p><p>總之設定 Install 的 target<br>timers.target 設定成timer.target<br>開機進然不會啟動<br>後來發現少加了s</p><h3 id=查看systemd排程時間點>查看systemd排程時間點</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>systemctl list-timers --no-pager
-</span></span></code></pre></td></tr></table></div></div><blockquote><p>NEXT表示下一次要觸發定時任務的時間點<br>LEFT表示現在距離下次執行任務還剩多長時間(已經確定了下一次執行的時間點)，或者顯示最近一次執行任務已經過去了多長時間(還不確定下一次執行的時間點)> ，稍後解釋了AccuracySec和RandomizedDelaySec就知道為什麼會有這兩種表示方式<br>LAST表示上次觸發定時任務的時間點<br>PASSED表示距離上一次執行任務已經過去多久<br>UNIT表示是哪個定時器<br>ACTIVATES表示該定時器所觸發的任務</p></blockquote><h3 id=查看日誌>查看日誌</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># 查看指定服務的所有journal日誌信息
-</span></span><span class=line><span class=cl># xxx.service是定時任務的名稱
-</span></span><span class=line><span class=cl>journalctl -u xxx.service
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl># 實時監控尾部日誌，類似tail -f
-</span></span><span class=line><span class=cl>journalctl -f -u xxx.service
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl># 顯示指定時間段內的日誌
-</span></span><span class=line><span class=cl># --since：從指定時間點內開始的日誌
-</span></span><span class=line><span class=cl># --until：到指定時間點為止的日誌
-</span></span><span class=line><span class=cl>journalctl -u xxx.service --since=&#34;2020-07-04 19:06:23&#34;
-</span></span><span class=line><span class=cl>journalctl -u xxx.service --since=&#34;60s ago&#34;
-</span></span><span class=line><span class=cl>journalctl -u xxx.service --since=&#34;1min ago&#34;
-</span></span><span class=line><span class=cl>journalctl -u page_test.service --since=&#34;-60s&#34;
-</span></span></code></pre></td></tr></table></div></div><h3 id=calendar>Calendar</h3><h4 id=一般時間執行>一般時間執行</h4><p>全部參考:<a href=https://www.junmajinlong.com/linux/systemd/systemd_timer/#%E6%9B%B4%E4%B8%BA%E7%81%B5%E6%B4%BB%E7%9A%84%E5%AE%9A%E6%97%B6%E8%A7%84%E5%88%99%EF%BC%9AOnCalendar target=_blank rel="noopener noreffer">systemd timer：取代cron和at的定时任务 | 骏马金龙</a><br>裡面內容豐富，建議看裡面內文</p><p>這邊貼範例<br>看範例修改就真的很方便</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl># 假如今日是2012-11-23
-</span></span><span class=line><span class=cl>  Fri 2012-11-23 11:12:13 → Fri 2012-11-23 11:12:13
-</span></span><span class=line><span class=cl>      2012-11-23 11:12:13 → Fri 2012-11-23 11:12:13
-</span></span><span class=line><span class=cl>  2012-11-23 11:12:13 UTC → Fri 2012-11-23 19:12:13
-</span></span><span class=line><span class=cl>               2012-11-23 → Fri 2012-11-23 00:00:00
-</span></span><span class=line><span class=cl>                 12-11-23 → Fri 2012-11-23 00:00:00
-</span></span><span class=line><span class=cl>                 11:12:13 → Fri 2012-11-23 11:12:13
-</span></span><span class=line><span class=cl>                    11:12 → Fri 2012-11-23 11:12:00
-</span></span><span class=line><span class=cl>                      now → Fri 2012-11-23 18:15:22
-</span></span><span class=line><span class=cl>                    today → Fri 2012-11-23 00:00:00
-</span></span><span class=line><span class=cl>                today UTC → Fri 2012-11-23 16:00:00
-</span></span><span class=line><span class=cl>                yesterday → Fri 2012-11-22 00:00:00
-</span></span><span class=line><span class=cl>                 tomorrow → Fri 2012-11-24 00:00:00
-</span></span><span class=line><span class=cl>                 +3h30min → Fri 2012-11-23 21:45:22
-</span></span><span class=line><span class=cl>                      -5s → Fri 2012-11-23 18:15:17
-</span></span><span class=line><span class=cl>                11min ago → Fri 2012-11-23 18:04:22
-</span></span><span class=line><span class=cl>      2 months 5 days ago
-</span></span><span class=line><span class=cl>              @1395716396 → Tue 2014-03-25 03:59:56
-</span></span></code></pre></td></tr></table></div></div><p>進階使用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Sat,Mon..Wed   -&gt; 周一、二、三、四
-</span></span><span class=line><span class=cl>*:00           -&gt; 每小时，省略秒位
-</span></span><span class=line><span class=cl>*:*            -&gt; 每分钟，省略秒位
-</span></span><span class=line><span class=cl>*:*:*          -&gt; 每秒
-</span></span><span class=line><span class=cl>*-*-01 00:00   -&gt; 每月一号，省略秒位
-</span></span><span class=line><span class=cl>*-02~03        -&gt; 表示2月的倒数第三天  
-</span></span><span class=line><span class=cl>*-05~07/1      -&gt; 表示5月最后7天中的每一天
-</span></span><span class=line><span class=cl>*-05~1..7      -&gt; 同上
-</span></span><span class=line><span class=cl>Mon *-05~07/1  -&gt; 表示5月最后一个星期一
-</span></span><span class=line><span class=cl>*:*:3.33/10.05 -&gt; 小数表示秒。3.33,13.38,23.43,33.48,43.53
-</span></span><span class=line><span class=cl>9..17/2:00     -&gt; 从上午9点开始每隔两小时，直到下午5点
-</span></span><span class=line><span class=cl>12..14:10,20   -&gt; 12到14点的第10分钟和第20分钟，即1[234]:[12]0:00
-</span></span></code></pre></td></tr></table></div></div><p>連月底跟09~17每隔兩小時執行都可以做到</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Sat,Mon..Wed   -&gt; 週一、二、三、四
-</span></span><span class=line><span class=cl>*:00           -&gt; 每小時，省略秒位
-</span></span><span class=line><span class=cl>*:*            -&gt; 每分鐘，省略秒位
-</span></span><span class=line><span class=cl>*:*:*          -&gt; 每秒
-</span></span><span class=line><span class=cl>*-*-01 00:00   -&gt; 每月一號，省略秒位
-</span></span><span class=line><span class=cl>*-02~03        -&gt; 表示2月的倒數第三天  
-</span></span><span class=line><span class=cl>*-05~07/1      -&gt; 表示5月最後7天中的每一天
-</span></span><span class=line><span class=cl>*-05~1..7      -&gt; 同上
-</span></span><span class=line><span class=cl>Mon *-05~07/1  -&gt; 表示5月最後一個星期一
-</span></span><span class=line><span class=cl>*:*:3.33/10.05 -&gt; 小數表示秒。3.33,13.38,23.43,33.48,43.53
-</span></span><span class=line><span class=cl>9..17/2:00     -&gt; 從上午9點開始每隔兩小時，直到下午5點
-</span></span><span class=line><span class=cl>12..14:10,20   -&gt; 12到14點的第10分鐘和第20分鐘，即1[234]:[12]0:00
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Sat,Mon..Wed   -&gt; 週一、二、三、四
-</span></span><span class=line><span class=cl>*:00           -&gt; 每小時，省略秒位
-</span></span><span class=line><span class=cl>*:*            -&gt; 每分鐘，省略秒位
-</span></span><span class=line><span class=cl>*:*:*          -&gt; 每秒
-</span></span><span class=line><span class=cl>*-*-01 00:00   -&gt; 每月一號，省略秒位
-</span></span><span class=line><span class=cl>*-02~03        -&gt; 表示2月的倒數第三天  
-</span></span><span class=line><span class=cl>*-05~07/1      -&gt; 表示5月最後7天中的每一天
-</span></span><span class=line><span class=cl>*-05~1..7      -&gt; 同上
-</span></span><span class=line><span class=cl>Mon *-05~07/1  -&gt; 表示5月最後一個星期一
-</span></span><span class=line><span class=cl>*:*:3.33/10.05 -&gt; 小數表示秒。3.33,13.38,23.43,33.48,43.53
-</span></span><span class=line><span class=cl>9..17/2:00     -&gt; 從上午9點開始每隔兩小時，直到下午5點
-</span></span><span class=line><span class=cl>12..14:10,20   -&gt; 12到14點的第10分鐘和第20分鐘，即1[234]:[12]0:00
-</span></span></code></pre></td></tr></table></div></div><h5 id=快速分析工具>快速分析工具</h5><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>systemd-analyze calendar &#34;*:*:00&#34;  
-</span></span><span class=line><span class=cl> Original form: *:*:00
-</span></span><span class=line><span class=cl>Normalized form: *-*-* *:*:00
-</span></span><span class=line><span class=cl>    Next elapse: Sat 2020-11-21 00:01:00 CST
-</span></span><span class=line><span class=cl>       (in UTC): Fri 2020-11-20 16:01:00 UTC
-</span></span><span class=line><span class=cl>       From now: 24s left
-</span></span></code></pre></td></tr></table></div></div><p>後面放時間，可以看到內容</p><h4 id=月底執行>月底執行</h4><p>在還沒整理上面，有特別先找的</p><p>之前就有記過<a href=https://malagege.github.io/blog/posts/%E6%8E%92%E7%A8%8B-crontab-%E6%99%82%E9%96%93%E8%A8%AD%E5%AE%9A%E6%9C%88%E5%BA%95%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/ target=_blank rel="noopener noreffer">排程 crontab 時間設定月底執行方法 | 程式狂想筆記</a><br>在想這個有沒有比較優的方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>As of version 233, systemd supports using &#34;~&#34; in its calendar syntax to specify dates relative to the end of the month.
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>OnCalendar=*-02~03 means the third last day in February (the 26th or 27th, depending on whether or not it&#39;s a leap year)
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Mon *-05~07/1 and Mon *-05~01..07 are synonyms for the last Monday in May.
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>https://github.com/systemd/systemd/blob/v233/NEWS#L174
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://unix.stackexchange.com/questions/306336/how-to-configure-systemd-timer-to-run-the-service-on-last-day-of-the-month target=_blank rel="noopener noreffer">How to configure Systemd Timer to run the service on last day of the month - Unix & Linux Stack Exchange</a></p><h4 id=持久化>持久化</h4><p><strong>Timer</strong>段中還可以使用Unit指令和Persistent指令。</p><ul><li>Unit=xxx.service：默認情況下，a.timer對應要執行的任務文件是a.service，使用Unit指令可以明確指定觸發定時任務事件時要執行的文件</li><li>Persistent=yes/no：只在使用了OnCalendar時有效，默認值no。設置yes時，會將上次執行任務的時間點保存在磁盤上，使得定時器再次被啟動時，可以立即判斷是否要執行丟失的任務</li></ul><p>有間單測試，我以為設定<code>*:*:00</code> 超過三分鐘會執行三次，但是不會&mldr;</p><p>timer</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[Unit]</span>
-</span></span><span class=line><span class=cl><span class=na>Description</span> <span class=o>=</span> <span class=s>user login timer</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Timer]</span>
-</span></span><span class=line><span class=cl><span class=na>AccuracySec</span> <span class=o>=</span> <span class=s>1ms</span>
-</span></span><span class=line><span class=cl><span class=na>RandomizedDelaySec</span> <span class=o>=</span> <span class=s>0</span>
-</span></span><span class=line><span class=cl><span class=na>OnCalendar</span> <span class=o>=</span> <span class=s>*:*:00</span>
-</span></span><span class=line><span class=cl><span class=na>Persistent</span> <span class=o>=</span> <span class=s>yes</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>[Install]</span>
-</span></span><span class=line><span class=cl><span class=na>WantedBy</span> <span class=o>=</span> <span class=s>timers.target</span>
-</span></span></code></pre></td></tr></table></div></div><p>service</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>[Unit]
-</span></span><span class=line><span class=cl>Description = current time when task is been executed
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>[Service]
-</span></span><span class=line><span class=cl>ExecStart = /bin/bash -c &#39;date +&#34;%%T&#34; &gt;&gt;/home/malagege/a.log&#39;
-</span></span></code></pre></td></tr></table></div></div><h2 id=socket-觸發啟動>socket 觸發啟動</h2><p><a href=http://www.ruanyifeng.com/blog/2016/03/node-systemd-tutorial.html target=_blank rel="noopener noreffer">Node 应用的 Systemd 启动 - 阮一峰的网络日志</a></p><p>這裡面有介紹<br>還覺得滿有趣的<br>但目前我這邊應該用不到這個功能</p><h2 id=搜尋相關文章>搜尋相關文章</h2><h3 id=詳細教學文章>詳細教學文章</h3><ul><li><a href=https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29 target=_blank rel="noopener noreffer">systemd (正體中文) - ArchWiki</a></li><li><a href=https://cfarm.blog.aznc.cc/%E4%BD%BF%E7%94%A8-systemd-timer-%E4%BB%A3%E6%9B%BF-crontab/ target=_blank rel="noopener noreffer">使用 systemd.timer 代替 crontab | C瓜農場</a></li><li><a href=https://zdyxry.github.io/2018/06/28/%E4%BD%BF%E7%94%A8-systemd-timer-%E6%9B%BF%E6%8D%A2-crontab/ target=_blank rel="noopener noreffer">使用 systemd timer 替换 crontab | Yiran&rsquo;s Blog</a></li><li><a href=https://www.junmajinlong.com/linux/systemd/runlevel/ target=_blank rel="noopener noreffer">systemd時代的運行級別 | 駿馬金龍</a> <a href=web2.png rel>備份圖</a><br><a href=https://www.junmajinlong.com/linux/systemd/systemd_timer/ target=_blank rel="noopener noreffer">systemd timer：取代cron和at的定时任务 | 骏马金龙</a> <a href=web3.png rel>備份圖</a></li><li><a href=https://www.3chy2.com.tw/3c%E8%B3%87%E8%A8%8A/linux-systemd-%E8%A9%B3%E7%B4%B0%E4%BB%8B%E7%B4%B9-unit%E3%80%81unit-file%E3%80%81systemctl%E3%80%81target/ target=_blank rel="noopener noreffer">Linux Systemd 詳細介紹: Unit、Unit File、Systemctl、Target | 3C</a> <a href=web4.png rel>備份圖</a></li><li><a href=https://www.junmajinlong.com/linux/index/#systemd target=_blank rel="noopener noreffer">Linux系列文章 | 骏马金龙</a></li></ul><h3 id=與supervisor-差異>與supervisor 差異</h3><ul><li><a href=https://segmentfault.com/a/1190000009338835 target=_blank rel="noopener noreffer">systemd vs supervisord_spacewander - SegmentFault 思否</a></li><li><a href=https://liqiang.io/post/systemd-vs-supervisord target=_blank rel="noopener noreffer">Systemd Supervisord 肤浅对比</a></li><li><a href=https://www.zhihu.com/question/48833333 target=_blank rel="noopener noreffer">systemd 和 supervisor 相比各有哪些优缺点？以及各自的适用场景是什么？ - 知乎</a></li></ul><p>之前分不清楚systemd 和 supervisor<br>最後看教學，一個是系統層級的、一個是應用層級的<br>最後還是決定學好 systemd</p><p>不過後來發現 timer 相關設定 supervisor 沒有相關設定</p><h3 id=跟-docker-差異>跟 docker 差異</h3><ul><li><a href=http://dockone.io/article/1093 target=_blank rel="noopener noreffer">Systemd与Docker的爱恨情仇 - DockOne.io</a></li><li><a href=https://blog.davy.tw/posts/use-systemd-to-manage-docker-container/ target=_blank rel="noopener noreffer">使用 systemd 管理 Docker container</a></li></ul><p>之前有改想過systemd 管理docker 排程，但好像不建議這樣做&mldr;</p><h3 id=failed-to-connect-to-bus-no-such-file-or-directory>Failed to connect to bus: No such file or directory"</h3><p>我們公司環境沒版法使用 <code>systemctl --user</code><br>不知道是不是沒有 D-Bus關係<br>以下文章都嘗試過，還是沒辦法使用</p><ul><li><p><a href=https://superuser.com/questions/1561076/systemctl-use-failed-to-connect-to-bus-no-such-file-or-directory-debian-9 target=_blank rel="noopener noreffer">linux - systemctl &ndash;use Failed to connect to bus: No such file or directory Debian 9 - Super User</a></p></li><li><p><a href=https://gist.github.com/Cretezy/dc64ed4519c63c3eb636fba354f93a1f target=_blank rel="noopener noreffer">systemd user &ldquo;Failed to connect to bus: No such file or directory&rdquo;</a></p></li><li><p><a href=https://blog.csdn.net/tengdazhang770960436/article/details/78873869 target=_blank rel="noopener noreffer">docker centos 使用 systemctl Failed to get D-Bus connection: Operation not permitted_彻底拆分，一切可控！-CSDN博客</a></p></li><li><p><a href=https://blog.csdn.net/tengdazhang770960436/article/details/78873869 target=_blank rel="noopener noreffer">docker centos 使用 systemctl Failed to get D-Bus connection: Operation not permitted_彻底拆分，一切可控！-CSDN博客</a></p></li></ul><p>XDG_RUNTIME_DIR=/run/user/<code>id -u</code><br>~~建立資料夾??~~沒有用<br><a href=https://answers.launchpad.net/ubuntu/+source/systemd/+question/287454 target=_blank rel="noopener noreffer">https://answers.launchpad.net/ubuntu/+source/systemd/+question/287454</a></p><p>XDG_RUNTIME_DIR=/run/user/$UID systemctl &ndash;user status<br>我電腦 ElementaryOS 新家的參數</p><h3 id=其他參數>其他參數</h3><h4 id=work-dir>work dir</h4><p><a href=https://www.digitalocean.com/community/questions/trying-to-change-workingdirectory-of-systemd-service-unit target=_blank rel="noopener noreffer">Trying to change WorkingDirectory of Systemd Service Unit | DigitalOcean</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>WorkingDirectory=/home/pi
-</span></span><span class=line><span class=cl>ExecStart=/home/pi/launchscript.sh
-</span></span></code></pre></td></tr></table></div></div><p>ExecStart 必須要完整路徑</p><h4 id=timeout>timeout</h4><p><a href=https://unix.stackexchange.com/questions/227017/how-to-change-systemd-service-timeout-value target=_blank rel="noopener noreffer">centos - How to change systemd service timeout value? - Unix & Linux Stack Exchange</a></p><blockquote><p>TimeoutStartSec=</p></blockquote><blockquote><p>設置該服務允許的最大啟動時長。 如果守護進程未能在限定的時長內發出"啟動完畢"的信號，那麼該服務將被視為啟動失敗，並會被關閉。 如果未指定時間單位，那麼將視為以秒為單位。 例如設為"20"等價於設為"20s"。 設為 &ldquo;infinity&rdquo; 則表示永不超時。 當 Type=oneshot 時， 默認值為 &ldquo;infinity&rdquo; (永不超時)， 否則默認值等於 DefaultTimeoutStartSec= 的值(參見 systemd-system.conf(5) 手冊)。</p></blockquote><blockquote><p>如果一個 Type=notify 服務發送了 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號， 那麼允許的啟動時長將會在 TimeoutStartSec= 基礎上繼續延長指定的時長。 注意，必須在 TimeoutStartSec= 用完之前發出第一個延時信號。當啟動時間超出 TimeoutStartSec= 之後，該服務可以在維持始終不超時的前提下，不斷重複發送 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號， 直到完成啟動(發送 &ldquo;READY=1&rdquo; 信號)。詳見 sd_notify(3) 手冊。<br>TimeoutStopSec=</p></blockquote><blockquote><p>此選項有兩個用途： (1)設置每個 ExecStop= 的超時時長。如果其中之一超時， 那麼所有後繼的 ExecStop= 都會被取消，並且該服務也會被 SIGTERM 信號強制關閉。 如果該服務沒有設置 ExecStop= ，那麼該服務將會立即被 SIGTERM 信號強制關閉。 (2)設置該服務自身停止的超時時長。如果超時，那麼該服務將會立即被 SIGTERM 信號強制關閉(參見 systemd.kill(5) 手冊中的 KillMode= 選項)。 如果未指定時間單位，那麼將視為以秒為單位。 例如設為"20"等價於設為"20s"。 設為 &ldquo;infinity&rdquo; 則表示永不超時。 默認值等於 DefaultTimeoutStopSec= 的值(參見 systemd-system.conf(5) 手冊)。</p></blockquote><blockquote><p>如果一個 Type=notify 服務發送了 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號， 那麼允許的停止時長將會在 TimeoutStopSec= 基礎上繼續延長指定的時長。 注意，必須在 TimeoutStopSec= 用完之前發出第一個延時信號。當停止時間超出 TimeoutStopSec= 之後，該服務可以在維持始終不超時的前提下，不斷重複發送 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號，直到完成停止。 詳見 sd_notify(3) 手冊。</p></blockquote><p><a href=http://www.jinbuguo.com/systemd/systemd.service.html target=_blank rel="noopener noreffer">systemd.service 中文手冊 [金步國]</a></p><h2 id=supervisor>Supervisor</h2><p><a href=https://codertw.com/%E4%BC%BA%E6%9C%8D%E5%99%A8/170578/ target=_blank rel="noopener noreffer">Ubuntu下Supervisor安裝、配置和使用 | 程式前沿</a><br>日後看情況再研究<br>有看到 golang 版本<br>假如沒有權限可以考慮<br>但發現好像沒有 crontab 東西</p><p>不繼續研究了&mldr;.</p><h2 id=總結>總結</h2><p>不專業總結<br>網路上有很多都寫得很詳細<br>建議看網路上詳細<br>本篇重點在筆記</p><p>網路上沒什麼看到 systemd 搭配 docker 裡面跑<br>感覺 supervisor 真的比較多<br>但我覺得排程這個東西有必要做虛擬化跑?這個也是個問題</p><p>用 crond 和 systemd 這個問題也是一個問題<br>目前我待過三家公司都是用 crond 居多<br>但用 crond 必須控制分散程式執行時間<br>有了 systemd ，工程師不用做複雜設計就可以使用<br>前提要會操作，所以進入門檻稍微高一點</p><p>不知道這些 systemd 有沒有辦法紀錄到 elk 上面<br>但我覺得這之後有空再研究<br>畢竟我還不會用XD</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-12-07</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/ data-title="Systemd 時間排程筆記" data-hashtags=systemd,crontab><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/ data-hashtag=systemd><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/ data-title="Systemd 時間排程筆記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/ data-title="Systemd 時間排程筆記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/ data-title="Systemd 時間排程筆記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/systemd/>systemd</a>,&nbsp;<a href=/blog/tags/crontab/>crontab</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/ class=prev rel=prev title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Docker 使用容量撐爆 Raspberry PI 硬碟空間</a>
-<a href=/blog/posts/Command-Injection-%E5%B0%8F%E8%A8%98/ class=next rel=next title="Command Injection 小記">Command Injection 小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+</code></pre>
+<p>根據以上描述，如果用戶想要讓定時任務非常精確度地執行，需要將它們設置的足夠小。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">AccuracySec = 1ms        # 定時器到點就觸發定時任務
+</span></span><span class="line"><span class="cl">RandomizedDelaySec = 0   # 定時任務一觸發就立刻執行任務
+</span></span></code></pre></td></tr></table>
+</div>
+</div></blockquote>
+<p>我的感覺選 AccuracySec 應該會比較好</p>
+<h3 id="運行級別別打錯">運行級別(別打錯)</h3>
+<p><a href="https://www.junmajinlong.com/linux/systemd/runlevel/" target="_blank" rel="noopener noreffer ">systemd時代的運行級別 | 駿馬金龍</a></p>
+<p>總之設定 Install 的 target<br>
+timers.target 設定成timer.target<br>
+開機進然不會啟動<br>
+後來發現少加了s</p>
+<h3 id="查看systemd排程時間點">查看systemd排程時間點</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">systemctl list-timers --no-pager
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>NEXT表示下一次要觸發定時任務的時間點<br>
+LEFT表示現在距離下次執行任務還剩多長時間(已經確定了下一次執行的時間點)，或者顯示最近一次執行任務已經過去了多長時間(還不確定下一次執行的時間點)&gt; ，稍後解釋了AccuracySec和RandomizedDelaySec就知道為什麼會有這兩種表示方式<br>
+LAST表示上次觸發定時任務的時間點<br>
+PASSED表示距離上一次執行任務已經過去多久<br>
+UNIT表示是哪個定時器<br>
+ACTIVATES表示該定時器所觸發的任務</p>
+</blockquote>
+<h3 id="查看日誌">查看日誌</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># 查看指定服務的所有journal日誌信息
+</span></span><span class="line"><span class="cl"># xxx.service是定時任務的名稱
+</span></span><span class="line"><span class="cl">journalctl -u xxx.service
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># 實時監控尾部日誌，類似tail -f
+</span></span><span class="line"><span class="cl">journalctl -f -u xxx.service
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># 顯示指定時間段內的日誌
+</span></span><span class="line"><span class="cl"># --since：從指定時間點內開始的日誌
+</span></span><span class="line"><span class="cl"># --until：到指定時間點為止的日誌
+</span></span><span class="line"><span class="cl">journalctl -u xxx.service --since=&#34;2020-07-04 19:06:23&#34;
+</span></span><span class="line"><span class="cl">journalctl -u xxx.service --since=&#34;60s ago&#34;
+</span></span><span class="line"><span class="cl">journalctl -u xxx.service --since=&#34;1min ago&#34;
+</span></span><span class="line"><span class="cl">journalctl -u page_test.service --since=&#34;-60s&#34;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="calendar">Calendar</h3>
+<h4 id="一般時間執行">一般時間執行</h4>
+<p>全部參考:<a href="https://www.junmajinlong.com/linux/systemd/systemd_timer/#%E6%9B%B4%E4%B8%BA%E7%81%B5%E6%B4%BB%E7%9A%84%E5%AE%9A%E6%97%B6%E8%A7%84%E5%88%99%EF%BC%9AOnCalendar" target="_blank" rel="noopener noreffer ">systemd timer：取代cron和at的定时任务 | 骏马金龙</a><br>
+裡面內容豐富，建議看裡面內文</p>
+<p>這邊貼範例<br>
+看範例修改就真的很方便</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># 假如今日是2012-11-23
+</span></span><span class="line"><span class="cl">  Fri 2012-11-23 11:12:13 → Fri 2012-11-23 11:12:13
+</span></span><span class="line"><span class="cl">      2012-11-23 11:12:13 → Fri 2012-11-23 11:12:13
+</span></span><span class="line"><span class="cl">  2012-11-23 11:12:13 UTC → Fri 2012-11-23 19:12:13
+</span></span><span class="line"><span class="cl">               2012-11-23 → Fri 2012-11-23 00:00:00
+</span></span><span class="line"><span class="cl">                 12-11-23 → Fri 2012-11-23 00:00:00
+</span></span><span class="line"><span class="cl">                 11:12:13 → Fri 2012-11-23 11:12:13
+</span></span><span class="line"><span class="cl">                    11:12 → Fri 2012-11-23 11:12:00
+</span></span><span class="line"><span class="cl">                      now → Fri 2012-11-23 18:15:22
+</span></span><span class="line"><span class="cl">                    today → Fri 2012-11-23 00:00:00
+</span></span><span class="line"><span class="cl">                today UTC → Fri 2012-11-23 16:00:00
+</span></span><span class="line"><span class="cl">                yesterday → Fri 2012-11-22 00:00:00
+</span></span><span class="line"><span class="cl">                 tomorrow → Fri 2012-11-24 00:00:00
+</span></span><span class="line"><span class="cl">                 +3h30min → Fri 2012-11-23 21:45:22
+</span></span><span class="line"><span class="cl">                      -5s → Fri 2012-11-23 18:15:17
+</span></span><span class="line"><span class="cl">                11min ago → Fri 2012-11-23 18:04:22
+</span></span><span class="line"><span class="cl">      2 months 5 days ago
+</span></span><span class="line"><span class="cl">              @1395716396 → Tue 2014-03-25 03:59:56
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>進階使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Sat,Mon..Wed   -&gt; 周一、二、三、四
+</span></span><span class="line"><span class="cl">*:00           -&gt; 每小时，省略秒位
+</span></span><span class="line"><span class="cl">*:*            -&gt; 每分钟，省略秒位
+</span></span><span class="line"><span class="cl">*:*:*          -&gt; 每秒
+</span></span><span class="line"><span class="cl">*-*-01 00:00   -&gt; 每月一号，省略秒位
+</span></span><span class="line"><span class="cl">*-02~03        -&gt; 表示2月的倒数第三天  
+</span></span><span class="line"><span class="cl">*-05~07/1      -&gt; 表示5月最后7天中的每一天
+</span></span><span class="line"><span class="cl">*-05~1..7      -&gt; 同上
+</span></span><span class="line"><span class="cl">Mon *-05~07/1  -&gt; 表示5月最后一个星期一
+</span></span><span class="line"><span class="cl">*:*:3.33/10.05 -&gt; 小数表示秒。3.33,13.38,23.43,33.48,43.53
+</span></span><span class="line"><span class="cl">9..17/2:00     -&gt; 从上午9点开始每隔两小时，直到下午5点
+</span></span><span class="line"><span class="cl">12..14:10,20   -&gt; 12到14点的第10分钟和第20分钟，即1[234]:[12]0:00
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>連月底跟09~17每隔兩小時執行都可以做到</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Sat,Mon..Wed   -&gt; 週一、二、三、四
+</span></span><span class="line"><span class="cl">*:00           -&gt; 每小時，省略秒位
+</span></span><span class="line"><span class="cl">*:*            -&gt; 每分鐘，省略秒位
+</span></span><span class="line"><span class="cl">*:*:*          -&gt; 每秒
+</span></span><span class="line"><span class="cl">*-*-01 00:00   -&gt; 每月一號，省略秒位
+</span></span><span class="line"><span class="cl">*-02~03        -&gt; 表示2月的倒數第三天  
+</span></span><span class="line"><span class="cl">*-05~07/1      -&gt; 表示5月最後7天中的每一天
+</span></span><span class="line"><span class="cl">*-05~1..7      -&gt; 同上
+</span></span><span class="line"><span class="cl">Mon *-05~07/1  -&gt; 表示5月最後一個星期一
+</span></span><span class="line"><span class="cl">*:*:3.33/10.05 -&gt; 小數表示秒。3.33,13.38,23.43,33.48,43.53
+</span></span><span class="line"><span class="cl">9..17/2:00     -&gt; 從上午9點開始每隔兩小時，直到下午5點
+</span></span><span class="line"><span class="cl">12..14:10,20   -&gt; 12到14點的第10分鐘和第20分鐘，即1[234]:[12]0:00
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Sat,Mon..Wed   -&gt; 週一、二、三、四
+</span></span><span class="line"><span class="cl">*:00           -&gt; 每小時，省略秒位
+</span></span><span class="line"><span class="cl">*:*            -&gt; 每分鐘，省略秒位
+</span></span><span class="line"><span class="cl">*:*:*          -&gt; 每秒
+</span></span><span class="line"><span class="cl">*-*-01 00:00   -&gt; 每月一號，省略秒位
+</span></span><span class="line"><span class="cl">*-02~03        -&gt; 表示2月的倒數第三天  
+</span></span><span class="line"><span class="cl">*-05~07/1      -&gt; 表示5月最後7天中的每一天
+</span></span><span class="line"><span class="cl">*-05~1..7      -&gt; 同上
+</span></span><span class="line"><span class="cl">Mon *-05~07/1  -&gt; 表示5月最後一個星期一
+</span></span><span class="line"><span class="cl">*:*:3.33/10.05 -&gt; 小數表示秒。3.33,13.38,23.43,33.48,43.53
+</span></span><span class="line"><span class="cl">9..17/2:00     -&gt; 從上午9點開始每隔兩小時，直到下午5點
+</span></span><span class="line"><span class="cl">12..14:10,20   -&gt; 12到14點的第10分鐘和第20分鐘，即1[234]:[12]0:00
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="快速分析工具">快速分析工具</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">systemd-analyze calendar &#34;*:*:00&#34;  
+</span></span><span class="line"><span class="cl"> Original form: *:*:00
+</span></span><span class="line"><span class="cl">Normalized form: *-*-* *:*:00
+</span></span><span class="line"><span class="cl">    Next elapse: Sat 2020-11-21 00:01:00 CST
+</span></span><span class="line"><span class="cl">       (in UTC): Fri 2020-11-20 16:01:00 UTC
+</span></span><span class="line"><span class="cl">       From now: 24s left
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>後面放時間，可以看到內容</p>
+<h4 id="月底執行">月底執行</h4>
+<p>在還沒整理上面，有特別先找的</p>
+<p>之前就有記過<a href="https://malagege.github.io/blog/posts/%E6%8E%92%E7%A8%8B-crontab-%E6%99%82%E9%96%93%E8%A8%AD%E5%AE%9A%E6%9C%88%E5%BA%95%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">排程 crontab 時間設定月底執行方法 | 程式狂想筆記</a><br>
+在想這個有沒有比較優的方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">As of version 233, systemd supports using &#34;~&#34; in its calendar syntax to specify dates relative to the end of the month.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">OnCalendar=*-02~03 means the third last day in February (the 26th or 27th, depending on whether or not it&#39;s a leap year)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Mon *-05~07/1 and Mon *-05~01..07 are synonyms for the last Monday in May.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">https://github.com/systemd/systemd/blob/v233/NEWS#L174
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://unix.stackexchange.com/questions/306336/how-to-configure-systemd-timer-to-run-the-service-on-last-day-of-the-month" target="_blank" rel="noopener noreffer ">How to configure Systemd Timer to run the service on last day of the month - Unix &amp; Linux Stack Exchange</a></p>
+<h4 id="持久化">持久化</h4>
+<p><strong>Timer</strong>段中還可以使用Unit指令和Persistent指令。</p>
+<ul>
+<li>Unit=xxx.service：默認情況下，a.timer對應要執行的任務文件是a.service，使用Unit指令可以明確指定觸發定時任務事件時要執行的文件</li>
+<li>Persistent=yes/no：只在使用了OnCalendar時有效，默認值no。設置yes時，會將上次執行任務的時間點保存在磁盤上，使得定時器再次被啟動時，可以立即判斷是否要執行丟失的任務</li>
+</ul>
+<p>有間單測試，我以為設定<code>*:*:00</code> 超過三分鐘會執行三次，但是不會&hellip;</p>
+<p>timer</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="k">[Unit]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Description</span> <span class="o">=</span> <span class="s">user login timer</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Timer]</span>
+</span></span><span class="line"><span class="cl"><span class="na">AccuracySec</span> <span class="o">=</span> <span class="s">1ms</span>
+</span></span><span class="line"><span class="cl"><span class="na">RandomizedDelaySec</span> <span class="o">=</span> <span class="s">0</span>
+</span></span><span class="line"><span class="cl"><span class="na">OnCalendar</span> <span class="o">=</span> <span class="s">*:*:00</span>
+</span></span><span class="line"><span class="cl"><span class="na">Persistent</span> <span class="o">=</span> <span class="s">yes</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Install]</span>
+</span></span><span class="line"><span class="cl"><span class="na">WantedBy</span> <span class="o">=</span> <span class="s">timers.target</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>service</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[Unit]
+</span></span><span class="line"><span class="cl">Description = current time when task is been executed
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[Service]
+</span></span><span class="line"><span class="cl">ExecStart = /bin/bash -c &#39;date +&#34;%%T&#34; &gt;&gt;/home/malagege/a.log&#39;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="socket-觸發啟動">socket 觸發啟動</h2>
+<p><a href="http://www.ruanyifeng.com/blog/2016/03/node-systemd-tutorial.html" target="_blank" rel="noopener noreffer ">Node 应用的 Systemd 启动 - 阮一峰的网络日志</a></p>
+<p>這裡面有介紹<br>
+還覺得滿有趣的<br>
+但目前我這邊應該用不到這個功能</p>
+<h2 id="搜尋相關文章">搜尋相關文章</h2>
+<h3 id="詳細教學文章">詳細教學文章</h3>
+<ul>
+<li><a href="https://wiki.archlinux.org/index.php/Systemd_%28%E6%AD%A3%E9%AB%94%E4%B8%AD%E6%96%87%29" target="_blank" rel="noopener noreffer ">systemd (正體中文) - ArchWiki</a></li>
+<li><a href="https://cfarm.blog.aznc.cc/%E4%BD%BF%E7%94%A8-systemd-timer-%E4%BB%A3%E6%9B%BF-crontab/" target="_blank" rel="noopener noreffer ">使用 systemd.timer 代替 crontab | C瓜農場</a></li>
+<li><a href="https://zdyxry.github.io/2018/06/28/%E4%BD%BF%E7%94%A8-systemd-timer-%E6%9B%BF%E6%8D%A2-crontab/" target="_blank" rel="noopener noreffer ">使用 systemd timer 替换 crontab | Yiran&rsquo;s Blog</a></li>
+<li><a href="https://www.junmajinlong.com/linux/systemd/runlevel/" target="_blank" rel="noopener noreffer ">systemd時代的運行級別 | 駿馬金龍</a> <a href="web2.png" rel="">備份圖</a><br>
+<a href="https://www.junmajinlong.com/linux/systemd/systemd_timer/" target="_blank" rel="noopener noreffer ">systemd timer：取代cron和at的定时任务 | 骏马金龙</a> <a href="web3.png" rel="">備份圖</a></li>
+<li><a href="https://www.3chy2.com.tw/3c%E8%B3%87%E8%A8%8A/linux-systemd-%E8%A9%B3%E7%B4%B0%E4%BB%8B%E7%B4%B9-unit%E3%80%81unit-file%E3%80%81systemctl%E3%80%81target/" target="_blank" rel="noopener noreffer ">Linux Systemd 詳細介紹: Unit、Unit File、Systemctl、Target | 3C</a> <a href="web4.png" rel="">備份圖</a></li>
+<li><a href="https://www.junmajinlong.com/linux/index/#systemd" target="_blank" rel="noopener noreffer ">Linux系列文章 | 骏马金龙</a></li>
+</ul>
+<h3 id="與supervisor-差異">與supervisor 差異</h3>
+<ul>
+<li><a href="https://segmentfault.com/a/1190000009338835" target="_blank" rel="noopener noreffer ">systemd vs supervisord_spacewander - SegmentFault 思否</a></li>
+<li><a href="https://liqiang.io/post/systemd-vs-supervisord" target="_blank" rel="noopener noreffer ">Systemd Supervisord 肤浅对比</a></li>
+<li><a href="https://www.zhihu.com/question/48833333" target="_blank" rel="noopener noreffer ">systemd 和 supervisor 相比各有哪些优缺点？以及各自的适用场景是什么？ - 知乎</a></li>
+</ul>
+<p>之前分不清楚systemd 和 supervisor<br>
+最後看教學，一個是系統層級的、一個是應用層級的<br>
+最後還是決定學好 systemd</p>
+<p>不過後來發現 timer 相關設定 supervisor 沒有相關設定</p>
+<h3 id="跟-docker-差異">跟 docker 差異</h3>
+<ul>
+<li><a href="http://dockone.io/article/1093" target="_blank" rel="noopener noreffer ">Systemd与Docker的爱恨情仇 - DockOne.io</a></li>
+<li><a href="https://blog.davy.tw/posts/use-systemd-to-manage-docker-container/" target="_blank" rel="noopener noreffer ">使用 systemd 管理 Docker container</a></li>
+</ul>
+<p>之前有改想過systemd 管理docker 排程，但好像不建議這樣做&hellip;</p>
+<h3 id="failed-to-connect-to-bus-no-such-file-or-directory">Failed to connect to bus: No such file or directory&quot;</h3>
+<p>我們公司環境沒版法使用 <code>systemctl --user</code><br>
+不知道是不是沒有 D-Bus關係<br>
+以下文章都嘗試過，還是沒辦法使用</p>
+<ul>
+<li>
+<p><a href="https://superuser.com/questions/1561076/systemctl-use-failed-to-connect-to-bus-no-such-file-or-directory-debian-9" target="_blank" rel="noopener noreffer ">linux - systemctl &ndash;use Failed to connect to bus: No such file or directory Debian 9 - Super User</a></p>
+</li>
+<li>
+<p><a href="https://gist.github.com/Cretezy/dc64ed4519c63c3eb636fba354f93a1f" target="_blank" rel="noopener noreffer ">systemd user &ldquo;Failed to connect to bus: No such file or directory&rdquo;</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/tengdazhang770960436/article/details/78873869" target="_blank" rel="noopener noreffer ">docker centos 使用 systemctl Failed to get D-Bus connection: Operation not permitted_彻底拆分，一切可控！-CSDN博客</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/tengdazhang770960436/article/details/78873869" target="_blank" rel="noopener noreffer ">docker centos 使用 systemctl Failed to get D-Bus connection: Operation not permitted_彻底拆分，一切可控！-CSDN博客</a></p>
+</li>
+</ul>
+<p>XDG_RUNTIME_DIR=/run/user/<code>id -u</code><br>
+~~建立資料夾??~~沒有用<br>
+<a href="https://answers.launchpad.net/ubuntu/&#43;source/systemd/&#43;question/287454" target="_blank" rel="noopener noreffer ">https://answers.launchpad.net/ubuntu/+source/systemd/+question/287454</a></p>
+<p>XDG_RUNTIME_DIR=/run/user/$UID systemctl &ndash;user status<br>
+我電腦 ElementaryOS 新家的參數</p>
+<h3 id="其他參數">其他參數</h3>
+<h4 id="work-dir">work dir</h4>
+<p><a href="https://www.digitalocean.com/community/questions/trying-to-change-workingdirectory-of-systemd-service-unit" target="_blank" rel="noopener noreffer ">Trying to change WorkingDirectory of Systemd Service Unit | DigitalOcean</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">WorkingDirectory=/home/pi
+</span></span><span class="line"><span class="cl">ExecStart=/home/pi/launchscript.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>ExecStart 必須要完整路徑</p>
+<h4 id="timeout">timeout</h4>
+<p><a href="https://unix.stackexchange.com/questions/227017/how-to-change-systemd-service-timeout-value" target="_blank" rel="noopener noreffer ">centos - How to change systemd service timeout value? - Unix &amp; Linux Stack Exchange</a></p>
+<blockquote>
+<p>TimeoutStartSec=</p>
+</blockquote>
+<blockquote>
+<p>設置該服務允許的最大啟動時長。 如果守護進程未能在限定的時長內發出&quot;啟動完畢&quot;的信號，那麼該服務將被視為啟動失敗，並會被關閉。 如果未指定時間單位，那麼將視為以秒為單位。 例如設為&quot;20&quot;等價於設為&quot;20s&quot;。 設為 &ldquo;infinity&rdquo; 則表示永不超時。 當 Type=oneshot 時， 默認值為 &ldquo;infinity&rdquo; (永不超時)， 否則默認值等於 DefaultTimeoutStartSec= 的值(參見 systemd-system.conf(5) 手冊)。</p>
+</blockquote>
+<blockquote>
+<p>如果一個 Type=notify 服務發送了 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號， 那麼允許的啟動時長將會在 TimeoutStartSec= 基礎上繼續延長指定的時長。 注意，必須在 TimeoutStartSec= 用完之前發出第一個延時信號。當啟動時間超出 TimeoutStartSec= 之後，該服務可以在維持始終不超時的前提下，不斷重複發送 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號， 直到完成啟動(發送 &ldquo;READY=1&rdquo; 信號)。詳見 sd_notify(3) 手冊。<br>
+TimeoutStopSec=</p>
+</blockquote>
+<blockquote>
+<p>此選項有兩個用途： (1)設置每個 ExecStop= 的超時時長。如果其中之一超時， 那麼所有後繼的 ExecStop= 都會被取消，並且該服務也會被 SIGTERM 信號強制關閉。 如果該服務沒有設置 ExecStop= ，那麼該服務將會立即被 SIGTERM 信號強制關閉。 (2)設置該服務自身停止的超時時長。如果超時，那麼該服務將會立即被 SIGTERM 信號強制關閉(參見 systemd.kill(5) 手冊中的 KillMode= 選項)。 如果未指定時間單位，那麼將視為以秒為單位。 例如設為&quot;20&quot;等價於設為&quot;20s&quot;。 設為 &ldquo;infinity&rdquo; 則表示永不超時。 默認值等於 DefaultTimeoutStopSec= 的值(參見 systemd-system.conf(5) 手冊)。</p>
+</blockquote>
+<blockquote>
+<p>如果一個 Type=notify 服務發送了 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號， 那麼允許的停止時長將會在 TimeoutStopSec= 基礎上繼續延長指定的時長。 注意，必須在 TimeoutStopSec= 用完之前發出第一個延時信號。當停止時間超出 TimeoutStopSec= 之後，該服務可以在維持始終不超時的前提下，不斷重複發送 &ldquo;EXTEND_TIMEOUT_USEC=…&rdquo; 信號，直到完成停止。 詳見 sd_notify(3) 手冊。</p>
+</blockquote>
+<p><a href="http://www.jinbuguo.com/systemd/systemd.service.html" target="_blank" rel="noopener noreffer ">systemd.service 中文手冊 [金步國]</a></p>
+<h2 id="supervisor">Supervisor</h2>
+<p><a href="https://codertw.com/%E4%BC%BA%E6%9C%8D%E5%99%A8/170578/" target="_blank" rel="noopener noreffer ">Ubuntu下Supervisor安裝、配置和使用 | 程式前沿</a><br>
+日後看情況再研究<br>
+有看到 golang 版本<br>
+假如沒有權限可以考慮<br>
+但發現好像沒有 crontab 東西</p>
+<p>不繼續研究了&hellip;.</p>
+<h2 id="總結">總結</h2>
+<p>不專業總結<br>
+網路上有很多都寫得很詳細<br>
+建議看網路上詳細<br>
+本篇重點在筆記</p>
+<p>網路上沒什麼看到 systemd 搭配 docker 裡面跑<br>
+感覺 supervisor 真的比較多<br>
+但我覺得排程這個東西有必要做虛擬化跑?這個也是個問題</p>
+<p>用 crond 和 systemd 這個問題也是一個問題<br>
+目前我待過三家公司都是用 crond 居多<br>
+但用 crond 必須控制分散程式執行時間<br>
+有了 systemd ，工程師不用做複雜設計就可以使用<br>
+前提要會操作，所以進入門檻稍微高一點</p>
+<p>不知道這些 systemd 有沒有辦法紀錄到 elk 上面<br>
+但我覺得這之後有空再研究<br>
+畢竟我還不會用XD</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2020-12-07</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" data-title="Systemd 時間排程筆記" data-hashtags="systemd,crontab"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" data-hashtag="systemd"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" data-title="Systemd 時間排程筆記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" data-title="Systemd 時間排程筆記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" data-title="Systemd 時間排程筆記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/systemd/">systemd</a>,&nbsp;<a href="/blog/tags/crontab/">crontab</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" class="prev" rel="prev" title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Docker 使用容量撐爆 Raspberry PI 硬碟空間</a>
+            <a href="/blog/posts/Command-Injection-%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="Command Injection 小記">Command Injection 小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

@@ -1,484 +1,950 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>PHP有關參照(Reference)的那些事 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="PHP有關參照(Reference)的那些事"><meta property="og:description" content="最近在看 PHP 官方參考文件
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>PHP有關參照(Reference)的那些事 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="PHP有關參照(Reference)的那些事" />
+<meta property="og:description" content="最近在看 PHP 官方參考文件
 一直以為 PHP 有一個指針(pointer)觀念
 今天讀到官網說「PHP 不是 reference、也不是 pinter 觀念」(雖然這樣想幾乎 87%都不會有問題)
 瞬間有點黑人問號臉
 也許是剛學時候就用這樣記住
 但是今天要好好重新認識 PHP Reference
-聽說就跟 Linux Hard Link 一樣的道理"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-01-28T21:46:56+00:00"><meta property="article:modified_time" content="2019-01-28T21:46:56+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="PHP有關參照(Reference)的那些事"><meta name=twitter:description content="最近在看 PHP 官方參考文件
+聽說就跟 Linux Hard Link 一樣的道理" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-01-28T21:46:56+00:00" />
+<meta property="article:modified_time" content="2019-01-28T21:46:56+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PHP有關參照(Reference)的那些事"/>
+<meta name="twitter:description" content="最近在看 PHP 官方參考文件
 一直以為 PHP 有一個指針(pointer)觀念
 今天讀到官網說「PHP 不是 reference、也不是 pinter 觀念」(雖然這樣想幾乎 87%都不會有問題)
 瞬間有點黑人問號臉
 也許是剛學時候就用這樣記住
 但是今天要好好重新認識 PHP Reference
-聽說就跟 Linux Hard Link 一樣的道理"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/><link rel=prev href=https://malagege.github.io/blog/posts/Linux%E5%9C%A8Wifi%E4%BD%BF%E7%94%A8pppoe%E9%80%A3%E7%B7%9A%E5%BE%8C%E9%87%8D%E9%96%8B%E6%A9%9F%E4%B8%8D%E8%83%BD%E9%80%A3%E7%B7%9A%E4%B8%8A%E7%B6%B2/><link rel=next href=https://malagege.github.io/blog/posts/ElementaryOS%E8%A8%AD%E5%AE%9A%E5%81%9C%E7%94%A8%E4%BC%91%E7%9C%A0%E4%BD%86%E9%82%84%E6%98%AF%E6%9C%83%E4%BC%91%E7%9C%A0%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"PHP有關參照(Reference)的那些事","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B\/"},"genre":"posts","keywords":"php","wordcount":1139,"url":"https:\/\/malagege.github.io\/blog\/posts\/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B\/","datePublished":"2019-01-28T21:46:56+00:00","dateModified":"2019-01-28T21:46:56+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">PHP有關參照(Reference)的那些事</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/PHP/><i class="far fa-folder fa-fw" aria-hidden=true></i>PHP</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-01-28>2019-01-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1139 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;6 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#php-參照不是指針pointer>PHP 參照不是指針(pointer)</a></li><li><a href=#參照>參照</a></li><li><a href=#官網神奇的範例>官網神奇的範例&mldr;</a></li><li><a href=#官方下面的範例>官方下面的範例</a></li><li><a href=#用自已的方法手畫上面前四個範例>用自已的方法手畫上面前四個範例</a></li><li><a href=#php5-new-物件預設是參照>PHP5 new 物件預設是參照</a></li><li><a href=#global-變數使用參照>Global 變數使用參照</a></li><li><a href=#returning-references>Returning References</a></li><li><a href=#passing-by-reference>Passing by Reference</a></li><li><a href=#unsetting-references>Unsetting References</a></li><li><a href=#spotting-references>Spotting References</a><ul><li><a href=#global-references>global References</a></li><li><a href=#this>$this</a></li></ul></li><li><a href=#心得>心得</a></li></ul></nav></div></div><div class=content id=content><p>最近在看 PHP 官方參考文件<br>一直以為 PHP 有一個指針(pointer)觀念<br>今天讀到官網說「PHP 不是 reference、也不是 pinter 觀念」(雖然這樣想幾乎 87%都不會有問題)<br>瞬間有點黑人問號臉<br>也許是剛學時候就用這樣記住<br>但是今天要好好重新認識 PHP Reference<br>聽說就跟 Linux Hard Link 一樣的道理</p><h2 id=php-參照不是指針pointer>PHP 參照不是指針(pointer)</h2><p><a href=http://php.net/manual/zh/language.references.whatare.php target=_blank rel="noopener noreffer">PHP: 引用是什么 - Manual</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>在 PHP 中引用意味著用不同的名字訪問同一個變量內容。這並不像 C 的指針：例如你不能對他們做指針運算，他們並不是實際的內存地址…… 查看引用不是什麼瞭解更多信息。 替代的是，引用是符號表別名。注意在PHP 中，變量名和變量內容是不一樣的， 因此同樣的內容可以有不同的名字。最接近的比喻是 Unix 的文件名和文件本身——變量名是目錄條目，而變量內容則是文件本身。引用可以被看作是 Unix 文件系統中的硬鏈接。
-</span></span></code></pre></td></tr></table></div></div><p>這樣看真的沒有懂</p><p>直接看下面的<em>User Contributed Notes</em>人家給的範例</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>var</span> <span class=o>=</span> <span class=s2>&#34;foo&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$ref1</span> <span class=o>=&amp;</span> <span class=nv>$var</span><span class=p>;</span> <span class=c1>// new object that references $var
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nv>$ref2</span> <span class=o>=&amp;</span> <span class=nv>$ref1</span><span class=p>;</span> <span class=c1>// references $var directly, not $ref1!!!!!
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$ref1</span><span class=p>;</span> <span class=c1>// &gt;foo
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nx>unset</span><span class=p>(</span><span class=nv>$ref1</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$ref1</span><span class=p>;</span> <span class=c1>// &gt;Notice:  Undefined variable: ref1
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>echo</span> <span class=nv>$ref2</span><span class=p>;</span> <span class=c1>// &gt;foo
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>echo</span> <span class=nv>$var</span><span class=p>;</span> <span class=c1>// &gt;foo
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>其實這個範例可以很簡單看出來，刪除<code>unset</code> $ref1變數不會影響到$ref2<br>這個我記得在 Java 會直接 byebye<br><del>JavaScript 發現不能用 delete object，看來要找天測試是為什麼</del><a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete target=_blank rel="noopener noreffer">delete operator | MDN</a></p><p>再看<a href=http://php.net/manual/zh/language.references.whatdo.php target=_blank rel="noopener noreffer">PHP: 引用做什么 - Manual</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=&amp;</span> <span class=nv>$b</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p><strong>Note:</strong></p><ul><li>$a 和 $b 在這裡是完全相同的，這並不是 $a 指向了 $b 或者相反，而是 $a 和 $b 指向了同一個地方。</li><li>如果具有引用的數組被拷貝，其值不會解除引用。對於數組傳值給函數也是如此。</li></ul><h2 id=參照>參照</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$c</span> <span class=o>=</span> <span class=nv>$b</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nx>var_dump</span><span class=p>(</span><span class=nv>$c</span><span class=p>);</span>   <span class=c1>#2
-</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$c</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$b</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nx>var_dump</span><span class=p>(</span><span class=nv>$c</span><span class=p>);</span>   <span class=c1>#0
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=官網神奇的範例>官網神奇的範例&mldr;</h2><p>如果對一個未定義的變量進行引用賦值、引用參數傳遞或引用返回，則會自動創建該變量。<br>這一段真的很神奇&mldr;，不過應該是 function 會宣告上面的變數。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>foo</span><span class=p>(</span><span class=o>&amp;</span><span class=nv>$var</span><span class=p>)</span> <span class=p>{</span> <span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$a</span><span class=p>);</span> <span class=c1>// $a is &#34;created&#34; and assigned to null
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=k>array</span><span class=p>();</span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$b</span><span class=p>[</span><span class=s1>&#39;b&#39;</span><span class=p>]);</span>
-</span></span><span class=line><span class=cl><span class=nx>var_dump</span><span class=p>(</span><span class=nx>array_key_exists</span><span class=p>(</span><span class=s1>&#39;b&#39;</span><span class=p>,</span> <span class=nv>$b</span><span class=p>));</span> <span class=c1>// bool(true)
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$c</span> <span class=o>=</span> <span class=k>new</span> <span class=k>StdClass</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$c</span><span class=o>-&gt;</span><span class=na>d</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=nx>var_dump</span><span class=p>(</span><span class=nx>property_exists</span><span class=p>(</span><span class=nv>$c</span><span class=p>,</span> <span class=s1>&#39;d&#39;</span><span class=p>));</span> <span class=c1>// bool(true)
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=官方下面的範例>官方下面的範例</h2><p><strong><em>以下有毒，假如理解不能請不要再深入，有可能會走火入魔</em></strong><br><strong><em>以下有毒，假如理解不能請不要再深入，有可能會走火入魔</em></strong><br><strong><em>以下有毒，假如理解不能請不要再深入，有可能會走火入魔</em></strong></p><p>目前簡單用我想的方法<br><code>沒有用&</code>當做<code>copy覆蓋到當前(箭頭)位置的值</code><br><code>用&</code>當作<code>這個變數(箭頭)重新指向到某一個位置</code>(跟 linux hard link 一樣)<br>以下注解是我用自已方法去記錄的，有錯誤也請不要見怪</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=c1>//if you do:
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=s2>&#34;hihaha&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$c</span> <span class=o>=</span> <span class=s2>&#34;eita&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=nv>$c</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$a</span><span class=p>;</span> <span class=c1>// shows &#34;eita&#34;
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=c1># $b指向為$a位置，$b的位置改當然$a也會跟著換
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=s2>&#34;hihaha&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$c</span> <span class=o>=</span> <span class=s2>&#34;eita&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$c</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$a</span><span class=p>;</span> <span class=c1>// shows &#34;hihaha&#34;
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=c1>#  **這邊是重點**
-</span></span></span><span class=line><span class=cl><span class=c1>#  $b範例都是參照位置
-</span></span></span><span class=line><span class=cl><span class=c1>#  其實很容易被Java Reference帶著走
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=s2>&#34;hihaha&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=k>null</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$a</span><span class=p>;</span> <span class=c1>// shows nothing (both are set to null)
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=s2>&#34;hihaha&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nx>unset</span><span class=p>(</span><span class=nv>$b</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$a</span><span class=p>;</span> <span class=c1>// shows &#34;hihaha&#34;
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>2019-02-20 簡單小記<br><code>$b</code>值為=右邊變數的值(先不管有沒有&)<br>當然不一樣的結果在於前面的<code>$b=&</code></p><h2 id=用自已的方法手畫上面前四個範例>用自已的方法手畫上面前四個範例</h2><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1-1.png data-srcset="./1-1.png, ./1-1.png 1.5x, ./1-1.png 2x" data-sizes=auto alt=./1-1.png title=範例1><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1-2.png data-srcset="./1-2.png, ./1-2.png 1.5x, ./1-2.png 2x" data-sizes=auto alt=./1-2.png title=範例2><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1-3.png data-srcset="./1-3.png, ./1-3.png 1.5x, ./1-3.png 2x" data-sizes=auto alt=./1-3.png title=範例3><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1-4.png data-srcset="./1-4.png, ./1-4.png 1.5x, ./1-4.png 2x" data-sizes=auto alt=./1-4.png title=範例4></p><p>簡單來說，我有一個方法不會搞混<br>首先，分兩部份<br>第一部份是 變數名字<br>第二部份是 記錄框框資料<br>兩個部份會有一個箭頭做關連</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=</span> <span class=nv>$a</span><span class=p>;</span>
-</span></span></code></pre></td></tr></table></div></div><p>平常給值是<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1-5.png data-srcset="./1-5.png, ./1-5.png 1.5x, ./1-5.png 2x" data-sizes=auto alt=./1-5.png title=範例5></p><h2 id=php5-new-物件預設是參照>PHP5 new 物件預設是參照</h2><p><code>自 PHP 5 起，new 自动返回引用，因此在此使用 =& 已经过时了并且会产生 E_STRICT 级别的消息。</code></p><h2 id=global-變數使用參照>Global 變數使用參照</h2><p>百思不得其解的範例，官方有說明<code>global $var; 是 $var =& $GLOBALS['var']; 的簡寫。</code><br>但要熟悉上面規則，就能理解下方程式為什麼不會影響外面的<code>$var2</code>(全域變數)<br>這可能沒有深入了解 PHP 參照，可能會很難理解<br>下範例外面的 Global 使用參照，卻不會影響全域變數</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=nv>$var1</span> <span class=o>=</span> <span class=s2>&#34;Example variable&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$var2</span> <span class=o>=</span> <span class=s2>&#34;&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>global_references</span><span class=p>(</span><span class=nv>$use_globals</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>global</span> <span class=nv>$var1</span><span class=p>,</span> <span class=nv>$var2</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nv>$use_globals</span><span class=p>)</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=nv>$var2</span> <span class=o>=&amp;</span> <span class=nv>$var1</span><span class=p>;</span> <span class=c1>// visible only inside the function
-</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=k>echo</span> <span class=s1>&#39;var2:&#39;</span>  <span class=o>.</span> <span class=nv>$var2</span> <span class=o>.</span> <span class=s1>&#39;,&#39;</span> <span class=o>.</span> <span class=nv>$GLOBALS</span><span class=p>[</span><span class=s2>&#34;var2&#34;</span><span class=p>]</span><span class=o>.</span> <span class=nx>PHP_EOL</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=nv>$GLOBALS</span><span class=p>[</span><span class=s2>&#34;var2&#34;</span><span class=p>]</span> <span class=o>=&amp;</span> <span class=nv>$var1</span><span class=p>;</span> <span class=c1>// visible also in global context
-</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nx>global_references</span><span class=p>(</span><span class=k>false</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=s2>&#34;var2 is set to &#39;</span><span class=si>$var2</span><span class=s2>&#39;</span><span class=se>\n</span><span class=s2>&#34;</span><span class=p>;</span> <span class=c1>// var2 is set to &#39;&#39;
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nx>global_references</span><span class=p>(</span><span class=k>true</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=s2>&#34;var2 is set to &#39;</span><span class=si>$var2</span><span class=s2>&#39;</span><span class=se>\n</span><span class=s2>&#34;</span><span class=p>;</span> <span class=c1>// var2 is set to &#39;Example variable&#39;
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>這個範例其實跟上一個例子一樣<br>其實他是參照到別的地方</p><p>話說我剛好也不是很了解 php global<br>趁這個機會了解</p><p><a href=http://php.net/manual/en/language.references.arent.php target=_blank rel="noopener noreffer">PHP: What References Are Not - Manual</a><br>原 function 的$var是參照$bar<br>但是$var =& $GLOBALS[&ldquo;baz&rdquo;];<br>簡單來說</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>foo</span><span class=p>(</span><span class=o>&amp;</span><span class=nv>$var</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$var</span> <span class=o>=&amp;</span> <span class=nv>$GLOBALS</span><span class=p>[</span><span class=s2>&#34;baz&#34;</span><span class=p>];</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$bar</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>這邊用 global 感覺容易混淆</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl>        <span class=c1>//Enter your code here, enjoy!
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nv>$bar</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>foo</span><span class=p>(</span><span class=o>&amp;</span><span class=nv>$var</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$a</span> <span class=o>=</span> <span class=mi>2</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$var</span> <span class=o>=&amp;</span> <span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$bar</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$bar</span><span class=p>;</span>  <span class=c1>#1
-</span></span></span></code></pre></td></tr></table></div></div><p>感覺<code>foo(&$var)</code>使用上等於<code>區域變數 $var = & 全域變數 $bar</code>($var = &$GLOBAL[&lsquo;bar&rsquo;])<br>所以到最後重新指向位置並不會影響$bar</p><h2 id=returning-references>Returning References</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>class</span> <span class=nc>foo</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=nv>$value</span> <span class=o>=</span> <span class=mi>42</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=k>public</span> <span class=k>function</span> <span class=o>&amp;</span><span class=nf>getValue</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nv>$this</span><span class=o>-&gt;</span><span class=na>value</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nv>$obj</span> <span class=o>=</span> <span class=k>new</span> <span class=nx>foo</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$myValue</span> <span class=o>=</span> <span class=o>&amp;</span><span class=nv>$obj</span><span class=o>-&gt;</span><span class=na>getValue</span><span class=p>();</span> <span class=c1>// $myValue is a reference to $obj-&gt;value, which is 42.
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nv>$obj</span><span class=o>-&gt;</span><span class=na>value</span> <span class=o>=</span> <span class=mi>2</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=nv>$myValue</span><span class=p>;</span>                <span class=c1>// prints the new value of $obj-&gt;value, i.e. 2.
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>簡單來說，Returning References 用在物件導向需要兩個<code>&</code></p><p>最近看 Codeigiter 原程式有用<code>function &amp;xxxx</code><br>一直在想這個為什麼要這樣用&mldr;<br>在想是不是之後會帶入到 function，防止不是參照(以下自己猜測，但後來想想好像不是，看看就好= =a)<br>讓 functiont 產生<code>Only variables should be passed by reference</code>(詳細請看下面內容)<br>不過有在官網看到<a href=http://php.net/manual/zh/language.variables.scope.php#language.variables.scope.static target=_blank rel="noopener noreffer">PHP: 變量範圍 - Manual</a><br>目前還不確定是不是這個關係</p><blockquote><p>在 Zend 引擎 1 代，它驅動了 PHP4，對於變量的 static 和 global 定義是以引用的方式實現的。例如，在一個函數域內部用 global 語句導入的一個真正的全局變量實際上是建立了一個到全局變量的引用。這有可能導致預料之外的行為，如以下例子所演示的：</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=c1>// 類似的行為也適用於 static 語句。引用並不是靜態地存儲的：
-</span></span></span><span class=line><span class=cl><span class=c1>//以下code為php4
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=o>&amp;</span><span class=nf>get_instance_ref</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>static</span> <span class=nv>$obj</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=k>echo</span> <span class=s1>&#39;Static object: &#39;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=nx>var_dump</span><span class=p>(</span><span class=nv>$obj</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>isset</span><span class=p>(</span><span class=nv>$obj</span><span class=p>))</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=c1>// 將一個引用賦值給靜態變量
-</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=nv>$obj</span> <span class=o>=</span> <span class=o>&amp;</span><span class=k>new</span> <span class=k>stdclass</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$obj</span><span class=o>-&gt;</span><span class=na>property</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$obj</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=o>&amp;</span><span class=nf>get_instance_noref</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>static</span> <span class=nv>$obj</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>    <span class=k>echo</span> <span class=s1>&#39;Static object: &#39;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=nx>var_dump</span><span class=p>(</span><span class=nv>$obj</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>isset</span><span class=p>(</span><span class=nv>$obj</span><span class=p>))</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>        <span class=c1>// 將一個對象賦值給靜態變量
-</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=nv>$obj</span> <span class=o>=</span> <span class=k>new</span> <span class=k>stdclass</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=p>}</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$obj</span><span class=o>-&gt;</span><span class=na>property</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$obj</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nv>$obj1</span> <span class=o>=</span> <span class=nx>get_instance_ref</span><span class=p>();</span>
-</span></span><span class=line><span class=cl><span class=nv>$still_obj1</span> <span class=o>=</span> <span class=nx>get_instance_ref</span><span class=p>();</span>
-</span></span><span class=line><span class=cl><span class=k>echo</span> <span class=s2>&#34;</span><span class=se>\n</span><span class=s2>&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$obj2</span> <span class=o>=</span> <span class=nx>get_instance_noref</span><span class=p>();</span>
-</span></span><span class=line><span class=cl><span class=nv>$still_obj2</span> <span class=o>=</span> <span class=nx>get_instance_noref</span><span class=p>();</span>
-</span></span><span class=line><span class=cl><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>官網還有提到一個可能會遇到的錯誤問題</p><ul><li><a href=https://my.oschina.net/wangyongtao/blog/531812 target=_blank rel="noopener noreffer">[PHP]Only variables should be passed by reference - 王永濤的个人页面 - 开源中国</a></li><li><a href=https://vijayasankarn.wordpress.com/2017/08/28/php-only-variables-should-be-passed-by-reference/ target=_blank rel="noopener noreffer">PHP: Only variables should be passed by reference – James&rsquo; Desk</a></li></ul><p>首先先提提<code>array_push(array(), 'foo');</code>，程式會顯示錯誤，原因需要這個變數被實例</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=o>&amp;</span><span class=nf>collector</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>  <span class=k>static</span> <span class=nv>$collection</span> <span class=o>=</span> <span class=k>array</span><span class=p>();</span>
-</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=nv>$collection</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=nx>array_push</span><span class=p>(</span><span class=nx>collector</span><span class=p>(),</span> <span class=s1>&#39;foo&#39;</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>假如</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>collector</span><span class=p>()</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>  <span class=k>static</span> <span class=nv>$collection</span> <span class=o>=</span> <span class=k>array</span><span class=p>();</span>
-</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=nv>$collection</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=nx>array_push</span><span class=p>(</span><span class=nx>collector</span><span class=p>(),</span> <span class=s1>&#39;foo&#39;</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>程式會顯示 <code>Only variables should be passed by reference</code></p><h2 id=passing-by-reference>Passing by Reference</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>foo</span><span class=p>(</span><span class=o>&amp;</span><span class=nv>$var</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$var</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nv>$a</span><span class=o>=</span><span class=mi>5</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$a</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=c1>// $a is 6 here
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><p>官網有給之前提過的錯誤，<code>Only variables should be passed by reference</code>問題</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>foo</span><span class=p>(</span><span class=o>&amp;</span><span class=nv>$var</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$var</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=k>function</span> <span class=nf>bar</span><span class=p>()</span> <span class=c1>// Note the missing &amp;
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=nv>$a</span> <span class=o>=</span> <span class=mi>5</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nx>bar</span><span class=p>());</span> <span class=c1>// Produces fatal error as of PHP 5.0.5, strict standards notice
-</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=c1>// as of PHP 5.1.1, and notice as of PHP 7.0.0
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=nv>$a</span> <span class=o>=</span> <span class=mi>5</span><span class=p>);</span> <span class=c1>// Expression, not variable
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nx>foo</span><span class=p>(</span><span class=mi>5</span><span class=p>);</span> <span class=c1>// Produces fatal error
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=k>class</span> <span class=nc>Foobar</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nx>foo</span><span class=p>(</span><span class=k>new</span> <span class=nx>Foobar</span><span class=p>())</span> <span class=c1>// Produces a notice as of PHP 7.0.7
-</span></span></span><span class=line><span class=cl><span class=c1></span>                  <span class=c1>// Notice: Only variables should be passed by reference
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><h2 id=unsetting-references>Unsetting References</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=nv>$a</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nv>$b</span> <span class=o>=&amp;</span> <span class=nv>$a</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=nx>unset</span><span class=p>(</span><span class=nv>$a</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=nx>var_dump</span><span class=p>(</span><span class=nv>$a</span><span class=p>);</span> <span class=c1># null
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nx>var_dump</span><span class=p>(</span><span class=nv>$b</span><span class=p>);</span> <span class=c1># 1
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><blockquote><p>won&rsquo;t unset $b, just $a.<br>Again, it might be useful to think about this as analogous to the Unix <strong>unlink</strong> call.</p></blockquote><p>用 Linux 的 link hard 觀念確實方便理解</p><h2 id=spotting-references>Spotting References</h2><h3 id=global-references>global References</h3><blockquote><p>When you declare a variable as global $var you are in fact creating reference to a global variable. That means, this is the same as:</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span><span class=nx>php</span>
-</span></span><span class=line><span class=cl><span class=nv>$var</span> <span class=o>=&amp;</span> <span class=nv>$GLOBALS</span><span class=p>[</span><span class=s2>&#34;var&#34;</span><span class=p>];</span>
-</span></span><span class=line><span class=cl><span class=cp>?&gt;</span><span class=err>
-</span></span></span></code></pre></td></tr></table></div></div><blockquote><p>This also means that unsetting $var won&rsquo;t unset the global variable.</p></blockquote><p>意思是 unset 變數也不會影響到全域變數</p><h3 id=this>$this</h3><p>In an object method, $this is always a reference to the called object.</p><p>$this 參照呼叫實例物件</p><h2 id=心得>心得</h2><p>費很多功夫整理這個，光吸收可能需要花費一堆時間<br>因為想進入 PHP 領域，了解這個應該也是必經之道<br>平常也很少機會用<code>&</code>這玩意吧<br>有空整理一下 PHP 物件導向觀念。</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-01-28</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/ data-title=PHP有關參照(Reference)的那些事 data-hashtags=php><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/ data-hashtag=php><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/ data-title=PHP有關參照(Reference)的那些事><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/ data-title=PHP有關參照(Reference)的那些事><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/ data-title=PHP有關參照(Reference)的那些事><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/php/>php</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Linux%E5%9C%A8Wifi%E4%BD%BF%E7%94%A8pppoe%E9%80%A3%E7%B7%9A%E5%BE%8C%E9%87%8D%E9%96%8B%E6%A9%9F%E4%B8%8D%E8%83%BD%E9%80%A3%E7%B7%9A%E4%B8%8A%E7%B6%B2/ class=prev rel=prev title=Linux在Wifi使用pppoe連線後，重開機不能連線上網><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Linux在Wifi使用pppoe連線後，重開機不能連線上網</a>
-<a href=/blog/posts/ElementaryOS%E8%A8%AD%E5%AE%9A%E5%81%9C%E7%94%A8%E4%BC%91%E7%9C%A0%E4%BD%86%E9%82%84%E6%98%AF%E6%9C%83%E4%BC%91%E7%9C%A0%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88/ class=next rel=next title=ElementaryOS設定停用休眠但還是會休眠問題解決方案>ElementaryOS設定停用休眠但還是會休眠問題解決方案<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+聽說就跟 Linux Hard Link 一樣的道理"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Linux%E5%9C%A8Wifi%E4%BD%BF%E7%94%A8pppoe%E9%80%A3%E7%B7%9A%E5%BE%8C%E9%87%8D%E9%96%8B%E6%A9%9F%E4%B8%8D%E8%83%BD%E9%80%A3%E7%B7%9A%E4%B8%8A%E7%B6%B2/" /><link rel="next" href="https://malagege.github.io/blog/posts/ElementaryOS%E8%A8%AD%E5%AE%9A%E5%81%9C%E7%94%A8%E4%BC%91%E7%9C%A0%E4%BD%86%E9%82%84%E6%98%AF%E6%9C%83%E4%BC%91%E7%9C%A0%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "PHP有關參照(Reference)的那些事",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B\/"
+        },"genre": "posts","keywords": "php","wordcount":  1139 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B\/","datePublished": "2019-01-28T21:46:56+00:00","dateModified": "2019-01-28T21:46:56+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">PHP有關參照(Reference)的那些事</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/PHP/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>PHP</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-01-28">2019-01-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1139 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;6 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#php-參照不是指針pointer">PHP 參照不是指針(pointer)</a></li>
+    <li><a href="#參照">參照</a></li>
+    <li><a href="#官網神奇的範例">官網神奇的範例&hellip;</a></li>
+    <li><a href="#官方下面的範例">官方下面的範例</a></li>
+    <li><a href="#用自已的方法手畫上面前四個範例">用自已的方法手畫上面前四個範例</a></li>
+    <li><a href="#php5-new-物件預設是參照">PHP5 new 物件預設是參照</a></li>
+    <li><a href="#global-變數使用參照">Global 變數使用參照</a></li>
+    <li><a href="#returning-references">Returning References</a></li>
+    <li><a href="#passing-by-reference">Passing by Reference</a></li>
+    <li><a href="#unsetting-references">Unsetting References</a></li>
+    <li><a href="#spotting-references">Spotting References</a>
+      <ul>
+        <li><a href="#global-references">global References</a></li>
+        <li><a href="#this">$this</a></li>
+      </ul>
+    </li>
+    <li><a href="#心得">心得</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在看 PHP 官方參考文件<br>
+一直以為 PHP 有一個指針(pointer)觀念<br>
+今天讀到官網說「PHP 不是 reference、也不是 pinter 觀念」(雖然這樣想幾乎 87%都不會有問題)<br>
+瞬間有點黑人問號臉<br>
+也許是剛學時候就用這樣記住<br>
+但是今天要好好重新認識 PHP Reference<br>
+聽說就跟 Linux Hard Link 一樣的道理</p>
+<h2 id="php-參照不是指針pointer">PHP 參照不是指針(pointer)</h2>
+<p><a href="http://php.net/manual/zh/language.references.whatare.php" target="_blank" rel="noopener noreffer ">PHP: 引用是什么 - Manual</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">在 PHP 中引用意味著用不同的名字訪問同一個變量內容。這並不像 C 的指針：例如你不能對他們做指針運算，他們並不是實際的內存地址…… 查看引用不是什麼瞭解更多信息。 替代的是，引用是符號表別名。注意在PHP 中，變量名和變量內容是不一樣的， 因此同樣的內容可以有不同的名字。最接近的比喻是 Unix 的文件名和文件本身——變量名是目錄條目，而變量內容則是文件本身。引用可以被看作是 Unix 文件系統中的硬鏈接。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這樣看真的沒有懂</p>
+<p>直接看下面的<em>User Contributed Notes</em>人家給的範例</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">var</span> <span class="o">=</span> <span class="s2">&#34;foo&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$ref1</span> <span class="o">=&amp;</span> <span class="nv">$var</span><span class="p">;</span> <span class="c1">// new object that references $var
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nv">$ref2</span> <span class="o">=&amp;</span> <span class="nv">$ref1</span><span class="p">;</span> <span class="c1">// references $var directly, not $ref1!!!!!
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$ref1</span><span class="p">;</span> <span class="c1">// &gt;foo
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nx">unset</span><span class="p">(</span><span class="nv">$ref1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$ref1</span><span class="p">;</span> <span class="c1">// &gt;Notice:  Undefined variable: ref1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">echo</span> <span class="nv">$ref2</span><span class="p">;</span> <span class="c1">// &gt;foo
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">echo</span> <span class="nv">$var</span><span class="p">;</span> <span class="c1">// &gt;foo
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>其實這個範例可以很簡單看出來，刪除<code>unset</code> $ref1變數不會影響到$ref2<br>
+這個我記得在 Java 會直接 byebye<br>
+<del>JavaScript 發現不能用 delete object，看來要找天測試是為什麼</del><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete" target="_blank" rel="noopener noreffer ">delete operator | MDN</a></p>
+<p>再看<a href="http://php.net/manual/zh/language.references.whatdo.php" target="_blank" rel="noopener noreffer ">PHP: 引用做什么 - Manual</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=&amp;</span> <span class="nv">$b</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Note:</strong></p>
+<ul>
+<li>$a 和 $b 在這裡是完全相同的，這並不是 $a 指向了 $b 或者相反，而是 $a 和 $b 指向了同一個地方。</li>
+<li>如果具有引用的數組被拷貝，其值不會解除引用。對於數組傳值給函數也是如此。</li>
+</ul>
+<h2 id="參照">參照</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="nv">$b</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_dump</span><span class="p">(</span><span class="nv">$c</span><span class="p">);</span>   <span class="c1">#2
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$b</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_dump</span><span class="p">(</span><span class="nv">$c</span><span class="p">);</span>   <span class="c1">#0
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="官網神奇的範例">官網神奇的範例&hellip;</h2>
+<p>如果對一個未定義的變量進行引用賦值、引用參數傳遞或引用返回，則會自動創建該變量。<br>
+這一段真的很神奇&hellip;，不過應該是 function 會宣告上面的變數。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="nv">$var</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$a</span><span class="p">);</span> <span class="c1">// $a is &#34;created&#34; and assigned to null
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$b</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_dump</span><span class="p">(</span><span class="nx">array_key_exists</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="nv">$b</span><span class="p">));</span> <span class="c1">// bool(true)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="k">new</span> <span class="k">StdClass</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$c</span><span class="o">-&gt;</span><span class="na">d</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_dump</span><span class="p">(</span><span class="nx">property_exists</span><span class="p">(</span><span class="nv">$c</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">));</span> <span class="c1">// bool(true)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="官方下面的範例">官方下面的範例</h2>
+<p><strong><em>以下有毒，假如理解不能請不要再深入，有可能會走火入魔</em></strong><br>
+<strong><em>以下有毒，假如理解不能請不要再深入，有可能會走火入魔</em></strong><br>
+<strong><em>以下有毒，假如理解不能請不要再深入，有可能會走火入魔</em></strong></p>
+<p>目前簡單用我想的方法<br>
+<code>沒有用&amp;</code>當做<code>copy覆蓋到當前(箭頭)位置的值</code><br>
+<code>用&amp;</code>當作<code>這個變數(箭頭)重新指向到某一個位置</code>(跟 linux hard link 一樣)<br>
+以下注解是我用自已方法去記錄的，有錯誤也請不要見怪</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//if you do:
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hihaha&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="s2">&#34;eita&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="nv">$c</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$a</span><span class="p">;</span> <span class="c1">// shows &#34;eita&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1"># $b指向為$a位置，$b的位置改當然$a也會跟著換
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hihaha&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="s2">&#34;eita&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$c</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$a</span><span class="p">;</span> <span class="c1">// shows &#34;hihaha&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">#  **這邊是重點**
+</span></span></span><span class="line"><span class="cl"><span class="c1">#  $b範例都是參照位置
+</span></span></span><span class="line"><span class="cl"><span class="c1">#  其實很容易被Java Reference帶著走
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hihaha&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$a</span><span class="p">;</span> <span class="c1">// shows nothing (both are set to null)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hihaha&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">unset</span><span class="p">(</span><span class="nv">$b</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$a</span><span class="p">;</span> <span class="c1">// shows &#34;hihaha&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>2019-02-20 簡單小記<br>
+<code>$b</code>值為=右邊變數的值(先不管有沒有&amp;)<br>
+當然不一樣的結果在於前面的<code>$b=&amp;</code></p>
+<h2 id="用自已的方法手畫上面前四個範例">用自已的方法手畫上面前四個範例</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="./1-1.png"
+        data-srcset="./1-1.png, ./1-1.png 1.5x, ./1-1.png 2x"
+        data-sizes="auto"
+        alt="./1-1.png"
+        title="範例1" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="./1-2.png"
+        data-srcset="./1-2.png, ./1-2.png 1.5x, ./1-2.png 2x"
+        data-sizes="auto"
+        alt="./1-2.png"
+        title="範例2" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="./1-3.png"
+        data-srcset="./1-3.png, ./1-3.png 1.5x, ./1-3.png 2x"
+        data-sizes="auto"
+        alt="./1-3.png"
+        title="範例3" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="./1-4.png"
+        data-srcset="./1-4.png, ./1-4.png 1.5x, ./1-4.png 2x"
+        data-sizes="auto"
+        alt="./1-4.png"
+        title="範例4" /></p>
+<p>簡單來說，我有一個方法不會搞混<br>
+首先，分兩部份<br>
+第一部份是 變數名字<br>
+第二部份是 記錄框框資料<br>
+兩個部份會有一個箭頭做關連</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>平常給值是<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="./1-5.png"
+        data-srcset="./1-5.png, ./1-5.png 1.5x, ./1-5.png 2x"
+        data-sizes="auto"
+        alt="./1-5.png"
+        title="範例5" /></p>
+<h2 id="php5-new-物件預設是參照">PHP5 new 物件預設是參照</h2>
+<p><code>自 PHP 5 起，new 自动返回引用，因此在此使用 =&amp; 已经过时了并且会产生 E_STRICT 级别的消息。</code></p>
+<h2 id="global-變數使用參照">Global 變數使用參照</h2>
+<p>百思不得其解的範例，官方有說明<code>global $var; 是 $var =&amp; $GLOBALS['var']; 的簡寫。</code><br>
+但要熟悉上面規則，就能理解下方程式為什麼不會影響外面的<code>$var2</code>(全域變數)<br>
+這可能沒有深入了解 PHP 參照，可能會很難理解<br>
+下範例外面的 Global 使用參照，卻不會影響全域變數</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var1</span> <span class="o">=</span> <span class="s2">&#34;Example variable&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var2</span> <span class="o">=</span> <span class="s2">&#34;&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">global_references</span><span class="p">(</span><span class="nv">$use_globals</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">global</span> <span class="nv">$var1</span><span class="p">,</span> <span class="nv">$var2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$use_globals</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nv">$var2</span> <span class="o">=&amp;</span> <span class="nv">$var1</span><span class="p">;</span> <span class="c1">// visible only inside the function
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">echo</span> <span class="s1">&#39;var2:&#39;</span>  <span class="o">.</span> <span class="nv">$var2</span> <span class="o">.</span> <span class="s1">&#39;,&#39;</span> <span class="o">.</span> <span class="nv">$GLOBALS</span><span class="p">[</span><span class="s2">&#34;var2&#34;</span><span class="p">]</span><span class="o">.</span> <span class="nx">PHP_EOL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nv">$GLOBALS</span><span class="p">[</span><span class="s2">&#34;var2&#34;</span><span class="p">]</span> <span class="o">=&amp;</span> <span class="nv">$var1</span><span class="p">;</span> <span class="c1">// visible also in global context
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">global_references</span><span class="p">(</span><span class="k">false</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;var2 is set to &#39;</span><span class="si">$var2</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">;</span> <span class="c1">// var2 is set to &#39;&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">global_references</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;var2 is set to &#39;</span><span class="si">$var2</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">;</span> <span class="c1">// var2 is set to &#39;Example variable&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個範例其實跟上一個例子一樣<br>
+其實他是參照到別的地方</p>
+<p>話說我剛好也不是很了解 php global<br>
+趁這個機會了解</p>
+<p><a href="http://php.net/manual/en/language.references.arent.php" target="_blank" rel="noopener noreffer ">PHP: What References Are Not - Manual</a><br>
+原 function 的$var是參照$bar<br>
+但是$var =&amp; $GLOBALS[&ldquo;baz&rdquo;];<br>
+簡單來說</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="nv">$var</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$var</span> <span class="o">=&amp;</span> <span class="nv">$GLOBALS</span><span class="p">[</span><span class="s2">&#34;baz&#34;</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$bar</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊用 global 感覺容易混淆</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">//Enter your code here, enjoy!
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nv">$bar</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="nv">$var</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$a</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$var</span> <span class="o">=&amp;</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$bar</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$bar</span><span class="p">;</span>  <span class="c1">#1
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>感覺<code>foo(&amp;$var)</code>使用上等於<code>區域變數 $var = &amp; 全域變數 $bar</code>($var = &amp;$GLOBAL[&lsquo;bar&rsquo;])<br>
+所以到最後重新指向位置並不會影響$bar</p>
+<h2 id="returning-references">Returning References</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">foo</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">public</span> <span class="nv">$value</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">public</span> <span class="k">function</span> <span class="o">&amp;</span><span class="nf">getValue</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">value</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">$obj</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">foo</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$myValue</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$obj</span><span class="o">-&gt;</span><span class="na">getValue</span><span class="p">();</span> <span class="c1">// $myValue is a reference to $obj-&gt;value, which is 42.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nv">$obj</span><span class="o">-&gt;</span><span class="na">value</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$myValue</span><span class="p">;</span>                <span class="c1">// prints the new value of $obj-&gt;value, i.e. 2.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>簡單來說，Returning References 用在物件導向需要兩個<code>&amp;</code></p>
+<p>最近看 Codeigiter 原程式有用<code>function &amp;xxxx</code><br>
+一直在想這個為什麼要這樣用&hellip;<br>
+在想是不是之後會帶入到 function，防止不是參照(以下自己猜測，但後來想想好像不是，看看就好= =a)<br>
+讓 functiont 產生<code>Only variables should be passed by reference</code>(詳細請看下面內容)<br>
+不過有在官網看到<a href="http://php.net/manual/zh/language.variables.scope.php#language.variables.scope.static" target="_blank" rel="noopener noreffer ">PHP: 變量範圍 - Manual</a><br>
+目前還不確定是不是這個關係</p>
+<blockquote>
+<p>在 Zend 引擎 1 代，它驅動了 PHP4，對於變量的 static 和 global 定義是以引用的方式實現的。例如，在一個函數域內部用 global 語句導入的一個真正的全局變量實際上是建立了一個到全局變量的引用。這有可能導致預料之外的行為，如以下例子所演示的：</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="c1">// 類似的行為也適用於 static 語句。引用並不是靜態地存儲的：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//以下code為php4
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="o">&amp;</span><span class="nf">get_instance_ref</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="nv">$obj</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">echo</span> <span class="s1">&#39;Static object: &#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">var_dump</span><span class="p">(</span><span class="nv">$obj</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">isset</span><span class="p">(</span><span class="nv">$obj</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// 將一個引用賦值給靜態變量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nv">$obj</span> <span class="o">=</span> <span class="o">&amp;</span><span class="k">new</span> <span class="k">stdclass</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$obj</span><span class="o">-&gt;</span><span class="na">property</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nv">$obj</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="o">&amp;</span><span class="nf">get_instance_noref</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="nv">$obj</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">echo</span> <span class="s1">&#39;Static object: &#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">var_dump</span><span class="p">(</span><span class="nv">$obj</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">isset</span><span class="p">(</span><span class="nv">$obj</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// 將一個對象賦值給靜態變量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nv">$obj</span> <span class="o">=</span> <span class="k">new</span> <span class="k">stdclass</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$obj</span><span class="o">-&gt;</span><span class="na">property</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nv">$obj</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">$obj1</span> <span class="o">=</span> <span class="nx">get_instance_ref</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$still_obj1</span> <span class="o">=</span> <span class="nx">get_instance_ref</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$obj2</span> <span class="o">=</span> <span class="nx">get_instance_noref</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$still_obj2</span> <span class="o">=</span> <span class="nx">get_instance_noref</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>官網還有提到一個可能會遇到的錯誤問題</p>
+<ul>
+<li><a href="https://my.oschina.net/wangyongtao/blog/531812" target="_blank" rel="noopener noreffer ">[PHP]Only variables should be passed by reference - 王永濤的个人页面 - 开源中国</a></li>
+<li><a href="https://vijayasankarn.wordpress.com/2017/08/28/php-only-variables-should-be-passed-by-reference/" target="_blank" rel="noopener noreffer ">PHP: Only variables should be passed by reference – James&rsquo; Desk</a></li>
+</ul>
+<p>首先先提提<code>array_push(array(), 'foo');</code>，程式會顯示錯誤，原因需要這個變數被實例</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="o">&amp;</span><span class="nf">collector</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">static</span> <span class="nv">$collection</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="nv">$collection</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">array_push</span><span class="p">(</span><span class="nx">collector</span><span class="p">(),</span> <span class="s1">&#39;foo&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>假如</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">collector</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">static</span> <span class="nv">$collection</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="nv">$collection</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">array_push</span><span class="p">(</span><span class="nx">collector</span><span class="p">(),</span> <span class="s1">&#39;foo&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>程式會顯示 <code>Only variables should be passed by reference</code></p>
+<h2 id="passing-by-reference">Passing by Reference</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="nv">$var</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$var</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span><span class="o">=</span><span class="mi">5</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$a</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// $a is 6 here
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>官網有給之前提過的錯誤，<code>Only variables should be passed by reference</code>問題</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="nv">$var</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$var</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">function</span> <span class="nf">bar</span><span class="p">()</span> <span class="c1">// Note the missing &amp;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nx">bar</span><span class="p">());</span> <span class="c1">// Produces fatal error as of PHP 5.0.5, strict standards notice
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// as of PHP 5.1.1, and notice as of PHP 7.0.0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="nv">$a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">);</span> <span class="c1">// Expression, not variable
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">foo</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span> <span class="c1">// Produces fatal error
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Foobar</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">foo</span><span class="p">(</span><span class="k">new</span> <span class="nx">Foobar</span><span class="p">())</span> <span class="c1">// Produces a notice as of PHP 7.0.7
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                  <span class="c1">// Notice: Only variables should be passed by reference
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="unsetting-references">Unsetting References</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=&amp;</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">unset</span><span class="p">(</span><span class="nv">$a</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_dump</span><span class="p">(</span><span class="nv">$a</span><span class="p">);</span> <span class="c1"># null
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">var_dump</span><span class="p">(</span><span class="nv">$b</span><span class="p">);</span> <span class="c1"># 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>won&rsquo;t unset $b, just $a.<br>
+Again, it might be useful to think about this as analogous to the Unix <strong>unlink</strong> call.</p>
+</blockquote>
+<p>用 Linux 的 link hard 觀念確實方便理解</p>
+<h2 id="spotting-references">Spotting References</h2>
+<h3 id="global-references">global References</h3>
+<blockquote>
+<p>When you declare a variable as global $var you are in fact creating reference to a global variable. That means, this is the same as:</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var</span> <span class="o">=&amp;</span> <span class="nv">$GLOBALS</span><span class="p">[</span><span class="s2">&#34;var&#34;</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>This also means that unsetting $var won&rsquo;t unset the global variable.</p>
+</blockquote>
+<p>意思是 unset 變數也不會影響到全域變數</p>
+<h3 id="this">$this</h3>
+<p>In an object method, $this is always a reference to the called object.</p>
+<p>$this 參照呼叫實例物件</p>
+<h2 id="心得">心得</h2>
+<p>費很多功夫整理這個，光吸收可能需要花費一堆時間<br>
+因為想進入 PHP 領域，了解這個應該也是必經之道<br>
+平常也很少機會用<code>&amp;</code>這玩意吧<br>
+有空整理一下 PHP 物件導向觀念。</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-01-28</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" data-title="PHP有關參照(Reference)的那些事" data-hashtags="php"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" data-hashtag="php"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" data-title="PHP有關參照(Reference)的那些事"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" data-title="PHP有關參照(Reference)的那些事"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/PHP%E6%9C%89%E9%97%9C%E5%8F%83%E7%85%A7-Reference-%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" data-title="PHP有關參照(Reference)的那些事"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/php/">php</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Linux%E5%9C%A8Wifi%E4%BD%BF%E7%94%A8pppoe%E9%80%A3%E7%B7%9A%E5%BE%8C%E9%87%8D%E9%96%8B%E6%A9%9F%E4%B8%8D%E8%83%BD%E9%80%A3%E7%B7%9A%E4%B8%8A%E7%B6%B2/" class="prev" rel="prev" title="Linux在Wifi使用pppoe連線後，重開機不能連線上網"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Linux在Wifi使用pppoe連線後，重開機不能連線上網</a>
+            <a href="/blog/posts/ElementaryOS%E8%A8%AD%E5%AE%9A%E5%81%9C%E7%94%A8%E4%BC%91%E7%9C%A0%E4%BD%86%E9%82%84%E6%98%AF%E6%9C%83%E4%BC%91%E7%9C%A0%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88/" class="next" rel="next" title="ElementaryOS設定停用休眠但還是會休眠問題解決方案">ElementaryOS設定停用休眠但還是會休眠問題解決方案<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

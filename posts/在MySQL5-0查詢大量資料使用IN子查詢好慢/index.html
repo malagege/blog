@@ -1,198 +1,486 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法) - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)"><meta property="og:description" content="最近使用有一個程式SQL會跑3秒
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法) - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)" />
+<meta property="og:description" content="最近使用有一個程式SQL會跑3秒
 程式共花了1x秒鐘
 想把他cost 時間降下來
 但IN方法不知道為什麼那麼慢
-就簡單研究有沒有更好的寫法"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-05-15T20:01:47+00:00"><meta property="article:modified_time" content="2018-05-15T20:01:47+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)"><meta name=twitter:description content="最近使用有一個程式SQL會跑3秒
+就簡單研究有沒有更好的寫法" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-05-15T20:01:47+00:00" />
+<meta property="article:modified_time" content="2018-05-15T20:01:47+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)"/>
+<meta name="twitter:description" content="最近使用有一個程式SQL會跑3秒
 程式共花了1x秒鐘
 想把他cost 時間降下來
 但IN方法不知道為什麼那麼慢
-就簡單研究有沒有更好的寫法"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/><link rel=prev href=https://malagege.github.io/blog/posts/PHP%E7%9A%84array-slice%E8%88%87array-splice%E5%B7%AE%E5%88%A5/><link rel=next href=https://malagege.github.io/blog/posts/MySQL%E6%9F%A5%E8%A9%A2%E9%80%B2%E8%A1%8C%E4%B8%AD%E7%A8%8B%E5%BA%8F%E7%8B%80%E6%B3%81%E4%B8%A6%E5%88%AA%E6%8E%89lock%E7%A8%8B%E5%BA%8F/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2\/"},"genre":"posts","keywords":"MySQL, IN, 效能","wordcount":488,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2\/","datePublished":"2018-05-15T20:01:47+00:00","dateModified":"2018-05-15T20:01:47+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/SQL/><i class="far fa-folder fa-fw" aria-hidden=true></i>SQL</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2018-05-15>2018-05-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;488 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#exists優化in語句>exists優化IN語句</a></li><li><a href=#實戰mysql50上面>實戰MySQL5.0上面</a></li><li><a href=#子查詢語句注意問題>子查詢語句注意問題</a></li><li><a href=#用程式組in字串就pk>用程式組IN字串就PK</a></li><li><a href=#柳暗花明又一村>柳暗花明又一村</a></li><li><a href=#inner-join解決方法>INNER JOIN解決方法</a></li></ul></nav></div></div><div class=content id=content><p>最近使用有一個程式SQL會跑3秒<br>程式共花了1x秒鐘<br>想把他cost 時間降下來<br>但IN方法不知道為什麼那麼慢<br>就簡單研究有沒有更好的寫法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w>  </span><span class=n>ptm</span><span class=p>.</span><span class=n>tablename</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>secord_big_table</span><span class=o>`</span><span class=w> </span><span class=n>ptm</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>WHERE</span><span class=w> </span><span class=n>ptm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>  </span><span class=k>IN</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>first_big_table</span><span class=o>`</span><span class=w> </span><span class=n>stm</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>WHERE</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>sid</span><span class=w> </span><span class=k>IN</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>sid</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>small_table</span><span class=o>`</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>WHERE</span><span class=w> </span><span class=n>as_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>AND</span><span class=w> </span><span class=n>item_no</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>))</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>執行<code>explain</code>看一下狀態&mldr;<br>first_big_table是掃全表的樣子</p><p>暫時用LIMIT和=解決問題</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w>  </span><span class=n>ptm</span><span class=p>.</span><span class=n>tablename</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>secord_big_table</span><span class=o>`</span><span class=w> </span><span class=n>ptm</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>WHERE</span><span class=w> </span><span class=n>ptm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>  </span><span class=o>=</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>first_big_table</span><span class=o>`</span><span class=w> </span><span class=n>stm</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>WHERE</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>sid</span><span class=w> </span><span class=k>IN</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>sid</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>small_table</span><span class=o>`</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>WHERE</span><span class=w> </span><span class=n>as_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>AND</span><span class=w> </span><span class=n>item_no</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>4</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=k>LIMIT</span><span class=w> </span><span class=mi>0</span><span class=p>,</span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>)</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p><strong>事後發現</strong><br>這不是我之前寫的<code>非相關子查詢</code>嗎<br><a href=http://malagege.logdown.com/posts/4690995-sql-subquery-notes target=_blank rel="noopener noreffer">SQL子查詢筆記(相關子查詢/非相關子查詢) « 進擊的程式新手</a><br>照到理沒理由這麼慢阿&mldr;<br>好啦，這時候突然回想起來<a href=https://www.facebook.com/groups/616369245163622 target=_blank rel="noopener noreffer">Backend 台灣 (Backend Tw)</a>裡面的T大常常批評MySQL<br><del>在絕望下</del>尋找新方法</p><h2 id=exists優化in語句>exists優化IN語句</h2><blockquote><p>第一種格式是使用IN操作符：<br>&mldr; where column in(select * from &mldr; where &mldr;);<br>第二種格式是使用EXIST操作符：<br>&mldr; where exists (select &lsquo;X&rsquo; from &mldr;where &mldr;);<br>我相信絕大多數人會使用第一種格式，因為它比較容易編寫，而實際上第二種格式要遠比第一種格式的效率高。在Oracle中可以幾乎將所有的IN操作符子查詢改寫為使用EXISTS的子查詢。<br>第二種格式中，子查詢以‘select &lsquo;X&rsquo;開始。運用EXISTS子句不管子查詢從表中抽取什麼資料它只查看where子句。這樣優化器就不必遍曆整個表而僅根據索引就可完成工作（這裏假定在where語句中使用的列存在索引）。相對於IN子句來說，EXISTS使用相連子查詢，構造起來要比IN子查詢困難一些。<br>通過使用EXIST，Oracle系統會首先檢查主查詢，然後運行子查詢直到它找到第一個匹配項，這就節省了時間。Oracle系統在執行IN子查詢時，首先執行子查詢，並將獲得的結果列表存放在在一個加了索引的臨時表中。在執行子查詢之前，系統先將主查詢掛起，待子查詢執行完畢，存放在臨時表中以後再執行主查詢。這也就是使用EXISTS比使用IN通常查詢速度快的原因<br><a href=http://blog.xuite.net/javax/programmer/3505144-%5B%E6%95%88%E8%83%BD%5DSQL%E8%AA%9E%E5%8F%A5%E6%80%A7%E8%83%BD%E8%AA%BF%E6%95%B4%E5%8E%9F%E5%89%87+ target=_blank rel="noopener noreffer">[效能]SQL語句性能調整原則 @ Programmer Developer Notebook :: 隨意窩 Xuite日誌</a></p></blockquote><h2 id=實戰mysql50上面>實戰MySQL5.0上面</h2><p>有在<a href=http://eeluck.pixnet.net/blog/post/27559378-in%E5%92%8Cexists%E7%9A%84%E5%B7%AE%E7%95%B0 target=_blank rel="noopener noreffer">IN和EXISTS的差異 @ 芊芊的窩 :: 痞客邦 ::</a>改成exists語句</p><blockquote><p>而假如外部的表格A是相對的儲存大量資料，則採用第一個方法IN的效率將會比較好，假如你使用EXISTS，則除了會對A這個大表格進行全面掃瞄外，還會一筆一筆讀取所有A的資料列，效能自然較差。<br>簡單的一句話，外大內小=IN，外小內大=EXISTS，這是一個實用的概略評估方法，在大部分的情況下是適用的。</p></blockquote><p>我覺得優化原因是<a href=https://github.com/TritonHo/slides/blob/master/Taipei%202017-10%20talk/SQL_report_v2.pdf target=_blank rel="noopener noreffer">slides/SQL_report_v2.pdf at master · TritonHo/slides</a>的Query Optimizer淺談</p><p>不過我修改</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>first_big_table</span><span class=o>`</span><span class=w> </span><span class=n>stm</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>WHERE</span><span class=w> </span><span class=k>exists</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=s1>&#39;x&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>small_table</span><span class=o>`</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>WHERE</span><span class=w> </span><span class=n>as_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>AND</span><span class=w> </span><span class=n>item_no</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>AND</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>sid</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=n>sid</span><span class=p>)</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>還是沒用&mldr;</p><p>最後還是想到<a href=https://www.facebook.com/groups/616369245163622 target=_blank rel="noopener noreffer">Backend 台灣 (Backend Tw)</a>裡面的T大常常批評MySQL</p><h2 id=子查詢語句注意問題>子查詢語句注意問題</h2><p><a href=http://seanphpbook.blogspot.tw/2015/08/mysql.html target=_blank rel="noopener noreffer">謝晒的PHP網頁設計: [MYSQL] 多層式子查詢 效能注意事項</a></p><h2 id=用程式組in字串就pk>用程式組IN字串就PK</h2><p>今天實驗結果，在MYSQL5.0使用子查詢IN改寫exists速度還是很慢<br>然後發現跟我之前寫的非相關子查詢速度有不一樣<br>但是改成IN(&lsquo;xxxx&rsquo;,&lsquo;oooo&rsquo;,&lsquo;fffff&rsquo;)<br>速度就比較快<br>所以目前先用程式拆兩段</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-php data-lang=php><span class=line><span class=cl><span class=o>&lt;?</span>
-</span></span><span class=line><span class=cl>        <span class=nv>$array_in</span> <span class=o>=</span> <span class=k>array</span><span class=p>();</span>
-</span></span><span class=line><span class=cl>        <span class=k>foreach</span> <span class=p>(</span><span class=nv>$in_sid</span> <span class=k>as</span>  <span class=nv>$value</span><span class=p>)</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>            <span class=nx>array_push</span><span class=p>(</span><span class=nv>$array_in</span><span class=p>,</span><span class=nv>$value</span><span class=p>[</span><span class=s1>&#39;sid&#39;</span><span class=p>]);</span>
-</span></span><span class=line><span class=cl>        <span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl> <span class=nv>$sql</span> <span class=o>=</span> <span class=s2>&#34;select xxx from  ooo where oo IN (&#34;</span> <span class=o>.</span><span class=nx>implode</span><span class=p>(</span> <span class=s2>&#34;,&#34;</span> <span class=p>,</span> <span class=nv>$array_in</span><span class=p>)</span><span class=o>.</span><span class=s2>&#34;)&#34;</span><span class=p>;</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=柳暗花明又一村>柳暗花明又一村</h2><p>這樣跑子查詢竟然吃到key了&mldr;..<br>但不知道這樣跑好不好</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>sid</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>ptm</span><span class=p>.</span><span class=n>tablename</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>social</span><span class=o>`</span><span class=p>.</span><span class=o>`</span><span class=n>secord_big_table</span><span class=o>`</span><span class=w> </span><span class=n>ptm</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>WHERE</span><span class=w> </span><span class=n>ptm</span><span class=p>.</span><span class=n>playlistID</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>a</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=k>g</span><span class=p>.</span><span class=n>sid</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>social</span><span class=o>`</span><span class=p>.</span><span class=o>`</span><span class=n>first_big_table</span><span class=o>`</span><span class=w> </span><span class=n>stm</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=k>WHERE</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>sid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>g</span><span class=p>.</span><span class=n>sid</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>a</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>pay</span><span class=o>`</span><span class=p>.</span><span class=o>`</span><span class=n>activity_guess_item</span><span class=o>`</span><span class=w> </span><span class=k>g</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>WHERE</span><span class=w> </span><span class=n>as_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>AND</span><span class=w> </span><span class=n>item_no</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>4</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>b</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>雖然程式只需要抓到一筆<br>但上面方法可以抓到多筆<br>效能能吃到key</p><p>算是另類解法</p><h2 id=inner-join解決方法>INNER JOIN解決方法</h2><p>最後網路爬到用INNER JOIN 優化<br><a href=http://www.cnblogs.com/zhengyun_ustc/p/slowquery3.html target=_blank rel="noopener noreffer">[慢查优化]慎用MySQL子查询，尤其是看到DEPENDENT SUBQUERY标记时 - 旁观者 - 博客园</a><br><a href=http://codingstandards.iteye.com/blog/1344833 target=_blank rel="noopener noreffer">MySQL性能优化小记：MySQL子查询很慢的问题 - Bash @ Linux - ITeye博客</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>tablename</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>ptm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>FROM</span><span class=w> </span><span class=o>`</span><span class=n>secord_big_table</span><span class=o>`</span><span class=w> </span><span class=n>ptm</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>INNER</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=o>`</span><span class=n>smaill_table</span><span class=o>`</span><span class=w> </span><span class=k>g</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>ptm</span><span class=p>.</span><span class=n>sid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>g</span><span class=p>.</span><span class=n>sid</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>WHERE</span><span class=w> </span><span class=n>as_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>AND</span><span class=w> </span><span class=n>item_no</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>4</span><span class=w> </span><span class=p>)</span><span class=w> </span><span class=n>p</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INNER</span><span class=w> </span><span class=k>JOIN</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>`</span><span class=n>first_big_table</span><span class=o>`</span><span class=w> </span><span class=n>stm</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ON</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>  </span><span class=o>=</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>WHERE</span><span class=w> </span><span class=n>stm</span><span class=p>.</span><span class=n>playlistID</span><span class=w>  </span><span class=o>=</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>playlistID</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>用這種解法，速度有變比較快</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>但這種寫法真的不時直覺</span><span class=p>...</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>##</span><span class=w> </span><span class=err>結論</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>網路上查，好像</span><span class=n>MySQL</span><span class=err>到</span><span class=mi>5</span><span class=p>.</span><span class=mi>7</span><span class=err>和</span><span class=mi>8</span><span class=p>.</span><span class=mi>0</span><span class=err>效能上有很大的改進</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>希望我有機會能使用到</span><span class=p>...</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>參考來源</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=n>MySQL</span><span class=err>特异功能之：</span><span class=n>Impossible</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>noticed</span><span class=w> </span><span class=k>after</span><span class=w> </span><span class=n>reading</span><span class=w> </span><span class=n>const</span><span class=w> </span><span class=n>tables</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>风轻扬的日志</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>网易博客</span><span class=p>](</span><span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=n>wangyuanzju</span><span class=p>.</span><span class=n>blog</span><span class=p>.</span><span class=mi>163</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>blog</span><span class=o>/</span><span class=k>static</span><span class=o>/</span><span class=mi>13029200691114035831</span><span class=o>/</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=n>MySql</span><span class=w> </span><span class=k>Explain</span><span class=w> </span><span class=err>的使用</span><span class=p>[</span><span class=err>转</span><span class=p>]</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>不待人亲</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>ITeye</span><span class=err>博客</span><span class=p>](</span><span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=n>budairenqin</span><span class=p>.</span><span class=n>iteye</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>blog</span><span class=o>/</span><span class=mi>1754937</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=n>MySQL</span><span class=w> </span><span class=k>EXPLAIN</span><span class=err>：</span><span class=n>Impossible</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>noticed</span><span class=w> </span><span class=k>after</span><span class=w> </span><span class=n>re</span><span class=p>...</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>NILYANG</span><span class=p>](</span><span class=n>https</span><span class=p>:</span><span class=o>//</span><span class=n>my</span><span class=p>.</span><span class=n>oschina</span><span class=p>.</span><span class=n>net</span><span class=o>/</span><span class=n>lxrm</span><span class=o>/</span><span class=n>blog</span><span class=o>/</span><span class=mi>108309</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=n>mysql</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>Why</span><span class=w> </span><span class=n>would</span><span class=w> </span><span class=n>an</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=n>condition</span><span class=w> </span><span class=n>be</span><span class=w> </span><span class=n>slower</span><span class=w> </span><span class=k>than</span><span class=w> </span><span class=s2>&#34;=&#34;</span><span class=w> </span><span class=k>in</span><span class=w> </span><span class=k>sql</span><span class=o>?</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>Stack</span><span class=w> </span><span class=n>Overflow</span><span class=p>](</span><span class=n>https</span><span class=p>:</span><span class=o>//</span><span class=n>stackoverflow</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>questions</span><span class=o>/</span><span class=mi>3417074</span><span class=o>/</span><span class=n>why</span><span class=o>-</span><span class=n>would</span><span class=o>-</span><span class=n>an</span><span class=o>-</span><span class=k>in</span><span class=o>-</span><span class=n>condition</span><span class=o>-</span><span class=n>be</span><span class=o>-</span><span class=n>slower</span><span class=o>-</span><span class=k>than</span><span class=o>-</span><span class=k>in</span><span class=o>-</span><span class=k>sql</span><span class=o>/</span><span class=mi>3417190</span><span class=o>#</span><span class=mi>3417190</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=k>sql</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>This</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>query</span><span class=w> </span><span class=n>takes</span><span class=w> </span><span class=mi>180</span><span class=w> </span><span class=n>seconds</span><span class=w> </span><span class=k>to</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>Stack</span><span class=w> </span><span class=n>Overflow</span><span class=p>](</span><span class=n>https</span><span class=p>:</span><span class=o>//</span><span class=n>stackoverflow</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>questions</span><span class=o>/</span><span class=mi>3416076</span><span class=o>/</span><span class=n>this</span><span class=o>-</span><span class=k>select</span><span class=o>-</span><span class=n>query</span><span class=o>-</span><span class=n>takes</span><span class=o>-</span><span class=mi>180</span><span class=o>-</span><span class=n>seconds</span><span class=o>-</span><span class=k>to</span><span class=o>-</span><span class=n>finish</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=n>query</span><span class=w> </span><span class=n>optimization</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>MySQL</span><span class=w> </span><span class=s2>&#34;IN&#34;</span><span class=w> </span><span class=n>queries</span><span class=w> </span><span class=n>terribly</span><span class=w> </span><span class=n>slow</span><span class=w> </span><span class=k>with</span><span class=w> </span><span class=n>subquery</span><span class=w> </span><span class=n>but</span><span class=w> </span><span class=n>fast</span><span class=w> </span><span class=k>with</span><span class=w> </span><span class=n>explicit</span><span class=w> </span><span class=k>values</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>Stack</span><span class=w> </span><span class=n>Overflow</span><span class=p>](</span><span class=n>https</span><span class=p>:</span><span class=o>//</span><span class=n>stackoverflow</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>questions</span><span class=o>/</span><span class=mi>5018284</span><span class=o>/</span><span class=n>mysql</span><span class=o>-</span><span class=k>in</span><span class=o>-</span><span class=n>queries</span><span class=o>-</span><span class=n>terribly</span><span class=o>-</span><span class=n>slow</span><span class=o>-</span><span class=k>with</span><span class=o>-</span><span class=n>subquery</span><span class=o>-</span><span class=n>but</span><span class=o>-</span><span class=n>fast</span><span class=o>-</span><span class=k>with</span><span class=o>-</span><span class=n>explicit</span><span class=o>-</span><span class=k>values</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[[</span><span class=err>慢查优化</span><span class=p>]</span><span class=err>慎用</span><span class=n>MySQL</span><span class=err>子查询，尤其是看到</span><span class=n>DEPENDENT</span><span class=w> </span><span class=n>SUBQUERY</span><span class=err>标记时</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>旁观者</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>博客园</span><span class=p>](</span><span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=n>www</span><span class=p>.</span><span class=n>cnblogs</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>zhengyun_ustc</span><span class=o>/</span><span class=n>p</span><span class=o>/</span><span class=n>slowquery3</span><span class=p>.</span><span class=n>html</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[</span><span class=n>MySQL</span><span class=err>性能优化小记：</span><span class=n>MySQL</span><span class=err>子查询很慢的问题</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>Bash</span><span class=w> </span><span class=o>@</span><span class=w> </span><span class=n>Linux</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>ITeye</span><span class=err>博客</span><span class=p>](</span><span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=n>codingstandards</span><span class=p>.</span><span class=n>iteye</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>blog</span><span class=o>/</span><span class=mi>1344833</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=p>[[</span><span class=err>慢查优化</span><span class=p>]</span><span class=err>慎用</span><span class=n>MySQL</span><span class=err>子查询，尤其是看到</span><span class=n>DEPENDENT</span><span class=w> </span><span class=n>SUBQUERY</span><span class=err>标记时</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>旁观者</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=err>博客园</span><span class=p>](</span><span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=n>www</span><span class=p>.</span><span class=n>cnblogs</span><span class=p>.</span><span class=n>com</span><span class=o>/</span><span class=n>zhengyun_ustc</span><span class=o>/</span><span class=n>p</span><span class=o>/</span><span class=n>slowquery3</span><span class=p>.</span><span class=n>html</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>*</span><span class=w> </span><span class=err>高性能</span><span class=n>mysql</span><span class=err>第三版</span><span class=w> </span><span class=n>P</span><span class=p>.</span><span class=mi>223</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2018-05-15</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/ data-title=在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法) data-hashtags=MySQL,IN,效能><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/ data-hashtag=MySQL><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/ data-title=在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/ data-title=在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/ data-title=在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/mysql/>mysql</a>,&nbsp;<a href=/blog/tags/IN/>IN</a>,&nbsp;<a href=/blog/tags/%E6%95%88%E8%83%BD/>效能</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/PHP%E7%9A%84array-slice%E8%88%87array-splice%E5%B7%AE%E5%88%A5/ class=prev rel=prev title=PHP的array_slice與array_splice差別><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>PHP的array_slice與array_splice差別</a>
-<a href=/blog/posts/MySQL%E6%9F%A5%E8%A9%A2%E9%80%B2%E8%A1%8C%E4%B8%AD%E7%A8%8B%E5%BA%8F%E7%8B%80%E6%B3%81%E4%B8%A6%E5%88%AA%E6%8E%89lock%E7%A8%8B%E5%BA%8F/ class=next rel=next title=MySQL查詢進行中程序狀況，並刪掉lock程序>MySQL查詢進行中程序狀況，並刪掉lock程序<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+就簡單研究有沒有更好的寫法"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" /><link rel="prev" href="https://malagege.github.io/blog/posts/PHP%E7%9A%84array-slice%E8%88%87array-splice%E5%B7%AE%E5%88%A5/" /><link rel="next" href="https://malagege.github.io/blog/posts/MySQL%E6%9F%A5%E8%A9%A2%E9%80%B2%E8%A1%8C%E4%B8%AD%E7%A8%8B%E5%BA%8F%E7%8B%80%E6%B3%81%E4%B8%A6%E5%88%AA%E6%8E%89lock%E7%A8%8B%E5%BA%8F/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2\/"
+        },"genre": "posts","keywords": "MySQL, IN, 效能","wordcount":  488 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2\/","datePublished": "2018-05-15T20:01:47+00:00","dateModified": "2018-05-15T20:01:47+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/SQL/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>SQL</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-05-15">2018-05-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;488 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#exists優化in語句">exists優化IN語句</a></li>
+    <li><a href="#實戰mysql50上面">實戰MySQL5.0上面</a></li>
+    <li><a href="#子查詢語句注意問題">子查詢語句注意問題</a></li>
+    <li><a href="#用程式組in字串就pk">用程式組IN字串就PK</a></li>
+    <li><a href="#柳暗花明又一村">柳暗花明又一村</a></li>
+    <li><a href="#inner-join解決方法">INNER JOIN解決方法</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近使用有一個程式SQL會跑3秒<br>
+程式共花了1x秒鐘<br>
+想把他cost 時間降下來<br>
+但IN方法不知道為什麼那麼慢<br>
+就簡單研究有沒有更好的寫法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w">  </span><span class="n">ptm</span><span class="p">.</span><span class="n">tablename</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">secord_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">ptm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="n">ptm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">  </span><span class="k">IN</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">first_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">stm</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">WHERE</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">sid</span><span class="w"> </span><span class="k">IN</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">sid</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">small_table</span><span class="o">`</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">WHERE</span><span class="w"> </span><span class="n">as_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">AND</span><span class="w"> </span><span class="n">item_no</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>執行<code>explain</code>看一下狀態&hellip;<br>
+first_big_table是掃全表的樣子</p>
+<p>暫時用LIMIT和=解決問題</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w">  </span><span class="n">ptm</span><span class="p">.</span><span class="n">tablename</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">secord_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">ptm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="n">ptm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">  </span><span class="o">=</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">first_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">stm</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">WHERE</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">sid</span><span class="w"> </span><span class="k">IN</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">sid</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">small_table</span><span class="o">`</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">WHERE</span><span class="w"> </span><span class="n">as_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">AND</span><span class="w"> </span><span class="n">item_no</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>事後發現</strong><br>
+這不是我之前寫的<code>非相關子查詢</code>嗎<br>
+<a href="http://malagege.logdown.com/posts/4690995-sql-subquery-notes" target="_blank" rel="noopener noreffer ">SQL子查詢筆記(相關子查詢/非相關子查詢) « 進擊的程式新手</a><br>
+照到理沒理由這麼慢阿&hellip;<br>
+好啦，這時候突然回想起來<a href="https://www.facebook.com/groups/616369245163622" target="_blank" rel="noopener noreffer ">Backend 台灣 (Backend Tw)</a>裡面的T大常常批評MySQL<br>
+<del>在絕望下</del>尋找新方法</p>
+<h2 id="exists優化in語句">exists優化IN語句</h2>
+<blockquote>
+<p>第一種格式是使用IN操作符：<br>
+&hellip; where column in(select * from &hellip; where &hellip;);<br>
+第二種格式是使用EXIST操作符：<br>
+&hellip; where exists (select &lsquo;X&rsquo; from &hellip;where &hellip;);<br>
+我相信絕大多數人會使用第一種格式，因為它比較容易編寫，而實際上第二種格式要遠比第一種格式的效率高。在Oracle中可以幾乎將所有的IN操作符子查詢改寫為使用EXISTS的子查詢。<br>
+第二種格式中，子查詢以‘select &lsquo;X&rsquo;開始。運用EXISTS子句不管子查詢從表中抽取什麼資料它只查看where子句。這樣優化器就不必遍曆整個表而僅根據索引就可完成工作（這裏假定在where語句中使用的列存在索引）。相對於IN子句來說，EXISTS使用相連子查詢，構造起來要比IN子查詢困難一些。<br>
+通過使用EXIST，Oracle系統會首先檢查主查詢，然後運行子查詢直到它找到第一個匹配項，這就節省了時間。Oracle系統在執行IN子查詢時，首先執行子查詢，並將獲得的結果列表存放在在一個加了索引的臨時表中。在執行子查詢之前，系統先將主查詢掛起，待子查詢執行完畢，存放在臨時表中以後再執行主查詢。這也就是使用EXISTS比使用IN通常查詢速度快的原因<br>
+<a href="http://blog.xuite.net/javax/programmer/3505144-%5B%E6%95%88%E8%83%BD%5DSQL%E8%AA%9E%E5%8F%A5%E6%80%A7%E8%83%BD%E8%AA%BF%E6%95%B4%E5%8E%9F%E5%89%87&#43;" target="_blank" rel="noopener noreffer ">[效能]SQL語句性能調整原則 @ Programmer Developer Notebook :: 隨意窩 Xuite日誌</a></p>
+</blockquote>
+<h2 id="實戰mysql50上面">實戰MySQL5.0上面</h2>
+<p>有在<a href="http://eeluck.pixnet.net/blog/post/27559378-in%E5%92%8Cexists%E7%9A%84%E5%B7%AE%E7%95%B0" target="_blank" rel="noopener noreffer ">IN和EXISTS的差異 @ 芊芊的窩 :: 痞客邦 ::</a>改成exists語句</p>
+<blockquote>
+<p>而假如外部的表格A是相對的儲存大量資料，則採用第一個方法IN的效率將會比較好，假如你使用EXISTS，則除了會對A這個大表格進行全面掃瞄外，還會一筆一筆讀取所有A的資料列，效能自然較差。<br>
+簡單的一句話，外大內小=IN，外小內大=EXISTS，這是一個實用的概略評估方法，在大部分的情況下是適用的。</p>
+</blockquote>
+<p>我覺得優化原因是<a href="https://github.com/TritonHo/slides/blob/master/Taipei%202017-10%20talk/SQL_report_v2.pdf" target="_blank" rel="noopener noreffer ">slides/SQL_report_v2.pdf at master · TritonHo/slides</a>的Query Optimizer淺談</p>
+<p>不過我修改</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">first_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">stm</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">WHERE</span><span class="w"> </span><span class="k">exists</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;x&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">small_table</span><span class="o">`</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">WHERE</span><span class="w"> </span><span class="n">as_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">AND</span><span class="w"> </span><span class="n">item_no</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">AND</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">sid</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">sid</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>還是沒用&hellip;</p>
+<p>最後還是想到<a href="https://www.facebook.com/groups/616369245163622" target="_blank" rel="noopener noreffer ">Backend 台灣 (Backend Tw)</a>裡面的T大常常批評MySQL</p>
+<h2 id="子查詢語句注意問題">子查詢語句注意問題</h2>
+<p><a href="http://seanphpbook.blogspot.tw/2015/08/mysql.html" target="_blank" rel="noopener noreffer ">謝晒的PHP網頁設計: [MYSQL] 多層式子查詢 效能注意事項</a></p>
+<h2 id="用程式組in字串就pk">用程式組IN字串就PK</h2>
+<p>今天實驗結果，在MYSQL5.0使用子查詢IN改寫exists速度還是很慢<br>
+然後發現跟我之前寫的非相關子查詢速度有不一樣<br>
+但是改成IN(&lsquo;xxxx&rsquo;,&lsquo;oooo&rsquo;,&lsquo;fffff&rsquo;)<br>
+速度就比較快<br>
+所以目前先用程式拆兩段</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span>
+</span></span><span class="line"><span class="cl">        <span class="nv">$array_in</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="k">foreach</span> <span class="p">(</span><span class="nv">$in_sid</span> <span class="k">as</span>  <span class="nv">$value</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">array_push</span><span class="p">(</span><span class="nv">$array_in</span><span class="p">,</span><span class="nv">$value</span><span class="p">[</span><span class="s1">&#39;sid&#39;</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"> <span class="nv">$sql</span> <span class="o">=</span> <span class="s2">&#34;select xxx from  ooo where oo IN (&#34;</span> <span class="o">.</span><span class="nx">implode</span><span class="p">(</span> <span class="s2">&#34;,&#34;</span> <span class="p">,</span> <span class="nv">$array_in</span><span class="p">)</span><span class="o">.</span><span class="s2">&#34;)&#34;</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="柳暗花明又一村">柳暗花明又一村</h2>
+<p>這樣跑子查詢竟然吃到key了&hellip;..<br>
+但不知道這樣跑好不好</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">sid</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">ptm</span><span class="p">.</span><span class="n">tablename</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">social</span><span class="o">`</span><span class="p">.</span><span class="o">`</span><span class="n">secord_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">ptm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ptm</span><span class="p">.</span><span class="n">playlistID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">a</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">sid</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">social</span><span class="o">`</span><span class="p">.</span><span class="o">`</span><span class="n">first_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">stm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">WHERE</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">sid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">sid</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">a</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">pay</span><span class="o">`</span><span class="p">.</span><span class="o">`</span><span class="n">activity_guess_item</span><span class="o">`</span><span class="w"> </span><span class="k">g</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">WHERE</span><span class="w"> </span><span class="n">as_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">AND</span><span class="w"> </span><span class="n">item_no</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">b</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>雖然程式只需要抓到一筆<br>
+但上面方法可以抓到多筆<br>
+效能能吃到key</p>
+<p>算是另類解法</p>
+<h2 id="inner-join解決方法">INNER JOIN解決方法</h2>
+<p>最後網路爬到用INNER JOIN 優化<br>
+<a href="http://www.cnblogs.com/zhengyun_ustc/p/slowquery3.html" target="_blank" rel="noopener noreffer ">[慢查优化]慎用MySQL子查询，尤其是看到DEPENDENT SUBQUERY标记时 - 旁观者 - 博客园</a><br>
+<a href="http://codingstandards.iteye.com/blog/1344833" target="_blank" rel="noopener noreffer ">MySQL性能优化小记：MySQL子查询很慢的问题 - Bash @ Linux - ITeye博客</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">tablename</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">ptm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">secord_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">ptm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">INNER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="o">`</span><span class="n">smaill_table</span><span class="o">`</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">ptm</span><span class="p">.</span><span class="n">sid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">sid</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="k">WHERE</span><span class="w"> </span><span class="n">as_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">AND</span><span class="w"> </span><span class="n">item_no</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="n">p</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INNER</span><span class="w"> </span><span class="k">JOIN</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">`</span><span class="n">first_big_table</span><span class="o">`</span><span class="w"> </span><span class="n">stm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">ON</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="n">stm</span><span class="p">.</span><span class="n">playlistID</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">playlistID</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">用這種解法，速度有變比較快</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">但這種寫法真的不時直覺</span><span class="p">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">##</span><span class="w"> </span><span class="err">結論</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">網路上查，好像</span><span class="n">MySQL</span><span class="err">到</span><span class="mi">5</span><span class="p">.</span><span class="mi">7</span><span class="err">和</span><span class="mi">8</span><span class="p">.</span><span class="mi">0</span><span class="err">效能上有很大的改進</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">希望我有機會能使用到</span><span class="p">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="err">參考來源</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">MySQL</span><span class="err">特异功能之：</span><span class="n">Impossible</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">noticed</span><span class="w"> </span><span class="k">after</span><span class="w"> </span><span class="n">reading</span><span class="w"> </span><span class="n">const</span><span class="w"> </span><span class="n">tables</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">风轻扬的日志</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">网易博客</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">wangyuanzju</span><span class="p">.</span><span class="n">blog</span><span class="p">.</span><span class="mi">163</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">blog</span><span class="o">/</span><span class="k">static</span><span class="o">/</span><span class="mi">13029200691114035831</span><span class="o">/</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">MySql</span><span class="w"> </span><span class="k">Explain</span><span class="w"> </span><span class="err">的使用</span><span class="p">[</span><span class="err">转</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">不待人亲</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ITeye</span><span class="err">博客</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">budairenqin</span><span class="p">.</span><span class="n">iteye</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">blog</span><span class="o">/</span><span class="mi">1754937</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">MySQL</span><span class="w"> </span><span class="k">EXPLAIN</span><span class="err">：</span><span class="n">Impossible</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">noticed</span><span class="w"> </span><span class="k">after</span><span class="w"> </span><span class="n">re</span><span class="p">...</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">NILYANG</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">my</span><span class="p">.</span><span class="n">oschina</span><span class="p">.</span><span class="n">net</span><span class="o">/</span><span class="n">lxrm</span><span class="o">/</span><span class="n">blog</span><span class="o">/</span><span class="mi">108309</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">mysql</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Why</span><span class="w"> </span><span class="n">would</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">condition</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">slower</span><span class="w"> </span><span class="k">than</span><span class="w"> </span><span class="s2">&#34;=&#34;</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">sql</span><span class="o">?</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Stack</span><span class="w"> </span><span class="n">Overflow</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">stackoverflow</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">questions</span><span class="o">/</span><span class="mi">3417074</span><span class="o">/</span><span class="n">why</span><span class="o">-</span><span class="n">would</span><span class="o">-</span><span class="n">an</span><span class="o">-</span><span class="k">in</span><span class="o">-</span><span class="n">condition</span><span class="o">-</span><span class="n">be</span><span class="o">-</span><span class="n">slower</span><span class="o">-</span><span class="k">than</span><span class="o">-</span><span class="k">in</span><span class="o">-</span><span class="k">sql</span><span class="o">/</span><span class="mi">3417190</span><span class="o">#</span><span class="mi">3417190</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="k">sql</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">This</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="n">takes</span><span class="w"> </span><span class="mi">180</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">finish</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Stack</span><span class="w"> </span><span class="n">Overflow</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">stackoverflow</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">questions</span><span class="o">/</span><span class="mi">3416076</span><span class="o">/</span><span class="n">this</span><span class="o">-</span><span class="k">select</span><span class="o">-</span><span class="n">query</span><span class="o">-</span><span class="n">takes</span><span class="o">-</span><span class="mi">180</span><span class="o">-</span><span class="n">seconds</span><span class="o">-</span><span class="k">to</span><span class="o">-</span><span class="n">finish</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">query</span><span class="w"> </span><span class="n">optimization</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">MySQL</span><span class="w"> </span><span class="s2">&#34;IN&#34;</span><span class="w"> </span><span class="n">queries</span><span class="w"> </span><span class="n">terribly</span><span class="w"> </span><span class="n">slow</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">subquery</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">fast</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">explicit</span><span class="w"> </span><span class="k">values</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Stack</span><span class="w"> </span><span class="n">Overflow</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">stackoverflow</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">questions</span><span class="o">/</span><span class="mi">5018284</span><span class="o">/</span><span class="n">mysql</span><span class="o">-</span><span class="k">in</span><span class="o">-</span><span class="n">queries</span><span class="o">-</span><span class="n">terribly</span><span class="o">-</span><span class="n">slow</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">subquery</span><span class="o">-</span><span class="n">but</span><span class="o">-</span><span class="n">fast</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">explicit</span><span class="o">-</span><span class="k">values</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[[</span><span class="err">慢查优化</span><span class="p">]</span><span class="err">慎用</span><span class="n">MySQL</span><span class="err">子查询，尤其是看到</span><span class="n">DEPENDENT</span><span class="w"> </span><span class="n">SUBQUERY</span><span class="err">标记时</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">旁观者</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">博客园</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="p">.</span><span class="n">cnblogs</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">zhengyun_ustc</span><span class="o">/</span><span class="n">p</span><span class="o">/</span><span class="n">slowquery3</span><span class="p">.</span><span class="n">html</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">MySQL</span><span class="err">性能优化小记：</span><span class="n">MySQL</span><span class="err">子查询很慢的问题</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Bash</span><span class="w"> </span><span class="o">@</span><span class="w"> </span><span class="n">Linux</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ITeye</span><span class="err">博客</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">codingstandards</span><span class="p">.</span><span class="n">iteye</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">blog</span><span class="o">/</span><span class="mi">1344833</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="p">[[</span><span class="err">慢查优化</span><span class="p">]</span><span class="err">慎用</span><span class="n">MySQL</span><span class="err">子查询，尤其是看到</span><span class="n">DEPENDENT</span><span class="w"> </span><span class="n">SUBQUERY</span><span class="err">标记时</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">旁观者</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">博客园</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="p">.</span><span class="n">cnblogs</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">zhengyun_ustc</span><span class="o">/</span><span class="n">p</span><span class="o">/</span><span class="n">slowquery3</span><span class="p">.</span><span class="n">html</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">*</span><span class="w"> </span><span class="err">高性能</span><span class="n">mysql</span><span class="err">第三版</span><span class="w"> </span><span class="n">P</span><span class="p">.</span><span class="mi">223</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-05-15</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" data-title="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)" data-hashtags="MySQL,IN,效能"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" data-hashtag="MySQL"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" data-title="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" data-title="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8MySQL5-0%E6%9F%A5%E8%A9%A2%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E4%BD%BF%E7%94%A8IN%E5%AD%90%E6%9F%A5%E8%A9%A2%E5%A5%BD%E6%85%A2/" data-title="在MySQL5.0查詢大量資料使用IN子查詢好慢(優化方法)"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/mysql/">mysql</a>,&nbsp;<a href="/blog/tags/IN/">IN</a>,&nbsp;<a href="/blog/tags/%E6%95%88%E8%83%BD/">效能</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/PHP%E7%9A%84array-slice%E8%88%87array-splice%E5%B7%AE%E5%88%A5/" class="prev" rel="prev" title="PHP的array_slice與array_splice差別"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>PHP的array_slice與array_splice差別</a>
+            <a href="/blog/posts/MySQL%E6%9F%A5%E8%A9%A2%E9%80%B2%E8%A1%8C%E4%B8%AD%E7%A8%8B%E5%BA%8F%E7%8B%80%E6%B3%81%E4%B8%A6%E5%88%AA%E6%8E%89lock%E7%A8%8B%E5%BA%8F/" class="next" rel="next" title="MySQL查詢進行中程序狀況，並刪掉lock程序">MySQL查詢進行中程序狀況，並刪掉lock程序<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

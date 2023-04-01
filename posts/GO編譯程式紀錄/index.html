@@ -1,68 +1,323 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>GO編譯程式紀錄 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="GO編譯程式紀錄"><meta property="og:description" content="最近玩golang最喜歡它編譯可以直接跨平台執行
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>GO編譯程式紀錄 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="GO編譯程式紀錄" />
+<meta property="og:description" content="最近玩golang最喜歡它編譯可以直接跨平台執行
 而且看了一下
 真的很簡單，只需要一行go build
 但真的是這樣的嗎?
-(不然也不會有這一篇了XD)"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-09-01T02:04:50+00:00"><meta property="article:modified_time" content="2018-09-01T02:04:50+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="GO編譯程式紀錄"><meta name=twitter:description content="最近玩golang最喜歡它編譯可以直接跨平台執行
+(不然也不會有這一篇了XD)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-09-01T02:04:50+00:00" />
+<meta property="article:modified_time" content="2018-09-01T02:04:50+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="GO編譯程式紀錄"/>
+<meta name="twitter:description" content="最近玩golang最喜歡它編譯可以直接跨平台執行
 而且看了一下
 真的很簡單，只需要一行go build
 但真的是這樣的嗎?
-(不然也不會有這一篇了XD)"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/><link rel=prev href=https://malagege.github.io/blog/posts/MySQL%E5%9C%A8Linux%E4%B8%8B%E9%A0%90%E8%A8%AD%E6%9C%89%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%92%8CIncorrect-integer-value-for-column-num-%E5%95%8F%E9%A1%8C/><link rel=next href=https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Data-truncated-for-column-d-at-row-%E5%92%8C%E6%94%B9sql-mode%E9%82%A3%E4%BA%9B%E4%BA%8B/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"GO編譯程式紀錄","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84\/"},"genre":"posts","keywords":"GO","wordcount":168,"url":"https:\/\/malagege.github.io\/blog\/posts\/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84\/","datePublished":"2018-09-01T02:04:50+00:00","dateModified":"2018-09-01T02:04:50+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">GO編譯程式紀錄</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/GO/><i class="far fa-folder fa-fw" aria-hidden=true></i>GO</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2018-09-01>2018-09-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;168 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;One minute&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#編譯後別台電腦不能執行>編譯後別台電腦不能執行</a></li><li><a href=#gitea編譯紀錄>gitea編譯紀錄</a></li></ul></nav></div></div><div class=content id=content><p>最近玩golang最喜歡它編譯可以直接跨平台執行<br>而且看了一下<br>真的很簡單，只需要一行<code>go build</code><br>但真的是這樣的嗎?<br>(不然也不會有這一篇了XD)</p><p>golang編譯真的很簡單<br>只需要<code>go build main.go</code>即可以編譯<code>main.go</code><br>但是<code>go build</code>是整個目錄都會進行編譯<br>編譯出來的程式正常<code>本機</code>可以執行</p><p><strong>為什麼要框住本機呢</strong></p><p>因為這就是我踩雷的地方</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>Mac 下编译 Linux 和 Windows 64位可执行程序
-</span></span><span class=line><span class=cl>CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build main.go
-</span></span><span class=line><span class=cl>CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Linux 下编译 Mac 和 Windows 64位可执行程序
-</span></span><span class=line><span class=cl>CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
-</span></span><span class=line><span class=cl>CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Windows 下编译 Mac 和 Linux 64位可执行程序
-</span></span><span class=line><span class=cl>SET CGO_ENABLED=0
-</span></span><span class=line><span class=cl>SET GOOS=darwin
-</span></span><span class=line><span class=cl>SET GOARCH=amd64
-</span></span><span class=line><span class=cl>go build main.go
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>SET CGO_ENABLED=0
-</span></span><span class=line><span class=cl>SET GOOS=linux
-</span></span><span class=line><span class=cl>SET GOARCH=amd64
-</span></span><span class=line><span class=cl>go build main.go
-</span></span></code></pre></td></tr></table></div></div><p>參考來源:<a href=https://blog.csdn.net/panshiqu/article/details/53788067 target=_blank rel="noopener noreffer">Golang 在 Mac、Linux、Windows 下如何交叉编译 - CSDN博客</a><br>假如你是在window用git-bash話，前面變數可以加<code>export</code><br>當然後面的<code>main.go</code>可以不用填</p><p>正常有<code>go get</code>套件編譯會沒有問題</p><p>環境變數設定完，可以<code>go env</code>查看GO環境變數設定值</p><p>但重點來了</p><h2 id=編譯後別台電腦不能執行>編譯後別台電腦不能執行</h2><p>奇怪我把程式丟到Linux竟然不能執行 (說好的編譯可以跑的 囧)<br>但發現執行錯誤訊息<br>竟然有出現我在Win7路徑<br>當下沒有留意到是抓不到Package問題<br>好像有甚麼<strong>address</strong>關鍵字錯誤<br>因為同事也有在玩<br>他說是抓不到套件關係</p><p>後來有爬到一個指令<br>在程式目錄執行</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>go build -a -v
-</span></span></code></pre></td></tr></table></div></div><p>這樣就很神奇可以跑<br>不過我在win7編譯Linux程式，在Linux還是不能跑<br>Linux編譯Win7程式，在Win7正常執行<br>但是在Win10編譯Linux程式，在Linux正持行<br>反之也可以</p><p>不知道Win7編譯GO怎麼了&mldr;.</p><p>其實這篇重點只有<code>go build -v -a</code><br>但網路上看到的文章真的不多<br>不知道為什麼&mldr;(有可能我方法不正確)</p><h2 id=gitea編譯紀錄>gitea編譯紀錄</h2><p>中間有試著<code>gitea</code>編譯</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>make generate all
-</span></span></code></pre></td></tr></table></div></div><p>不知道這一行我不能執行<br>但輸入<code>make</code>就正常運行<br>輸入<code>go build -v -a</code>也能跑，(<code>go build</code>好像不能)</p><p>參考來源<br><a href=https://segmentfault.com/q/1010000004044176 target=_blank rel="noopener noreffer">golang - Go语言的三个命令 go build, go install, go get - SegmentFault 思否</a><br><a href=http://wiki.jikexueyuan.com/project/go-command-tutorial/0.1.html target=_blank rel="noopener noreffer">go build - GO 命令教程 - 极客学院Wiki</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2018-09-01</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/ data-title=GO編譯程式紀錄 data-hashtags=GO><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/ data-hashtag=GO><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/ data-title=GO編譯程式紀錄><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/ data-title=GO編譯程式紀錄><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/ data-title=GO編譯程式紀錄><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/go/>go</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/MySQL%E5%9C%A8Linux%E4%B8%8B%E9%A0%90%E8%A8%AD%E6%9C%89%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%92%8CIncorrect-integer-value-for-column-num-%E5%95%8F%E9%A1%8C/ class=prev rel=prev title="MySQL在Linux下預設有分大小寫和Incorrect integer value: '' for column 'num' 問題"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>MySQL在Linux下預設有分大小寫和Incorrect integer value: '' for column 'num' 問題</a>
-<a href=/blog/posts/%E9%81%87%E5%88%B0Data-truncated-for-column-d-at-row-%E5%92%8C%E6%94%B9sql-mode%E9%82%A3%E4%BA%9B%E4%BA%8B/ class=next rel=next title="遇到Data truncated for column 'd' at row 和改sql_mode那些事">遇到Data truncated for column 'd' at row 和改sql_mode那些事<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+(不然也不會有這一篇了XD)"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" /><link rel="prev" href="https://malagege.github.io/blog/posts/MySQL%E5%9C%A8Linux%E4%B8%8B%E9%A0%90%E8%A8%AD%E6%9C%89%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%92%8CIncorrect-integer-value-for-column-num-%E5%95%8F%E9%A1%8C/" /><link rel="next" href="https://malagege.github.io/blog/posts/%E9%81%87%E5%88%B0Data-truncated-for-column-d-at-row-%E5%92%8C%E6%94%B9sql-mode%E9%82%A3%E4%BA%9B%E4%BA%8B/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "GO編譯程式紀錄",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84\/"
+        },"genre": "posts","keywords": "GO","wordcount":  168 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84\/","datePublished": "2018-09-01T02:04:50+00:00","dateModified": "2018-09-01T02:04:50+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">GO編譯程式紀錄</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/GO/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>GO</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-09-01">2018-09-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;168 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#編譯後別台電腦不能執行">編譯後別台電腦不能執行</a></li>
+    <li><a href="#gitea編譯紀錄">gitea編譯紀錄</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近玩golang最喜歡它編譯可以直接跨平台執行<br>
+而且看了一下<br>
+真的很簡單，只需要一行<code>go build</code><br>
+但真的是這樣的嗎?<br>
+(不然也不會有這一篇了XD)</p>
+<p>golang編譯真的很簡單<br>
+只需要<code>go build main.go</code>即可以編譯<code>main.go</code><br>
+但是<code>go build</code>是整個目錄都會進行編譯<br>
+編譯出來的程式正常<code>本機</code>可以執行</p>
+<p><strong>為什麼要框住本機呢</strong></p>
+<p>因為這就是我踩雷的地方</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Mac 下编译 Linux 和 Windows 64位可执行程序
+</span></span><span class="line"><span class="cl">CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build main.go
+</span></span><span class="line"><span class="cl">CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Linux 下编译 Mac 和 Windows 64位可执行程序
+</span></span><span class="line"><span class="cl">CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
+</span></span><span class="line"><span class="cl">CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Windows 下编译 Mac 和 Linux 64位可执行程序
+</span></span><span class="line"><span class="cl">SET CGO_ENABLED=0
+</span></span><span class="line"><span class="cl">SET GOOS=darwin
+</span></span><span class="line"><span class="cl">SET GOARCH=amd64
+</span></span><span class="line"><span class="cl">go build main.go
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">SET CGO_ENABLED=0
+</span></span><span class="line"><span class="cl">SET GOOS=linux
+</span></span><span class="line"><span class="cl">SET GOARCH=amd64
+</span></span><span class="line"><span class="cl">go build main.go
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考來源:<a href="https://blog.csdn.net/panshiqu/article/details/53788067" target="_blank" rel="noopener noreffer ">Golang 在 Mac、Linux、Windows 下如何交叉编译 - CSDN博客</a><br>
+假如你是在window用git-bash話，前面變數可以加<code>export</code><br>
+當然後面的<code>main.go</code>可以不用填</p>
+<p>正常有<code>go get</code>套件編譯會沒有問題</p>
+<p>環境變數設定完，可以<code>go env</code>查看GO環境變數設定值</p>
+<p>但重點來了</p>
+<h2 id="編譯後別台電腦不能執行">編譯後別台電腦不能執行</h2>
+<p>奇怪我把程式丟到Linux竟然不能執行  (說好的編譯可以跑的  囧)<br>
+但發現執行錯誤訊息<br>
+竟然有出現我在Win7路徑<br>
+當下沒有留意到是抓不到Package問題<br>
+好像有甚麼<strong>address</strong>關鍵字錯誤<br>
+因為同事也有在玩<br>
+他說是抓不到套件關係</p>
+<p>後來有爬到一個指令<br>
+在程式目錄執行</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">go build -a -v
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這樣就很神奇可以跑<br>
+不過我在win7編譯Linux程式，在Linux還是不能跑<br>
+Linux編譯Win7程式，在Win7正常執行<br>
+但是在Win10編譯Linux程式，在Linux正持行<br>
+反之也可以</p>
+<p>不知道Win7編譯GO怎麼了&hellip;.</p>
+<p>其實這篇重點只有<code>go build -v -a</code><br>
+但網路上看到的文章真的不多<br>
+不知道為什麼&hellip;(有可能我方法不正確)</p>
+<h2 id="gitea編譯紀錄">gitea編譯紀錄</h2>
+<p>中間有試著<code>gitea</code>編譯</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">make generate all
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>不知道這一行我不能執行<br>
+但輸入<code>make</code>就正常運行<br>
+輸入<code>go build -v -a</code>也能跑，(<code>go build</code>好像不能)</p>
+<p>參考來源<br>
+<a href="https://segmentfault.com/q/1010000004044176" target="_blank" rel="noopener noreffer ">golang - Go语言的三个命令 go build, go install, go get - SegmentFault 思否</a><br>
+<a href="http://wiki.jikexueyuan.com/project/go-command-tutorial/0.1.html" target="_blank" rel="noopener noreffer ">go build - GO 命令教程 - 极客学院Wiki</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-09-01</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" data-title="GO編譯程式紀錄" data-hashtags="GO"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" data-hashtag="GO"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" data-title="GO編譯程式紀錄"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" data-title="GO編譯程式紀錄"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/GO%E7%B7%A8%E8%AD%AF%E7%A8%8B%E5%BC%8F%E7%B4%80%E9%8C%84/" data-title="GO編譯程式紀錄"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/go/">go</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/MySQL%E5%9C%A8Linux%E4%B8%8B%E9%A0%90%E8%A8%AD%E6%9C%89%E5%88%86%E5%A4%A7%E5%B0%8F%E5%AF%AB%E5%92%8CIncorrect-integer-value-for-column-num-%E5%95%8F%E9%A1%8C/" class="prev" rel="prev" title="MySQL在Linux下預設有分大小寫和Incorrect integer value: &#39;&#39; for column &#39;num&#39; 問題"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>MySQL在Linux下預設有分大小寫和Incorrect integer value: '' for column 'num' 問題</a>
+            <a href="/blog/posts/%E9%81%87%E5%88%B0Data-truncated-for-column-d-at-row-%E5%92%8C%E6%94%B9sql-mode%E9%82%A3%E4%BA%9B%E4%BA%8B/" class="next" rel="next" title="遇到Data truncated for column &#39;d&#39; at row 和改sql_mode那些事">遇到Data truncated for column 'd' at row 和改sql_mode那些事<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

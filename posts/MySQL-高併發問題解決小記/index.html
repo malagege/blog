@@ -1,20 +1,230 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>MySQL 高併發問題解決小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="MySQL 高併發問題解決小記"><meta property="og:description" content="小記&mldr;，有時間補"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-06-01T23:56:14+00:00"><meta property="article:modified_time" content="2019-06-01T23:56:14+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="MySQL 高併發問題解決小記"><meta name=twitter:description content="小記&mldr;，有時間補"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/MySQLnd-%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/MySQL-MariaDB-insert%E6%9C%89%E9%97%9C%E5%81%9A%E7%9B%B8%E5%90%8C%E8%A1%A8%E6%9C%83%E9%81%87%E5%88%B0%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"MySQL 高併發問題解決小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"mysql, lock","wordcount":74,"url":"https:\/\/malagege.github.io\/blog\/posts\/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98\/","datePublished":"2019-06-01T23:56:14+00:00","dateModified":"2019-06-01T23:56:14+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">MySQL 高併發問題解決小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/MySQL/><i class="far fa-folder fa-fw" aria-hidden=true></i>MySQL</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-06-01>2019-06-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;74 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;One minute&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents></nav></div></div><div class=content id=content><p>小記&mldr;，有時間補</p><h1 id=設計資料表-unique>設計資料表 unique</h1><p>這個是我想的，不過網路上感覺很少寫用這個方法<br>但還是有找到少數人有在討論<br>好像滿可行的</p><p>用 DB unique 可以預防同時資料問題<br>或者有限制 enum=[1,2,3]<br>每次資料進來可預防這個問題<br>但是做刪除，在加入可能就比較麻煩</p><h1 id=鎖表>鎖表</h1><p>select &mldr;. for update;</p><p>待研究</p><h1 id=redis>redis</h1><p>網路爬到有用 redis 解決，有時間在理解<br><a href=https://blog.csdn.net/lihao21/article/details/49104695 target=_blank rel="noopener noreffer">使用 Redis SETNX 命令实现分布式锁 - Leo 的博客 - CSDN 博客</a></p><p><a href=https://blog.csdn.net/qq_28018283/article/details/80241090 target=_blank rel="noopener noreffer">高并发场景下数据重复插入的问题 - LEON 的博客 - CSDN 博客</a><br><a href=https://blog.csdn.net/tjcyjd/article/details/8950621 target=_blank rel="noopener noreffer">如何去掉数据库重复记录并且只保留一条记录 - Java 高知 - CSDN 博客</a><br><a href=https://blog.csdn.net/u012721013/article/details/64451644 target=_blank rel="noopener noreffer">高并发时，进行 insert 操作出现重复记录问题分析 - hansam 的专栏 - CSDN 博客</a><br><a href=https://blog.csdn.net/qq_22956867/article/details/72529144 target=_blank rel="noopener noreffer">java 解决分布式环境中 高并发环境下数据插入重复问题 - 天才白痴梦 - CSDN 博客</a><br><a href=https://bbs.csdn.net/topics/391861174 target=_blank rel="noopener noreffer">并发写数据库如何避免重复数据-CSDN 论坛</a><br><a href=https://fishermartyn.github.io/blog/High-traffic-DB-system/ target=_blank rel="noopener noreffer">如何用DB抗住大量读写的业务 – fishermartyn.github.io</a><br><a href="https://blog.iswtf.com/article.php?id=1353" target=_blank rel="noopener noreffer">处理高并发情况下的DB插入 - isWTF&rsquo;s blog</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-06-01</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/ data-title="MySQL 高併發問題解決小記" data-hashtags=mysql,lock><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/ data-hashtag=mysql><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/ data-title="MySQL 高併發問題解決小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/ data-title="MySQL 高併發問題解決小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/ data-title="MySQL 高併發問題解決小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/mysql/>mysql</a>,&nbsp;<a href=/blog/tags/lock/>lock</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/MySQLnd-%E5%B0%8F%E8%A8%98/ class=prev rel=prev title="MySQLnd 小記"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>MySQLnd 小記</a>
-<a href=/blog/posts/MySQL-MariaDB-insert%E6%9C%89%E9%97%9C%E5%81%9A%E7%9B%B8%E5%90%8C%E8%A1%A8%E6%9C%83%E9%81%87%E5%88%B0%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/ class=next rel=next title="MySQL(MariaDB) insert有關做相同表會遇到問題小記">MySQL(MariaDB) insert有關做相同表會遇到問題小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>MySQL 高併發問題解決小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="MySQL 高併發問題解決小記" />
+<meta property="og:description" content="小記&hellip;，有時間補" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-06-01T23:56:14+00:00" />
+<meta property="article:modified_time" content="2019-06-01T23:56:14+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MySQL 高併發問題解決小記"/>
+<meta name="twitter:description" content="小記&hellip;，有時間補"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/MySQLnd-%E5%B0%8F%E8%A8%98/" /><link rel="next" href="https://malagege.github.io/blog/posts/MySQL-MariaDB-insert%E6%9C%89%E9%97%9C%E5%81%9A%E7%9B%B8%E5%90%8C%E8%A1%A8%E6%9C%83%E9%81%87%E5%88%B0%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "MySQL 高併發問題解決小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "mysql, lock","wordcount":  74 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98\/","datePublished": "2019-06-01T23:56:14+00:00","dateModified": "2019-06-01T23:56:14+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">MySQL 高併發問題解決小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/MySQL/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>MySQL</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-06-01">2019-06-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;74 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
+            </div><div class="content" id="content"><p>小記&hellip;，有時間補</p>
+<h1 id="設計資料表-unique">設計資料表 unique</h1>
+<p>這個是我想的，不過網路上感覺很少寫用這個方法<br>
+但還是有找到少數人有在討論<br>
+好像滿可行的</p>
+<p>用 DB unique 可以預防同時資料問題<br>
+或者有限制 enum=[1,2,3]<br>
+每次資料進來可預防這個問題<br>
+但是做刪除，在加入可能就比較麻煩</p>
+<h1 id="鎖表">鎖表</h1>
+<p>select &hellip;. for update;</p>
+<p>待研究</p>
+<h1 id="redis">redis</h1>
+<p>網路爬到有用 redis 解決，有時間在理解<br>
+<a href="https://blog.csdn.net/lihao21/article/details/49104695" target="_blank" rel="noopener noreffer ">使用 Redis SETNX 命令实现分布式锁 - Leo 的博客 - CSDN 博客</a></p>
+<p><a href="https://blog.csdn.net/qq_28018283/article/details/80241090" target="_blank" rel="noopener noreffer ">高并发场景下数据重复插入的问题 - LEON 的博客 - CSDN 博客</a><br>
+<a href="https://blog.csdn.net/tjcyjd/article/details/8950621" target="_blank" rel="noopener noreffer ">如何去掉数据库重复记录并且只保留一条记录 - Java 高知 - CSDN 博客</a><br>
+<a href="https://blog.csdn.net/u012721013/article/details/64451644" target="_blank" rel="noopener noreffer ">高并发时，进行 insert 操作出现重复记录问题分析 - hansam 的专栏 - CSDN 博客</a><br>
+<a href="https://blog.csdn.net/qq_22956867/article/details/72529144" target="_blank" rel="noopener noreffer ">java 解决分布式环境中 高并发环境下数据插入重复问题 - 天才白痴梦 - CSDN 博客</a><br>
+<a href="https://bbs.csdn.net/topics/391861174" target="_blank" rel="noopener noreffer ">并发写数据库如何避免重复数据-CSDN 论坛</a><br>
+<a href="https://fishermartyn.github.io/blog/High-traffic-DB-system/" target="_blank" rel="noopener noreffer ">如何用DB抗住大量读写的业务 – fishermartyn.github.io</a><br>
+<a href="https://blog.iswtf.com/article.php?id=1353" target="_blank" rel="noopener noreffer ">处理高并发情况下的DB插入 - isWTF&rsquo;s blog</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-06-01</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" data-title="MySQL 高併發問題解決小記" data-hashtags="mysql,lock"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" data-hashtag="mysql"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" data-title="MySQL 高併發問題解決小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" data-title="MySQL 高併發問題解決小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/MySQL-%E9%AB%98%E4%BD%B5%E7%99%BC%E5%95%8F%E9%A1%8C%E8%A7%A3%E6%B1%BA%E5%B0%8F%E8%A8%98/" data-title="MySQL 高併發問題解決小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/mysql/">mysql</a>,&nbsp;<a href="/blog/tags/lock/">lock</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/MySQLnd-%E5%B0%8F%E8%A8%98/" class="prev" rel="prev" title="MySQLnd 小記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>MySQLnd 小記</a>
+            <a href="/blog/posts/MySQL-MariaDB-insert%E6%9C%89%E9%97%9C%E5%81%9A%E7%9B%B8%E5%90%8C%E8%A1%A8%E6%9C%83%E9%81%87%E5%88%B0%E5%95%8F%E9%A1%8C%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="MySQL(MariaDB) insert有關做相同表會遇到問題小記">MySQL(MariaDB) insert有關做相同表會遇到問題小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

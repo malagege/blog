@@ -1,124 +1,481 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>程式使用 Web Proxy 那些事和指令測試方法 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="程式使用 Web Proxy 那些事和指令測試方法"><meta property="og:description" content="有些公司網路會限制連線只能走 Web Proxy 方式傳輸，程式或主機都要設置外，要怎麼知道電腦通過 Proxy 網路有沒有通，這邊有找到一些方法，在工作上可以試試看。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-01-08T19:55:25+08:00"><meta property="article:modified_time" content="2023-01-08T19:55:25+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="程式使用 Web Proxy 那些事和指令測試方法"><meta name=twitter:description content="有些公司網路會限制連線只能走 Web Proxy 方式傳輸，程式或主機都要設置外，要怎麼知道電腦通過 Proxy 網路有沒有通，這邊有找到一些方法，在工作上可以試試看。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/Chrome-%E5%8F%8D%E5%90%91%E5%B0%8E%E5%90%91-DNS-%E7%B6%B2%E5%9D%80/><link rel=next href=https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"程式使用 Web Proxy 那些事和指令測試方法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"proxy, web, command","wordcount":482,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95\/","datePublished":"2023-01-08T19:55:25+08:00","dateModified":"2023-01-08T19:55:25+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">程式使用 Web Proxy 那些事和指令測試方法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/%E7%B6%B2%E8%B7%AF/><i class="far fa-folder fa-fw" aria-hidden=true></i>網路</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-01-08>2023-01-08</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;482 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png data-srcset="https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png, https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png 1.5x, https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png title=https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#什麼是-proxy>什麼是 Proxy?</a><ul><li><a href=#正向代理forward-proxy>正向代理(Forward Proxy)</a></li><li><a href=#反向代理reverse-proxy>反向代理(Reverse Proxy)</a></li><li><a href=#簡單來說>簡單來說</a></li></ul></li><li><a href=#原理與說明>原理與說明</a><ul><li><a href=#快速架設-forward-proxy-server>快速架設 Forward Proxy Server</a></li></ul></li><li><a href=#command-呼叫>command 呼叫</a><ul><li><a href=#linux-環境變數套用-proxy>linux 環境變數套用 Proxy</a></li><li><a href=#curllinux-測試-proxy-連線網站>curl(linux) 測試 Proxy 連線網站</a></li><li><a href=#powershell-設定-proxy-連線網站>powershell 設定 Proxy 連線網站</a></li><li><a href=#postman>Postman</a></li></ul></li><li><a href=#程式操作>程式操作</a><ul><li><a href=#java>Java</a></li><li><a href=#net-core>Net Core</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>有些公司網路會限制連線只能走 Web Proxy 方式傳輸，程式或主機都要設置外，要怎麼知道電腦通過 Proxy 網路有沒有通，這邊有找到一些方法，在工作上可以試試看。</p><h2 id=什麼是-proxy>什麼是 Proxy?</h2><h3 id=正向代理forward-proxy>正向代理(Forward Proxy)</h3><blockquote><p>代理（英語：Proxy）也稱網路代理，是一種特殊的網路服務，允許一個終端（一般為客戶端）通過這個服務與另一個終端（一般為伺服器）進行非直接的連接。一些閘道器、路由器等網路裝置具備網路代理功能。一般認為代理服務有利於保障網路終端的隱私或安全，在一定程度上能夠阻止網路攻擊。</p></blockquote><p>以上來自 Wiki，通常我們說的 Proxy 是指正向代理。</p><p><a href=https://zh.wikipedia.org/zh-tw/%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8 target=_blank rel="noopener noreffer">代理伺服器 - 維基百科，自由的百科全書</a></p><h3 id=反向代理reverse-proxy>反向代理(Reverse Proxy)</h3><blockquote><p>反向代理（Reverse proxy）在電腦網路中是代理伺服器的一種。伺服器根據客戶端的請求，從其關聯的一組或多組後端伺服器（如Web伺服器）上取得資源，然後再將這些資源返回給客戶端，客戶端只會得知反向代理的IP位址，而不知道在代理伺服器後面的伺服器叢集的存在[1]。</p><p>與前向代理不同，前向代理作為客戶端的代理，將從網際網路上取得的資源返回給一個或多個的客戶端，伺服器端（如Web伺服器）只知道代理的IP位址而不知道客戶端的IP位址；而反向代理是作為伺服器端（如Web伺服器）的代理使用，而不是客戶端。客戶端藉由前向代理可以間接存取很多不同網際網路伺服器（叢集）的資源，而反向代理是供很多客戶端都通過它間接存取不同後端伺服器上的資源，而不需要知道這些後端伺服器的存在，而以為所有資源都來自於這個反向代理伺服器。</p><p>反向代理在現時的網際網路中並不少見，而另一些例子，像是CDN、SNI代理等，是反向代理結合DNS的一類延伸應用。</p></blockquote><p>下面這篇還滿有趣<br><a href=https://www.pressplay.cc/project/F720CEB1D6057D7ABB5614722AB18FFF/articles/660A57208C29FF94453548ED21F284EF target=_blank rel="noopener noreffer">用人類語言跟你說甚麼是正向代理(Forward Proxy)和反向代理(Reve - PressPlay Academy 線上課程學習平台</a></p><p>其他文章可以參考:</p><ul><li><a href=https://www.jyt0532.com/2019/11/18/proxy-reverse-proxy/ target=_blank rel="noopener noreffer">系統設計 - 正向代理跟反向代理 · jyt0532&rsquo;s Blog</a> <a href=https://user-images.githubusercontent.com/6058558/226837006-98ca10f8-c134-4d8f-abef-8c15277ade3b.png target=_blank rel="noopener noreffer">備份圖</a></li></ul><h3 id=簡單來說>簡單來說</h3><p>正向代理通常設定是在 Client 設定，把他指引到別的私福器傳出去。現在 Client 很少掛 Proxy，以前在 Hinet 逛大陸網站就會比較快，但後來 Hinet 關掉 Proxy 就沒什麼機會使用。不過，最近公司某環境需要掛 Proxy 才能連到外面網站，可用這個機制管理連外部網站。</p><p>反向代理設定通常在 Server，透過緩向代理做 SLB(Server Load Balance)，可以以解析憑證內部用 http，可舒緩 Server 做第六層東西，也後端部屬程式的人都有機會接觸到。</p><h2 id=原理與說明>原理與說明</h2><blockquote><p>Proxy server 的運作流程<br>當 Proxy server 第一次發現要去的 URL 網址時，他的資料存取流程如下：</p><ol><li>Client 端向 Server 端發送一個資料需求封包；</li><li>Server 端接收之後，先比對這個封包的『來源』與預計要前往的『目標』網站是否為可接受？ 如果來源與目標都是合法的，或者說，來源與目標網站我們的 Proxy 都能幫忙取得資料時，那麼 Server 端會開始替 Client 取得資料。這個步驟中比較重要的就是『比對政策』啦，有點像是認證的感覺啦；</li><li>Server 發現快取並沒有 Client 所需要的資料，準備前往網際網路抓取資料；</li><li>Server 開始向 Internet 發送要求與取得相關資料；</li><li>最後當然就是將資料回傳給 Client 端囉！<br>當 Proxy server 本身的快取就有用戶要求的 URL 資料時：</li></ol><p>a. Client 端向 Server 端發送一個資料需求封包；<br>b. Server 端接收之後，開始進行政策比對 (如同前一組步驟 2 的說明)；<br>c. Server 首先會檢查自己快取 (新的資料可能在記憶體中，較舊的資料則放置在硬碟上) 資料， 如果有 Client 所需的資料，那就將資料準備取出，而不經過向 Internet 要求資料的程序；<br>d. 最後當然就是將資料回傳給 Client 端囉！</p></blockquote><p>來源: 鳥哥<a href="https://dic.vbird.tw/linux_server/unit11.php#:~:text=%E5%9C%96%E6%89%80%E7%A4%BA%EF%BC%9A-,Proxy%20server%20%E7%9A%84%E9%81%8B%E4%BD%9C%E6%B5%81%E7%A8%8B,-%E7%95%B6%20Proxy%20server" target=_blank rel="noopener noreffer">第 11 堂課 - 進階網頁伺服器設定 + proxy</a></p><p>想當初以前有用 squid，不過我發現我文章沒有記錄，可能那時候一時興起架設，然後忘記紀錄。可能覺得我用不太到，最近爬文發現 Apache也能做到，<br><a href=https://www.rusnake.com/2017/02/22/apache-proxy-%E8%A8%AD%E5%AE%9A/ target=_blank rel="noopener noreffer">Apache Proxy 設定 – 盧尛朋友</a>。連結留著紀錄。</p><h3 id=快速架設-forward-proxy-server>快速架設 Forward Proxy Server</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>docker run --rm -d -p 3128:3128 hinata/nginx-forward-proxy:latest
-</span></span><span class=line><span class=cl>curl -x http://127.0.0.1:3128 https://www.google.co.jp
-</span></span></code></pre></td></tr></table></div></div><h2 id=command-呼叫>command 呼叫</h2><h3 id=linux-環境變數套用-proxy>linux 環境變數套用 Proxy</h3><p>但這邊可以不用這樣設定，可以用下面<code>curl</code>方法。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Set up proxy without username and password</span>
-</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>http_proxy</span><span class=o>=</span>http://SERVER:PORT/
-</span></span><span class=line><span class=cl><span class=c1># Set up proxy with username and password</span>
-</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>http_proxy</span><span class=o>=</span>http://USERNAME:PASSWORD@SERVER:PORT/
-</span></span><span class=line><span class=cl><span class=c1># Set up proxy with domain, username and password</span>
-</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>http_proxy</span><span class=o>=</span>http://DOMAIN<span class=se>\\</span>USERNAME:PASSWORD@SERVER:PORT/
-</span></span></code></pre></td></tr></table></div></div><p>參考: <a href=https://www.golinuxcloud.com/set-up-proxy-http-proxy-environment-variable/ target=_blank rel="noopener noreffer">How to set up proxy using http_proxy & https_proxy environment variable in Linux?</a></p><h3 id=curllinux-測試-proxy-連線網站>curl(linux) 測試 Proxy 連線網站</h3><p>這個方法可以在 Window 用 Git Bash 也是能用的喔。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl  https://api.line.me/oauth2/v2.1/token -x http://172.25.165.200:8080
-</span></span></code></pre></td></tr></table></div></div><h3 id=powershell-設定-proxy-連線網站>powershell 設定 Proxy 連線網站</h3><p>這個我就沒使用，因為這個好像會設定套用，感覺不是我要的那一種單純指令測試。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 看 proxy 設定</span>
-</span></span><span class=line><span class=cl>netsh winhttp show proxy
-</span></span><span class=line><span class=cl><span class=c1># 設定 proxy</span>
-</span></span><span class=line><span class=cl>netsh winhttp <span class=nb>set</span> proxy <span class=s2>&#34;192.168.0.14:3128&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1>#忽略 proxy  URL 清單</span>
-</span></span><span class=line><span class=cl>netsh winhttp <span class=nb>set</span> proxy <span class=s2>&#34;192.168.1.100:3128&#34;</span> bypass-list<span class=o>=</span> <span class=s2>&#34;10.*,172.*,192.168.*,*.corp.woshub.com&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1># 判斷是否有忽略 Proxy 清單</span>
-</span></span><span class=line><span class=cl><span class=o>([</span>System.Net.WebRequest<span class=o>]</span>::GetSystemWebproxy<span class=o>())</span>.IsBypassed<span class=o>(</span><span class=s2>&#34;http://woshub.com&#34;</span><span class=o>)</span>
-</span></span><span class=line><span class=cl><span class=c1># 從這個網站取得 IP</span>
-</span></span><span class=line><span class=cl><span class=o>(</span>Invoke-WebRequest -uri <span class=s2>&#34;http://ifconfig.me/ip&#34;</span><span class=o>)</span>.Content
-</span></span></code></pre></td></tr></table></div></div><p><a href=http://woshub.com/using-powershell-behind-a-proxy/ target=_blank rel="noopener noreffer">Using PowerShell Behind a Proxy Server | Windows OS Hub</a></p><p><a href=https://www.itechguides.com/powershell-curl-invoke-webrequest/ target=_blank rel="noopener noreffer">PowerShell cURL (Invoke-WebRequest): Syntax, Parameters, Examples</a><br><a href=https://free-proxy-list.net/ target=_blank rel="noopener noreffer">Free Proxy List - Just Checked Proxy List</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl> curl http://tw.yahoo.com -Proxy http://125.21.3.41:8080
-</span></span></code></pre></td></tr></table></div></div><p>不知道為什麼我的 powershell 執行 curl 會有錯誤。最後發現用 Git Bash裡面的 curl 成功&mldr;，最後我的程式發現可以過。</p><p>這邊 window 的 powershell 的 curl 不是 linux <code>curl</code> 喔，他是 <code>Invoke-WebRequest</code>。</p><h3 id=postman>Postman</h3><p>Postman 測試 API 以為預設是用系統設定的Proxy，但後來發現要額外設定才會套用。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/8fcgacX.png data-srcset="https://i.imgur.com/8fcgacX.png, https://i.imgur.com/8fcgacX.png 1.5x, https://i.imgur.com/8fcgacX.png 2x" data-sizes=auto alt=https://i.imgur.com/8fcgacX.png title=https://i.imgur.com/8fcgacX.png></p><h2 id=程式操作>程式操作</h2><h3 id=java>Java</h3><p><a href=https://memorynotfound.com/configure-http-proxy-settings-java/ target=_blank rel="noopener noreffer">Configure HTTP/HTTPS Proxy Settings Java</a><br><a href=https://stackoverflow.com/questions/120797/how-do-i-set-the-proxy-to-be-used-by-the-jvm target=_blank rel="noopener noreffer">java - How do I set the proxy to be used by the JVM - Stack Overflow</a></p><p>方法1. 設定<code>java.net.useSystemProxies=true</code>，吃本機代理設定，預設為 false。不太理解為什麼預設要為 false。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>-Djava.net.useSystemProxies<span class=o>=</span><span class=nb>true</span>
-</span></span><span class=line><span class=cl>System.setProperty<span class=o>(</span><span class=s2>&#34;java.net.useSystemProxies&#34;</span>, <span class=s2>&#34;true&#34;</span><span class=o>)</span><span class=p>;</span>
-</span></span></code></pre></td></tr></table></div></div><p>方法2. 設定http.proxyHost</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>// HTTP
-</span></span><span class=line><span class=cl>-Dhttp.proxyHost<span class=o>=</span>http://proxy.memorynotfound.com
-</span></span><span class=line><span class=cl>-Dhttp.proxyPort<span class=o>=</span><span class=m>80</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>// HTTPS
-</span></span><span class=line><span class=cl>-Dhttps.proxyHost<span class=o>=</span>https://proxy.memorynotfound.com
-</span></span><span class=line><span class=cl>-Dhttps.proxyPort<span class=o>=</span><span class=m>443</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=net-core>Net Core</h3><p>不用像 Java 要額外設定。</p><p><a href="https://docs.microsoft.com/zh-tw/dotnet/api/system.net.http.httpclient.defaultproxy?view=net-6.0" target=_blank rel="noopener noreffer">HttpClient.DefaultProxy 屬性 (System.Net.Http) | Microsoft Docs</a></p><p>.NetCore HttpClient Proxy 设置全局代理</p><p>手動設定順便紀錄</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=kt>string</span> <span class=n>baseUrl</span> <span class=p>=</span> <span class=s>&#34;https://api.line.me&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>            <span class=kt>var</span> <span class=n>client</span> <span class=p>=</span> <span class=k>new</span> <span class=n>RestClient</span><span class=p>(</span><span class=n>baseUrl</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=n>_config</span><span class=p>.</span><span class=n>GetValue</span><span class=p>&lt;</span><span class=kt>bool</span><span class=p>&gt;(</span><span class=s>&#34;UseProxy&#34;</span><span class=p>))</span>
-</span></span><span class=line><span class=cl>            <span class=p>{</span>
-</span></span><span class=line><span class=cl>                <span class=n>client</span><span class=p>.</span><span class=n>Proxy</span> <span class=p>=</span> <span class=k>new</span> <span class=n>WebProxy</span><span class=p>(</span><span class=n>_config</span><span class=p>.</span><span class=n>GetValue</span><span class=p>&lt;</span><span class=kt>string</span><span class=p>&gt;(</span><span class=s>&#34;ProxyUrl&#34;</span><span class=p>));</span>
-</span></span><span class=line><span class=cl>            <span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-csharp data-lang=csharp><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=n>_config</span><span class=p>.</span><span class=n>GetValue</span><span class=p>&lt;</span><span class=kt>bool</span><span class=p>&gt;(</span><span class=s>&#34;UseProxy&#34;</span><span class=p>))</span>
-</span></span><span class=line><span class=cl>            <span class=p>{</span>
-</span></span><span class=line><span class=cl>                <span class=kt>string</span> <span class=n>proxyurl</span> <span class=p>=</span> <span class=n>_config</span><span class=p>.</span><span class=n>GetValue</span><span class=p>&lt;</span><span class=kt>string</span><span class=p>&gt;(</span><span class=s>&#34;ProxyUrl&#34;</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>                <span class=kt>var</span> <span class=n>webProxy</span> <span class=p>=</span> <span class=k>new</span> <span class=n>WebProxy</span><span class=p>(</span><span class=n>proxyurl</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>                <span class=kt>var</span> <span class=n>proxyHttpClientHandler</span> <span class=p>=</span> <span class=k>new</span> <span class=n>HttpClientHandler</span>
-</span></span><span class=line><span class=cl>                <span class=p>{</span>
-</span></span><span class=line><span class=cl>                    <span class=n>Proxy</span> <span class=p>=</span> <span class=n>webProxy</span><span class=p>,</span>
-</span></span><span class=line><span class=cl>                    <span class=n>UseProxy</span> <span class=p>=</span> <span class=k>true</span><span class=p>,</span>
-</span></span><span class=line><span class=cl>                <span class=p>};</span>
-</span></span><span class=line><span class=cl>                <span class=n>client</span> <span class=p>=</span> <span class=k>new</span> <span class=n>HttpClient</span><span class=p>(</span><span class=n>proxyHttpClientHandler</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>            <span class=p>}</span>
-</span></span><span class=line><span class=cl>            <span class=k>else</span>
-</span></span><span class=line><span class=cl>            <span class=p>{</span>
-</span></span><span class=line><span class=cl>                <span class=n>client</span> <span class=p>=</span> <span class=k>new</span> <span class=n>HttpClient</span><span class=p>();</span>
-</span></span><span class=line><span class=cl>            <span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-01-08</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/ data-title="程式使用 Web Proxy 那些事和指令測試方法" data-hashtags=proxy,web,command><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/ data-hashtag=proxy><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/ data-title="程式使用 Web Proxy 那些事和指令測試方法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/ data-title="程式使用 Web Proxy 那些事和指令測試方法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/ data-title="程式使用 Web Proxy 那些事和指令測試方法" data-image=https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/proxy/>proxy</a>,&nbsp;<a href=/blog/tags/web/>web</a>,&nbsp;<a href=/blog/tags/command/>command</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Chrome-%E5%8F%8D%E5%90%91%E5%B0%8E%E5%90%91-DNS-%E7%B6%B2%E5%9D%80/ class=prev rel=prev title="Chrome 反向導向 DNS 網址"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Chrome 反向導向 DNS 網址</a>
-<a href=/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/ class=next rel=next title="OpenAPI Spec 撰寫小記">OpenAPI Spec 撰寫小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>程式使用 Web Proxy 那些事和指令測試方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="程式使用 Web Proxy 那些事和指令測試方法" />
+<meta property="og:description" content="有些公司網路會限制連線只能走 Web Proxy 方式傳輸，程式或主機都要設置外，要怎麼知道電腦通過 Proxy 網路有沒有通，這邊有找到一些方法，在工作上可以試試看。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-08T19:55:25+08:00" />
+<meta property="article:modified_time" content="2023-01-08T19:55:25+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="程式使用 Web Proxy 那些事和指令測試方法"/>
+<meta name="twitter:description" content="有些公司網路會限制連線只能走 Web Proxy 方式傳輸，程式或主機都要設置外，要怎麼知道電腦通過 Proxy 網路有沒有通，這邊有找到一些方法，在工作上可以試試看。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Chrome-%E5%8F%8D%E5%90%91%E5%B0%8E%E5%90%91-DNS-%E7%B6%B2%E5%9D%80/" /><link rel="next" href="https://malagege.github.io/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "程式使用 Web Proxy 那些事和指令測試方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95\/"
+        },"genre": "posts","keywords": "proxy, web, command","wordcount":  482 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95\/","datePublished": "2023-01-08T19:55:25+08:00","dateModified": "2023-01-08T19:55:25+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">程式使用 Web Proxy 那些事和指令測試方法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-08">2023-01-08</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;482 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png, https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png 1.5x, https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png"
+        title="https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#什麼是-proxy">什麼是 Proxy?</a>
+      <ul>
+        <li><a href="#正向代理forward-proxy">正向代理(Forward Proxy)</a></li>
+        <li><a href="#反向代理reverse-proxy">反向代理(Reverse Proxy)</a></li>
+        <li><a href="#簡單來說">簡單來說</a></li>
+      </ul>
+    </li>
+    <li><a href="#原理與說明">原理與說明</a>
+      <ul>
+        <li><a href="#快速架設-forward-proxy-server">快速架設 Forward Proxy Server</a></li>
+      </ul>
+    </li>
+    <li><a href="#command-呼叫">command 呼叫</a>
+      <ul>
+        <li><a href="#linux-環境變數套用-proxy">linux 環境變數套用 Proxy</a></li>
+        <li><a href="#curllinux-測試-proxy-連線網站">curl(linux) 測試 Proxy 連線網站</a></li>
+        <li><a href="#powershell-設定-proxy-連線網站">powershell 設定 Proxy 連線網站</a></li>
+        <li><a href="#postman">Postman</a></li>
+      </ul>
+    </li>
+    <li><a href="#程式操作">程式操作</a>
+      <ul>
+        <li><a href="#java">Java</a></li>
+        <li><a href="#net-core">Net Core</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>有些公司網路會限制連線只能走 Web Proxy 方式傳輸，程式或主機都要設置外，要怎麼知道電腦通過 Proxy 網路有沒有通，這邊有找到一些方法，在工作上可以試試看。</p>
+<h2 id="什麼是-proxy">什麼是 Proxy?</h2>
+<h3 id="正向代理forward-proxy">正向代理(Forward Proxy)</h3>
+<blockquote>
+<p>代理（英語：Proxy）也稱網路代理，是一種特殊的網路服務，允許一個終端（一般為客戶端）通過這個服務與另一個終端（一般為伺服器）進行非直接的連接。一些閘道器、路由器等網路裝置具備網路代理功能。一般認為代理服務有利於保障網路終端的隱私或安全，在一定程度上能夠阻止網路攻擊。</p>
+</blockquote>
+<p>以上來自 Wiki，通常我們說的 Proxy 是指正向代理。</p>
+<p><a href="https://zh.wikipedia.org/zh-tw/%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8" target="_blank" rel="noopener noreffer ">代理伺服器 - 維基百科，自由的百科全書</a></p>
+<h3 id="反向代理reverse-proxy">反向代理(Reverse Proxy)</h3>
+<blockquote>
+<p>反向代理（Reverse proxy）在電腦網路中是代理伺服器的一種。伺服器根據客戶端的請求，從其關聯的一組或多組後端伺服器（如Web伺服器）上取得資源，然後再將這些資源返回給客戶端，客戶端只會得知反向代理的IP位址，而不知道在代理伺服器後面的伺服器叢集的存在[1]。</p>
+<p>與前向代理不同，前向代理作為客戶端的代理，將從網際網路上取得的資源返回給一個或多個的客戶端，伺服器端（如Web伺服器）只知道代理的IP位址而不知道客戶端的IP位址；而反向代理是作為伺服器端（如Web伺服器）的代理使用，而不是客戶端。客戶端藉由前向代理可以間接存取很多不同網際網路伺服器（叢集）的資源，而反向代理是供很多客戶端都通過它間接存取不同後端伺服器上的資源，而不需要知道這些後端伺服器的存在，而以為所有資源都來自於這個反向代理伺服器。</p>
+<p>反向代理在現時的網際網路中並不少見，而另一些例子，像是CDN、SNI代理等，是反向代理結合DNS的一類延伸應用。</p>
+</blockquote>
+<p>下面這篇還滿有趣<br>
+<a href="https://www.pressplay.cc/project/F720CEB1D6057D7ABB5614722AB18FFF/articles/660A57208C29FF94453548ED21F284EF" target="_blank" rel="noopener noreffer ">用人類語言跟你說甚麼是正向代理(Forward Proxy)和反向代理(Reve - PressPlay Academy 線上課程學習平台</a></p>
+<p>其他文章可以參考:</p>
+<ul>
+<li><a href="https://www.jyt0532.com/2019/11/18/proxy-reverse-proxy/" target="_blank" rel="noopener noreffer ">系統設計 - 正向代理跟反向代理 · jyt0532&rsquo;s Blog</a> <a href="https://user-images.githubusercontent.com/6058558/226837006-98ca10f8-c134-4d8f-abef-8c15277ade3b.png" target="_blank" rel="noopener noreffer ">備份圖</a></li>
+</ul>
+<h3 id="簡單來說">簡單來說</h3>
+<p>正向代理通常設定是在 Client 設定，把他指引到別的私福器傳出去。現在 Client 很少掛 Proxy，以前在 Hinet 逛大陸網站就會比較快，但後來 Hinet 關掉 Proxy 就沒什麼機會使用。不過，最近公司某環境需要掛 Proxy 才能連到外面網站，可用這個機制管理連外部網站。</p>
+<p>反向代理設定通常在 Server，透過緩向代理做 SLB(Server Load Balance)，可以以解析憑證內部用 http，可舒緩 Server 做第六層東西，也後端部屬程式的人都有機會接觸到。</p>
+<h2 id="原理與說明">原理與說明</h2>
+<blockquote>
+<p>Proxy server 的運作流程<br>
+當 Proxy server 第一次發現要去的 URL 網址時，他的資料存取流程如下：</p>
+<ol>
+<li>Client 端向 Server 端發送一個資料需求封包；</li>
+<li>Server 端接收之後，先比對這個封包的『來源』與預計要前往的『目標』網站是否為可接受？ 如果來源與目標都是合法的，或者說，來源與目標網站我們的 Proxy 都能幫忙取得資料時，那麼 Server 端會開始替 Client 取得資料。這個步驟中比較重要的就是『比對政策』啦，有點像是認證的感覺啦；</li>
+<li>Server 發現快取並沒有 Client 所需要的資料，準備前往網際網路抓取資料；</li>
+<li>Server 開始向 Internet 發送要求與取得相關資料；</li>
+<li>最後當然就是將資料回傳給 Client 端囉！<br>
+當 Proxy server 本身的快取就有用戶要求的 URL 資料時：</li>
+</ol>
+<p>a. Client 端向 Server 端發送一個資料需求封包；<br>
+b. Server 端接收之後，開始進行政策比對 (如同前一組步驟 2 的說明)；<br>
+c. Server 首先會檢查自己快取 (新的資料可能在記憶體中，較舊的資料則放置在硬碟上) 資料， 如果有 Client 所需的資料，那就將資料準備取出，而不經過向 Internet 要求資料的程序；<br>
+d. 最後當然就是將資料回傳給 Client 端囉！</p>
+</blockquote>
+<p>來源: 鳥哥<a href="https://dic.vbird.tw/linux_server/unit11.php#:~:text=%E5%9C%96%E6%89%80%E7%A4%BA%EF%BC%9A-,Proxy%20server%20%E7%9A%84%E9%81%8B%E4%BD%9C%E6%B5%81%E7%A8%8B,-%E7%95%B6%20Proxy%20server" target="_blank" rel="noopener noreffer ">第 11 堂課 - 進階網頁伺服器設定 + proxy</a></p>
+<p>想當初以前有用 squid，不過我發現我文章沒有記錄，可能那時候一時興起架設，然後忘記紀錄。可能覺得我用不太到，最近爬文發現 Apache也能做到，<br>
+<a href="https://www.rusnake.com/2017/02/22/apache-proxy-%E8%A8%AD%E5%AE%9A/" target="_blank" rel="noopener noreffer ">Apache Proxy 設定 – 盧尛朋友</a>。連結留著紀錄。</p>
+<h3 id="快速架設-forward-proxy-server">快速架設 Forward Proxy Server</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker run --rm -d -p 3128:3128 hinata/nginx-forward-proxy:latest
+</span></span><span class="line"><span class="cl">curl -x http://127.0.0.1:3128 https://www.google.co.jp
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="command-呼叫">command 呼叫</h2>
+<h3 id="linux-環境變數套用-proxy">linux 環境變數套用 Proxy</h3>
+<p>但這邊可以不用這樣設定，可以用下面<code>curl</code>方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Set up proxy without username and password</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">http_proxy</span><span class="o">=</span>http://SERVER:PORT/
+</span></span><span class="line"><span class="cl"><span class="c1"># Set up proxy with username and password</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">http_proxy</span><span class="o">=</span>http://USERNAME:PASSWORD@SERVER:PORT/
+</span></span><span class="line"><span class="cl"><span class="c1"># Set up proxy with domain, username and password</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">http_proxy</span><span class="o">=</span>http://DOMAIN<span class="se">\\</span>USERNAME:PASSWORD@SERVER:PORT/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考: <a href="https://www.golinuxcloud.com/set-up-proxy-http-proxy-environment-variable/" target="_blank" rel="noopener noreffer ">How to set up proxy using http_proxy &amp; https_proxy environment variable in Linux?</a></p>
+<h3 id="curllinux-測試-proxy-連線網站">curl(linux) 測試 Proxy 連線網站</h3>
+<p>這個方法可以在 Window 用 Git Bash 也是能用的喔。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl  https://api.line.me/oauth2/v2.1/token -x http://172.25.165.200:8080
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="powershell-設定-proxy-連線網站">powershell 設定 Proxy 連線網站</h3>
+<p>這個我就沒使用，因為這個好像會設定套用，感覺不是我要的那一種單純指令測試。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 看 proxy 設定</span>
+</span></span><span class="line"><span class="cl">netsh winhttp show proxy
+</span></span><span class="line"><span class="cl"><span class="c1"># 設定 proxy</span>
+</span></span><span class="line"><span class="cl">netsh winhttp <span class="nb">set</span> proxy <span class="s2">&#34;192.168.0.14:3128&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#忽略 proxy  URL 清單</span>
+</span></span><span class="line"><span class="cl">netsh winhttp <span class="nb">set</span> proxy <span class="s2">&#34;192.168.1.100:3128&#34;</span> bypass-list<span class="o">=</span> <span class="s2">&#34;10.*,172.*,192.168.*,*.corp.woshub.com&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 判斷是否有忽略 Proxy 清單</span>
+</span></span><span class="line"><span class="cl"><span class="o">([</span>System.Net.WebRequest<span class="o">]</span>::GetSystemWebproxy<span class="o">())</span>.IsBypassed<span class="o">(</span><span class="s2">&#34;http://woshub.com&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 從這個網站取得 IP</span>
+</span></span><span class="line"><span class="cl"><span class="o">(</span>Invoke-WebRequest -uri <span class="s2">&#34;http://ifconfig.me/ip&#34;</span><span class="o">)</span>.Content
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="http://woshub.com/using-powershell-behind-a-proxy/" target="_blank" rel="noopener noreffer ">Using PowerShell Behind a Proxy Server | Windows OS Hub</a></p>
+<p><a href="https://www.itechguides.com/powershell-curl-invoke-webrequest/" target="_blank" rel="noopener noreffer ">PowerShell cURL (Invoke-WebRequest): Syntax, Parameters, Examples</a><br>
+<a href="https://free-proxy-list.net/" target="_blank" rel="noopener noreffer ">Free Proxy List - Just Checked Proxy List</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> curl http://tw.yahoo.com -Proxy http://125.21.3.41:8080
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>不知道為什麼我的 powershell 執行 curl 會有錯誤。最後發現用 Git Bash裡面的 curl 成功&hellip;，最後我的程式發現可以過。</p>
+<p>這邊 window 的 powershell 的 curl 不是 linux <code>curl</code> 喔，他是 <code>Invoke-WebRequest</code>。</p>
+<h3 id="postman">Postman</h3>
+<p>Postman 測試 API 以為預設是用系統設定的Proxy，但後來發現要額外設定才會套用。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/8fcgacX.png"
+        data-srcset="https://i.imgur.com/8fcgacX.png, https://i.imgur.com/8fcgacX.png 1.5x, https://i.imgur.com/8fcgacX.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/8fcgacX.png"
+        title="https://i.imgur.com/8fcgacX.png" /></p>
+<h2 id="程式操作">程式操作</h2>
+<h3 id="java">Java</h3>
+<p><a href="https://memorynotfound.com/configure-http-proxy-settings-java/" target="_blank" rel="noopener noreffer ">Configure HTTP/HTTPS Proxy Settings Java</a><br>
+<a href="https://stackoverflow.com/questions/120797/how-do-i-set-the-proxy-to-be-used-by-the-jvm" target="_blank" rel="noopener noreffer ">java - How do I set the proxy to be used by the JVM - Stack Overflow</a></p>
+<p>方法1. 設定<code>java.net.useSystemProxies=true</code>，吃本機代理設定，預設為 false。不太理解為什麼預設要為 false。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">-Djava.net.useSystemProxies<span class="o">=</span><span class="nb">true</span>
+</span></span><span class="line"><span class="cl">System.setProperty<span class="o">(</span><span class="s2">&#34;java.net.useSystemProxies&#34;</span>, <span class="s2">&#34;true&#34;</span><span class="o">)</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>方法2. 設定http.proxyHost</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">// HTTP
+</span></span><span class="line"><span class="cl">-Dhttp.proxyHost<span class="o">=</span>http://proxy.memorynotfound.com
+</span></span><span class="line"><span class="cl">-Dhttp.proxyPort<span class="o">=</span><span class="m">80</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">// HTTPS
+</span></span><span class="line"><span class="cl">-Dhttps.proxyHost<span class="o">=</span>https://proxy.memorynotfound.com
+</span></span><span class="line"><span class="cl">-Dhttps.proxyPort<span class="o">=</span><span class="m">443</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="net-core">Net Core</h3>
+<p>不用像 Java 要額外設定。</p>
+<p><a href="https://docs.microsoft.com/zh-tw/dotnet/api/system.net.http.httpclient.defaultproxy?view=net-6.0" target="_blank" rel="noopener noreffer ">HttpClient.DefaultProxy 屬性 (System.Net.Http) | Microsoft Docs</a></p>
+<p>.NetCore HttpClient Proxy 设置全局代理</p>
+<p>手動設定順便紀錄</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">            <span class="kt">string</span> <span class="n">baseUrl</span> <span class="p">=</span> <span class="s">&#34;https://api.line.me&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">RestClient</span><span class="p">(</span><span class="n">baseUrl</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="p">(</span><span class="n">_config</span><span class="p">.</span><span class="n">GetValue</span><span class="p">&lt;</span><span class="kt">bool</span><span class="p">&gt;(</span><span class="s">&#34;UseProxy&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="n">client</span><span class="p">.</span><span class="n">Proxy</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WebProxy</span><span class="p">(</span><span class="n">_config</span><span class="p">.</span><span class="n">GetValue</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;(</span><span class="s">&#34;ProxyUrl&#34;</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">            <span class="k">if</span> <span class="p">(</span><span class="n">_config</span><span class="p">.</span><span class="n">GetValue</span><span class="p">&lt;</span><span class="kt">bool</span><span class="p">&gt;(</span><span class="s">&#34;UseProxy&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">string</span> <span class="n">proxyurl</span> <span class="p">=</span> <span class="n">_config</span><span class="p">.</span><span class="n">GetValue</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;(</span><span class="s">&#34;ProxyUrl&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="kt">var</span> <span class="n">webProxy</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WebProxy</span><span class="p">(</span><span class="n">proxyurl</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">var</span> <span class="n">proxyHttpClientHandler</span> <span class="p">=</span> <span class="k">new</span> <span class="n">HttpClientHandler</span>
+</span></span><span class="line"><span class="cl">                <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">Proxy</span> <span class="p">=</span> <span class="n">webProxy</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">UseProxy</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="p">};</span>
+</span></span><span class="line"><span class="cl">                <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">HttpClient</span><span class="p">(</span><span class="n">proxyHttpClientHandler</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="k">else</span>
+</span></span><span class="line"><span class="cl">            <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">HttpClient</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-01-08</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" data-title="程式使用 Web Proxy 那些事和指令測試方法" data-hashtags="proxy,web,command"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" data-hashtag="proxy"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" data-title="程式使用 Web Proxy 那些事和指令測試方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" data-title="程式使用 Web Proxy 那些事和指令測試方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E7%A8%8B%E5%BC%8F%E4%BD%BF%E7%94%A8-Web-Proxy-%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%92%8C%E6%8C%87%E4%BB%A4%E6%B8%AC%E8%A9%A6%E6%96%B9%E6%B3%95/" data-title="程式使用 Web Proxy 那些事和指令測試方法" data-image="https://user-images.githubusercontent.com/6058558/211194870-056397c5-78a1-4080-ae59-210796a40aa1.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/proxy/">proxy</a>,&nbsp;<a href="/blog/tags/web/">web</a>,&nbsp;<a href="/blog/tags/command/">command</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Chrome-%E5%8F%8D%E5%90%91%E5%B0%8E%E5%90%91-DNS-%E7%B6%B2%E5%9D%80/" class="prev" rel="prev" title="Chrome 反向導向 DNS 網址"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Chrome 反向導向 DNS 網址</a>
+            <a href="/blog/posts/OpenAPI-Spec-%E6%92%B0%E5%AF%AB%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="OpenAPI Spec 撰寫小記">OpenAPI Spec 撰寫小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

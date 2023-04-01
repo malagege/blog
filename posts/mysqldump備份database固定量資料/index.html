@@ -1,28 +1,281 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>mysqldump備份database固定量資料 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="mysqldump備份database固定量資料"><meta property="og:description" content="最近要本機測試資料
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>mysqldump備份database固定量資料 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="mysqldump備份database固定量資料" />
+<meta property="og:description" content="最近要本機測試資料
 但是要如何不中斷服務又能快速備份的方法
-最後想到有 mysqldump"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-04-25T21:04:05+00:00"><meta property="article:modified_time" content="2019-04-25T21:04:05+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="mysqldump備份database固定量資料"><meta name=twitter:description content="最近要本機測試資料
+最後想到有 mysqldump" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-04-25T21:04:05+00:00" />
+<meta property="article:modified_time" content="2019-04-25T21:04:05+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="mysqldump備份database固定量資料"/>
+<meta name="twitter:description" content="最近要本機測試資料
 但是要如何不中斷服務又能快速備份的方法
-最後想到有 mysqldump"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/><link rel=prev href=https://malagege.github.io/blog/posts/git-difff-%E5%87%BA%E7%8F%BEold-mode-100755-new-mode-100644/><link rel=next href=https://malagege.github.io/blog/posts/codeigniter%E8%A8%AD%E5%AE%9Arouter%E8%B8%A9%E9%9B%B7/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"mysqldump備份database固定量資料","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99\/"},"genre":"posts","keywords":"mysqldump, mysql","wordcount":383,"url":"https:\/\/malagege.github.io\/blog\/posts\/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99\/","datePublished":"2019-04-25T21:04:05+00:00","dateModified":"2019-04-25T21:04:05+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">mysqldump備份database固定量資料</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/MySQL/><i class="far fa-folder fa-fw" aria-hidden=true></i>MySQL</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-04-25>2019-04-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;383 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#使用方法>使用方法</a></li><li><a href=#限制每個-table-數量>限制每個 table 數量</a></li><li><a href=#鎖表解決方法>鎖表解決方法</a></li><li><a href=#最後-sql>最後 SQL</a></li></ul></nav></div></div><div class=content id=content><p>最近要本機測試資料<br>但是要如何不中斷服務又能快速備份的方法<br>最後想到有 mysqldump</p><p>之前有想過 mysqldump 是 DBA 才會用到工具<br>但我又不需要全部備份<br>不知道有沒有什麼快速匯出但是數量不想要太多<br>最後有找到很快的方法</p><h2 id=使用方法>使用方法</h2><p><code>mysqldump -uroot -p123 test > c:\test.sql</code><br><strong>注意-u 和-p 後面帳號密碼要連在一起</strong><br>參考:<a href=http://koibear.blogspot.com/2012/11/windowscommand-line-dump-import-mysql.html target=_blank rel="noopener noreffer">鯉魚智缺熊的網智: windows 下使用 command line dump & import mysql</a></p><p>但注意!!用 mysqldump 是會 lock DB 的</p><blockquote><p>MyISAM tables require this locking because they don&rsquo;t support transactions. However, InnoDB (the default storage engine as of MySQL 5.5.5) supports transactions. Mysqldump defaults to a conservative setting of locking everything, but we don&rsquo;t need to use that default - we an avoid locking tables completely.<br><a href=https://serversforhackers.com/c/mysqldump-with-modern-mysql target=_blank rel="noopener noreffer">Mysqldump with Modern MySQL | Servers for Hackers</a></p></blockquote><h2 id=限制每個-table-數量>限制每個 table 數量</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>mysqldump -u <span class=o>[</span>username<span class=o>]</span> -p <span class=o>[</span>dbname<span class=o>]</span> <span class=o>{</span>--opt<span class=o>}</span> --where<span class=o>=</span><span class=s2>&#34;true limit 100&#34;</span> &gt; dump.sql
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://serverfault.com/questions/173834/mysql-dump-of-talble-limit-100 target=_blank rel="noopener noreffer">mysql dump of talble limit 100 - Server Fault</a></p><blockquote><p>如果運行 mysqldump 沒有&ndash;quick 或&ndash;opt 選項，mysqldump 在轉儲結果前將整個結果集裝入內存。如果轉儲大資料庫可能會出現問題。該選項預設啟用，但可以用&ndash;skip-opt 禁用。</p></blockquote><p><a href=https://jax-work-archive.blogspot.com/2009/07/mysqldump-51-mysql.html target=_blank rel="noopener noreffer">Jax 的工作紀錄: (轉載)mysqldump 5.1 資料備份詳細指令 [MySQL]</a></p><blockquote><p>–opt 　　　是 mysqldump 中的預設參數，參數功能相等於加入了 –add-drop-table –add-locks –create-options –disable-keys –extended-insert –-lock-tables –quick –set-charset 等參數</p></blockquote><p><a href=https://fmbase.tw/blog/2013/01/23/mysql%E5%88%A9%E7%94%A8mysqldump%E5%82%99%E4%BB%BD/ target=_blank rel="noopener noreffer">[MySQL]利用 mysqldump 備份 – FunMing 基地</a><br><a href=https://blog.51cto.com/imysql/1879753 target=_blank rel="noopener noreffer">FAQ 系列 | mysqldump 选项之 skip-opt-老叶茶馆-51CTO 博客</a></p><h2 id=鎖表解決方法>鎖表解決方法</h2><p>解決方法是用<code>–skip-lock-tables</code></p><blockquote><p>一、mysqldump 在備份數據庫時鎖表的問題<br>在使用&rsquo;mysqldump&rsquo;工具在備份庫表時，會對庫表進行鎖定，這會對業務的運行產生一定的影響；對於鎖表的過程及解決方法，作者也談談自己的認識。<br>緩解鎖定的方法：<br>1、Use &ndash;skip-lock-tables mysqldump option. Your tables won&rsquo;t be locked, but your backup might be not consistent (depends on your schema: if your database transactions touch several tables at once, and one table is already backed up and other is not. For example: two tables: customers and orders. If customers is backed up first, and then new customer/order pair is inserted, you might end up with order without customer in your backup).<br>This problem is primary reason why mysqldump locks all tables by default. If this issue does not apply to you, skipping the table locking in mysql is the most simple solution.<br>會影響數據的一致性(可能比丟數據還要遭糕)，故不推薦使用這個方法。<br>2、Use some other backup method. For example: Flush tables with read lock, create LVM snapshot, unlock tables, mount your LVM snapshot and back up your data. This gets quickly, much more complex than simple mysqldump.<br>If your MySQL data is not on a LVM volume, you can create a slave MySQL server and back it up, without touching the master, so locking occurs on the slave and master is always free.<br>可以參考「lvm 備份 mysql 數據庫參考」，這篇文章。</p></blockquote><p><a href=http://www.freeoa.net/osuport/db/mysqldump-lock-on-backup_1453.html target=_blank rel="noopener noreffer">mysqldump 在备份数据库的问题集-FreeOA</a></p><h2 id=最後-sql>最後 SQL</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>mysqldump -uroot -p123 <span class=nb>test</span> –skip-lock-tables  &gt; c:<span class=se>\t</span>est.sql
-</span></span></code></pre></td></tr></table></div></div><p>其他參考來源:<br><a href=https://www.cnblogs.com/xiaoboluo768/p/7560105.html target=_blank rel="noopener noreffer">mysqldump 与 innobackupex 备份过程你知多少 - xiaoboluo768 - 博客园</a><br><a href=https://stackoverflow.com/questions/38495460/mysql-database-export-100-rows-from-each-table-in-a-database target=_blank rel="noopener noreffer">MySQL Database Export (100 Rows from each table in a database) - Stack Overflow</a> &lt;&mdash;這個我沒有嘗試<br><a href=https://blog.longwin.com.tw/2018/08/mysql-database-mysqldump-dump-sample-dataset-2018/ target=_blank rel="noopener noreffer">使用 mysqldump 倒出 MySQL 所有資料庫(表) 固定筆數的資料 | Tsung&rsquo;s Blog</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-04-25</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/ data-title=mysqldump備份database固定量資料 data-hashtags=mysqldump,mysql><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/ data-hashtag=mysqldump><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/ data-title=mysqldump備份database固定量資料><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/ data-title=mysqldump備份database固定量資料><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/ data-title=mysqldump備份database固定量資料><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/mysqldump/>mysqldump</a>,&nbsp;<a href=/blog/tags/mysql/>mysql</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/git-difff-%E5%87%BA%E7%8F%BEold-mode-100755-new-mode-100644/ class=prev rel=prev title="git difff 出現old mode 100755 new mode 100644"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>git difff 出現old mode 100755 new mode 100644</a>
-<a href=/blog/posts/codeigniter%E8%A8%AD%E5%AE%9Arouter%E8%B8%A9%E9%9B%B7/ class=next rel=next title=codeigniter設定router踩雷>codeigniter設定router踩雷<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+最後想到有 mysqldump"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" /><link rel="prev" href="https://malagege.github.io/blog/posts/git-difff-%E5%87%BA%E7%8F%BEold-mode-100755-new-mode-100644/" /><link rel="next" href="https://malagege.github.io/blog/posts/codeigniter%E8%A8%AD%E5%AE%9Arouter%E8%B8%A9%E9%9B%B7/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "mysqldump備份database固定量資料",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99\/"
+        },"genre": "posts","keywords": "mysqldump, mysql","wordcount":  383 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99\/","datePublished": "2019-04-25T21:04:05+00:00","dateModified": "2019-04-25T21:04:05+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">mysqldump備份database固定量資料</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/MySQL/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>MySQL</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-04-25">2019-04-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;383 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#使用方法">使用方法</a></li>
+    <li><a href="#限制每個-table-數量">限制每個 table 數量</a></li>
+    <li><a href="#鎖表解決方法">鎖表解決方法</a></li>
+    <li><a href="#最後-sql">最後 SQL</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近要本機測試資料<br>
+但是要如何不中斷服務又能快速備份的方法<br>
+最後想到有 mysqldump</p>
+<p>之前有想過 mysqldump 是 DBA 才會用到工具<br>
+但我又不需要全部備份<br>
+不知道有沒有什麼快速匯出但是數量不想要太多<br>
+最後有找到很快的方法</p>
+<h2 id="使用方法">使用方法</h2>
+<p><code>mysqldump -uroot -p123 test &gt; c:\test.sql</code><br>
+<strong>注意-u 和-p 後面帳號密碼要連在一起</strong><br>
+參考:<a href="http://koibear.blogspot.com/2012/11/windowscommand-line-dump-import-mysql.html" target="_blank" rel="noopener noreffer ">鯉魚智缺熊的網智: windows 下使用 command line dump &amp; import mysql</a></p>
+<p>但注意!!用 mysqldump 是會 lock DB 的</p>
+<blockquote>
+<p>MyISAM tables require this locking because they don&rsquo;t support transactions. However, InnoDB (the default storage engine as of MySQL 5.5.5) supports transactions. Mysqldump defaults to a conservative setting of locking everything, but we don&rsquo;t need to use that default - we an avoid locking tables completely.<br>
+<a href="https://serversforhackers.com/c/mysqldump-with-modern-mysql" target="_blank" rel="noopener noreffer ">Mysqldump with Modern MySQL | Servers for Hackers</a></p>
+</blockquote>
+<h2 id="限制每個-table-數量">限制每個 table 數量</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mysqldump -u <span class="o">[</span>username<span class="o">]</span> -p <span class="o">[</span>dbname<span class="o">]</span> <span class="o">{</span>--opt<span class="o">}</span> --where<span class="o">=</span><span class="s2">&#34;true limit 100&#34;</span> &gt; dump.sql
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://serverfault.com/questions/173834/mysql-dump-of-talble-limit-100" target="_blank" rel="noopener noreffer ">mysql dump of talble limit 100 - Server Fault</a></p>
+<blockquote>
+<p>如果運行 mysqldump 沒有&ndash;quick 或&ndash;opt 選項，mysqldump 在轉儲結果前將整個結果集裝入內存。如果轉儲大資料庫可能會出現問題。該選項預設啟用，但可以用&ndash;skip-opt 禁用。</p>
+</blockquote>
+<p><a href="https://jax-work-archive.blogspot.com/2009/07/mysqldump-51-mysql.html" target="_blank" rel="noopener noreffer ">Jax 的工作紀錄: (轉載)mysqldump 5.1 資料備份詳細指令 [MySQL]</a></p>
+<blockquote>
+<p>–opt 　　　是 mysqldump 中的預設參數，參數功能相等於加入了 –add-drop-table –add-locks –create-options –disable-keys –extended-insert –-lock-tables –quick –set-charset 等參數</p>
+</blockquote>
+<p><a href="https://fmbase.tw/blog/2013/01/23/mysql%E5%88%A9%E7%94%A8mysqldump%E5%82%99%E4%BB%BD/" target="_blank" rel="noopener noreffer ">[MySQL]利用 mysqldump 備份 – FunMing 基地</a><br>
+<a href="https://blog.51cto.com/imysql/1879753" target="_blank" rel="noopener noreffer ">FAQ 系列 | mysqldump 选项之 skip-opt-老叶茶馆-51CTO 博客</a></p>
+<h2 id="鎖表解決方法">鎖表解決方法</h2>
+<p>解決方法是用<code>–skip-lock-tables</code></p>
+<blockquote>
+<p>一、mysqldump 在備份數據庫時鎖表的問題<br>
+在使用&rsquo;mysqldump&rsquo;工具在備份庫表時，會對庫表進行鎖定，這會對業務的運行產生一定的影響；對於鎖表的過程及解決方法，作者也談談自己的認識。<br>
+緩解鎖定的方法：<br>
+1、Use &ndash;skip-lock-tables mysqldump option. Your tables won&rsquo;t be locked, but your backup might be not consistent (depends on your schema: if your database transactions touch several tables at once, and one table is already backed up and other is not. For example: two tables: customers and orders. If customers is backed up first, and then new customer/order pair is inserted, you might end up with order without customer in your backup).<br>
+This problem is primary reason why mysqldump locks all tables by default. If this issue does not apply to you, skipping the table locking in mysql is the most simple solution.<br>
+會影響數據的一致性(可能比丟數據還要遭糕)，故不推薦使用這個方法。<br>
+2、Use some other backup method. For example: Flush tables with read lock, create LVM snapshot, unlock tables, mount your LVM snapshot and back up your data. This gets quickly, much more complex than simple mysqldump.<br>
+If your MySQL data is not on a LVM volume, you can create a slave MySQL server and back it up, without touching the master, so locking occurs on the slave and master is always free.<br>
+可以參考「lvm 備份 mysql 數據庫參考」，這篇文章。</p>
+</blockquote>
+<p><a href="http://www.freeoa.net/osuport/db/mysqldump-lock-on-backup_1453.html" target="_blank" rel="noopener noreffer ">mysqldump 在备份数据库的问题集-FreeOA</a></p>
+<h2 id="最後-sql">最後 SQL</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mysqldump -uroot -p123 <span class="nb">test</span> –skip-lock-tables  &gt; c:<span class="se">\t</span>est.sql
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其他參考來源:<br>
+<a href="https://www.cnblogs.com/xiaoboluo768/p/7560105.html" target="_blank" rel="noopener noreffer ">mysqldump 与 innobackupex 备份过程你知多少 - xiaoboluo768 - 博客园</a><br>
+<a href="https://stackoverflow.com/questions/38495460/mysql-database-export-100-rows-from-each-table-in-a-database" target="_blank" rel="noopener noreffer ">MySQL Database Export (100 Rows from each table in a database) - Stack Overflow</a> &lt;&mdash;這個我沒有嘗試<br>
+<a href="https://blog.longwin.com.tw/2018/08/mysql-database-mysqldump-dump-sample-dataset-2018/" target="_blank" rel="noopener noreffer ">使用 mysqldump 倒出 MySQL 所有資料庫(表) 固定筆數的資料 | Tsung&rsquo;s Blog</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-04-25</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" data-title="mysqldump備份database固定量資料" data-hashtags="mysqldump,mysql"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" data-hashtag="mysqldump"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" data-title="mysqldump備份database固定量資料"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" data-title="mysqldump備份database固定量資料"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/mysqldump%E5%82%99%E4%BB%BDdatabase%E5%9B%BA%E5%AE%9A%E9%87%8F%E8%B3%87%E6%96%99/" data-title="mysqldump備份database固定量資料"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/mysqldump/">mysqldump</a>,&nbsp;<a href="/blog/tags/mysql/">mysql</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/git-difff-%E5%87%BA%E7%8F%BEold-mode-100755-new-mode-100644/" class="prev" rel="prev" title="git difff 出現old mode 100755 new mode 100644"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>git difff 出現old mode 100755 new mode 100644</a>
+            <a href="/blog/posts/codeigniter%E8%A8%AD%E5%AE%9Arouter%E8%B8%A9%E9%9B%B7/" class="next" rel="next" title="codeigniter設定router踩雷">codeigniter設定router踩雷<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

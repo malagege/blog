@@ -1,188 +1,487 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>快速用 docker 建置 oracle 環境方法 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="快速用 docker 建置 oracle 環境方法"><meta property="og:description" content="最近要看 DB 工具是否能正常連 Oracle
-簡單使用 Docker 來架設環境"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-03-07T01:14:59+00:00"><meta property="article:modified_time" content="2020-03-07T01:14:59+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="快速用 docker 建置 oracle 環境方法"><meta name=twitter:description content="最近要看 DB 工具是否能正常連 Oracle
-簡單使用 Docker 來架設環境"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/sqldeveloper-%E6%89%93%E9%96%8B%E9%96%83%E9%80%80%E6%AA%A2%E6%9F%A5%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/Java-Tomcat-%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"快速用 docker 建置 oracle 環境方法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"docker, oracle","wordcount":720,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95\/","datePublished":"2020-03-07T01:14:59+00:00","dateModified":"2020-03-07T01:14:59+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">快速用 docker 建置 oracle 環境方法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Docker/><i class="far fa-folder fa-fw" aria-hidden=true></i>Docker</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-03-07>2020-03-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;720 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;4 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#其他可參考設定>其他可參考設定</a></li><li><a href=#新增資料表前置作業>新增資料表前置作業</a></li><li><a href=#normal>Oracle 11帳號密碼<br>這邊紀錄 Dbeaver 登入<br>user:system<br>pwd: oracle<br>normal</a></li><li><a href=#docker-entrypoint-initdbd>docker-entrypoint-initdb.d</a></li></ul></nav></div></div><div class=content id=content><p>最近要看 DB 工具是否能正常連 Oracle<br>簡單使用 Docker 來架設環境</p><p><a href=https://github.com/componhead/docker-oracle-xe-11g target=_blank rel="noopener noreffer">componhead/docker-oracle-xe-11g: My oracle xe 11g</a><br>build 上面這版<code>docker build . -t oracle-xe-11g</code></p><p>帳號密碼 system,oracle<br>這樣就能進去了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;2&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>services</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>oracle</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>oracle-xe-11g</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always  </span><span class=w> </span><span class=c>#如果docker容器由于一些问题挂掉的化，docker-composer会自动把容器给启动起来</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>ports</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=m>1521</span><span class=p>:</span><span class=m>1521</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=m>8080</span><span class=p>:</span><span class=m>8080</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>docker-compose up -d 就可以執行環境，但要等一下時間</p><p>docker-compose logs -f 看到最後一段就可以使用了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>oracle_1  | ls: cannot access /u01/app/oracle/oradata: No such file or directory
-</span></span><span class=line><span class=cl>oracle_1  | Database not initialized. Initializing database.
-</span></span><span class=line><span class=cl>oracle_1  | Setting up:
-</span></span><span class=line><span class=cl>oracle_1  | processes=500
-</span></span><span class=line><span class=cl>oracle_1  | sessions=555
-</span></span><span class=line><span class=cl>oracle_1  | transactions=610
-</span></span><span class=line><span class=cl>oracle_1  | If you want to use different parameters set processes, sessions, transactions env variables and consider this formula:
-</span></span><span class=line><span class=cl>oracle_1  | processes=x
-</span></span><span class=line><span class=cl>oracle_1  | sessions=x*1.1+5
-</span></span><span class=line><span class=cl>oracle_1  | transactions=sessions*1.1
-</span></span><span class=line><span class=cl>oracle_1  | 
-</span></span><span class=line><span class=cl>oracle_1  | Oracle Database 11g Express Edition Configuration
-</span></span><span class=line><span class=cl>oracle_1  | -------------------------------------------------
-</span></span><span class=line><span class=cl>oracle_1  | This will configure on-boot properties of Oracle Database 11g Express 
-</span></span><span class=line><span class=cl>oracle_1  | Edition.  The following questions will determine whether the database should 
-</span></span><span class=line><span class=cl>oracle_1  | be starting upon system boot, the ports it will use, and the passwords that 
-</span></span><span class=line><span class=cl>oracle_1  | will be used for database accounts.  Press &lt;Enter&gt; to accept the defaults. 
-</span></span><span class=line><span class=cl>oracle_1  | Ctrl-C will abort.
-</span></span><span class=line><span class=cl>oracle_1  | 
-</span></span><span class=line><span class=cl>oracle_1  | Specify the HTTP port that will be used for Oracle Application Express [8080]:
-</span></span><span class=line><span class=cl>oracle_1  | Specify a port that will be used for the database listener [1521]:
-</span></span><span class=line><span class=cl>oracle_1  | Specify a password to be used for database accounts.  Note that the same
-</span></span><span class=line><span class=cl>oracle_1  | password will be used for SYS and SYSTEM.  Oracle recommends the use of 
-</span></span><span class=line><span class=cl>oracle_1  | different passwords for each database account.  This can be done after 
-</span></span><span class=line><span class=cl>oracle_1  | initial configuration:
-</span></span><span class=line><span class=cl>oracle_1  | Confirm the password:
-</span></span><span class=line><span class=cl>oracle_1  | 
-</span></span><span class=line><span class=cl>oracle_1  | Do you want Oracle Database 11g Express Edition to be started on boot (y/n) [y]:
-</span></span><span class=line><span class=cl>oracle_1  | Starting Oracle Net Listener...Done
-</span></span><span class=line><span class=cl>oracle_1  | Configuring database...Done
-</span></span><span class=line><span class=cl>oracle_1  | Starting Oracle Database 11g Express Edition instance...Done
-</span></span><span class=line><span class=cl>oracle_1  | Installation completed successfully.
-</span></span><span class=line><span class=cl>oracle_1  | Database initialized. Please visit http://#containeer:8080/apex to proceed with configuration
-</span></span><span class=line><span class=cl>oracle_1  | Oracle Database 11g Express Edition instance is already started
-</span></span><span class=line><span class=cl>oracle_1  | 
-</span></span><span class=line><span class=cl>oracle_1  | Starting import from &#39;/docker-entrypoint-initdb.d&#39;:
-</span></span><span class=line><span class=cl>oracle_1  | found file /docker-entrypoint-initdb.d//docker-entrypoint-initdb.d/*
-</span></span><span class=line><span class=cl>oracle_1  | [IMPORT] /entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
-</span></span><span class=line><span class=cl>oracle_1  | 
-</span></span><span class=line><span class=cl>oracle_1  | Import finished
-</span></span><span class=line><span class=cl>oracle_1  | 
-</span></span><span class=line><span class=cl>oracle_1  | Database ready to use. Enjoy! ;)
-</span></span></code></pre></td></tr></table></div></div><h2 id=其他可參考設定>其他可參考設定</h2><p><a href=https://www.cnblogs.com/Jin520304/p/7884441.html target=_blank rel="noopener noreffer">docker安装wnameless/oracle-xe-11g并运行（手写超详细） - 哈喽，小枫 - 博客园</a><br><a href=https://zoctan.github.io/2018/05/21/%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B/%E4%BD%BF%E7%94%A8%20Docker%20Oracle/ target=_blank rel="noopener noreffer">使用 Docker Oracle | Zoctan&rsquo;s Blog</a></p><p><a href=https://hub.docker.com/r/acktsw/oracle-xe-11g/dockerfile target=_blank rel="noopener noreffer">acktsw/oracle-xe-11g Dockerfile - Docker Hub</a><br>這個不知道為什麼帳號密碼無法登入，不過 ssh server 設定可以當參考</p><p><a href=https://blog.csdn.net/qq_38270106/article/details/83271284 target=_blank rel="noopener noreffer">docker compose安装oracle_数据库_落叶飘零z的博客-CSDN博客</a></p><h2 id=新增資料表前置作業>新增資料表前置作業</h2><p>其實上面安裝好，不能馬上建制資料表<br>後來查了一下，要用新增使用者帳號去做</p><p>SID 沒有找到修改的方法</p><blockquote><p>XE版本裡只能有一個instance， 我將SID修改了以後貌似會報錯，所以SID就不用修改了。<br>BASE和HOME兩個變量後儘量不要加斜線 &lsquo;/&rsquo; ,有可能會報錯，雖然不知到為什麼&mldr; 同時，TNS_ADMIN這個變量一定要有。<br>參考<a href=https://blog.csdn.net/u013569416/article/details/41895389 target=_blank rel="noopener noreffer">Linux下安裝Oracle Database 11g Express Edition_Perserve In Learning-CSDN博客</a></p></blockquote><h2 id=normal>Oracle 11帳號密碼<br>這邊紀錄 Dbeaver 登入<br>user:system<br>pwd: oracle<br>normal</h2><p>user: sys<br>pwd: oracle<br>dba</p><p>這邊進去不能新增資料表<br>要新增帳號<br>dbeaver 可以新增模式比較快<br>新增帳號還序要設定權限</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>GRANT</span><span class=w> </span><span class=k>CONNECT</span><span class=p>,</span><span class=w> </span><span class=n>RESOURCE</span><span class=p>,</span><span class=w> </span><span class=n>DBA</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>miles</span><span class=p>;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>設定玩資料夾就可以建制了</p><p>這邊也有發現 Oracle 12 上新增帳號設定需要特別設定</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>SESSION</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=s2>&#34;_ORACLE_SCRIPT&#34;</span><span class=o>=</span><span class=k>TRUE</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>miles</span><span class=w> </span><span class=n>IDENTIFIED</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>123456</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>CONNECT</span><span class=p>,</span><span class=w> </span><span class=n>RESOURCE</span><span class=p>,</span><span class=w> </span><span class=n>DBA</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>miles</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>SESSION</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=s2>&#34;_ORACLE_SCRIPT&#34;</span><span class=o>=</span><span class=k>FALSE</span><span class=p>;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>參考: <a href=https://mileslin.github.io/2019/06/%E4%BD%BF%E7%94%A8-Docker-%E5%BB%BA%E7%AB%8B-Oracle-%E6%9C%8D%E5%8B%99/ target=_blank rel="noopener noreffer">[Docker] 使用 Docker 建立 Oracle 服務 - Miles&rsquo;s Journey</a></p><p>相關連結</p><ul><li><a href=https://yingclin.github.io/2018/create-oracle-docker-container.html target=_blank rel="noopener noreffer">在 Docker 中建立 Oracle 12c 的測試主機 | 想不起來而已</a></li><li><a href=https://ithelp.ithome.com.tw/articles/10229655 target=_blank rel="noopener noreffer">使用 Docker 建立 Oracle 12c & 新增使用者建立範例資料庫 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></li><li><a href=https://blog.darkthread.net/blog/setup-xe-centos/ target=_blank rel="noopener noreffer">在 CentOS 安裝 Oracle XE 18c-黑暗執行緒</a></li><li><a href=https://zoctan.github.io/2018/05/21/%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B/%E4%BD%BF%E7%94%A8%20Docker%20Oracle/ target=_blank rel="noopener noreffer">使用 Docker Oracle | Zoctan&rsquo;s Blog</a></li><li><a href=https://my.oschina.net/u/3049601/blog/3112371 target=_blank rel="noopener noreffer">CENTOS 7 使用Docker安装oracle 11g - 特拉仔的个人空间 - OSCHINA</a><br><a href=https://www.cnblogs.com/mq0036/p/4724466.html target=_blank rel="noopener noreffer">批处理执行多个SQL文件到oracle - jack_Meng - 博客园</a></li></ul><h2 id=docker-entrypoint-initdbd>docker-entrypoint-initdb.d</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>			<span class=k>for</span> f in /docker-entrypoint-initdb.d/*<span class=p>;</span> <span class=k>do</span>
-</span></span><span class=line><span class=cl>				<span class=nb>echo</span> <span class=s2>&#34;found file /docker-entrypoint-initdb.d/</span><span class=nv>$f</span><span class=s2>&#34;</span>
-</span></span><span class=line><span class=cl>				<span class=k>case</span> <span class=s2>&#34;</span><span class=nv>$f</span><span class=s2>&#34;</span> in
-</span></span><span class=line><span class=cl>					*.sh<span class=o>)</span>     <span class=nb>echo</span> <span class=s2>&#34;[IMPORT] </span><span class=nv>$0</span><span class=s2>: running </span><span class=nv>$f</span><span class=s2>&#34;</span><span class=p>;</span> . <span class=s2>&#34;</span><span class=nv>$f</span><span class=s2>&#34;</span> <span class=p>;;</span>
-</span></span><span class=line><span class=cl>					*.sql<span class=o>)</span>    <span class=nb>echo</span> <span class=s2>&#34;[IMPORT] </span><span class=nv>$0</span><span class=s2>: running </span><span class=nv>$f</span><span class=s2>&#34;</span><span class=p>;</span> <span class=nb>echo</span> <span class=s2>&#34;exit&#34;</span> <span class=p>|</span> su oracle -c <span class=s2>&#34;NLS_LANG=.</span><span class=nv>$CHARACTER_SET</span><span class=s2> </span><span class=nv>$ORACLE_HOME</span><span class=s2>/bin/sqlplus -S / as sysdba @</span><span class=nv>$f</span><span class=s2>&#34;</span><span class=p>;</span> <span class=nb>echo</span> <span class=p>;;</span>
-</span></span><span class=line><span class=cl>					*.dmp<span class=o>)</span>    <span class=nb>echo</span> <span class=s2>&#34;[IMPORT] </span><span class=nv>$0</span><span class=s2>: running </span><span class=nv>$f</span><span class=s2>&#34;</span><span class=p>;</span> impdp <span class=nv>$f</span> <span class=p>;;</span>
-</span></span><span class=line><span class=cl>					*<span class=o>)</span>        <span class=nb>echo</span> <span class=s2>&#34;[IMPORT] </span><span class=nv>$0</span><span class=s2>: ignoring </span><span class=nv>$f</span><span class=s2>&#34;</span> <span class=p>;;</span>
-</span></span><span class=line><span class=cl>				<span class=k>esac</span>
-</span></span><span class=line><span class=cl>				<span class=nb>echo</span>
-</span></span><span class=line><span class=cl>			<span class=k>done</span>
-</span></span></code></pre></td></tr></table></div></div><p>由於這個關係，我可以簡單設定 db schmema create 語法</p><p>init.sql 放在 /docker-entrypoint-initdb.d/<br>裡面放 sql 資料夾<br>注意，sql 資料夾並不會執行(* 只會抓到同意層資料)</p><p>init.sql</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>XXXX</span><span class=w> </span><span class=n>IDENTIFIED</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>XXXX</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>CONNECT</span><span class=p>,</span><span class=w> </span><span class=n>RESOURCE</span><span class=p>,</span><span class=w> </span><span class=n>DBA</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>XXXX</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>XXXXMGR</span><span class=w> </span><span class=n>IDENTIFIED</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>XXXX</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>alter</span><span class=w> </span><span class=k>session</span><span class=w> </span><span class=k>set</span><span class=w> </span><span class=n>current_schema</span><span class=o>=</span><span class=n>XXXXMGR</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=o>@/</span><span class=n>docker</span><span class=o>-</span><span class=n>entrypoint</span><span class=o>-</span><span class=n>initdb</span><span class=p>.</span><span class=n>d</span><span class=o>/</span><span class=k>sql</span><span class=o>/</span><span class=k>schema</span><span class=o>/</span><span class=n>xxxx</span><span class=p>.</span><span class=k>sql</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>list 資料夾所有目錄方法</p><p>find <code>pwd</code> -type f</p><p>就可把相關 sql 用出來</p><p>docker-compose.yml 留一下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;2&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>services</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w> </span><span class=nt>oracle</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>oracle-xe-11g</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always  </span><span class=w> </span><span class=c>#如果docker容器由于一些问题挂掉的化，docker-composer会自动把容器给启动起来</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=nt>ports</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span>- <span class=m>1521</span><span class=p>:</span><span class=m>1521</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span>- <span class=m>8080</span><span class=p>:</span><span class=m>8080</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span>- <span class=m>22</span><span class=p>:</span><span class=m>22</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span>- <span class=l>./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=nt>environment</span><span class=p>:</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w>     </span>- <span class=l>LC_ALL=C.UTF-8 </span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-03-07</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/ data-title="快速用 docker 建置 oracle 環境方法" data-hashtags=docker,oracle><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/ data-hashtag=docker><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/ data-title="快速用 docker 建置 oracle 環境方法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/ data-title="快速用 docker 建置 oracle 環境方法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/ data-title="快速用 docker 建置 oracle 環境方法"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/docker/>docker</a>,&nbsp;<a href=/blog/tags/oracle/>oracle</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/sqldeveloper-%E6%89%93%E9%96%8B%E9%96%83%E9%80%80%E6%AA%A2%E6%9F%A5%E6%96%B9%E6%B3%95/ class=prev rel=prev title="sqldeveloper 打開閃退解決方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>sqldeveloper 打開閃退解決方法</a>
-<a href=/blog/posts/Java-Tomcat-%E5%B0%8F%E8%A8%98/ class=next rel=next title="Java / Jboss 小記">Java / Jboss 小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>快速用 docker 建置 oracle 環境方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="快速用 docker 建置 oracle 環境方法" />
+<meta property="og:description" content="最近要看 DB 工具是否能正常連 Oracle
+簡單使用 Docker 來架設環境" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-03-07T01:14:59+00:00" />
+<meta property="article:modified_time" content="2020-03-07T01:14:59+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="快速用 docker 建置 oracle 環境方法"/>
+<meta name="twitter:description" content="最近要看 DB 工具是否能正常連 Oracle
+簡單使用 Docker 來架設環境"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/sqldeveloper-%E6%89%93%E9%96%8B%E9%96%83%E9%80%80%E6%AA%A2%E6%9F%A5%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/Java-Tomcat-%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "快速用 docker 建置 oracle 環境方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95\/"
+        },"genre": "posts","keywords": "docker, oracle","wordcount":  720 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95\/","datePublished": "2020-03-07T01:14:59+00:00","dateModified": "2020-03-07T01:14:59+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">快速用 docker 建置 oracle 環境方法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2020-03-07">2020-03-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;720 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#其他可參考設定">其他可參考設定</a></li>
+    <li><a href="#新增資料表前置作業">新增資料表前置作業</a></li>
+    <li><a href="#normal">Oracle 11帳號密碼<br>
+這邊紀錄 Dbeaver 登入<br>
+user:system<br>
+pwd: oracle<br>
+normal</a></li>
+    <li><a href="#docker-entrypoint-initdbd">docker-entrypoint-initdb.d</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近要看 DB 工具是否能正常連 Oracle<br>
+簡單使用 Docker 來架設環境</p>
+<p><a href="https://github.com/componhead/docker-oracle-xe-11g" target="_blank" rel="noopener noreffer ">componhead/docker-oracle-xe-11g: My oracle xe 11g</a><br>
+build 上面這版<code>docker build . -t oracle-xe-11g</code></p>
+<p>帳號密碼 system,oracle<br>
+這樣就能進去了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;2&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">oracle</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">oracle-xe-11g</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l">always  </span><span class="w"> </span><span class="c">#如果docker容器由于一些问题挂掉的化，docker-composer会自动把容器给启动起来</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="m">1521</span><span class="p">:</span><span class="m">1521</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="m">8080</span><span class="p">:</span><span class="m">8080</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>docker-compose up -d 就可以執行環境，但要等一下時間</p>
+<p>docker-compose logs -f 看到最後一段就可以使用了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">oracle_1  | ls: cannot access /u01/app/oracle/oradata: No such file or directory
+</span></span><span class="line"><span class="cl">oracle_1  | Database not initialized. Initializing database.
+</span></span><span class="line"><span class="cl">oracle_1  | Setting up:
+</span></span><span class="line"><span class="cl">oracle_1  | processes=500
+</span></span><span class="line"><span class="cl">oracle_1  | sessions=555
+</span></span><span class="line"><span class="cl">oracle_1  | transactions=610
+</span></span><span class="line"><span class="cl">oracle_1  | If you want to use different parameters set processes, sessions, transactions env variables and consider this formula:
+</span></span><span class="line"><span class="cl">oracle_1  | processes=x
+</span></span><span class="line"><span class="cl">oracle_1  | sessions=x*1.1+5
+</span></span><span class="line"><span class="cl">oracle_1  | transactions=sessions*1.1
+</span></span><span class="line"><span class="cl">oracle_1  | 
+</span></span><span class="line"><span class="cl">oracle_1  | Oracle Database 11g Express Edition Configuration
+</span></span><span class="line"><span class="cl">oracle_1  | -------------------------------------------------
+</span></span><span class="line"><span class="cl">oracle_1  | This will configure on-boot properties of Oracle Database 11g Express 
+</span></span><span class="line"><span class="cl">oracle_1  | Edition.  The following questions will determine whether the database should 
+</span></span><span class="line"><span class="cl">oracle_1  | be starting upon system boot, the ports it will use, and the passwords that 
+</span></span><span class="line"><span class="cl">oracle_1  | will be used for database accounts.  Press &lt;Enter&gt; to accept the defaults. 
+</span></span><span class="line"><span class="cl">oracle_1  | Ctrl-C will abort.
+</span></span><span class="line"><span class="cl">oracle_1  | 
+</span></span><span class="line"><span class="cl">oracle_1  | Specify the HTTP port that will be used for Oracle Application Express [8080]:
+</span></span><span class="line"><span class="cl">oracle_1  | Specify a port that will be used for the database listener [1521]:
+</span></span><span class="line"><span class="cl">oracle_1  | Specify a password to be used for database accounts.  Note that the same
+</span></span><span class="line"><span class="cl">oracle_1  | password will be used for SYS and SYSTEM.  Oracle recommends the use of 
+</span></span><span class="line"><span class="cl">oracle_1  | different passwords for each database account.  This can be done after 
+</span></span><span class="line"><span class="cl">oracle_1  | initial configuration:
+</span></span><span class="line"><span class="cl">oracle_1  | Confirm the password:
+</span></span><span class="line"><span class="cl">oracle_1  | 
+</span></span><span class="line"><span class="cl">oracle_1  | Do you want Oracle Database 11g Express Edition to be started on boot (y/n) [y]:
+</span></span><span class="line"><span class="cl">oracle_1  | Starting Oracle Net Listener...Done
+</span></span><span class="line"><span class="cl">oracle_1  | Configuring database...Done
+</span></span><span class="line"><span class="cl">oracle_1  | Starting Oracle Database 11g Express Edition instance...Done
+</span></span><span class="line"><span class="cl">oracle_1  | Installation completed successfully.
+</span></span><span class="line"><span class="cl">oracle_1  | Database initialized. Please visit http://#containeer:8080/apex to proceed with configuration
+</span></span><span class="line"><span class="cl">oracle_1  | Oracle Database 11g Express Edition instance is already started
+</span></span><span class="line"><span class="cl">oracle_1  | 
+</span></span><span class="line"><span class="cl">oracle_1  | Starting import from &#39;/docker-entrypoint-initdb.d&#39;:
+</span></span><span class="line"><span class="cl">oracle_1  | found file /docker-entrypoint-initdb.d//docker-entrypoint-initdb.d/*
+</span></span><span class="line"><span class="cl">oracle_1  | [IMPORT] /entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+</span></span><span class="line"><span class="cl">oracle_1  | 
+</span></span><span class="line"><span class="cl">oracle_1  | Import finished
+</span></span><span class="line"><span class="cl">oracle_1  | 
+</span></span><span class="line"><span class="cl">oracle_1  | Database ready to use. Enjoy! ;)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="其他可參考設定">其他可參考設定</h2>
+<p><a href="https://www.cnblogs.com/Jin520304/p/7884441.html" target="_blank" rel="noopener noreffer ">docker安装wnameless/oracle-xe-11g并运行（手写超详细） - 哈喽，小枫 - 博客园</a><br>
+<a href="https://zoctan.github.io/2018/05/21/%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B/%E4%BD%BF%E7%94%A8%20Docker%20Oracle/" target="_blank" rel="noopener noreffer ">使用 Docker Oracle | Zoctan&rsquo;s Blog</a></p>
+<p><a href="https://hub.docker.com/r/acktsw/oracle-xe-11g/dockerfile" target="_blank" rel="noopener noreffer ">acktsw/oracle-xe-11g Dockerfile - Docker Hub</a><br>
+這個不知道為什麼帳號密碼無法登入，不過 ssh server 設定可以當參考</p>
+<p><a href="https://blog.csdn.net/qq_38270106/article/details/83271284" target="_blank" rel="noopener noreffer ">docker compose安装oracle_数据库_落叶飘零z的博客-CSDN博客</a></p>
+<h2 id="新增資料表前置作業">新增資料表前置作業</h2>
+<p>其實上面安裝好，不能馬上建制資料表<br>
+後來查了一下，要用新增使用者帳號去做</p>
+<p>SID 沒有找到修改的方法</p>
+<blockquote>
+<p>XE版本裡只能有一個instance， 我將SID修改了以後貌似會報錯，所以SID就不用修改了。<br>
+BASE和HOME兩個變量後儘量不要加斜線 &lsquo;/&rsquo; ,有可能會報錯，雖然不知到為什麼&hellip; 同時，TNS_ADMIN這個變量一定要有。<br>
+參考<a href="https://blog.csdn.net/u013569416/article/details/41895389" target="_blank" rel="noopener noreffer ">Linux下安裝Oracle Database 11g Express Edition_Perserve In Learning-CSDN博客</a></p>
+</blockquote>
+<h2 id="normal">Oracle 11帳號密碼<br>
+這邊紀錄 Dbeaver 登入<br>
+user:system<br>
+pwd: oracle<br>
+normal</h2>
+<p>user: sys<br>
+pwd: oracle<br>
+dba</p>
+<p>這邊進去不能新增資料表<br>
+要新增帳號<br>
+dbeaver 可以新增模式比較快<br>
+新增帳號還序要設定權限</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">GRANT</span><span class="w"> </span><span class="k">CONNECT</span><span class="p">,</span><span class="w"> </span><span class="n">RESOURCE</span><span class="p">,</span><span class="w"> </span><span class="n">DBA</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">miles</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>設定玩資料夾就可以建制了</p>
+<p>這邊也有發現 Oracle 12 上新增帳號設定需要特別設定</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">ALTER</span><span class="w"> </span><span class="k">SESSION</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="s2">&#34;_ORACLE_SCRIPT&#34;</span><span class="o">=</span><span class="k">TRUE</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">miles</span><span class="w"> </span><span class="n">IDENTIFIED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="mi">123456</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">GRANT</span><span class="w"> </span><span class="k">CONNECT</span><span class="p">,</span><span class="w"> </span><span class="n">RESOURCE</span><span class="p">,</span><span class="w"> </span><span class="n">DBA</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">miles</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">ALTER</span><span class="w"> </span><span class="k">SESSION</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="s2">&#34;_ORACLE_SCRIPT&#34;</span><span class="o">=</span><span class="k">FALSE</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考: <a href="https://mileslin.github.io/2019/06/%E4%BD%BF%E7%94%A8-Docker-%E5%BB%BA%E7%AB%8B-Oracle-%E6%9C%8D%E5%8B%99/" target="_blank" rel="noopener noreffer ">[Docker] 使用 Docker 建立 Oracle 服務 - Miles&rsquo;s Journey</a></p>
+<p>相關連結</p>
+<ul>
+<li><a href="https://yingclin.github.io/2018/create-oracle-docker-container.html" target="_blank" rel="noopener noreffer ">在 Docker 中建立 Oracle 12c 的測試主機 | 想不起來而已</a></li>
+<li><a href="https://ithelp.ithome.com.tw/articles/10229655" target="_blank" rel="noopener noreffer ">使用 Docker 建立 Oracle 12c &amp; 新增使用者建立範例資料庫 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></li>
+<li><a href="https://blog.darkthread.net/blog/setup-xe-centos/" target="_blank" rel="noopener noreffer ">在 CentOS 安裝 Oracle XE 18c-黑暗執行緒</a></li>
+<li><a href="https://zoctan.github.io/2018/05/21/%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B/%E4%BD%BF%E7%94%A8%20Docker%20Oracle/" target="_blank" rel="noopener noreffer ">使用 Docker Oracle | Zoctan&rsquo;s Blog</a></li>
+<li><a href="https://my.oschina.net/u/3049601/blog/3112371" target="_blank" rel="noopener noreffer ">CENTOS 7 使用Docker安装oracle 11g - 特拉仔的个人空间 - OSCHINA</a><br>
+<a href="https://www.cnblogs.com/mq0036/p/4724466.html" target="_blank" rel="noopener noreffer ">批处理执行多个SQL文件到oracle - jack_Meng - 博客园</a></li>
+</ul>
+<h2 id="docker-entrypoint-initdbd">docker-entrypoint-initdb.d</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">			<span class="k">for</span> f in /docker-entrypoint-initdb.d/*<span class="p">;</span> <span class="k">do</span>
+</span></span><span class="line"><span class="cl">				<span class="nb">echo</span> <span class="s2">&#34;found file /docker-entrypoint-initdb.d/</span><span class="nv">$f</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">				<span class="k">case</span> <span class="s2">&#34;</span><span class="nv">$f</span><span class="s2">&#34;</span> in
+</span></span><span class="line"><span class="cl">					*.sh<span class="o">)</span>     <span class="nb">echo</span> <span class="s2">&#34;[IMPORT] </span><span class="nv">$0</span><span class="s2">: running </span><span class="nv">$f</span><span class="s2">&#34;</span><span class="p">;</span> . <span class="s2">&#34;</span><span class="nv">$f</span><span class="s2">&#34;</span> <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">					*.sql<span class="o">)</span>    <span class="nb">echo</span> <span class="s2">&#34;[IMPORT] </span><span class="nv">$0</span><span class="s2">: running </span><span class="nv">$f</span><span class="s2">&#34;</span><span class="p">;</span> <span class="nb">echo</span> <span class="s2">&#34;exit&#34;</span> <span class="p">|</span> su oracle -c <span class="s2">&#34;NLS_LANG=.</span><span class="nv">$CHARACTER_SET</span><span class="s2"> </span><span class="nv">$ORACLE_HOME</span><span class="s2">/bin/sqlplus -S / as sysdba @</span><span class="nv">$f</span><span class="s2">&#34;</span><span class="p">;</span> <span class="nb">echo</span> <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">					*.dmp<span class="o">)</span>    <span class="nb">echo</span> <span class="s2">&#34;[IMPORT] </span><span class="nv">$0</span><span class="s2">: running </span><span class="nv">$f</span><span class="s2">&#34;</span><span class="p">;</span> impdp <span class="nv">$f</span> <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">					*<span class="o">)</span>        <span class="nb">echo</span> <span class="s2">&#34;[IMPORT] </span><span class="nv">$0</span><span class="s2">: ignoring </span><span class="nv">$f</span><span class="s2">&#34;</span> <span class="p">;;</span>
+</span></span><span class="line"><span class="cl">				<span class="k">esac</span>
+</span></span><span class="line"><span class="cl">				<span class="nb">echo</span>
+</span></span><span class="line"><span class="cl">			<span class="k">done</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由於這個關係，我可以簡單設定 db schmema create 語法</p>
+<p>init.sql 放在 /docker-entrypoint-initdb.d/<br>
+裡面放 sql 資料夾<br>
+注意，sql 資料夾並不會執行(* 只會抓到同意層資料)</p>
+<p>init.sql</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">XXXX</span><span class="w"> </span><span class="n">IDENTIFIED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">XXXX</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">GRANT</span><span class="w"> </span><span class="k">CONNECT</span><span class="p">,</span><span class="w"> </span><span class="n">RESOURCE</span><span class="p">,</span><span class="w"> </span><span class="n">DBA</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">XXXX</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">XXXXMGR</span><span class="w"> </span><span class="n">IDENTIFIED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">XXXX</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">alter</span><span class="w"> </span><span class="k">session</span><span class="w"> </span><span class="k">set</span><span class="w"> </span><span class="n">current_schema</span><span class="o">=</span><span class="n">XXXXMGR</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">@/</span><span class="n">docker</span><span class="o">-</span><span class="n">entrypoint</span><span class="o">-</span><span class="n">initdb</span><span class="p">.</span><span class="n">d</span><span class="o">/</span><span class="k">sql</span><span class="o">/</span><span class="k">schema</span><span class="o">/</span><span class="n">xxxx</span><span class="p">.</span><span class="k">sql</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>list 資料夾所有目錄方法</p>
+<p>find  <code>pwd</code> -type f</p>
+<p>就可把相關 sql 用出來</p>
+<p>docker-compose.yml 留一下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;2&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="nt">oracle</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">oracle-xe-11g</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l">always  </span><span class="w"> </span><span class="c">#如果docker容器由于一些问题挂掉的化，docker-composer会自动把容器给启动起来</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span>- <span class="m">1521</span><span class="p">:</span><span class="m">1521</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span>- <span class="m">8080</span><span class="p">:</span><span class="m">8080</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span>- <span class="m">22</span><span class="p">:</span><span class="m">22</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span>- <span class="l">./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="nt">environment</span><span class="p">:</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span>- <span class="l">LC_ALL=C.UTF-8 </span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2020-03-07</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" data-title="快速用 docker 建置 oracle 環境方法" data-hashtags="docker,oracle"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" data-title="快速用 docker 建置 oracle 環境方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" data-title="快速用 docker 建置 oracle 環境方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A8-docker-%E5%BB%BA%E7%BD%AE-oracle-%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" data-title="快速用 docker 建置 oracle 環境方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/docker/">docker</a>,&nbsp;<a href="/blog/tags/oracle/">oracle</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/sqldeveloper-%E6%89%93%E9%96%8B%E9%96%83%E9%80%80%E6%AA%A2%E6%9F%A5%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="sqldeveloper 打開閃退解決方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>sqldeveloper 打開閃退解決方法</a>
+            <a href="/blog/posts/Java-Tomcat-%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="Java / Jboss 小記">Java / Jboss 小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

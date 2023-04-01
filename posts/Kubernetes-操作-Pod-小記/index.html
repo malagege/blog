@@ -1,314 +1,814 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Kubernetes 操作 Pod 小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 操作 Pod 小記"><meta property="og:description" content="記錄"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-01-19T22:18:36+00:00"><meta property="article:modified_time" content="2021-01-19T22:18:36+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kubernetes 操作 Pod 小記"><meta name=twitter:description content="記錄"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/%E6%9F%A5%E8%A9%A2%E6%9C%89%E5%A3%93%E7%B8%AE-gz-%E6%97%A5%E8%AA%8C-log-%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/Shell-%E5%AF%A6%E4%BD%9C%E5%AE%88%E8%AD%B7%E9%80%B2%E7%A8%8B%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Kubernetes 操作 Pod 小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"pod","wordcount":1164,"url":"https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98\/","datePublished":"2021-01-19T22:18:36+00:00","dateModified":"2021-01-19T22:18:36+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 操作 Pod 小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Kubernetes/><i class="far fa-folder fa-fw" aria-hidden=true></i>Kubernetes</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-01-19>2021-01-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;1164 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;6 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#小記知識>小記知識</a></li><li><a href=#建立-podimperative-commands>建立 Pod(Imperative Commands)</a></li><li><a href=#運行-pod>運行 Pod</a></li><li><a href=#移除-pod>移除 Pod</a></li><li><a href=#轉發-port>轉發 port</a></li><li><a href=#查看-log>查看 log</a></li><li><a href=#exec-執行程式>exec 執行程式</a></li><li><a href=#容器複製檔案>容器複製檔案</a></li><li><a href=#健康檢查>健康檢查</a></li><li><a href=#資源限制>資源限制</a><ul><li><a href=#requestlimit>Request,Limit</a></li></ul></li><li><a href=#volumes>Volumes</a></li><li><a href=#其他>其他</a></li><li><a href=#taint>taint</a></li><li><a href=#建立-podimperative-object>建立 Pod(Imperative Object)</a></li><li><a href=#建立-poddeclarative-object>建立 Pod(Declarative Object)</a></li><li><a href=#pod--pause-container>Pod & Pause Container</a></li><li><a href=#workloadpod-controller>Workload/Pod Controller</a><ul><li><a href=#replicaset>ReplicaSet</a></li></ul></li><li><a href=#kubectl-plugin>kubectl plugin</a><ul><li><a href=#安裝-krew>安裝 krew</a></li><li><a href=#deployment>Deployment</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>記錄</p><p>使用前建議使用<a href=https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion target=_blank rel="noopener noreffer">Install and Set Up kubectl | Kubernetes</a><br>方便操作指令使用</p><h2 id=小記知識>小記知識</h2><p>K8s 最小運算單原，一個 Pod 可以跑多個 Container。</p><ul><li>Pod</li><li>Pod Controllers</li></ul><p>一個 Pod 可以共享的有</p><ul><li>網路( IP Address, Port , routing system)</li><li>儲存(可以選擇相同儲存空間)</li><li>IPC(Inter Process Communication)</li></ul><p>05:08 補圖(相同網路，內部是127.0.0.1)</p><p>Container 狀態</p><ul><li>Running</li><li>Terminated 執行完成(成功或失敗)</li><li>Waiting 還沒跑起來</li></ul><p>Pod 狀態</p><ul><li>Pending 還沒有起來</li><li>Running 程式運行中</li><li>Successed 執行成功</li><li>Failed 執行失敗</li><li>Unknown</li></ul><p>Pods 重啟機制</p><ul><li>Never</li><li>Always 總是重啟</li><li>OnFailure 失敗重啟</li></ul><p>Node Affinity 靠近<br>Node taints 遠離</p><p>Control Plane 不能部屬 Pod (No Schedule)<br>kubeadm 預設情況下不能部屬 Pod 在 Control Plane</p><p>可以設定標籤(Label,NodeSelector)</p><h2 id=建立-podimperative-commands>建立 Pod(Imperative Commands)</h2><p>Imperative Commands 通常測試開發才會使用。正式部屬不建議這樣使用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl run kuard --generator<span class=o>=</span>run-pod/v1 --image<span class=o>=</span>gcr.io/kuar-demo/kuard-amd64:blue
-</span></span><span class=line><span class=cl><span class=c1># Flag --generator has been deprecated, has no effect and will be removed in the future.</span>
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://www.voidking.com/dev-kubectl/ target=_blank rel="noopener noreffer">kubectl常用命令 | 好好学习的郝</a><br><a href=https://blog.csdn.net/CANGYE0504/article/details/106179563 target=_blank rel="noopener noreffer">kubectl &ndash;generator 参数被弃用问题解决_沧夜-CSDN博客</a><br><a href=https://kubernetes.io/zh/docs/reference/kubectl/conventions/#kubectl-run target=_blank rel="noopener noreffer">kubectl 的用法约定 | Kubernetes</a></p><p>啟動完會看到 pods 有成功</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods
-</span></span><span class=line><span class=cl><span class=c1># NAME    READY   STATUS    RESTARTS   AGE</span>
-</span></span><span class=line><span class=cl><span class=c1># kuard   1/1     Running   0          12s</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=運行-pod>運行 Pod</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl apply -f kuard-pod.yaml 
-</span></span></code></pre></td></tr></table></div></div><h2 id=移除-pod>移除 Pod</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 使用</span>
-</span></span><span class=line><span class=cl>kubectl delete pods kuard
-</span></span><span class=line><span class=cl><span class=c1># 刪除 pods</span>
-</span></span><span class=line><span class=cl>kubectl delete -f kuard-pod.yaml 
-</span></span></code></pre></td></tr></table></div></div><h2 id=轉發-port>轉發 port</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 本地轉發</span>
-</span></span><span class=line><span class=cl>kubectl port-forward kuard 8080:8080    
-</span></span><span class=line><span class=cl><span class=c1># Forwarding from 127.0.0.1:8080 -&gt; 8080</span>
-</span></span><span class=line><span class=cl><span class=c1># Forwarding from [::1]:8080 -&gt; 8080</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 對外來原 IP 轉發</span>
-</span></span><span class=line><span class=cl>kubectl port-forward kuard 8080:8080 --address 0.0.0.0 
-</span></span><span class=line><span class=cl><span class=c1># Forwarding from 0.0.0.0:8080 -&gt; 8080</span>
-</span></span></code></pre></td></tr></table></div></div><p>更多可參考<a href=https://phoenixnap.com/kb/kubectl-port-forward target=_blank rel="noopener noreffer">kubectl Port-Forward - Kubernetes Port Forwarding Guide</a></p><p>http://<code>IP</code>:8080<br>就能訪問環境頁面</p><h2 id=查看-log>查看 log</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl logs kuard
-</span></span></code></pre></td></tr></table></div></div><h2 id=exec-執行程式>exec 執行程式</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl exec kuard ifconfig
-</span></span><span class=line><span class=cl>kubectl exec kuard ip a
-</span></span></code></pre></td></tr></table></div></div><p>跟 docker 操作方式差不多</p><p>我注意到<code>kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> kuard -- ls -l
-</span></span></code></pre></td></tr></table></div></div><h2 id=容器複製檔案>容器複製檔案</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl cp  &lt;file-spec-src&gt; &lt;file-spec-dest&gt;
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cp target=_blank rel="noopener noreffer">Kubectl Reference Docs</a></p><p>使用中有看到錯誤</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl cp kuard:/kuard ./kuard                                                                             ✔  <span class=m>26</span>  23:09:09 
-</span></span><span class=line><span class=cl><span class=c1># tar: removing leading &#39;/&#39; from member names</span>
-</span></span><span class=line><span class=cl>ls
-</span></span><span class=line><span class=cl><span class=c1># kuard</span>
-</span></span></code></pre></td></tr></table></div></div><p>有看到tar錯誤，後來 ls 有看到檔案<br><a href=https://cloud.tencent.com/developer/article/1632562 target=_blank rel="noopener noreffer">修復kubectl cp出現tar: Removing leading `/&rsquo; from member names - 雲+社區 - 騰訊雲</a><br><a href=https://github.com/kubernetes/kubernetes/issues/58692 target=_blank rel="noopener noreffer">Kubectl cp gives &ldquo;tar: removing leading &lsquo;/&rsquo; from member names&rdquo; warning · Issue #58692 · kubernetes/kubernetes</a><br>原來是 bug &mldr;</p><h2 id=健康檢查>健康檢查</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>test</span><span class=p>:</span><span class=w> </span><span class=l>liveness</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>liveness-exec</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>liveness</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>k8s.gcr.io/busybox</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>/bin/sh</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- -<span class=l>c</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>livenessProbe</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>exec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>command</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=l>cat</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=l>/tmp/healthy</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>initialDelaySeconds</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>      </span><span class=c># initialDelaySeconds 字段告訴 kubelet 在執行第一次探測前應該等待 5 秒</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>periodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>5</span><span class=w>            </span><span class=c># periodSeconds 字段指定了 kubelet 應該每 5 秒執行一次存活探測</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>在這個配置文件中，可以看到 Pod 中只有一個容器。<br>periodSeconds 字段指定了 kubelet 應該每 5 秒執行一次存活探測。<br>initialDelaySeconds 字段告訴 kubelet 在執行第一次探測前應該等待 5 秒。<br>kubelet 在容器內執行命令 cat /tmp/healthy 來進行探測。 如果命令執行成功並且返回值為 0，kubelet 就會認為這個容器是健康存活的。 如果這個命令返回非 0 值，kubelet 會殺死這個容器並重新啟動它。</p><p>有兩種 Liveness, Readiness<br>上面是<a href=https://kubernetes.io/zh/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ target=_blank rel="noopener noreffer">配置存活、就绪和启动探测器 | Kubernetes</a>範例</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>kubectl apply -f https://k8s.io/examples/pods/probe/exec-liveness.yaml
-</span></span></code></pre></td></tr></table></div></div><p>liveness,readiness 後面會在做整理</p><blockquote><p>如果使用 Liveness Probe，當錯誤發生時 (無回應或回應錯誤)，k8s 會嘗試重新建立 (kill then create) 一個新的容器。</p></blockquote><blockquote><p>如果使用 Readiness Probe，當錯誤發生時，對應的 Service 物件就會將該容器標示為不可使用，所以任何的需求都不會導向該容器。<br>可先看<a href=https://ithelp.ithome.com.tw/articles/10193956 target=_blank rel="noopener noreffer">Day 24 - 常見問題與建議 (5) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p></blockquote><p>Liveness Probe 啟動時候，web 可能會有延連時間。例如有些程式啟動不可能馬上出現內容<br>這時候 <code>initialDelaySeconds</code> 設定就很重要</p><p>Readiness Prob 啟動時候，Service 會算到 Pod 可用，會把當下 Container IP 加到 Service。<br><a href=https://jimmysong.io/kubernetes-handbook/guide/configure-liveness-readiness-probes.html target=_blank rel="noopener noreffer">配置 Pod 的 liveness 和 readiness 探針 ‧ Kubernetes Handbook - Kubernetes中文指南/雲原生應用架構實踐手冊 by Jimmy Song(宋淨超)</a></p><h2 id=資源限制>資源限制</h2><h3 id=requestlimit>Request,Limit</h3><p><a href=https://kubernetes.io/zh/docs/tasks/configure-pod-container/assign-cpu-resource/ target=_blank rel="noopener noreffer">为容器和 Pods 分配 CPU 资源 | Kubernetes</a></p><p>Minikube需要安裝 metrics-server</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>minikube addons <span class=nb>enable</span> metrics-server
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>kubectl get apiservices
-</span></span><span class=line><span class=cl><span class=c1># NAME</span>
-</span></span><span class=line><span class=cl><span class=c1># v1beta1.metrics.k8s.io</span>
-</span></span></code></pre></td></tr></table></div></div><p>創建一個 namespace</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create namespace cpu-example
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cpu-demo</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>cpu-example</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cpu-demo-ctr</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>vish/stress</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;1&#34;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0.5&#34;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- -<span class=l>cpus</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=s2>&#34;2&#34;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f https://k8s.io/examples/pods/resource/cpu-request-limit.yaml --namespace<span class=o>=</span>cpu-example
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>kubectl get pod cpu-demo --namespace<span class=o>=</span>cpu-example
-</span></span><span class=line><span class=cl><span class=c1># 可以看到 limit 有限制</span>
-</span></span><span class=line><span class=cl><span class=c1># 輸出顯示 Pod 中的一個容器的 CPU 請求為 500 milli CPU，並且 CPU 限制為 1 個 CPU。</span>
-</span></span><span class=line><span class=cl><span class=c1># resources:</span>
-</span></span><span class=line><span class=cl><span class=c1>#   limits:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     cpu: &#34;1&#34;</span>
-</span></span><span class=line><span class=cl><span class=c1>#   requests:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     cpu: 500m</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>NAME       CPU<span class=o>(</span>cores<span class=o>)</span>   MEMORY<span class=o>(</span>bytes<span class=o>)</span>   
-</span></span><span class=line><span class=cl>cpu-demo   1006m        2Mi     
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl delete namespace cpu-example
-</span></span></code></pre></td></tr></table></div></div><h2 id=volumes>Volumes</h2><p><a href=https://kubernetes.io/docs/concepts/storage/volumes/ target=_blank rel="noopener noreffer">Volumes | Kubernetes</a></p><h2 id=其他>其他</h2><p>相關 YAML API 文件<br><a href=https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/ target=_blank rel="noopener noreffer">Kubernetes API Reference Docs</a></p><h2 id=taint>taint</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 看Taints: 狀態</span>
-</span></span><span class=line><span class=cl>kubectl describe 
-</span></span><span class=line><span class=cl><span class=c1># 移掉 noschedule 狀態(可以在 Control Pane 操作)</span>
-</span></span><span class=line><span class=cl>kubectl taint node k8s-dev node-role.kubernetes.io/master:NoSchedule-
-</span></span></code></pre></td></tr></table></div></div><h2 id=建立-podimperative-object>建立 Pod(Imperative Object)</h2><p>使用 Yaml或 JSON 格式寫設定。</p><p><a href=https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/ target=_blank rel="noopener noreffer">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl create -f xxxx.yml
-</span></span><span class=line><span class=cl>kubectl edit pod xxxx
-</span></span><span class=line><span class=cl><span class=c1># 手動更改 yaml</span>
-</span></span><span class=line><span class=cl><span class=c1># (覆蓋檔案會友先前檔案執行的yaml不一致，，不實用)</span>
-</span></span><span class=line><span class=cl>kubectl replace -f xxxx.yml
-</span></span><span class=line><span class=cl>kubectl get pod xxxx -o yaml &gt; new.yml
-</span></span><span class=line><span class=cl><span class=c1># 修改 new.yml</span>
-</span></span><span class=line><span class=cl>kubectl replace -f xxxx.yml
-</span></span></code></pre></td></tr></table></div></div><h2 id=建立-poddeclarative-object>建立 Pod(Declarative Object)</h2><p>前面提到 <code>Imperative Object</code> kubectl replace 會有當下資源不一致，原因kubectl create 不會計紀錄，但是kubectl apply 會記錄你每次傳指令yaml檔案內容，所以kubectl apply 不會有像 replace 一樣問題。</p><p>所以釐清kubectl apply 和 kubectl create 還是有差異的，書中提到用 <code>kubectl apply</code>就對了XD</p><h2 id=pod--pause-container>Pod & Pause Container</h2><ol><li>基於 network namespace 實作網路隔離化</li><li>kubeadm 我發現 container 控制元件都是使用 <code>host</code> network namespace，所以跟主機IP一樣</li></ol><p>Pod 所有container 都是使用第一個建立 container，docker實作如下。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>docker run -d --name<span class=o>=</span>ubuntu1 dersimn/netutils  tail -f /dev/null
-</span></span><span class=line><span class=cl>docker run -d --name<span class=o>=</span>ubuntu2 --net<span class=o>=</span>container:ubuntu1 dersimn/netutils  tail -f /dev/null
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>## 下面兩個指令你會看到 IP 都相等</span>
-</span></span><span class=line><span class=cl>docker <span class=nb>exec</span> ubuntu1 ifconfig
-</span></span><span class=line><span class=cl>docker <span class=nb>exec</span> ubuntu2 ifconfig
-</span></span><span class=line><span class=cl><span class=c1># eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span>
-</span></span><span class=line><span class=cl><span class=c1>#         inet 172.18.0.2  netmask 255.255.0.0  broadcast 172.18.255.255</span>
-</span></span><span class=line><span class=cl><span class=c1>#         ether 02:42:ac:12:00:02  txqueuelen 0  (Ethernet)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         RX packets 9  bytes 1046 (1.0 KB)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         RX errors 0  dropped 0  overruns 0  frame 0</span>
-</span></span><span class=line><span class=cl><span class=c1>#         TX packets 0  bytes 0 (0.0 B)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span>
-</span></span><span class=line><span class=cl><span class=c1>#         inet 127.0.0.1  netmask 255.0.0.0</span>
-</span></span><span class=line><span class=cl><span class=c1>#         loop  txqueuelen 1000  (Local Loopback)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         RX packets 0  bytes 0 (0.0 B)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         RX errors 0  dropped 0  overruns 0  frame 0</span>
-</span></span><span class=line><span class=cl><span class=c1>#         TX packets 0  bytes 0 (0.0 B)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># ubuntu1 刪掉 container ，ubuntu2 也會連帶刪除</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>docker rm -f ubuntu1
-</span></span><span class=line><span class=cl>docker <span class=nb>exec</span> ubuntu2 ifconfig
-</span></span><span class=line><span class=cl><span class=c1># lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span>
-</span></span><span class=line><span class=cl><span class=c1>#         inet 127.0.0.1  netmask 255.0.0.0</span>
-</span></span><span class=line><span class=cl><span class=c1>#         loop  txqueuelen 1000  (Local Loopback)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         RX packets 0  bytes 0 (0.0 B)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         RX errors 0  dropped 0  overruns 0  frame 0</span>
-</span></span><span class=line><span class=cl><span class=c1>#         TX packets 0  bytes 0 (0.0 B)</span>
-</span></span><span class=line><span class=cl><span class=c1>#         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 獨立 ip</span>
-</span></span><span class=line><span class=cl>docker run -d --name<span class=o>=</span>ubuntu3 --net<span class=o>=</span>host  dersimn/netutils
-</span></span></code></pre></td></tr></table></div></div><p>也可用<a href=https://github.com/hwchiu/netutils target=_blank rel="noopener noreffer">hwchiu/netutils: Docker image contains useful network tools</a></p><p>簡短的說，Container網路共用同網卡問題，砍掉1，2就會看不到。<br>這邊你看到刪除container1 後 container2 IP就會不見，依照這個狀況下，K8S網路連線這是一個很大問題，所以使用<code>Pause Container</code>。</p><p>Pause Container<br>Pod 起來就會背景睡眠，CNI會掛載到Pause Container<br>讓你container 1 掛掉不會影響其他 container 2 網路</p><h2 id=workloadpod-controller>Workload/Pod Controller</h2><ol><li>ReplicaSet</li><li>Deployment</li><li>Daemonset</li><li>StatefulSet</li><li>Job</li><li>CronJob</li></ol><h3 id=replicaset>ReplicaSet</h3><p>Kubernetes 的 ReplicaSet</p><h2 id=kubectl-plugin>kubectl plugin</h2><p>kubectl 可以放置應用程式在<code>usr/local/bin</code>放置<code>kubectl-*</code>，這邊用 ls 看例子。</p><p>例如</p><blockquote><p>放置 /usr/local/bin/kubectl-xxxx<br>可執行 kubectl xxxx</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo cp /bin/ls  /usr/local/bin/
-</span></span><span class=line><span class=cl>kubectl ls 
-</span></span><span class=line><span class=cl><span class=c1># 顯示當前路徑</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=安裝-krew>安裝 krew</h3><ol><li>安裝 Git</li><li>執行 <a href=https://krew.sigs.k8s.io/docs/user-guide/setup/install/ target=_blank rel="noopener noreffer">Installing · Krew</a>裡面指令</li><li>加入 krew 還境變數</li><li>重啟 bash/zsh</li></ol><p>Krew 管理 Plugin 套件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl krew install tree
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl tree -n kube-system  ds kindnet
-</span></span><span class=line><span class=cl><span class=c1># NAMESPACE    NAME                                     READY  REASON  AGE</span>
-</span></span><span class=line><span class=cl><span class=c1># kube-system  DaemonSet/kindnet                        -              14d</span>
-</span></span><span class=line><span class=cl><span class=c1># kube-system  ├─ControllerRevision/kindnet-5b547684d9  -              14d</span>
-</span></span><span class=line><span class=cl><span class=c1># kube-system  ├─Pod/kindnet-74l9s                      True           14d</span>
-</span></span><span class=line><span class=cl><span class=c1># kube-system  ├─Pod/kindnet-kcwbr                      True           14d</span>
-</span></span><span class=line><span class=cl><span class=c1># kube-system  └─Pod/kindnet-zrzkp                      True           14d</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=deployment>Deployment</h3><p>Kubernetes 的 Deployment</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-01-19</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/ data-title="Kubernetes 操作 Pod 小記" data-hashtags=pod><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/ data-hashtag=pod><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/ data-title="Kubernetes 操作 Pod 小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/ data-title="Kubernetes 操作 Pod 小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/ data-title="Kubernetes 操作 Pod 小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/pod/>pod</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E6%9F%A5%E8%A9%A2%E6%9C%89%E5%A3%93%E7%B8%AE-gz-%E6%97%A5%E8%AA%8C-log-%E6%96%B9%E6%B3%95/ class=prev rel=prev title="查詢有壓縮(gz)日誌 log 方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>查詢有壓縮(gz)日誌 log 方法</a>
-<a href=/blog/posts/Shell-%E5%AF%A6%E4%BD%9C%E5%AE%88%E8%AD%B7%E9%80%B2%E7%A8%8B%E6%96%B9%E6%B3%95/ class=next rel=next title="Shell 實作守護進程方法">Shell 實作守護進程方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Kubernetes 操作 Pod 小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 操作 Pod 小記" />
+<meta property="og:description" content="記錄" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-01-19T22:18:36+00:00" />
+<meta property="article:modified_time" content="2021-01-19T22:18:36+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubernetes 操作 Pod 小記"/>
+<meta name="twitter:description" content="記錄"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E6%9F%A5%E8%A9%A2%E6%9C%89%E5%A3%93%E7%B8%AE-gz-%E6%97%A5%E8%AA%8C-log-%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/Shell-%E5%AF%A6%E4%BD%9C%E5%AE%88%E8%AD%B7%E9%80%B2%E7%A8%8B%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Kubernetes 操作 Pod 小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "pod","wordcount":  1164 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98\/","datePublished": "2021-01-19T22:18:36+00:00","dateModified": "2021-01-19T22:18:36+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 操作 Pod 小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Kubernetes/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Kubernetes</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-01-19">2021-01-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1164 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;6 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#小記知識">小記知識</a></li>
+    <li><a href="#建立-podimperative-commands">建立 Pod(Imperative Commands)</a></li>
+    <li><a href="#運行-pod">運行 Pod</a></li>
+    <li><a href="#移除-pod">移除 Pod</a></li>
+    <li><a href="#轉發-port">轉發 port</a></li>
+    <li><a href="#查看-log">查看 log</a></li>
+    <li><a href="#exec-執行程式">exec 執行程式</a></li>
+    <li><a href="#容器複製檔案">容器複製檔案</a></li>
+    <li><a href="#健康檢查">健康檢查</a></li>
+    <li><a href="#資源限制">資源限制</a>
+      <ul>
+        <li><a href="#requestlimit">Request,Limit</a></li>
+      </ul>
+    </li>
+    <li><a href="#volumes">Volumes</a></li>
+    <li><a href="#其他">其他</a></li>
+    <li><a href="#taint">taint</a></li>
+    <li><a href="#建立-podimperative-object">建立 Pod(Imperative Object)</a></li>
+    <li><a href="#建立-poddeclarative-object">建立 Pod(Declarative Object)</a></li>
+    <li><a href="#pod--pause-container">Pod &amp; Pause Container</a></li>
+    <li><a href="#workloadpod-controller">Workload/Pod Controller</a>
+      <ul>
+        <li><a href="#replicaset">ReplicaSet</a></li>
+      </ul>
+    </li>
+    <li><a href="#kubectl-plugin">kubectl plugin</a>
+      <ul>
+        <li><a href="#安裝-krew">安裝 krew</a></li>
+        <li><a href="#deployment">Deployment</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>記錄</p>
+<p>使用前建議使用<a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion" target="_blank" rel="noopener noreffer ">Install and Set Up kubectl | Kubernetes</a><br>
+方便操作指令使用</p>
+<h2 id="小記知識">小記知識</h2>
+<p>K8s 最小運算單原，一個 Pod 可以跑多個 Container。</p>
+<ul>
+<li>Pod</li>
+<li>Pod Controllers</li>
+</ul>
+<p>一個 Pod 可以共享的有</p>
+<ul>
+<li>網路( IP Address, Port , routing system)</li>
+<li>儲存(可以選擇相同儲存空間)</li>
+<li>IPC(Inter Process Communication)</li>
+</ul>
+<p>05:08 補圖(相同網路，內部是127.0.0.1)</p>
+<p>Container 狀態</p>
+<ul>
+<li>Running</li>
+<li>Terminated 執行完成(成功或失敗)</li>
+<li>Waiting 還沒跑起來</li>
+</ul>
+<p>Pod 狀態</p>
+<ul>
+<li>Pending 還沒有起來</li>
+<li>Running 程式運行中</li>
+<li>Successed 執行成功</li>
+<li>Failed  執行失敗</li>
+<li>Unknown</li>
+</ul>
+<p>Pods 重啟機制</p>
+<ul>
+<li>Never</li>
+<li>Always 總是重啟</li>
+<li>OnFailure 失敗重啟</li>
+</ul>
+<p>Node Affinity 靠近<br>
+Node taints 遠離</p>
+<p>Control Plane 不能部屬 Pod (No Schedule)<br>
+kubeadm 預設情況下不能部屬 Pod 在 Control Plane</p>
+<p>可以設定標籤(Label,NodeSelector)</p>
+<h2 id="建立-podimperative-commands">建立 Pod(Imperative Commands)</h2>
+<p>Imperative Commands 通常測試開發才會使用。正式部屬不建議這樣使用。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl run kuard --generator<span class="o">=</span>run-pod/v1 --image<span class="o">=</span>gcr.io/kuar-demo/kuard-amd64:blue
+</span></span><span class="line"><span class="cl"><span class="c1"># Flag --generator has been deprecated, has no effect and will be removed in the future.</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://www.voidking.com/dev-kubectl/" target="_blank" rel="noopener noreffer ">kubectl常用命令 | 好好学习的郝</a><br>
+<a href="https://blog.csdn.net/CANGYE0504/article/details/106179563" target="_blank" rel="noopener noreffer ">kubectl &ndash;generator 参数被弃用问题解决_沧夜-CSDN博客</a><br>
+<a href="https://kubernetes.io/zh/docs/reference/kubectl/conventions/#kubectl-run" target="_blank" rel="noopener noreffer ">kubectl 的用法约定 | Kubernetes</a></p>
+<p>啟動完會看到 pods 有成功</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl get pods
+</span></span><span class="line"><span class="cl"><span class="c1"># NAME    READY   STATUS    RESTARTS   AGE</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kuard   1/1     Running   0          12s</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="運行-pod">運行 Pod</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl apply -f kuard-pod.yaml 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="移除-pod">移除 Pod</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 使用</span>
+</span></span><span class="line"><span class="cl">kubectl delete pods kuard
+</span></span><span class="line"><span class="cl"><span class="c1"># 刪除 pods</span>
+</span></span><span class="line"><span class="cl">kubectl delete -f kuard-pod.yaml 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="轉發-port">轉發 port</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 本地轉發</span>
+</span></span><span class="line"><span class="cl">kubectl port-forward kuard 8080:8080    
+</span></span><span class="line"><span class="cl"><span class="c1"># Forwarding from 127.0.0.1:8080 -&gt; 8080</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Forwarding from [::1]:8080 -&gt; 8080</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 對外來原 IP 轉發</span>
+</span></span><span class="line"><span class="cl">kubectl port-forward kuard 8080:8080 --address 0.0.0.0 
+</span></span><span class="line"><span class="cl"><span class="c1"># Forwarding from 0.0.0.0:8080 -&gt; 8080</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>更多可參考<a href="https://phoenixnap.com/kb/kubectl-port-forward" target="_blank" rel="noopener noreffer ">kubectl Port-Forward - Kubernetes Port Forwarding Guide</a></p>
+<p>http://<code>IP</code>:8080<br>
+就能訪問環境頁面</p>
+<h2 id="查看-log">查看 log</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl logs kuard
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="exec-執行程式">exec 執行程式</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl exec kuard ifconfig
+</span></span><span class="line"><span class="cl">kubectl exec kuard ip a
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>跟 docker 操作方式差不多</p>
+<p>我注意到<code>kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl <span class="nb">exec</span> kuard -- ls -l
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="容器複製檔案">容器複製檔案</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl cp  &lt;file-spec-src&gt; &lt;file-spec-dest&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cp" target="_blank" rel="noopener noreffer ">Kubectl Reference Docs</a></p>
+<p>使用中有看到錯誤</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl cp kuard:/kuard ./kuard                                                                             ✔  <span class="m">26</span>  23:09:09 
+</span></span><span class="line"><span class="cl"><span class="c1"># tar: removing leading &#39;/&#39; from member names</span>
+</span></span><span class="line"><span class="cl">ls
+</span></span><span class="line"><span class="cl"><span class="c1"># kuard</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>有看到tar錯誤，後來 ls 有看到檔案<br>
+<a href="https://cloud.tencent.com/developer/article/1632562" target="_blank" rel="noopener noreffer ">修復kubectl cp出現tar: Removing leading `/&rsquo; from member names - 雲+社區 - 騰訊雲</a><br>
+<a href="https://github.com/kubernetes/kubernetes/issues/58692" target="_blank" rel="noopener noreffer ">Kubectl cp gives &ldquo;tar: removing leading &lsquo;/&rsquo; from member names&rdquo; warning · Issue #58692 · kubernetes/kubernetes</a><br>
+原來是 bug &hellip;</p>
+<h2 id="健康檢查">健康檢查</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="l">liveness</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">liveness-exec</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">containers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">liveness</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">k8s.gcr.io/busybox</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">args</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="l">/bin/sh</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- -<span class="l">c</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="l">touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">livenessProbe</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">exec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="l">cat</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="l">/tmp/healthy</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">initialDelaySeconds</span><span class="p">:</span><span class="w"> </span><span class="m">5</span><span class="w">      </span><span class="c"># initialDelaySeconds 字段告訴 kubelet 在執行第一次探測前應該等待 5 秒</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="m">5</span><span class="w">            </span><span class="c"># periodSeconds 字段指定了 kubelet 應該每 5 秒執行一次存活探測</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>在這個配置文件中，可以看到 Pod 中只有一個容器。<br>
+periodSeconds 字段指定了 kubelet 應該每 5 秒執行一次存活探測。<br>
+initialDelaySeconds 字段告訴 kubelet 在執行第一次探測前應該等待 5 秒。<br>
+kubelet 在容器內執行命令 cat /tmp/healthy 來進行探測。 如果命令執行成功並且返回值為 0，kubelet 就會認為這個容器是健康存活的。 如果這個命令返回非 0 值，kubelet 會殺死這個容器並重新啟動它。</p>
+<p>有兩種 Liveness, Readiness<br>
+上面是<a href="https://kubernetes.io/zh/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" target="_blank" rel="noopener noreffer ">配置存活、就绪和启动探测器 | Kubernetes</a>範例</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">kubectl apply -f https://k8s.io/examples/pods/probe/exec-liveness.yaml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>liveness,readiness 後面會在做整理</p>
+<blockquote>
+<p>如果使用 Liveness Probe，當錯誤發生時 (無回應或回應錯誤)，k8s 會嘗試重新建立 (kill then create) 一個新的容器。</p>
+</blockquote>
+<blockquote>
+<p>如果使用 Readiness Probe，當錯誤發生時，對應的 Service 物件就會將該容器標示為不可使用，所以任何的需求都不會導向該容器。<br>
+可先看<a href="https://ithelp.ithome.com.tw/articles/10193956" target="_blank" rel="noopener noreffer ">Day 24 - 常見問題與建議 (5) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p>
+</blockquote>
+<p>Liveness Probe 啟動時候，web 可能會有延連時間。例如有些程式啟動不可能馬上出現內容<br>
+這時候 <code>initialDelaySeconds</code> 設定就很重要</p>
+<p>Readiness Prob 啟動時候，Service 會算到 Pod 可用，會把當下 Container IP 加到 Service。<br>
+<a href="https://jimmysong.io/kubernetes-handbook/guide/configure-liveness-readiness-probes.html" target="_blank" rel="noopener noreffer ">配置 Pod 的 liveness 和 readiness 探針 ‧ Kubernetes Handbook - Kubernetes中文指南/雲原生應用架構實踐手冊 by Jimmy Song(宋淨超)</a></p>
+<h2 id="資源限制">資源限制</h2>
+<h3 id="requestlimit">Request,Limit</h3>
+<p><a href="https://kubernetes.io/zh/docs/tasks/configure-pod-container/assign-cpu-resource/" target="_blank" rel="noopener noreffer ">为容器和 Pods 分配 CPU 资源 | Kubernetes</a></p>
+<p>Minikube需要安裝 metrics-server</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">minikube addons <span class="nb">enable</span> metrics-server
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">kubectl get apiservices
+</span></span><span class="line"><span class="cl"><span class="c1"># NAME</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># v1beta1.metrics.k8s.io</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>創建一個 namespace</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl create namespace cpu-example
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pod</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">cpu-demo</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l">cpu-example</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">containers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">cpu-demo-ctr</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">vish/stress</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">limits</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;1&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">requests</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;0.5&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">args</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- -<span class="l">cpus</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="s2">&#34;2&#34;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl apply -f https://k8s.io/examples/pods/resource/cpu-request-limit.yaml --namespace<span class="o">=</span>cpu-example
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">kubectl get pod cpu-demo --namespace<span class="o">=</span>cpu-example
+</span></span><span class="line"><span class="cl"><span class="c1"># 可以看到 limit 有限制</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 輸出顯示 Pod 中的一個容器的 CPU 請求為 500 milli CPU，並且 CPU 限制為 1 個 CPU。</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># resources:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   limits:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     cpu: &#34;1&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   requests:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     cpu: 500m</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">NAME       CPU<span class="o">(</span>cores<span class="o">)</span>   MEMORY<span class="o">(</span>bytes<span class="o">)</span>   
+</span></span><span class="line"><span class="cl">cpu-demo   1006m        2Mi     
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl delete namespace cpu-example
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="volumes">Volumes</h2>
+<p><a href="https://kubernetes.io/docs/concepts/storage/volumes/" target="_blank" rel="noopener noreffer ">Volumes | Kubernetes</a></p>
+<h2 id="其他">其他</h2>
+<p>相關 YAML API 文件<br>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/" target="_blank" rel="noopener noreffer ">Kubernetes API Reference Docs</a></p>
+<h2 id="taint">taint</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 看Taints: 狀態</span>
+</span></span><span class="line"><span class="cl">kubectl describe 
+</span></span><span class="line"><span class="cl"><span class="c1"># 移掉 noschedule 狀態(可以在 Control Pane 操作)</span>
+</span></span><span class="line"><span class="cl">kubectl taint node k8s-dev node-role.kubernetes.io/master:NoSchedule-
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="建立-podimperative-object">建立 Pod(Imperative Object)</h2>
+<p>使用 Yaml或 JSON 格式寫設定。</p>
+<p><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/" target="_blank" rel="noopener noreffer ">https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl create -f xxxx.yml
+</span></span><span class="line"><span class="cl">kubectl edit pod xxxx
+</span></span><span class="line"><span class="cl"><span class="c1"># 手動更改 yaml</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># (覆蓋檔案會友先前檔案執行的yaml不一致，，不實用)</span>
+</span></span><span class="line"><span class="cl">kubectl replace -f xxxx.yml
+</span></span><span class="line"><span class="cl">kubectl get pod xxxx -o yaml &gt; new.yml
+</span></span><span class="line"><span class="cl"><span class="c1"># 修改 new.yml</span>
+</span></span><span class="line"><span class="cl">kubectl replace -f xxxx.yml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="建立-poddeclarative-object">建立 Pod(Declarative Object)</h2>
+<p>前面提到 <code>Imperative Object</code> kubectl replace 會有當下資源不一致，原因kubectl create 不會計紀錄，但是kubectl apply 會記錄你每次傳指令yaml檔案內容，所以kubectl apply 不會有像 replace 一樣問題。</p>
+<p>所以釐清kubectl apply 和 kubectl create 還是有差異的，書中提到用 <code>kubectl apply</code>就對了XD</p>
+<h2 id="pod--pause-container">Pod &amp; Pause Container</h2>
+<ol>
+<li>基於 network  namespace  實作網路隔離化</li>
+<li>kubeadm 我發現 container 控制元件都是使用 <code>host</code> network namespace，所以跟主機IP一樣</li>
+</ol>
+<p>Pod 所有container 都是使用第一個建立 container，docker實作如下。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -d --name<span class="o">=</span>ubuntu1 dersimn/netutils  tail -f /dev/null
+</span></span><span class="line"><span class="cl">docker run -d --name<span class="o">=</span>ubuntu2 --net<span class="o">=</span>container:ubuntu1 dersimn/netutils  tail -f /dev/null
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">## 下面兩個指令你會看到 IP 都相等</span>
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> ubuntu1 ifconfig
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> ubuntu2 ifconfig
+</span></span><span class="line"><span class="cl"><span class="c1"># eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         inet 172.18.0.2  netmask 255.255.0.0  broadcast 172.18.255.255</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         ether 02:42:ac:12:00:02  txqueuelen 0  (Ethernet)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         RX packets 9  bytes 1046 (1.0 KB)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         RX errors 0  dropped 0  overruns 0  frame 0</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         TX packets 0  bytes 0 (0.0 B)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         inet 127.0.0.1  netmask 255.0.0.0</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         loop  txqueuelen 1000  (Local Loopback)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         RX packets 0  bytes 0 (0.0 B)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         RX errors 0  dropped 0  overruns 0  frame 0</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         TX packets 0  bytes 0 (0.0 B)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># ubuntu1 刪掉 container ，ubuntu2 也會連帶刪除</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">docker rm -f ubuntu1
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> ubuntu2 ifconfig
+</span></span><span class="line"><span class="cl"><span class="c1"># lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         inet 127.0.0.1  netmask 255.0.0.0</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         loop  txqueuelen 1000  (Local Loopback)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         RX packets 0  bytes 0 (0.0 B)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         RX errors 0  dropped 0  overruns 0  frame 0</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         TX packets 0  bytes 0 (0.0 B)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 獨立 ip</span>
+</span></span><span class="line"><span class="cl">docker run -d --name<span class="o">=</span>ubuntu3 --net<span class="o">=</span>host  dersimn/netutils
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可用<a href="https://github.com/hwchiu/netutils" target="_blank" rel="noopener noreffer ">hwchiu/netutils: Docker image contains useful network tools</a></p>
+<p>簡短的說，Container網路共用同網卡問題，砍掉1，2就會看不到。<br>
+這邊你看到刪除container1 後 container2 IP就會不見，依照這個狀況下，K8S網路連線這是一個很大問題，所以使用<code>Pause Container</code>。</p>
+<p>Pause Container<br>
+Pod 起來就會背景睡眠，CNI會掛載到Pause Container<br>
+讓你container 1 掛掉不會影響其他 container 2 網路</p>
+<h2 id="workloadpod-controller">Workload/Pod Controller</h2>
+<ol>
+<li>ReplicaSet</li>
+<li>Deployment</li>
+<li>Daemonset</li>
+<li>StatefulSet</li>
+<li>Job</li>
+<li>CronJob</li>
+</ol>
+<h3 id="replicaset">ReplicaSet</h3>
+<p>Kubernetes 的 ReplicaSet</p>
+<h2 id="kubectl-plugin">kubectl plugin</h2>
+<p>kubectl 可以放置應用程式在<code>usr/local/bin</code>放置<code>kubectl-*</code>，這邊用 ls 看例子。</p>
+<p>例如</p>
+<blockquote>
+<p>放置 /usr/local/bin/kubectl-xxxx<br>
+可執行 kubectl xxxx</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo cp /bin/ls  /usr/local/bin/
+</span></span><span class="line"><span class="cl">kubectl ls 
+</span></span><span class="line"><span class="cl"><span class="c1"># 顯示當前路徑</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="安裝-krew">安裝 krew</h3>
+<ol>
+<li>安裝 Git</li>
+<li>執行 <a href="https://krew.sigs.k8s.io/docs/user-guide/setup/install/" target="_blank" rel="noopener noreffer ">Installing · Krew</a>裡面指令</li>
+<li>加入 krew 還境變數</li>
+<li>重啟 bash/zsh</li>
+</ol>
+<p>Krew 管理 Plugin 套件</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl krew install tree
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl tree -n kube-system  ds kindnet
+</span></span><span class="line"><span class="cl"><span class="c1"># NAMESPACE    NAME                                     READY  REASON  AGE</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kube-system  DaemonSet/kindnet                        -              14d</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kube-system  ├─ControllerRevision/kindnet-5b547684d9  -              14d</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kube-system  ├─Pod/kindnet-74l9s                      True           14d</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kube-system  ├─Pod/kindnet-kcwbr                      True           14d</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kube-system  └─Pod/kindnet-zrzkp                      True           14d</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="deployment">Deployment</h3>
+<p>Kubernetes 的 Deployment</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2021-01-19</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" data-title="Kubernetes 操作 Pod 小記" data-hashtags="pod"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" data-hashtag="pod"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" data-title="Kubernetes 操作 Pod 小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" data-title="Kubernetes 操作 Pod 小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Kubernetes-%E6%93%8D%E4%BD%9C-Pod-%E5%B0%8F%E8%A8%98/" data-title="Kubernetes 操作 Pod 小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/pod/">pod</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E6%9F%A5%E8%A9%A2%E6%9C%89%E5%A3%93%E7%B8%AE-gz-%E6%97%A5%E8%AA%8C-log-%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="查詢有壓縮(gz)日誌 log 方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>查詢有壓縮(gz)日誌 log 方法</a>
+            <a href="/blog/posts/Shell-%E5%AF%A6%E4%BD%9C%E5%AE%88%E8%AD%B7%E9%80%B2%E7%A8%8B%E6%96%B9%E6%B3%95/" class="next" rel="next" title="Shell 實作守護進程方法">Shell 實作守護進程方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

@@ -1,20 +1,295 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Raspberry Pi 2023 年安裝安裝 OS - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Raspberry Pi 2023 年安裝安裝 OS"><meta property="og:description" content="最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-04-01T00:04:51+08:00"><meta property="article:modified_time" content="2023-04-01T00:04:51+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Raspberry Pi 2023 年安裝安裝 OS"><meta name=twitter:description content="最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/><link rel=prev href=https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/><link rel=next href=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Raspberry Pi 2023 年安裝安裝 OS","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS\/"},"genre":"posts","keywords":"pi","wordcount":57,"url":"https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS\/","datePublished":"2023-04-01T00:04:51+08:00","dateModified":"2023-04-01T00:04:51+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Raspberry Pi 2023 年安裝安裝 OS</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-04-01>2023-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;57 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;One minute&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png data-srcset="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png, https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png 1.5x, https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png title=https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#官方安裝-os-工具>官方安裝 OS 工具</a></li></ul></nav></div></div><div class=content id=content><p>最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。</p><h2 id=官方安裝-os-工具>官方安裝 OS 工具</h2><p>下載連結: <a href=https://www.raspberrypi.com/software/ target=_blank rel="noopener noreffer">Raspberry Pi OS – Raspberry Pi</a></p><ol><li><p>點選操作系統<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png data-srcset="https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png, https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png 1.5x, https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png title=圖片></p></li><li><p>這邊我選Raspberry Pi OS ，發現今年已經有 64Bit，3代以上版本可以安裝，推薦能用 64Bit 就用 64Bit 。這邊因為我是用舊版，所以就沒有選擇這個。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png data-srcset="https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png, https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png 1.5x, https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png title=圖片><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png data-srcset="https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png, https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png 1.5x, https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png title=圖片></p></li><li><p>插上沒用的 USB<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png data-srcset="https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png, https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png 1.5x, https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png title=圖片></p></li><li><p>可以設定映像檔設定，如: 主機名稱、SSH服務、帳號名稱密碼、Wifi、&mldr;等等相關系統設定都可以在這邊設定。<br>這邊 Host 有一個技巧，當你樹梅派不知道 IP 時候可以 <code>hostname.local</code> 就能連到 IP，這個現在所有 OS 幾乎都支援，這是一個叫mDNS，可以參考: <a href=https://ithelp.ithome.com.tw/articles/10242724 target=_blank rel="noopener noreffer">Day 17 mDNS是啥東西 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a>。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png data-srcset="https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png, https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png 1.5x, https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png title=圖片><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png data-srcset="https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png, https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png 1.5x, https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png title=圖片><br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png data-srcset="https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png, https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png 1.5x, https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png title=圖片></p></li></ol><p>開機看到有幫我擴充空間，以前都要手動作。</p><p>2023年安裝和設定樹梅派就是這麼簡單，但最近樹梅派價錢貴得嚇人&mldr;。</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-04-01</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ data-title="Raspberry Pi 2023 年安裝安裝 OS" data-hashtags=pi><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ data-hashtag=pi><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ data-title="Raspberry Pi 2023 年安裝安裝 OS"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ data-title="Raspberry Pi 2023 年安裝安裝 OS"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ data-title="Raspberry Pi 2023 年安裝安裝 OS" data-image=https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/pi/>pi</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/ class=prev rel=prev title="2023年樹梅派重裝 Flexget"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>2023年樹梅派重裝 Flexget</a>
-<a href=/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/ class=next rel=next title=後端和前端做跨時區網站要注意的事>後端和前端做跨時區網站要注意的事<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Raspberry Pi 2023 年安裝安裝 OS - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Raspberry Pi 2023 年安裝安裝 OS" />
+<meta property="og:description" content="最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-04-01T00:04:51+08:00" />
+<meta property="article:modified_time" content="2023-04-01T00:04:51+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Raspberry Pi 2023 年安裝安裝 OS"/>
+<meta name="twitter:description" content="最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" /><link rel="prev" href="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" /><link rel="next" href="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Raspberry Pi 2023 年安裝安裝 OS",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS\/"
+        },"genre": "posts","keywords": "pi","wordcount":  57 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS\/","datePublished": "2023-04-01T00:04:51+08:00","dateModified": "2023-04-01T00:04:51+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Raspberry Pi 2023 年安裝安裝 OS</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-04-01">2023-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;57 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png, https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png 1.5x, https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png"
+        title="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#官方安裝-os-工具">官方安裝 OS 工具</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。</p>
+<h2 id="官方安裝-os-工具">官方安裝 OS 工具</h2>
+<p>下載連結: <a href="https://www.raspberrypi.com/software/" target="_blank" rel="noopener noreffer ">Raspberry Pi OS – Raspberry Pi</a></p>
+<ol>
+<li>
+<p>點選操作系統<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png, https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png 1.5x, https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226109801-629c5c15-6daf-45e5-981b-24650057fd3d.png"
+        title="圖片" /></p>
+</li>
+<li>
+<p>這邊我選Raspberry Pi OS ，發現今年已經有 64Bit，3代以上版本可以安裝，推薦能用 64Bit 就用 64Bit 。這邊因為我是用舊版，所以就沒有選擇這個。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png, https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png 1.5x, https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226109817-c33c85f4-a2df-4e62-9644-8c76b62436e3.png"
+        title="圖片" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png, https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png 1.5x, https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226109849-400c9cf2-befc-435a-9488-3dcfd1b2124b.png"
+        title="圖片" /></p>
+</li>
+<li>
+<p>插上沒用的 USB<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png, https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png 1.5x, https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226109896-84246959-60ed-4cde-bf86-a2263a527abc.png"
+        title="圖片" /></p>
+</li>
+<li>
+<p>可以設定映像檔設定，如: 主機名稱、SSH服務、帳號名稱密碼、Wifi、&hellip;等等相關系統設定都可以在這邊設定。<br>
+這邊 Host 有一個技巧，當你樹梅派不知道 IP 時候可以 <code>hostname.local</code> 就能連到 IP，這個現在所有 OS 幾乎都支援，這是一個叫mDNS，可以參考: <a href="https://ithelp.ithome.com.tw/articles/10242724" target="_blank" rel="noopener noreffer ">Day 17 mDNS是啥東西 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a>。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png, https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png 1.5x, https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226109959-9030792c-4bdb-41ef-bb00-f27bac2409d1.png"
+        title="圖片" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png, https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png 1.5x, https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226109987-cc090aef-3ffc-486b-a989-1bcd2bb8891c.png"
+        title="圖片" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png, https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png 1.5x, https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/226110686-44f7e203-4126-4fbd-bc89-f0fd3923faec.png"
+        title="圖片" /></p>
+</li>
+</ol>
+<p>開機看到有幫我擴充空間，以前都要手動作。</p>
+<p>2023年安裝和設定樹梅派就是這麼簡單，但最近樹梅派價錢貴得嚇人&hellip;。</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-04-01</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" data-title="Raspberry Pi 2023 年安裝安裝 OS" data-hashtags="pi"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" data-hashtag="pi"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" data-title="Raspberry Pi 2023 年安裝安裝 OS"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" data-title="Raspberry Pi 2023 年安裝安裝 OS"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" data-title="Raspberry Pi 2023 年安裝安裝 OS" data-image="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/pi/">pi</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/2023%E5%B9%B4%E6%A8%B9%E6%A2%85%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" class="prev" rel="prev" title="2023年樹梅派重裝 Flexget"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>2023年樹梅派重裝 Flexget</a>
+            <a href="/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" class="next" rel="next" title="後端和前端做跨時區網站要注意的事">後端和前端做跨時區網站要注意的事<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

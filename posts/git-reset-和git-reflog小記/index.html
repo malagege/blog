@@ -1,26 +1,265 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>git reset 和git reflog小記 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="git reset 和git reflog小記"><meta property="og:description" content="最近在改程式，所以我重新上一個commitgit commit --amend
-但做完發現&mldr;，我忘記做git add xxx了
-當下Ctrl+C都不能中斷
-只能QQ:q!or:qa!"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-11-09T20:37:22+00:00"><meta property="article:modified_time" content="2018-11-09T20:37:22+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="git reset 和git reflog小記"><meta name=twitter:description content="最近在改程式，所以我重新上一個commitgit commit --amend
-但做完發現&mldr;，我忘記做git add xxx了
-當下Ctrl+C都不能中斷
-只能QQ:q!or:qa!"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/><link rel=prev href=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/><link rel=next href=https://malagege.github.io/blog/posts/git%E6%9F%A5%E7%9C%8B%E5%85%A9%E5%80%8Bcommit%E7%95%B0%E5%8B%95%E6%9C%89%E5%93%AA%E4%BA%9B%E6%AA%94%E6%A1%88%E5%92%8C%E6%89%93%E5%8C%85%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"git reset 和git reflog小記","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98\/"},"genre":"posts","keywords":"git","wordcount":101,"url":"https:\/\/malagege.github.io\/blog\/posts\/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98\/","datePublished":"2018-11-09T20:37:22+00:00","dateModified":"2018-11-09T20:37:22+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">git reset 和git reflog小記</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Git/><i class="far fa-folder fa-fw" aria-hidden=true></i>Git</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2018-11-09>2018-11-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;101 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;One minute&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#git-reflog>git reflog</a></li><li><a href=#git-reset>git reset</a></li></ul></nav></div></div><div class=content id=content><p>最近在改程式，所以我重新上一個commit<code>git commit --amend</code><br>但做完發現&mldr;，我忘記做<code>git add xxx</code>了<br>當下<code>Ctrl+C</code>都不能中斷<br>只能QQ<code>:q!</code>or<code>:qa!</code></p><p>這種事當然要找一下解法</p><h2 id=git-reflog>git reflog</h2><p><code>git reflog</code>指令可以看最近刪除commit，之後會被自動刪除<br>可依照commit說明去找上次的內容</p><p>這時候想看reflog內容要怎麼看??<br>這時候要用之前學得融會貫通XD<br><code>git checkout commit_id</code><br>這樣就能切換過去<br>再<code>git diff</code>也能看到東西</p><h2 id=git-reset>git reset</h2><p><code>git reset --hard commit_id</code></p><p>這樣就檢單還原</p><p>git reset &ndash;soft<br>git reset &ndash;mixed<br>不過這指令記不時起來</p><p>2018-11-12<br><a href="https://youtu.be/Hl4tuzqaFJk?t=3843" target=_blank rel="noopener noreffer">大師常來聊-高見龍談 Git 版控之final12345</a><br>剛好最近寫這篇，剛好沒說很熟git reset，腦還中對這個印象沒有運作的概念<br>今天剛好聽知這段，<code>goto,become</code>會比較容易理解</p><p><a href="https://youtu.be/Hl4tuzqaFJk?t=5999" target=_blank rel="noopener noreffer">大師常來聊-高見龍談 Git 版控之final12345 - rebase合併</a></p><p><a href="https://youtu.be/Hl4tuzqaFJk?t=9141" target=_blank rel="noopener noreffer">大師常來聊-高見龍談 Git 版控之final12345 - git flow</a></p><p><a href="https://youtu.be/Hl4tuzqaFJk?t=7509" target=_blank rel="noopener noreffer">大師常來聊-高見龍談 Git 版控之final12345 - git 沒模組化很容易衝突</a><br>在沒做模組拆分很容易發生衝突，如:index.html</p><p><a href="https://youtu.be/Hl4tuzqaFJk?t=7887" target=_blank rel="noopener noreffer">大師常來聊-高見龍談 Git 版控之final12345 - git checkout file 跟 git reset HEAD &ndash;mixed 差別</a></p><p><a href="https://youtu.be/Hl4tuzqaFJk?t=8806" target=_blank rel="noopener noreffer">大師常來聊-高見龍談 Git 版控之final12345 - git PR 遇到衝突</a></p><p>其實下面兩個問題是我問題，希望之後實務上會用git更順利<br>基本上有基礎，再看那個直播會更容易了解<br>會看那個直播是剛好有買<code>為了你自己學git</code>，覺得書中內容不錯<br>剛好參加Kuro研討會順便去天龍書店逛的<br>好書!!就直接買了XD</p><p>FB有看到簡易了解圖示<br><a href="https://www.facebook.com/photo.php?fbid=2418041491555969&amp;set=gm.1944599088922083&amp;type=3&amp;theater&amp;ifg=1" target=_blank rel="noopener noreffer">謝孟哲 - [git reset &mldr;] 問題很簡單，有辦法把 cache 的內容寫回 working directory 嗎？&mldr;</a></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=./1.jpg data-srcset="./1.jpg, ./1.jpg 1.5x, ./1.jpg 2x" data-sizes=auto alt=./1.jpg title=簡易圖示></p><p>一直以為<code>git reflog</code>很難，一直沒有跨出這一步&mldr;<br>但是今天遇到這個狀況，卻不小心邁進一大步XD</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2018-11-09</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/ data-title="git reset 和git reflog小記" data-hashtags=git><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/ data-hashtag=git><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/ data-title="git reset 和git reflog小記"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/ data-title="git reset 和git reflog小記"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/ data-title="git reset 和git reflog小記"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/git/>git</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/ class=prev rel=prev title=使用docker架設db2環境><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>使用docker架設db2環境</a>
-<a href=/blog/posts/git%E6%9F%A5%E7%9C%8B%E5%85%A9%E5%80%8Bcommit%E7%95%B0%E5%8B%95%E6%9C%89%E5%93%AA%E4%BA%9B%E6%AA%94%E6%A1%88%E5%92%8C%E6%89%93%E5%8C%85%E6%96%B9%E6%B3%95/ class=next rel=next title=git查看兩個commit異動有哪些檔案和打包方法>git查看兩個commit異動有哪些檔案和打包方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>git reset 和git reflog小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="git reset 和git reflog小記" />
+<meta property="og:description" content="最近在改程式，所以我重新上一個commitgit commit --amend
+但做完發現&hellip;，我忘記做git add xxx了
+當下Ctrl&#43;C都不能中斷
+只能QQ:q!or:qa!" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-11-09T20:37:22+00:00" />
+<meta property="article:modified_time" content="2018-11-09T20:37:22+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="git reset 和git reflog小記"/>
+<meta name="twitter:description" content="最近在改程式，所以我重新上一個commitgit commit --amend
+但做完發現&hellip;，我忘記做git add xxx了
+當下Ctrl&#43;C都不能中斷
+只能QQ:q!or:qa!"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" /><link rel="next" href="https://malagege.github.io/blog/posts/git%E6%9F%A5%E7%9C%8B%E5%85%A9%E5%80%8Bcommit%E7%95%B0%E5%8B%95%E6%9C%89%E5%93%AA%E4%BA%9B%E6%AA%94%E6%A1%88%E5%92%8C%E6%89%93%E5%8C%85%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "git reset 和git reflog小記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98\/"
+        },"genre": "posts","keywords": "git","wordcount":  101 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98\/","datePublished": "2018-11-09T20:37:22+00:00","dateModified": "2018-11-09T20:37:22+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">git reset 和git reflog小記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Git/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Git</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-11-09">2018-11-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;101 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#git-reflog">git reflog</a></li>
+    <li><a href="#git-reset">git reset</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在改程式，所以我重新上一個commit<code>git commit --amend</code><br>
+但做完發現&hellip;，我忘記做<code>git add xxx</code>了<br>
+當下<code>Ctrl+C</code>都不能中斷<br>
+只能QQ<code>:q!</code>or<code>:qa!</code></p>
+<p>這種事當然要找一下解法</p>
+<h2 id="git-reflog">git reflog</h2>
+<p><code>git reflog</code>指令可以看最近刪除commit，之後會被自動刪除<br>
+可依照commit說明去找上次的內容</p>
+<p>這時候想看reflog內容要怎麼看??<br>
+這時候要用之前學得融會貫通XD<br>
+<code>git checkout commit_id</code><br>
+這樣就能切換過去<br>
+再<code>git diff</code>也能看到東西</p>
+<h2 id="git-reset">git reset</h2>
+<p><code>git reset --hard commit_id</code></p>
+<p>這樣就檢單還原</p>
+<p>git reset &ndash;soft<br>
+git reset &ndash;mixed<br>
+不過這指令記不時起來</p>
+<p>2018-11-12<br>
+<a href="https://youtu.be/Hl4tuzqaFJk?t=3843" target="_blank" rel="noopener noreffer ">大師常來聊-高見龍談 Git 版控之final12345</a><br>
+剛好最近寫這篇，剛好沒說很熟git reset，腦還中對這個印象沒有運作的概念<br>
+今天剛好聽知這段，<code>goto,become</code>會比較容易理解</p>
+<p><a href="https://youtu.be/Hl4tuzqaFJk?t=5999" target="_blank" rel="noopener noreffer ">大師常來聊-高見龍談 Git 版控之final12345 - rebase合併</a></p>
+<p><a href="https://youtu.be/Hl4tuzqaFJk?t=9141" target="_blank" rel="noopener noreffer ">大師常來聊-高見龍談 Git 版控之final12345 - git flow </a></p>
+<p><a href="https://youtu.be/Hl4tuzqaFJk?t=7509" target="_blank" rel="noopener noreffer ">大師常來聊-高見龍談 Git 版控之final12345 - git 沒模組化很容易衝突</a><br>
+在沒做模組拆分很容易發生衝突，如:index.html</p>
+<p><a href="https://youtu.be/Hl4tuzqaFJk?t=7887" target="_blank" rel="noopener noreffer ">大師常來聊-高見龍談 Git 版控之final12345 - git checkout file 跟 git reset HEAD &ndash;mixed 差別</a></p>
+<p><a href="https://youtu.be/Hl4tuzqaFJk?t=8806" target="_blank" rel="noopener noreffer ">大師常來聊-高見龍談 Git 版控之final12345 - git PR 遇到衝突</a></p>
+<p>其實下面兩個問題是我問題，希望之後實務上會用git更順利<br>
+基本上有基礎，再看那個直播會更容易了解<br>
+會看那個直播是剛好有買<code>為了你自己學git</code>，覺得書中內容不錯<br>
+剛好參加Kuro研討會順便去天龍書店逛的<br>
+好書!!就直接買了XD</p>
+<p>FB有看到簡易了解圖示<br>
+<a href="https://www.facebook.com/photo.php?fbid=2418041491555969&amp;set=gm.1944599088922083&amp;type=3&amp;theater&amp;ifg=1" target="_blank" rel="noopener noreffer ">謝孟哲 - [git reset &hellip;] 問題很簡單，有辦法把 cache 的內容寫回 working directory 嗎？&hellip;</a></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="./1.jpg"
+        data-srcset="./1.jpg, ./1.jpg 1.5x, ./1.jpg 2x"
+        data-sizes="auto"
+        alt="./1.jpg"
+        title="簡易圖示" /></p>
+<p>一直以為<code>git reflog</code>很難，一直沒有跨出這一步&hellip;<br>
+但是今天遇到這個狀況，卻不小心邁進一大步XD</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-11-09</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" data-title="git reset 和git reflog小記" data-hashtags="git"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" data-hashtag="git"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" data-title="git reset 和git reflog小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" data-title="git reset 和git reflog小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/git-reset-%E5%92%8Cgit-reflog%E5%B0%8F%E8%A8%98/" data-title="git reset 和git reflog小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/git/">git</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" class="prev" rel="prev" title="使用docker架設db2環境"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>使用docker架設db2環境</a>
+            <a href="/blog/posts/git%E6%9F%A5%E7%9C%8B%E5%85%A9%E5%80%8Bcommit%E7%95%B0%E5%8B%95%E6%9C%89%E5%93%AA%E4%BA%9B%E6%AA%94%E6%A1%88%E5%92%8C%E6%89%93%E5%8C%85%E6%96%B9%E6%B3%95/" class="next" rel="next" title="git查看兩個commit異動有哪些檔案和打包方法">git查看兩個commit異動有哪些檔案和打包方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

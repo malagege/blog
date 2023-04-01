@@ -1,244 +1,482 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>用MySQL抓多列取起始時間與結束時間用法 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="用MySQL抓多列取起始時間與結束時間用法"><meta property="og:description" content="最近有專案要做，舊有的table記錄會員展期時間都在不同列
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>用MySQL抓多列取起始時間與結束時間用法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="用MySQL抓多列取起始時間與結束時間用法" />
+<meta property="og:description" content="最近有專案要做，舊有的table記錄會員展期時間都在不同列
 但是同時抓不同列的頭尾，要怎麼抓聽
-前一間公司有做過切帳，但是&mldr;那時候切帳有頭尾分開
+前一間公司有做過切帳，但是&hellip;那時候切帳有頭尾分開
 這次是連在一起
 同尾跟上一個不連續代表有展期是分開的
-就想想這張table有什麼方法可以做到"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-05-25T23:27:00+00:00"><meta property="article:modified_time" content="2018-05-25T23:27:00+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="用MySQL抓多列取起始時間與結束時間用法"><meta name=twitter:description content="最近有專案要做，舊有的table記錄會員展期時間都在不同列
+就想想這張table有什麼方法可以做到" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-05-25T23:27:00+00:00" />
+<meta property="article:modified_time" content="2018-05-25T23:27:00+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="用MySQL抓多列取起始時間與結束時間用法"/>
+<meta name="twitter:description" content="最近有專案要做，舊有的table記錄會員展期時間都在不同列
 但是同時抓不同列的頭尾，要怎麼抓聽
-前一間公司有做過切帳，但是&mldr;那時候切帳有頭尾分開
+前一間公司有做過切帳，但是&hellip;那時候切帳有頭尾分開
 這次是連在一起
 同尾跟上一個不連續代表有展期是分開的
-就想想這張table有什麼方法可以做到"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/Android%E6%89%8B%E6%A9%9F%E9%9B%BB%E6%BA%90%E9%8D%B5%E5%A3%9E%E6%8E%89%E9%96%8B%E6%A9%9F%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/MySQL%E6%8A%93%E8%B3%87%E6%96%99%E8%A8%AD%E5%AE%9A%E5%AD%97%E4%B8%B2%E6%AC%84%E4%BD%8D%E7%82%BA%E7%B4%A2%E5%BC%95%E6%9F%A5%E8%A9%A2%E5%84%AA%E5%8C%96%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"用MySQL抓多列取起始時間與結束時間用法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95\/"},"genre":"posts","keywords":"sql, MySQL","wordcount":501,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95\/","datePublished":"2018-05-25T23:27:00+00:00","dateModified":"2018-05-25T23:27:00+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">用MySQL抓多列取起始時間與結束時間用法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/MySQL/><i class="far fa-folder fa-fw" aria-hidden=true></i>MySQL</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2018-05-25>2018-05-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;501 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;3 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents></nav></div></div><div class=content id=content><p>最近有專案要做，舊有的table記錄會員展期時間都在不同列<br>但是同時抓不同列的頭尾，要怎麼抓聽<br>前一間公司有做過切帳，但是&mldr;那時候切帳有頭尾分開<br>這次是連在一起<br>同尾跟上一個不連續代表有展期是分開的<br>就想想這張table有什麼方法可以做到</p><p>想了一連串方法<br>用union all把starttime和endtime欄位串起來<br>做<code>count()</code>做數量加總<br>having過濾需要長度1的<br>代表</p><ul><li>基數行是展期開頭</li><li>偶數行是展期結束</li></ul><p>網路爬了一下MySQL要怎麼做Rank<br><a href=https://blog.csdn.net/tjuyanming/article/details/77825875 target=_blank rel="noopener noreffer">[数据库与SQL] - No.5 MYSQL实现 RANK函数排序功能 - CSDN博客</a><br><a href=https://ithelp.ithome.com.tw/questions/10069933 target=_blank rel="noopener noreffer">MySQL 求名次的問題 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p><p>接下來序列都做好了，<br>原本想用1,0,1,0來做續接的方法<br>但是都失敗了</p><p>不過最後想到一個方式串接<br>最近看「SQL語法範例辭典」P.516 Between ,一個資料表當做不同資料表<br>實例都還滿有趣的<br>這個跟上一間切帳有種同工之妙</p><p>最後可以在用user跟這張表用between串起來&mldr;<br>不過用這個東西SQL可能特別長&mldr;.</p><p><code>where aa.rank+1 = bb.Rank AND aa.Rank%2 = 1;</code><br>aa.rank+1 = bb.rank<br>rank對2對3，我一直記錯<br>(2) + 1 = 3</p><p>把偶數行用消失，就rank % 2 = 1就好了</p><p>最後怕效能，所以在MySQL索引加入uid為index<br>但是竟然還是full scan<br><del>這又是另外一個故事了XD</del><br>最後用join方式解決出問題(解法跟上次MySQL IN解決方法差不多)<br>有空再開筆記</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>create</span><span class=w> </span><span class=k>table</span><span class=w> </span><span class=n>test_tb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>id</span><span class=w> </span><span class=nb>int</span><span class=w> </span><span class=n>auto_increment</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=k>primary</span><span class=w> </span><span class=k>key</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>uid</span><span class=w> </span><span class=nb>varchar</span><span class=p>(</span><span class=mi>10</span><span class=p>)</span><span class=w> </span><span class=k>null</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>starttime</span><span class=w> </span><span class=nb>int</span><span class=w> </span><span class=k>null</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>endtime</span><span class=w> </span><span class=nb>int</span><span class=w> </span><span class=k>null</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>comment</span><span class=w> </span><span class=s1>&#39;test&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>create</span><span class=w> </span><span class=k>index</span><span class=w> </span><span class=n>test_tb_uid_index</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>on</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=p>(</span><span class=n>uid</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- TRUNCATE  test_tb;
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;a&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-01-01&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-02-02&#39;</span><span class=p>));</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;a&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-02-02&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-03-01&#39;</span><span class=p>));</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;a&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-04-01&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-07-01&#39;</span><span class=p>));</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;a&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-07-01&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-09-01&#39;</span><span class=p>));</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;b&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-01-01&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-02-01&#39;</span><span class=p>));</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;b&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-03-01&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-04-01&#39;</span><span class=p>));</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w>  </span><span class=n>test_tb</span><span class=p>(</span><span class=n>uid</span><span class=p>,</span><span class=n>starttime</span><span class=p>,</span><span class=n>endtime</span><span class=p>)</span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;b&#39;</span><span class=p>,</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-04-01&#39;</span><span class=p>),</span><span class=n>unix_timestamp</span><span class=p>(</span><span class=s1>&#39;2013-05-01&#39;</span><span class=p>));</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span><span class=lnt>48
-</span><span class=lnt>49
-</span><span class=lnt>50
-</span><span class=lnt>51
-</span><span class=lnt>52
-</span><span class=lnt>53
-</span><span class=lnt>54
-</span><span class=lnt>55
-</span><span class=lnt>56
-</span><span class=lnt>57
-</span><span class=lnt>58
-</span><span class=lnt>59
-</span><span class=lnt>60
-</span><span class=lnt>61
-</span><span class=lnt>62
-</span><span class=lnt>63
-</span><span class=lnt>64
-</span><span class=lnt>65
-</span><span class=lnt>66
-</span><span class=lnt>67
-</span><span class=lnt>68
-</span><span class=lnt>69
-</span><span class=lnt>70
-</span><span class=lnt>71
-</span><span class=lnt>72
-</span><span class=lnt>73
-</span><span class=lnt>74
-</span><span class=lnt>75
-</span><span class=lnt>76
-</span><span class=lnt>77
-</span><span class=lnt>78
-</span><span class=lnt>79
-</span><span class=lnt>80
-</span><span class=lnt>81
-</span><span class=lnt>82
-</span><span class=lnt>83
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- query
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>select</span><span class=w> </span><span class=o>*</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>from</span><span class=w> </span><span class=n>test_tb</span><span class=p>;;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=o>@</span><span class=n>rownum</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=s1>&#39;Rank&#39;</span><span class=p>,</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>from_unixtime</span><span class=p>(</span><span class=n>time</span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>select</span><span class=w> </span><span class=n>starttime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>from</span><span class=w> </span><span class=n>test_tb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>WHERE</span><span class=w> </span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>union</span><span class=w> </span><span class=k>ALL</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>SELECT</span><span class=w> </span><span class=n>endtime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>FROM</span><span class=w> </span><span class=n>test_tb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>where</span><span class=w> </span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=p>)</span><span class=w>  </span><span class=n>a</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>group</span><span class=w> </span><span class=k>by</span><span class=w> </span><span class=n>time</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>HAVING</span><span class=w>  </span><span class=k>count</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=p>)</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>)</span><span class=w> </span><span class=n>r</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=n>aa</span><span class=p>,(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum1</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=o>@</span><span class=n>rownum1</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=s1>&#39;Rank&#39;</span><span class=p>,</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>from_unixtime</span><span class=p>(</span><span class=n>time</span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>select</span><span class=w> </span><span class=n>starttime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>from</span><span class=w> </span><span class=n>test_tb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>WHERE</span><span class=w> </span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>union</span><span class=w> </span><span class=k>ALL</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>SELECT</span><span class=w> </span><span class=n>endtime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>FROM</span><span class=w> </span><span class=n>test_tb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>where</span><span class=w> </span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>)</span><span class=w>  </span><span class=n>a</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>group</span><span class=w> </span><span class=k>by</span><span class=w> </span><span class=n>time</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>HAVING</span><span class=w>  </span><span class=k>count</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>)</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum1</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>)</span><span class=w> </span><span class=n>r</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=p>)</span><span class=w> </span><span class=n>bb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>where</span><span class=w> </span><span class=n>aa</span><span class=p>.</span><span class=n>rank</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>bb</span><span class=p>.</span><span class=n>Rank</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>aa</span><span class=p>.</span><span class=n>Rank</span><span class=o>%</span><span class=mi>2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>EXPLAIN</span><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=o>@</span><span class=n>rownum</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=s1>&#39;Rank&#39;</span><span class=p>,</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>from_unixtime</span><span class=p>(</span><span class=n>time</span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>select</span><span class=w> </span><span class=n>i</span><span class=p>.</span><span class=n>starttime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>from</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>inner</span><span class=w> </span><span class=k>join</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>ii</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>WHERE</span><span class=w> </span><span class=n>ii</span><span class=p>.</span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>union</span><span class=w> </span><span class=k>ALL</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>SELECT</span><span class=w> </span><span class=n>i</span><span class=p>.</span><span class=n>endtime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>FROM</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>inner</span><span class=w> </span><span class=k>join</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>ii</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>where</span><span class=w> </span><span class=n>ii</span><span class=p>.</span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=p>)</span><span class=w>  </span><span class=n>a</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>group</span><span class=w> </span><span class=k>by</span><span class=w> </span><span class=n>time</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>HAVING</span><span class=w>  </span><span class=k>count</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=p>)</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>)</span><span class=w> </span><span class=n>r</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=n>aa</span><span class=p>,(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum1</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=o>@</span><span class=n>rownum1</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=s1>&#39;Rank&#39;</span><span class=p>,</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>from_unixtime</span><span class=p>(</span><span class=n>time</span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>FROM</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>(</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>select</span><span class=w> </span><span class=n>i</span><span class=p>.</span><span class=n>starttime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>from</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>inner</span><span class=w> </span><span class=k>join</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>ii</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>WHERE</span><span class=w> </span><span class=n>ii</span><span class=p>.</span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>union</span><span class=w> </span><span class=k>ALL</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>SELECT</span><span class=w> </span><span class=n>i</span><span class=p>.</span><span class=n>endtime</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s1>&#39;time&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>FROM</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=k>inner</span><span class=w> </span><span class=k>join</span><span class=w> </span><span class=n>test_tb</span><span class=w> </span><span class=n>ii</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=k>where</span><span class=w> </span><span class=n>ii</span><span class=p>.</span><span class=n>uid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;a&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>)</span><span class=w>  </span><span class=n>a</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>group</span><span class=w> </span><span class=k>by</span><span class=w> </span><span class=n>time</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>HAVING</span><span class=w>  </span><span class=k>count</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=p>)</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=o>@</span><span class=n>rownum1</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>)</span><span class=w> </span><span class=n>r</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=p>)</span><span class=w> </span><span class=n>bb</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>where</span><span class=w> </span><span class=n>aa</span><span class=p>.</span><span class=n>rank</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>bb</span><span class=p>.</span><span class=n>Rank</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>aa</span><span class=p>.</span><span class=n>Rank</span><span class=o>%</span><span class=mi>2</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p><a href=http://sqlfiddle.com/#!9/eb812b/3 target=_blank rel="noopener noreffer">SQL Fiddle</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2018-05-25</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/ data-title=用MySQL抓多列取起始時間與結束時間用法 data-hashtags=sql,MySQL><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/ data-hashtag=sql><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/ data-title=用MySQL抓多列取起始時間與結束時間用法><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/ data-title=用MySQL抓多列取起始時間與結束時間用法><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/ data-title=用MySQL抓多列取起始時間與結束時間用法><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/sql/>sql</a>,&nbsp;<a href=/blog/tags/mysql/>mysql</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Android%E6%89%8B%E6%A9%9F%E9%9B%BB%E6%BA%90%E9%8D%B5%E5%A3%9E%E6%8E%89%E9%96%8B%E6%A9%9F%E6%96%B9%E6%B3%95/ class=prev rel=prev title=Android手機電源鍵壞掉，開機方法><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Android手機電源鍵壞掉，開機方法</a>
-<a href=/blog/posts/MySQL%E6%8A%93%E8%B3%87%E6%96%99%E8%A8%AD%E5%AE%9A%E5%AD%97%E4%B8%B2%E6%AC%84%E4%BD%8D%E7%82%BA%E7%B4%A2%E5%BC%95%E6%9F%A5%E8%A9%A2%E5%84%AA%E5%8C%96%E6%96%B9%E6%B3%95/ class=next rel=next title=MySQL抓資料設定字串欄位為索引查詢優化方法>MySQL抓資料設定字串欄位為索引查詢優化方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+就想想這張table有什麼方法可以做到"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Android%E6%89%8B%E6%A9%9F%E9%9B%BB%E6%BA%90%E9%8D%B5%E5%A3%9E%E6%8E%89%E9%96%8B%E6%A9%9F%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/MySQL%E6%8A%93%E8%B3%87%E6%96%99%E8%A8%AD%E5%AE%9A%E5%AD%97%E4%B8%B2%E6%AC%84%E4%BD%8D%E7%82%BA%E7%B4%A2%E5%BC%95%E6%9F%A5%E8%A9%A2%E5%84%AA%E5%8C%96%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "用MySQL抓多列取起始時間與結束時間用法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95\/"
+        },"genre": "posts","keywords": "sql, MySQL","wordcount":  501 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95\/","datePublished": "2018-05-25T23:27:00+00:00","dateModified": "2018-05-25T23:27:00+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">用MySQL抓多列取起始時間與結束時間用法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/MySQL/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>MySQL</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-05-25">2018-05-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;501 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
+            </div><div class="content" id="content"><p>最近有專案要做，舊有的table記錄會員展期時間都在不同列<br>
+但是同時抓不同列的頭尾，要怎麼抓聽<br>
+前一間公司有做過切帳，但是&hellip;那時候切帳有頭尾分開<br>
+這次是連在一起<br>
+同尾跟上一個不連續代表有展期是分開的<br>
+就想想這張table有什麼方法可以做到</p>
+<p>想了一連串方法<br>
+用union all把starttime和endtime欄位串起來<br>
+做<code>count()</code>做數量加總<br>
+having過濾需要長度1的<br>
+代表</p>
+<ul>
+<li>基數行是展期開頭</li>
+<li>偶數行是展期結束</li>
+</ul>
+<p>網路爬了一下MySQL要怎麼做Rank<br>
+<a href="https://blog.csdn.net/tjuyanming/article/details/77825875" target="_blank" rel="noopener noreffer ">[数据库与SQL] - No.5 MYSQL实现 RANK函数排序功能 - CSDN博客</a><br>
+<a href="https://ithelp.ithome.com.tw/questions/10069933" target="_blank" rel="noopener noreffer ">MySQL 求名次的問題 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p>
+<p>接下來序列都做好了，<br>
+原本想用1,0,1,0來做續接的方法<br>
+但是都失敗了</p>
+<p>不過最後想到一個方式串接<br>
+最近看「SQL語法範例辭典」P.516 Between ,一個資料表當做不同資料表<br>
+實例都還滿有趣的<br>
+這個跟上一間切帳有種同工之妙</p>
+<p>最後可以在用user跟這張表用between串起來&hellip;<br>
+不過用這個東西SQL可能特別長&hellip;.</p>
+<p><code>where aa.rank+1 = bb.Rank AND aa.Rank%2 = 1;</code><br>
+aa.rank+1 = bb.rank<br>
+rank對2對3，我一直記錯<br>
+(2) + 1 = 3</p>
+<p>把偶數行用消失，就rank % 2 = 1就好了</p>
+<p>最後怕效能，所以在MySQL索引加入uid為index<br>
+但是竟然還是full scan<br>
+<del>這又是另外一個故事了XD</del><br>
+最後用join方式解決出問題(解法跟上次MySQL IN解決方法差不多)<br>
+有空再開筆記</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">create</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">test_tb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">id</span><span class="w"> </span><span class="nb">int</span><span class="w"> </span><span class="n">auto_increment</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">		</span><span class="k">primary</span><span class="w"> </span><span class="k">key</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">uid</span><span class="w"> </span><span class="nb">varchar</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="k">null</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">starttime</span><span class="w"> </span><span class="nb">int</span><span class="w"> </span><span class="k">null</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">endtime</span><span class="w"> </span><span class="nb">int</span><span class="w"> </span><span class="k">null</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">comment</span><span class="w"> </span><span class="s1">&#39;test&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">create</span><span class="w"> </span><span class="k">index</span><span class="w"> </span><span class="n">test_tb_uid_index</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="k">on</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="p">(</span><span class="n">uid</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- TRUNCATE  test_tb;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-01-01&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-02-02&#39;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-02-02&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-03-01&#39;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-04-01&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-07-01&#39;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-07-01&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-09-01&#39;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-01-01&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-02-01&#39;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-03-01&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-04-01&#39;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w">  </span><span class="n">test_tb</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span><span class="n">starttime</span><span class="p">,</span><span class="n">endtime</span><span class="p">)</span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-04-01&#39;</span><span class="p">),</span><span class="n">unix_timestamp</span><span class="p">(</span><span class="s1">&#39;2013-05-01&#39;</span><span class="p">));</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">-- query
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">from</span><span class="w"> </span><span class="n">test_tb</span><span class="p">;;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="o">@</span><span class="n">rownum</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s1">&#39;Rank&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">from_unixtime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">select</span><span class="w"> </span><span class="n">starttime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">from</span><span class="w"> </span><span class="n">test_tb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">WHERE</span><span class="w"> </span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">union</span><span class="w"> </span><span class="k">ALL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">SELECT</span><span class="w"> </span><span class="n">endtime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">FROM</span><span class="w"> </span><span class="n">test_tb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">where</span><span class="w"> </span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">)</span><span class="w">  </span><span class="n">a</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">time</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">HAVING</span><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">)</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">r</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">aa</span><span class="p">,(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum1</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="o">@</span><span class="n">rownum1</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s1">&#39;Rank&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">from_unixtime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">select</span><span class="w"> </span><span class="n">starttime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">from</span><span class="w"> </span><span class="n">test_tb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">WHERE</span><span class="w"> </span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">union</span><span class="w"> </span><span class="k">ALL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">SELECT</span><span class="w"> </span><span class="n">endtime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">FROM</span><span class="w"> </span><span class="n">test_tb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">where</span><span class="w"> </span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">)</span><span class="w">  </span><span class="n">a</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">time</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">HAVING</span><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">)</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum1</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">r</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="p">)</span><span class="w"> </span><span class="n">bb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">aa</span><span class="p">.</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bb</span><span class="p">.</span><span class="n">Rank</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">aa</span><span class="p">.</span><span class="n">Rank</span><span class="o">%</span><span class="mi">2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">EXPLAIN</span><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="o">@</span><span class="n">rownum</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s1">&#39;Rank&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">from_unixtime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">select</span><span class="w"> </span><span class="n">i</span><span class="p">.</span><span class="n">starttime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">from</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="k">inner</span><span class="w"> </span><span class="k">join</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">ii</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ii</span><span class="p">.</span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">union</span><span class="w"> </span><span class="k">ALL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">SELECT</span><span class="w"> </span><span class="n">i</span><span class="p">.</span><span class="n">endtime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">FROM</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="k">inner</span><span class="w"> </span><span class="k">join</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">ii</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">where</span><span class="w"> </span><span class="n">ii</span><span class="p">.</span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">)</span><span class="w">  </span><span class="n">a</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">time</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">HAVING</span><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">)</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">r</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">aa</span><span class="p">,(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum1</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="o">@</span><span class="n">rownum1</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s1">&#39;Rank&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="n">from_unixtime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">FROM</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">select</span><span class="w"> </span><span class="n">i</span><span class="p">.</span><span class="n">starttime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">from</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="k">inner</span><span class="w"> </span><span class="k">join</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">ii</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">WHERE</span><span class="w"> </span><span class="n">ii</span><span class="p">.</span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">union</span><span class="w"> </span><span class="k">ALL</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">SELECT</span><span class="w"> </span><span class="n">i</span><span class="p">.</span><span class="n">endtime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s1">&#39;time&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">FROM</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="k">inner</span><span class="w"> </span><span class="k">join</span><span class="w"> </span><span class="n">test_tb</span><span class="w"> </span><span class="n">ii</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">              </span><span class="k">where</span><span class="w"> </span><span class="n">ii</span><span class="p">.</span><span class="n">uid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;a&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">)</span><span class="w">  </span><span class="n">a</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">time</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="k">HAVING</span><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">         </span><span class="p">)</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="k">SELECT</span><span class="w"> </span><span class="o">@</span><span class="n">rownum1</span><span class="w"> </span><span class="p">:</span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">r</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="p">)</span><span class="w"> </span><span class="n">bb</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">aa</span><span class="p">.</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bb</span><span class="p">.</span><span class="n">Rank</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">aa</span><span class="p">.</span><span class="n">Rank</span><span class="o">%</span><span class="mi">2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="http://sqlfiddle.com/#!9/eb812b/3" target="_blank" rel="noopener noreffer ">SQL Fiddle</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-05-25</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" data-title="用MySQL抓多列取起始時間與結束時間用法" data-hashtags="sql,MySQL"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" data-hashtag="sql"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" data-title="用MySQL抓多列取起始時間與結束時間用法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" data-title="用MySQL抓多列取起始時間與結束時間用法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E7%94%A8MySQL%E6%8A%93%E5%A4%9A%E6%AC%84%E5%8F%96%E8%B5%B7%E5%A7%8B%E6%99%82%E9%96%93%E8%88%87%E7%B5%90%E6%9D%9F%E6%99%82%E9%96%93%E7%94%A8%E6%B3%95/" data-title="用MySQL抓多列取起始時間與結束時間用法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/sql/">sql</a>,&nbsp;<a href="/blog/tags/mysql/">mysql</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Android%E6%89%8B%E6%A9%9F%E9%9B%BB%E6%BA%90%E9%8D%B5%E5%A3%9E%E6%8E%89%E9%96%8B%E6%A9%9F%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="Android手機電源鍵壞掉，開機方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Android手機電源鍵壞掉，開機方法</a>
+            <a href="/blog/posts/MySQL%E6%8A%93%E8%B3%87%E6%96%99%E8%A8%AD%E5%AE%9A%E5%AD%97%E4%B8%B2%E6%AC%84%E4%BD%8D%E7%82%BA%E7%B4%A2%E5%BC%95%E6%9F%A5%E8%A9%A2%E5%84%AA%E5%8C%96%E6%96%B9%E6%B3%95/" class="next" rel="next" title="MySQL抓資料設定字串欄位為索引查詢優化方法">MySQL抓資料設定字串欄位為索引查詢優化方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

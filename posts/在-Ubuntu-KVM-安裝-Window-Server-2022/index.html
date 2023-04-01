@@ -1,78 +1,536 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>在 Ubuntu KVM 安裝 Window Server 2022 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="在 Ubuntu KVM 安裝 Window Server 2022"><meta property="og:description" content="最近一台舊筆電閒置，因為最近跳去寫 Net Core，公司伺服器所有環境幾乎都是 Windows，因為我也不太熟，想測試 Windows Server 環境，最近找一些方案執行，順便紀錄。可以透過 VNC 遠端操作 VM。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-12-28T00:20:25+08:00"><meta property="article:modified_time" content="2022-12-28T00:20:25+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="在 Ubuntu KVM 安裝 Window Server 2022"><meta name=twitter:description content="最近一台舊筆電閒置，因為最近跳去寫 Net Core，公司伺服器所有環境幾乎都是 Windows，因為我也不太熟，想測試 Windows Server 環境，最近找一些方案執行，順便紀錄。可以透過 VNC 遠端操作 VM。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/><link rel=prev href=https://malagege.github.io/blog/posts/Ubuntu-20.04-%E5%85%A7%E5%BB%BA%E9%81%A0%E7%AB%AF%E6%96%B9%E6%B3%95/><link rel=next href=https://malagege.github.io/blog/posts/Linux-%E9%98%B2%E6%AD%A2%E7%A8%8B%E5%BC%8F%E5%90%8C%E6%99%82%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"在 Ubuntu KVM 安裝 Window Server 2022","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022\/"},"genre":"posts","keywords":"ubuntu, linux, windows","wordcount":312,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022\/","datePublished":"2022-12-28T00:20:25+08:00","dateModified":"2022-12-28T00:20:25+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在 Ubuntu KVM 安裝 Window Server 2022</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2022-12-28>2022-12-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;312 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png data-srcset="https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png, https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png 1.5x, https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png title=https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#ubuntu-vnc-配置>Ubuntu VNC 配置</a></li><li><a href=#kvm-安裝與事前準備>KVM 安裝與事前準備</a></li><li><a href=#安裝-window-server-2022>安裝 Window Server 2022</a></li><li><a href=#kvm-使用技巧>KVM 使用技巧</a></li><li><a href=#小記-command>小記 Command</a></li><li><a href=#multipass-驅動在-libvirt>Multipass 驅動在 libvirt</a></li><li><a href=#其他>其他</a></li></ul></nav></div></div><div class=content id=content><p>最近一台舊筆電閒置，因為最近跳去寫 Net Core，公司伺服器所有環境幾乎都是 Windows，因為我也不太熟，想測試 Windows Server 環境，最近找一些方案執行，順便紀錄。可以透過 VNC 遠端操作 VM。</p><h2 id=ubuntu-vnc-配置>Ubuntu VNC 配置</h2><p><a href=https://malagege.github.io/blog/posts/Ubuntu-20.04-%E5%85%A7%E5%BB%BA%E9%81%A0%E7%AB%AF%E6%96%B9%E6%B3%95/ target=_blank rel="noopener noreffer">這邊</a>有特別紀錄。我不是用一般網路上找到的方式，這邊是用原生方法，成功機率很高，但缺點要開著螢幕。</p><p><a href=https://www.cnblogs.com/tkqq000/p/15396860.html target=_blank rel="noopener noreffer">VNC server配置 - 珂珂keo - 博客园</a></p><h2 id=kvm-安裝與事前準備>KVM 安裝與事前準備</h2><p>以下教學都參考<a href="https://www.youtube.com/watch?v=AzaL06GlDhA" target=_blank rel="noopener noreffer">(28) Install Windows Server 2022 in a nested KVM environment on Ubuntu 20.04 with standard NAT. - YouTube</a>教學整理過程</p><blockquote><p>You can download the Windows Server 2022 from the official Microsoft Evaluation Download site. You need to enter you information do download the eval.<br><a href=https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022 target=_blank rel="noopener noreffer">https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022</a><br>You can download the virtual IO drivers from here.<br><a href=https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso target=_blank rel="noopener noreffer">https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso</a></p></blockquote><p>ISO 載點可以去官方找<a href=https://www.microsoft.com/zh-tw/evalcenter/download-windows-server-2022 target=_blank rel="noopener noreffer">Windows Server 2022 | Microsoft 評估中心</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo apt -y install bridge-utils cpu-checker libvirt-clients libvirt-daemon qemu qemu-kvm virt-manager
-</span></span></code></pre></td></tr></table></div></div><p>檢查</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo kvm-ok
-</span></span></code></pre></td></tr></table></div></div><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/btUbqi3.png data-srcset="https://i.imgur.com/btUbqi3.png, https://i.imgur.com/btUbqi3.png 1.5x, https://i.imgur.com/btUbqi3.png 2x" data-sizes=auto alt=https://i.imgur.com/btUbqi3.png title=https://i.imgur.com/btUbqi3.png></p><p>設定權限，不然使用工具可能打不開，以下指令打完請重開機(理論上登出再登入就可以了)。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo adduser &lt;username&gt; kvm
-</span></span><span class=line><span class=cl>sudo adduser &lt;username&gt; libvirt
-</span></span></code></pre></td></tr></table></div></div><p>打不開其況如下<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/8LmeFqo.png data-srcset="https://i.imgur.com/8LmeFqo.png, https://i.imgur.com/8LmeFqo.png 1.5x, https://i.imgur.com/8LmeFqo.png 2x" data-sizes=auto alt=https://i.imgur.com/8LmeFqo.png title=https://i.imgur.com/8LmeFqo.png></p><h2 id=安裝-window-server-2022>安裝 Window Server 2022</h2><p>virt-manager 開啟 KVM 管理工具。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/rADKqqe.png data-srcset="https://i.imgur.com/rADKqqe.png, https://i.imgur.com/rADKqqe.png 1.5x, https://i.imgur.com/rADKqqe.png 2x" data-sizes=auto alt=https://i.imgur.com/rADKqqe.png title=https://i.imgur.com/rADKqqe.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/f57VMy3.png data-srcset="https://i.imgur.com/f57VMy3.png, https://i.imgur.com/f57VMy3.png 1.5x, https://i.imgur.com/f57VMy3.png 2x" data-sizes=auto alt=https://i.imgur.com/f57VMy3.png title=https://i.imgur.com/f57VMy3.png></p><p>下面圖片挑一個方法載入 ISO。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/0eOd2df.png data-srcset="https://i.imgur.com/0eOd2df.png, https://i.imgur.com/0eOd2df.png 1.5x, https://i.imgur.com/0eOd2df.png 2x" data-sizes=auto alt=https://i.imgur.com/0eOd2df.png title=https://i.imgur.com/0eOd2df.png></p><p>選上對應版本號。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/yfHq1d7.png data-srcset="https://i.imgur.com/yfHq1d7.png, https://i.imgur.com/yfHq1d7.png 1.5x, https://i.imgur.com/yfHq1d7.png 2x" data-sizes=auto alt=https://i.imgur.com/yfHq1d7.png title=https://i.imgur.com/yfHq1d7.png></p><p>不動這邊設定。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/QcHfT3e.png data-srcset="https://i.imgur.com/QcHfT3e.png, https://i.imgur.com/QcHfT3e.png 1.5x, https://i.imgur.com/QcHfT3e.png 2x" data-sizes=auto alt=https://i.imgur.com/QcHfT3e.png title=https://i.imgur.com/QcHfT3e.png></p><p>這邊其實也可以不用設定，但我看其他教學可以自訂一個磁區，空間也會比較省。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/tdjvBeu.png data-srcset="https://i.imgur.com/tdjvBeu.png, https://i.imgur.com/tdjvBeu.png 1.5x, https://i.imgur.com/tdjvBeu.png 2x" data-sizes=auto alt=https://i.imgur.com/tdjvBeu.png title=https://i.imgur.com/tdjvBeu.png></p><p>選擇操作如下，最後按下 <code>Choose Volume</code>。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/WnuT3oh.png data-srcset="https://i.imgur.com/WnuT3oh.png, https://i.imgur.com/WnuT3oh.png 1.5x, https://i.imgur.com/WnuT3oh.png 2x" data-sizes=auto alt=https://i.imgur.com/WnuT3oh.png title=https://i.imgur.com/WnuT3oh.png></p><p>繼續下一步。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/UKDOTb8.png data-srcset="https://i.imgur.com/UKDOTb8.png, https://i.imgur.com/UKDOTb8.png 1.5x, https://i.imgur.com/UKDOTb8.png 2x" data-sizes=auto alt=https://i.imgur.com/UKDOTb8.png title=https://i.imgur.com/UKDOTb8.png></p><p>雖然我們不跑 VirtIO 設定，但我們是用 VNC 遠端 Ubuntu，這邊你使用 VNC 操作 VM 鍵盤不會有動作，所以這邊要特別設定調整。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/i4QE9ia.png data-srcset="https://i.imgur.com/i4QE9ia.png, https://i.imgur.com/i4QE9ia.png 1.5x, https://i.imgur.com/i4QE9ia.png 2x" data-sizes=auto alt=https://i.imgur.com/i4QE9ia.png title=https://i.imgur.com/i4QE9ia.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/aVw7uU5.png data-srcset="https://i.imgur.com/aVw7uU5.png, https://i.imgur.com/aVw7uU5.png 1.5x, https://i.imgur.com/aVw7uU5.png 2x" data-sizes=auto alt=https://i.imgur.com/aVw7uU5.png title=https://i.imgur.com/aVw7uU5.png></p><p>視窗調整。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/rukKPSp.png data-srcset="https://i.imgur.com/rukKPSp.png, https://i.imgur.com/rukKPSp.png 1.5x, https://i.imgur.com/rukKPSp.png 2x" data-sizes=auto alt=https://i.imgur.com/rukKPSp.png title=https://i.imgur.com/rukKPSp.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/o8z1jjt.png data-srcset="https://i.imgur.com/o8z1jjt.png, https://i.imgur.com/o8z1jjt.png 1.5x, https://i.imgur.com/o8z1jjt.png 2x" data-sizes=auto alt=https://i.imgur.com/o8z1jjt.png title=https://i.imgur.com/o8z1jjt.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/r3YMriH.png data-srcset="https://i.imgur.com/r3YMriH.png, https://i.imgur.com/r3YMriH.png 1.5x, https://i.imgur.com/r3YMriH.png 2x" data-sizes=auto alt=https://i.imgur.com/r3YMriH.png title=https://i.imgur.com/r3YMriH.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/4AU1GD4.png data-srcset="https://i.imgur.com/4AU1GD4.png, https://i.imgur.com/4AU1GD4.png 1.5x, https://i.imgur.com/4AU1GD4.png 2x" data-sizes=auto alt=https://i.imgur.com/4AU1GD4.png title=https://i.imgur.com/4AU1GD4.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/PW8FOCU.png data-srcset="https://i.imgur.com/PW8FOCU.png, https://i.imgur.com/PW8FOCU.png 1.5x, https://i.imgur.com/PW8FOCU.png 2x" data-sizes=auto alt=https://i.imgur.com/PW8FOCU.png title=https://i.imgur.com/PW8FOCU.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/1Jdvv3V.png data-srcset="https://i.imgur.com/1Jdvv3V.png, https://i.imgur.com/1Jdvv3V.png 1.5x, https://i.imgur.com/1Jdvv3V.png 2x" data-sizes=auto alt=https://i.imgur.com/1Jdvv3V.png title=https://i.imgur.com/1Jdvv3V.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/rtEypht.png data-srcset="https://i.imgur.com/rtEypht.png, https://i.imgur.com/rtEypht.png 1.5x, https://i.imgur.com/rtEypht.png 2x" data-sizes=auto alt=https://i.imgur.com/rtEypht.png title=https://i.imgur.com/rtEypht.png></p><p>等一陣子，打上密碼。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/IseyaY9.png data-srcset="https://i.imgur.com/IseyaY9.png, https://i.imgur.com/IseyaY9.png 1.5x, https://i.imgur.com/IseyaY9.png 2x" data-sizes=auto alt=https://i.imgur.com/IseyaY9.png title=https://i.imgur.com/IseyaY9.png></p><p>有遇到這個不用怕，給他按下去就沒錯。<br><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/TH2nn8h.png data-srcset="https://i.imgur.com/TH2nn8h.png, https://i.imgur.com/TH2nn8h.png 1.5x, https://i.imgur.com/TH2nn8h.png 2x" data-sizes=auto alt=https://i.imgur.com/TH2nn8h.png title=https://i.imgur.com/TH2nn8h.png></p><h2 id=kvm-使用技巧>KVM 使用技巧</h2><p>在使用全螢幕的時候發現無法跳離 VM，這邊問到 AI <code>Ctrl+Alt</code> 可以跳離 VM。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/5cEIxkb.png data-srcset="https://i.imgur.com/5cEIxkb.png, https://i.imgur.com/5cEIxkb.png 1.5x, https://i.imgur.com/5cEIxkb.png 2x" data-sizes=auto alt=https://i.imgur.com/5cEIxkb.png title=https://i.imgur.com/5cEIxkb.png></p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/UYFqZjQ.png data-srcset="https://i.imgur.com/UYFqZjQ.png, https://i.imgur.com/UYFqZjQ.png 1.5x, https://i.imgur.com/UYFqZjQ.png 2x" data-sizes=auto alt=https://i.imgur.com/UYFqZjQ.png title=https://i.imgur.com/UYFqZjQ.png></p><h2 id=小記-command>小記 Command</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 顯示所有機器</span>
-</span></span><span class=line><span class=cl>virsh list --all
-</span></span><span class=line><span class=cl><span class=c1># 啟動 VM</span>
-</span></span><span class=line><span class=cl>virsh start xxx
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># snapshot</span>
-</span></span><span class=line><span class=cl><span class=c1>## 建立 snapshot</span>
-</span></span><span class=line><span class=cl>virsh snapshot-create win2k22 
-</span></span><span class=line><span class=cl><span class=c1># 顯示 snapshot</span>
-</span></span><span class=line><span class=cl>virsh snapshot-list  win2k22 
-</span></span><span class=line><span class=cl><span class=c1># 建立 snapshot 可注記</span>
-</span></span><span class=line><span class=cl>virsh snapshot-create-as win2k22 --name <span class=s2>&#34;win2k22_snapshot_1&#34;</span> --description <span class=s2>&#34;First named snapshot&#34;</span> --atomic
-</span></span><span class=line><span class=cl><span class=c1># 顯示 snapshot 關係</span>
-</span></span><span class=line><span class=cl>virsh snapshot-list rhel7.3 --parent
-</span></span><span class=line><span class=cl>virsh snapshot-list rhel7.3 --tree
-</span></span></code></pre></td></tr></table></div></div><p>更多 snapshot 操作可以看<a href=https://godleon.github.io/blog/KVM/KVM-Template-And-Snapshot/ target=_blank rel="noopener noreffer">[Linux KVM] Template & Snapshot 的運用 | 小信豬的原始部落</a></p><h2 id=multipass-驅動在-libvirt>Multipass 驅動在 libvirt</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>snap install multipass
-</span></span><span class=line><span class=cl><span class=c1># 我是發現已經安裝</span>
-</span></span><span class=line><span class=cl>sudo apt install libvirt-daemon-system
-</span></span><span class=line><span class=cl><span class=c1># connect the libvirt interface/plug</span>
-</span></span><span class=line><span class=cl>$ sudo snap connect multipass:libvirt
-</span></span><span class=line><span class=cl><span class=c1># you&#39;ll need to stop all the instances first</span>
-</span></span><span class=line><span class=cl>$ multipass stop --all
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># and tell Multipass to use libvirt</span>
-</span></span><span class=line><span class=cl>$ multipass <span class=nb>set</span> local.driver<span class=o>=</span>libvirt
-</span></span></code></pre></td></tr></table></div></div><p>詳細可以看<a href=https://multipass.run/docs/set-up-the-driver#heading--install-libvirt target=_blank rel="noopener noreffer">How to set up the driver | Multipass documentation</a></p><h2 id=其他>其他</h2><p><a href=https://godleon.github.io/blog/KVM/KVM-Template-And-Snapshot/ target=_blank rel="noopener noreffer">[Linux KVM] Template & Snapshot 的運用 | 小信豬的原始部落</a></p><p><a href=https://blog.deskangel.com/2020/05/02/vino-on-headless-ubuntu-desktop/ target=_blank rel="noopener noreffer">ubuntu 18.04 desktop不接显示器开启 vnc 服务</a></p><p><a href=https://tinychen.com/20200405-centos-create-kvm-vm/ target=_blank rel="noopener noreffer">CentOS创建KVM虚拟机 - TinyChen&rsquo;s Studio - 互联网技术学习工作经验分享</a></p><p>推薦可以看上面教學文章，裡面有很清楚介紹一些設定。<a href=https://imgur.com/yKTdlSY target=_blank rel="noopener noreffer">備份圖</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2022-12-28</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/ data-title="在 Ubuntu KVM 安裝 Window Server 2022" data-hashtags=ubuntu,linux,windows><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/ data-hashtag=ubuntu><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/ data-title="在 Ubuntu KVM 安裝 Window Server 2022"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/ data-title="在 Ubuntu KVM 安裝 Window Server 2022"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/ data-title="在 Ubuntu KVM 安裝 Window Server 2022" data-image=https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/ubuntu/>ubuntu</a>,&nbsp;<a href=/blog/tags/Linux/>Linux</a>,&nbsp;<a href=/blog/tags/windows/>windows</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Ubuntu-20.04-%E5%85%A7%E5%BB%BA%E9%81%A0%E7%AB%AF%E6%96%B9%E6%B3%95/ class=prev rel=prev title="Ubuntu 20.04 內建遠端方法"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Ubuntu 20.04 內建遠端方法</a>
-<a href=/blog/posts/Linux-%E9%98%B2%E6%AD%A2%E7%A8%8B%E5%BC%8F%E5%90%8C%E6%99%82%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/ class=next rel=next title="Linux 防止程式同時執行方法">Linux 防止程式同時執行方法<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>在 Ubuntu KVM 安裝 Window Server 2022 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="在 Ubuntu KVM 安裝 Window Server 2022" />
+<meta property="og:description" content="最近一台舊筆電閒置，因為最近跳去寫 Net Core，公司伺服器所有環境幾乎都是 Windows，因為我也不太熟，想測試 Windows Server 環境，最近找一些方案執行，順便紀錄。可以透過 VNC 遠端操作 VM。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-12-28T00:20:25+08:00" />
+<meta property="article:modified_time" content="2022-12-28T00:20:25+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在 Ubuntu KVM 安裝 Window Server 2022"/>
+<meta name="twitter:description" content="最近一台舊筆電閒置，因為最近跳去寫 Net Core，公司伺服器所有環境幾乎都是 Windows，因為我也不太熟，想測試 Windows Server 環境，最近找一些方案執行，順便紀錄。可以透過 VNC 遠端操作 VM。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Ubuntu-20.04-%E5%85%A7%E5%BB%BA%E9%81%A0%E7%AB%AF%E6%96%B9%E6%B3%95/" /><link rel="next" href="https://malagege.github.io/blog/posts/Linux-%E9%98%B2%E6%AD%A2%E7%A8%8B%E5%BC%8F%E5%90%8C%E6%99%82%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "在 Ubuntu KVM 安裝 Window Server 2022",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022\/"
+        },"genre": "posts","keywords": "ubuntu, linux, windows","wordcount":  312 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022\/","datePublished": "2022-12-28T00:20:25+08:00","dateModified": "2022-12-28T00:20:25+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在 Ubuntu KVM 安裝 Window Server 2022</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-12-28">2022-12-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;312 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png, https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png 1.5x, https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png"
+        title="https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#ubuntu-vnc-配置">Ubuntu VNC 配置</a></li>
+    <li><a href="#kvm-安裝與事前準備">KVM 安裝與事前準備</a></li>
+    <li><a href="#安裝-window-server-2022">安裝 Window Server 2022</a></li>
+    <li><a href="#kvm-使用技巧">KVM 使用技巧</a></li>
+    <li><a href="#小記-command">小記 Command</a></li>
+    <li><a href="#multipass-驅動在-libvirt">Multipass 驅動在 libvirt</a></li>
+    <li><a href="#其他">其他</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近一台舊筆電閒置，因為最近跳去寫 Net Core，公司伺服器所有環境幾乎都是 Windows，因為我也不太熟，想測試 Windows Server 環境，最近找一些方案執行，順便紀錄。可以透過 VNC 遠端操作 VM。</p>
+<h2 id="ubuntu-vnc-配置">Ubuntu VNC 配置</h2>
+<p><a href="https://malagege.github.io/blog/posts/Ubuntu-20.04-%E5%85%A7%E5%BB%BA%E9%81%A0%E7%AB%AF%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">這邊</a>有特別紀錄。我不是用一般網路上找到的方式，這邊是用原生方法，成功機率很高，但缺點要開著螢幕。</p>
+<p><a href="https://www.cnblogs.com/tkqq000/p/15396860.html" target="_blank" rel="noopener noreffer ">VNC server配置 - 珂珂keo - 博客园</a></p>
+<h2 id="kvm-安裝與事前準備">KVM 安裝與事前準備</h2>
+<p>以下教學都參考<a href="https://www.youtube.com/watch?v=AzaL06GlDhA" target="_blank" rel="noopener noreffer ">(28) Install Windows Server 2022 in a nested KVM environment on Ubuntu 20.04 with standard NAT. - YouTube</a>教學整理過程</p>
+<blockquote>
+<p>You can download the Windows Server 2022 from the official Microsoft Evaluation Download site. You need to enter you information do download the eval.<br>
+<a href="https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022" target="_blank" rel="noopener noreffer ">https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022</a><br>
+You can download the virtual IO drivers from here.<br>
+<a href="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso" target="_blank" rel="noopener noreffer ">https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso</a></p>
+</blockquote>
+<p>ISO 載點可以去官方找<a href="https://www.microsoft.com/zh-tw/evalcenter/download-windows-server-2022" target="_blank" rel="noopener noreffer ">Windows Server 2022 | Microsoft 評估中心</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt -y install bridge-utils cpu-checker libvirt-clients libvirt-daemon qemu qemu-kvm virt-manager
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>檢查</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo kvm-ok
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/btUbqi3.png"
+        data-srcset="https://i.imgur.com/btUbqi3.png, https://i.imgur.com/btUbqi3.png 1.5x, https://i.imgur.com/btUbqi3.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/btUbqi3.png"
+        title="https://i.imgur.com/btUbqi3.png" /></p>
+<p>設定權限，不然使用工具可能打不開，以下指令打完請重開機(理論上登出再登入就可以了)。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo adduser &lt;username&gt; kvm
+</span></span><span class="line"><span class="cl">sudo adduser &lt;username&gt; libvirt
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>打不開其況如下<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/8LmeFqo.png"
+        data-srcset="https://i.imgur.com/8LmeFqo.png, https://i.imgur.com/8LmeFqo.png 1.5x, https://i.imgur.com/8LmeFqo.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/8LmeFqo.png"
+        title="https://i.imgur.com/8LmeFqo.png" /></p>
+<h2 id="安裝-window-server-2022">安裝 Window Server 2022</h2>
+<p>virt-manager 開啟 KVM 管理工具。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/rADKqqe.png"
+        data-srcset="https://i.imgur.com/rADKqqe.png, https://i.imgur.com/rADKqqe.png 1.5x, https://i.imgur.com/rADKqqe.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/rADKqqe.png"
+        title="https://i.imgur.com/rADKqqe.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/f57VMy3.png"
+        data-srcset="https://i.imgur.com/f57VMy3.png, https://i.imgur.com/f57VMy3.png 1.5x, https://i.imgur.com/f57VMy3.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/f57VMy3.png"
+        title="https://i.imgur.com/f57VMy3.png" /></p>
+<p>下面圖片挑一個方法載入 ISO。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/0eOd2df.png"
+        data-srcset="https://i.imgur.com/0eOd2df.png, https://i.imgur.com/0eOd2df.png 1.5x, https://i.imgur.com/0eOd2df.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/0eOd2df.png"
+        title="https://i.imgur.com/0eOd2df.png" /></p>
+<p>選上對應版本號。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/yfHq1d7.png"
+        data-srcset="https://i.imgur.com/yfHq1d7.png, https://i.imgur.com/yfHq1d7.png 1.5x, https://i.imgur.com/yfHq1d7.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/yfHq1d7.png"
+        title="https://i.imgur.com/yfHq1d7.png" /></p>
+<p>不動這邊設定。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/QcHfT3e.png"
+        data-srcset="https://i.imgur.com/QcHfT3e.png, https://i.imgur.com/QcHfT3e.png 1.5x, https://i.imgur.com/QcHfT3e.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/QcHfT3e.png"
+        title="https://i.imgur.com/QcHfT3e.png" /></p>
+<p>這邊其實也可以不用設定，但我看其他教學可以自訂一個磁區，空間也會比較省。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/tdjvBeu.png"
+        data-srcset="https://i.imgur.com/tdjvBeu.png, https://i.imgur.com/tdjvBeu.png 1.5x, https://i.imgur.com/tdjvBeu.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/tdjvBeu.png"
+        title="https://i.imgur.com/tdjvBeu.png" /></p>
+<p>選擇操作如下，最後按下 <code>Choose Volume</code>。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/WnuT3oh.png"
+        data-srcset="https://i.imgur.com/WnuT3oh.png, https://i.imgur.com/WnuT3oh.png 1.5x, https://i.imgur.com/WnuT3oh.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/WnuT3oh.png"
+        title="https://i.imgur.com/WnuT3oh.png" /></p>
+<p>繼續下一步。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/UKDOTb8.png"
+        data-srcset="https://i.imgur.com/UKDOTb8.png, https://i.imgur.com/UKDOTb8.png 1.5x, https://i.imgur.com/UKDOTb8.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/UKDOTb8.png"
+        title="https://i.imgur.com/UKDOTb8.png" /></p>
+<p>雖然我們不跑 VirtIO 設定，但我們是用 VNC 遠端 Ubuntu，這邊你使用 VNC 操作 VM 鍵盤不會有動作，所以這邊要特別設定調整。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/i4QE9ia.png"
+        data-srcset="https://i.imgur.com/i4QE9ia.png, https://i.imgur.com/i4QE9ia.png 1.5x, https://i.imgur.com/i4QE9ia.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/i4QE9ia.png"
+        title="https://i.imgur.com/i4QE9ia.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/aVw7uU5.png"
+        data-srcset="https://i.imgur.com/aVw7uU5.png, https://i.imgur.com/aVw7uU5.png 1.5x, https://i.imgur.com/aVw7uU5.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/aVw7uU5.png"
+        title="https://i.imgur.com/aVw7uU5.png" /></p>
+<p>視窗調整。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/rukKPSp.png"
+        data-srcset="https://i.imgur.com/rukKPSp.png, https://i.imgur.com/rukKPSp.png 1.5x, https://i.imgur.com/rukKPSp.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/rukKPSp.png"
+        title="https://i.imgur.com/rukKPSp.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/o8z1jjt.png"
+        data-srcset="https://i.imgur.com/o8z1jjt.png, https://i.imgur.com/o8z1jjt.png 1.5x, https://i.imgur.com/o8z1jjt.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/o8z1jjt.png"
+        title="https://i.imgur.com/o8z1jjt.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/r3YMriH.png"
+        data-srcset="https://i.imgur.com/r3YMriH.png, https://i.imgur.com/r3YMriH.png 1.5x, https://i.imgur.com/r3YMriH.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/r3YMriH.png"
+        title="https://i.imgur.com/r3YMriH.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/4AU1GD4.png"
+        data-srcset="https://i.imgur.com/4AU1GD4.png, https://i.imgur.com/4AU1GD4.png 1.5x, https://i.imgur.com/4AU1GD4.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/4AU1GD4.png"
+        title="https://i.imgur.com/4AU1GD4.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/PW8FOCU.png"
+        data-srcset="https://i.imgur.com/PW8FOCU.png, https://i.imgur.com/PW8FOCU.png 1.5x, https://i.imgur.com/PW8FOCU.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/PW8FOCU.png"
+        title="https://i.imgur.com/PW8FOCU.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/1Jdvv3V.png"
+        data-srcset="https://i.imgur.com/1Jdvv3V.png, https://i.imgur.com/1Jdvv3V.png 1.5x, https://i.imgur.com/1Jdvv3V.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/1Jdvv3V.png"
+        title="https://i.imgur.com/1Jdvv3V.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/rtEypht.png"
+        data-srcset="https://i.imgur.com/rtEypht.png, https://i.imgur.com/rtEypht.png 1.5x, https://i.imgur.com/rtEypht.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/rtEypht.png"
+        title="https://i.imgur.com/rtEypht.png" /></p>
+<p>等一陣子，打上密碼。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/IseyaY9.png"
+        data-srcset="https://i.imgur.com/IseyaY9.png, https://i.imgur.com/IseyaY9.png 1.5x, https://i.imgur.com/IseyaY9.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/IseyaY9.png"
+        title="https://i.imgur.com/IseyaY9.png" /></p>
+<p>有遇到這個不用怕，給他按下去就沒錯。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/TH2nn8h.png"
+        data-srcset="https://i.imgur.com/TH2nn8h.png, https://i.imgur.com/TH2nn8h.png 1.5x, https://i.imgur.com/TH2nn8h.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/TH2nn8h.png"
+        title="https://i.imgur.com/TH2nn8h.png" /></p>
+<h2 id="kvm-使用技巧">KVM 使用技巧</h2>
+<p>在使用全螢幕的時候發現無法跳離 VM，這邊問到 AI <code>Ctrl+Alt</code> 可以跳離 VM。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/5cEIxkb.png"
+        data-srcset="https://i.imgur.com/5cEIxkb.png, https://i.imgur.com/5cEIxkb.png 1.5x, https://i.imgur.com/5cEIxkb.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/5cEIxkb.png"
+        title="https://i.imgur.com/5cEIxkb.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/UYFqZjQ.png"
+        data-srcset="https://i.imgur.com/UYFqZjQ.png, https://i.imgur.com/UYFqZjQ.png 1.5x, https://i.imgur.com/UYFqZjQ.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/UYFqZjQ.png"
+        title="https://i.imgur.com/UYFqZjQ.png" /></p>
+<h2 id="小記-command">小記 Command</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 顯示所有機器</span>
+</span></span><span class="line"><span class="cl">virsh list --all
+</span></span><span class="line"><span class="cl"><span class="c1"># 啟動 VM</span>
+</span></span><span class="line"><span class="cl">virsh start xxx
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># snapshot</span>
+</span></span><span class="line"><span class="cl"><span class="c1">## 建立 snapshot</span>
+</span></span><span class="line"><span class="cl">virsh snapshot-create win2k22 
+</span></span><span class="line"><span class="cl"><span class="c1"># 顯示 snapshot</span>
+</span></span><span class="line"><span class="cl">virsh snapshot-list  win2k22 
+</span></span><span class="line"><span class="cl"><span class="c1"># 建立 snapshot 可注記</span>
+</span></span><span class="line"><span class="cl">virsh snapshot-create-as win2k22 --name <span class="s2">&#34;win2k22_snapshot_1&#34;</span> --description <span class="s2">&#34;First named snapshot&#34;</span> --atomic
+</span></span><span class="line"><span class="cl"><span class="c1"># 顯示 snapshot 關係</span>
+</span></span><span class="line"><span class="cl">virsh snapshot-list rhel7.3 --parent
+</span></span><span class="line"><span class="cl">virsh snapshot-list rhel7.3 --tree
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>更多 snapshot 操作可以看<a href="https://godleon.github.io/blog/KVM/KVM-Template-And-Snapshot/" target="_blank" rel="noopener noreffer ">[Linux KVM] Template &amp; Snapshot 的運用 | 小信豬的原始部落</a></p>
+<h2 id="multipass-驅動在-libvirt">Multipass 驅動在 libvirt</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">snap install multipass
+</span></span><span class="line"><span class="cl"><span class="c1"># 我是發現已經安裝</span>
+</span></span><span class="line"><span class="cl">sudo apt install libvirt-daemon-system
+</span></span><span class="line"><span class="cl"><span class="c1"># connect the libvirt interface/plug</span>
+</span></span><span class="line"><span class="cl">$ sudo snap connect multipass:libvirt
+</span></span><span class="line"><span class="cl"><span class="c1"># you&#39;ll need to stop all the instances first</span>
+</span></span><span class="line"><span class="cl">$ multipass stop --all
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># and tell Multipass to use libvirt</span>
+</span></span><span class="line"><span class="cl">$ multipass <span class="nb">set</span> local.driver<span class="o">=</span>libvirt
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>詳細可以看<a href="https://multipass.run/docs/set-up-the-driver#heading--install-libvirt" target="_blank" rel="noopener noreffer ">How to set up the driver | Multipass documentation</a></p>
+<h2 id="其他">其他</h2>
+<p><a href="https://godleon.github.io/blog/KVM/KVM-Template-And-Snapshot/" target="_blank" rel="noopener noreffer ">[Linux KVM] Template &amp; Snapshot 的運用 | 小信豬的原始部落</a></p>
+<p><a href="https://blog.deskangel.com/2020/05/02/vino-on-headless-ubuntu-desktop/" target="_blank" rel="noopener noreffer ">ubuntu 18.04 desktop不接显示器开启 vnc 服务</a></p>
+<p><a href="https://tinychen.com/20200405-centos-create-kvm-vm/" target="_blank" rel="noopener noreffer ">CentOS创建KVM虚拟机 - TinyChen&rsquo;s Studio - 互联网技术学习工作经验分享</a></p>
+<p>推薦可以看上面教學文章，裡面有很清楚介紹一些設定。<a href="https://imgur.com/yKTdlSY" target="_blank" rel="noopener noreffer ">備份圖</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2022-12-28</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" data-title="在 Ubuntu KVM 安裝 Window Server 2022" data-hashtags="ubuntu,linux,windows"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" data-hashtag="ubuntu"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" data-title="在 Ubuntu KVM 安裝 Window Server 2022"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" data-title="在 Ubuntu KVM 安裝 Window Server 2022"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Ubuntu-KVM-%E5%AE%89%E8%A3%9D-Window-Server-2022/" data-title="在 Ubuntu KVM 安裝 Window Server 2022" data-image="https://user-images.githubusercontent.com/6058558/209693049-b9f4dce0-c347-44b4-9092-ee27ba434f1f.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/ubuntu/">ubuntu</a>,&nbsp;<a href="/blog/tags/Linux/">Linux</a>,&nbsp;<a href="/blog/tags/windows/">windows</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Ubuntu-20.04-%E5%85%A7%E5%BB%BA%E9%81%A0%E7%AB%AF%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="Ubuntu 20.04 內建遠端方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Ubuntu 20.04 內建遠端方法</a>
+            <a href="/blog/posts/Linux-%E9%98%B2%E6%AD%A2%E7%A8%8B%E5%BC%8F%E5%90%8C%E6%99%82%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95/" class="next" rel="next" title="Linux 防止程式同時執行方法">Linux 防止程式同時執行方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

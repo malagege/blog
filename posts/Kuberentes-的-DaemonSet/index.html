@@ -1,330 +1,662 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Kubernetes 的 DaemonSet - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 的 DaemonSet"><meta property="og:description" content="Deployment 和 ReplicaSet 通常使用多個 replica 時候，都是建在各 nodes 隨機安裝。
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Kubernetes 的 DaemonSet - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Kubernetes 的 DaemonSet" />
+<meta property="og:description" content="Deployment 和 ReplicaSet 通常使用多個 replica 時候，都是建在各 nodes 隨機安裝。
 DaemonSet 可以讓每一台 node 運行 Pod。
 感覺這個跟 docker swarm 的 agent mode :global  一樣 docker swarm 一些指令相關整理 | 程式狂想筆記
-立馬實作看看"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-02-18T23:11:50+00:00"><meta property="article:modified_time" content="2021-02-18T23:11:50+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kubernetes 的 DaemonSet"><meta name=twitter:description content="Deployment 和 ReplicaSet 通常使用多個 replica 時候，都是建在各 nodes 隨機安裝。
+立馬實作看看" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-02-18T23:11:50+00:00" />
+<meta property="article:modified_time" content="2021-02-18T23:11:50+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubernetes 的 DaemonSet"/>
+<meta name="twitter:description" content="Deployment 和 ReplicaSet 通常使用多個 replica 時候，都是建在各 nodes 隨機安裝。
 DaemonSet 可以讓每一台 node 運行 Pod。
 感覺這個跟 docker swarm 的 agent mode :global  一樣 docker swarm 一些指令相關整理 | 程式狂想筆記
-立馬實作看看"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/><link rel=prev href=https://malagege.github.io/blog/posts/Kind-%E5%BB%BA%E7%BD%AE-Cluster/><link rel=next href=https://malagege.github.io/blog/posts/SVN-%E7%A7%BB%E8%BD%89-GIT-%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Kubernetes 的 DaemonSet","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Kuberentes-%E7%9A%84-DaemonSet\/"},"genre":"posts","keywords":"Kubernetes, daemonset","wordcount":889,"url":"https:\/\/malagege.github.io\/blog\/posts\/Kuberentes-%E7%9A%84-DaemonSet\/","datePublished":"2021-02-18T23:11:50+00:00","dateModified":"2021-02-18T23:11:50+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 的 DaemonSet</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Kuberenetes/><i class="far fa-folder fa-fw" aria-hidden=true></i>Kuberenetes</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2021-02-18>2021-02-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;889 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;5 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#daemonset>DaemonSet</a><ul><li><a href=#後記>後記</a></li><li><a href=#daemonset-概念圖>DaemonSet 概念圖</a></li></ul></li><li><a href=#建立-daemonset>建立 DaemonSet</a></li><li><a href=#node-新增一個-label>node 新增一個 Label</a></li><li><a href=#刪除-daemonset>刪除 DaemonSet</a></li><li><a href=#daemonset-tree>DaemonSet Tree</a><ul><li><a href=#kube-system-有用到-daemonset>kube-system 有用到 DaemonSet</a></li></ul></li></ul><ul><li><ul><li><a href=#network>Network</a></li><li><a href=#storage>Storage</a></li><li><a href=#更新策略>更新策略</a></li><li><a href=#tree>Tree</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>Deployment 和 ReplicaSet 通常使用多個 replica 時候，都是建在各 nodes 隨機安裝。<br>DaemonSet 可以讓每一台 node 運行 Pod。<br>感覺這個跟 docker swarm 的 agent mode :global 一樣 <a href=https://malagege.github.io/blog/posts/docker-swarm-%E4%B8%80%E4%BA%9B%E6%8C%87%E4%BB%A4%E7%9B%B8%E9%97%9C%E6%95%B4%E7%90%86/ target=_blank rel="noopener noreffer">docker swarm 一些指令相關整理 | 程式狂想筆記</a><br>立馬實作看看</p><h2 id=daemonset>DaemonSet</h2><p>使用 DaemonSet 會在所有 node 建立 Pod。如先前所講，跟 Docker Swarm 很像的 agent mode :global 很像<br>也可以針對 nodename 來建立 Pod。</p><h3 id=後記>後記</h3><p>確保每個節點都會有一份運行的Pod。</p><ol><li>Storage daemon 每台機器都要裝</li><li>CNI daemon</li><li>日誌收集</li><li>監控收集</li></ol><p>taint 的 NoSchedule 可以阻擋 DaemonSet 部屬。</p><h3 id=daemonset-概念圖>DaemonSet 概念圖</h3><p>原有兩台節點(Node)</p><p>後面加上一個Node就會部屬Pod</p><h2 id=建立-daemonset>建立 DaemonSet</h2><p><a href=https://github.com/kubernetes-up-and-running/examples/blob/master/9-1-fluentd.yaml target=_blank rel="noopener noreffer">examples/9-1-fluentd.yaml at master · kubernetes-up-and-running/examples</a></p><p>這邊版本太舊<br>no matches for kind &ldquo;DaemonSet&rdquo; in version &ldquo;extensions/v1beta1<br><a href=https://github.com/gluster/gluster-kubernetes/issues/627 target=_blank rel="noopener noreffer">no matches for kind &ldquo;DaemonSet&rdquo; in version &ldquo;extensions/v1beta1&rdquo; · Issue #627 · gluster/gluster-kubernetes</a></p><blockquote><p>notes:</p><pre><code>changed apiVersion to &quot;apps/v1&quot;
+立馬實作看看"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Kind-%E5%BB%BA%E7%BD%AE-Cluster/" /><link rel="next" href="https://malagege.github.io/blog/posts/SVN-%E7%A7%BB%E8%BD%89-GIT-%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Kubernetes 的 DaemonSet",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Kuberentes-%E7%9A%84-DaemonSet\/"
+        },"genre": "posts","keywords": "Kubernetes, daemonset","wordcount":  889 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Kuberentes-%E7%9A%84-DaemonSet\/","datePublished": "2021-02-18T23:11:50+00:00","dateModified": "2021-02-18T23:11:50+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Kubernetes 的 DaemonSet</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Kuberenetes/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Kuberenetes</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-02-18">2021-02-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;889 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#daemonset">DaemonSet</a>
+      <ul>
+        <li><a href="#後記">後記</a></li>
+        <li><a href="#daemonset-概念圖">DaemonSet 概念圖</a></li>
+      </ul>
+    </li>
+    <li><a href="#建立-daemonset">建立 DaemonSet</a></li>
+    <li><a href="#node-新增一個-label">node 新增一個 Label</a></li>
+    <li><a href="#刪除-daemonset">刪除 DaemonSet</a></li>
+    <li><a href="#daemonset-tree">DaemonSet Tree</a>
+      <ul>
+        <li><a href="#kube-system-有用到-daemonset">kube-system 有用到 DaemonSet</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#network">Network</a></li>
+        <li><a href="#storage">Storage</a></li>
+        <li><a href="#更新策略">更新策略</a></li>
+        <li><a href="#tree">Tree</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>Deployment 和 ReplicaSet 通常使用多個 replica 時候，都是建在各 nodes 隨機安裝。<br>
+DaemonSet 可以讓每一台 node 運行 Pod。<br>
+感覺這個跟 docker swarm 的 agent mode :global  一樣 <a href="https://malagege.github.io/blog/posts/docker-swarm-%E4%B8%80%E4%BA%9B%E6%8C%87%E4%BB%A4%E7%9B%B8%E9%97%9C%E6%95%B4%E7%90%86/" target="_blank" rel="noopener noreffer ">docker swarm 一些指令相關整理 | 程式狂想筆記</a><br>
+立馬實作看看</p>
+<h2 id="daemonset">DaemonSet</h2>
+<p>使用 DaemonSet 會在所有 node 建立 Pod。如先前所講，跟 Docker Swarm 很像的 agent mode :global 很像<br>
+也可以針對 nodename 來建立 Pod。</p>
+<h3 id="後記">後記</h3>
+<p>確保每個節點都會有一份運行的Pod。</p>
+<ol>
+<li>Storage daemon 每台機器都要裝</li>
+<li>CNI daemon</li>
+<li>日誌收集</li>
+<li>監控收集</li>
+</ol>
+<p>taint 的 NoSchedule 可以阻擋 DaemonSet 部屬。</p>
+<h3 id="daemonset-概念圖">DaemonSet 概念圖</h3>
+<p>原有兩台節點(Node)</p>
+<p>後面加上一個Node就會部屬Pod</p>
+<h2 id="建立-daemonset">建立 DaemonSet</h2>
+<p><a href="https://github.com/kubernetes-up-and-running/examples/blob/master/9-1-fluentd.yaml" target="_blank" rel="noopener noreffer ">examples/9-1-fluentd.yaml at master · kubernetes-up-and-running/examples</a></p>
+<p>這邊版本太舊<br>
+no matches for kind &ldquo;DaemonSet&rdquo; in version &ldquo;extensions/v1beta1<br>
+<a href="https://github.com/gluster/gluster-kubernetes/issues/627" target="_blank" rel="noopener noreffer ">no matches for kind &ldquo;DaemonSet&rdquo; in version &ldquo;extensions/v1beta1&rdquo; · Issue #627 · gluster/gluster-kubernetes</a></p>
+<blockquote>
+<p>notes:</p>
+<pre><code>changed apiVersion to &quot;apps/v1&quot;
 added selector
-</code></pre></blockquote><p>最後還是套用官方文件<a href=https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/ target=_blank rel="noopener noreffer">DaemonSet | Kubernetes</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>DaemonSet</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluentd-elasticsearch</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-system</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>fluentd-logging</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluentd-elasticsearch</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluentd-elasticsearch</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># this toleration is to have the daemonset runnable on master nodes</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># remove it if your masters can&#39;t run pods</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node-role.kubernetes.io/master</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=l>NoSchedule</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>fluentd-elasticsearch</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>quay.io/fluentd_elasticsearch/fluentd:v2.5.2</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>limits</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>200Mi</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>requests</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=l>100m</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>200Mi</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlog</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/log</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlibdockercontainers</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/lib/docker/containers</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>readOnly</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>terminationGracePeriodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>30</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlog</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>hostPath</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/var/log</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>varlibdockercontainers</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>hostPath</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/var/lib/docker/containers</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f https://k8s.io/examples/controllers/daemonset.yaml
-</span></span></code></pre></td></tr></table></div></div><p>查看狀況，這邊namespace 要調整</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl describe daemonsets fluentd-elasticsearch --namespace kube-system
-</span></span><span class=line><span class=cl><span class=c1># Name:           fluentd-elasticsearch</span>
-</span></span><span class=line><span class=cl><span class=c1># Selector:       name=fluentd-elasticsearch</span>
-</span></span><span class=line><span class=cl><span class=c1># Node-Selector:  &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># Labels:         k8s-app=fluentd-logging</span>
-</span></span><span class=line><span class=cl><span class=c1># Annotations:    deprecated.daemonset.template.generation: 1</span>
-</span></span><span class=line><span class=cl><span class=c1># Desired Number of Nodes Scheduled: 6</span>
-</span></span><span class=line><span class=cl><span class=c1># Current Number of Nodes Scheduled: 6</span>
-</span></span><span class=line><span class=cl><span class=c1># Number of Nodes Scheduled with Up-to-date Pods: 6</span>
-</span></span><span class=line><span class=cl><span class=c1># Number of Nodes Scheduled with Available Pods: 6</span>
-</span></span><span class=line><span class=cl><span class=c1># Number of Nodes Misscheduled: 0</span>
-</span></span><span class=line><span class=cl><span class=c1># Pods Status:  6 Running / 0 Waiting / 0 Succeeded / 0 Failed</span>
-</span></span><span class=line><span class=cl><span class=c1># Pod Template:</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Labels:  name=fluentd-elasticsearch</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Containers:</span>
-</span></span><span class=line><span class=cl><span class=c1>#    fluentd-elasticsearch:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Image:      quay.io/fluentd_elasticsearch/fluentd:v2.5.2</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Port:       &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Host Port:  &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Limits:</span>
-</span></span><span class=line><span class=cl><span class=c1>#       memory:  200Mi</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Requests:</span>
-</span></span><span class=line><span class=cl><span class=c1>#       cpu:        100m</span>
-</span></span><span class=line><span class=cl><span class=c1>#       memory:     200Mi</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Environment:  &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Mounts:</span>
-</span></span><span class=line><span class=cl><span class=c1>#       /var/lib/docker/containers from varlibdockercontainers (ro)</span>
-</span></span><span class=line><span class=cl><span class=c1>#       /var/log from varlog (rw)</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Volumes:</span>
-</span></span><span class=line><span class=cl><span class=c1>#    varlog:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Type:          HostPath (bare host directory volume)</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Path:          /var/log</span>
-</span></span><span class=line><span class=cl><span class=c1>#     HostPathType:  </span>
-</span></span><span class=line><span class=cl><span class=c1>#    varlibdockercontainers:</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Type:          HostPath (bare host directory volume)</span>
-</span></span><span class=line><span class=cl><span class=c1>#     Path:          /var/lib/docker/containers</span>
-</span></span><span class=line><span class=cl><span class=c1>#     HostPathType:  </span>
-</span></span><span class=line><span class=cl><span class=c1># Events:</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Type    Reason            Age    From                  Message</span>
-</span></span><span class=line><span class=cl><span class=c1>#   ----    ------            ----   ----                  -------</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-rqpth</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-g5r57</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-bzv6c</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-sjt9l</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-vfs9w</span>
-</span></span><span class=line><span class=cl><span class=c1>#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-wxf6v</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods -o wide --namespace kube-system   
-</span></span><span class=line><span class=cl><span class=c1># NAME                                          READY   STATUS    RESTARTS   AGE     IP           NODE                  NOMINATED NODE   READINESS GATES</span>
-</span></span><span class=line><span class=cl><span class=c1># fluentd-elasticsearch-bzv6c                   1/1     Running   0          6m38s   10.244.2.2   kind-control-plane3   &lt;none&gt;           &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># fluentd-elasticsearch-g5r57                   1/1     Running   0          6m38s   10.244.0.2   kind-control-plane    &lt;none&gt;           &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># fluentd-elasticsearch-rqpth                   1/1     Running   0          6m38s   10.244.1.5   kind-control-plane2   &lt;none&gt;           &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># fluentd-elasticsearch-sjt9l                   1/1     Running   0          6m38s   10.244.5.2   kind-worker3          &lt;none&gt;           &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># fluentd-elasticsearch-vfs9w                   1/1     Running   0          6m38s   10.244.3.2   kind-worker           &lt;none&gt;           &lt;none&gt;</span>
-</span></span><span class=line><span class=cl><span class=c1># fluentd-elasticsearch-wxf6v                   1/1     Running   0          6m38s   10.244.4.2   kind-worker2          &lt;none&gt;           &lt;none&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><h2 id=node-新增一個-label>node 新增一個 Label</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 查看 nodes 名稱有哪些</span>
-</span></span><span class=line><span class=cl>kubectl get nodes
-</span></span><span class=line><span class=cl><span class=c1># NAME                  STATUS   ROLES    AGE   VERSION</span>
-</span></span><span class=line><span class=cl><span class=c1># kind-control-plane    Ready    master   34m   v1.19.1</span>
-</span></span><span class=line><span class=cl><span class=c1># kind-control-plane2   Ready    master   33m   v1.19.1</span>
-</span></span><span class=line><span class=cl><span class=c1># kind-control-plane3   Ready    master   32m   v1.19.1</span>
-</span></span><span class=line><span class=cl><span class=c1># kind-worker           Ready    &lt;none&gt;   32m   v1.19.1</span>
-</span></span><span class=line><span class=cl><span class=c1># kind-worker2          Ready    &lt;none&gt;   32m   v1.19.1</span>
-</span></span><span class=line><span class=cl><span class=c1># kind-worker3          Ready    &lt;none&gt;   32m   v1.19.1</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 新增一個 label</span>
-</span></span><span class=line><span class=cl>kubectl label nodes kind-control-plane <span class=nv>ssd</span><span class=o>=</span><span class=nb>true</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 查看 selector ssd=true nodes</span>
-</span></span><span class=line><span class=cl>kubectl get nodes --selector <span class=nv>ssd</span><span class=o>=</span><span class=nb>true</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;DaemonSet&#34;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>ssd</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-fast-storage</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>ssd</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># this toleration is to have the daemonset runnable on master nodes</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># remove it if your masters can&#39;t run pods</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node-role.kubernetes.io/master</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=l>NoSchedule</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>nodeSelector</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>ssd</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx:1.10.0</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>這邊有實作<a href=https://ithelp.ithome.com.tw/articles/10251596 target=_blank rel="noopener noreffer">Day-25 認識DaemonSet - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a><br>Pod 都沒有出來</p><p>不知道是不是 Kind 出問題??</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yml data-lang=yml><span class=line><span class=cl><span class=w>      </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># this toleration is to have the daemonset runnable on master nodes</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=c># remove it if your masters can&#39;t run pods</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node-role.kubernetes.io/master</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=l>NoSchedule</span><span class=w>
-</span></span></span></code></pre></td></tr></table></div></div><p>這行家這個就能跑了&mldr;<br>在研究什麼原因</p><h2 id=刪除-daemonset>刪除 DaemonSet</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl delete daemonset nginx-fast-storage
-</span></span></code></pre></td></tr></table></div></div><h2 id=daemonset-tree>DaemonSet Tree</h2><p>DaemonSet -> ControllerRevision -> Pod</p><p>DaemonSet因為有ControllerRevision 可以控制版本。但無法做到Replica一樣功能。</p><h3 id=kube-system-有用到-daemonset>kube-system 有用到 DaemonSet</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl -n kube-system get ds
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-</span></span><span class=line><span class=cl>kindnet      3         3         3       3            3           &lt;none&gt;                   10d
-</span></span><span class=line><span class=cl>kube-proxy   3         3         3       3            3           kubernetes.io/os=linux   10d
-</span></span></code></pre></td></tr></table></div></div><h1 id=statefulsets>StatefulSets</h1><p>有狀態的Pod。</p><p>常運用儲存、網路結合。</p><h3 id=network>Network</h3><p>StatefulSet -> Pod-1<br>-> Pod-2<br>-> Pod-3</p><p>每個Pod都有個自Dns。</p><h3 id=storage>Storage</h3><p>Pod-1 -> Volume-1</p><p>Pod-2 -> Volume-2</p><h3 id=更新策略>更新策略</h3><p>從後面先動作，先關掉再建立Pod。</p><h3 id=tree>Tree</h3><p>StatefulSet->ControllerRevision->Pod</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2021-02-18</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/ data-title="Kubernetes 的 DaemonSet" data-hashtags=Kubernetes,daemonset><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/ data-hashtag=Kubernetes><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/ data-title="Kubernetes 的 DaemonSet"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/ data-title="Kubernetes 的 DaemonSet"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/ data-title="Kubernetes 的 DaemonSet"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/Kubernetes/>Kubernetes</a>,&nbsp;<a href=/blog/tags/daemonset/>daemonset</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Kind-%E5%BB%BA%E7%BD%AE-Cluster/ class=prev rel=prev title="Kind 建置 Cluster"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Kind 建置 Cluster</a>
-<a href=/blog/posts/SVN-%E7%A7%BB%E8%BD%89-GIT-%E5%B0%8F%E8%A8%98/ class=next rel=next title="SVN 移轉 GIT 小記">SVN 移轉 GIT 小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+</code></pre>
+</blockquote>
+<p>最後還是套用官方文件<a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/" target="_blank" rel="noopener noreffer ">DaemonSet | Kubernetes</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">apps/v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">DaemonSet</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">fluentd-elasticsearch</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l">kube-system</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">k8s-app</span><span class="p">:</span><span class="w"> </span><span class="l">fluentd-logging</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">fluentd-elasticsearch</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">template</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">fluentd-elasticsearch</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">tolerations</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># this toleration is to have the daemonset runnable on master nodes</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># remove it if your masters can&#39;t run pods</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l">node-role.kubernetes.io/master</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">effect</span><span class="p">:</span><span class="w"> </span><span class="l">NoSchedule</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">fluentd-elasticsearch</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">quay.io/fluentd_elasticsearch/fluentd:v2.5.2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">resources</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">limits</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l">200Mi</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">requests</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="l">100m</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l">200Mi</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">volumeMounts</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">varlog</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l">/var/log</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">varlibdockercontainers</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l">/var/lib/docker/containers</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">readOnly</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">terminationGracePeriodSeconds</span><span class="p">:</span><span class="w"> </span><span class="m">30</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">varlog</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">hostPath</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">/var/log</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">varlibdockercontainers</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">hostPath</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">/var/lib/docker/containers</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl apply -f https://k8s.io/examples/controllers/daemonset.yaml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>查看狀況，這邊namespace 要調整</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl describe daemonsets fluentd-elasticsearch --namespace kube-system
+</span></span><span class="line"><span class="cl"><span class="c1"># Name:           fluentd-elasticsearch</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Selector:       name=fluentd-elasticsearch</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Node-Selector:  &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Labels:         k8s-app=fluentd-logging</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Annotations:    deprecated.daemonset.template.generation: 1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Desired Number of Nodes Scheduled: 6</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Current Number of Nodes Scheduled: 6</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Number of Nodes Scheduled with Up-to-date Pods: 6</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Number of Nodes Scheduled with Available Pods: 6</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Number of Nodes Misscheduled: 0</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Pods Status:  6 Running / 0 Waiting / 0 Succeeded / 0 Failed</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Pod Template:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Labels:  name=fluentd-elasticsearch</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Containers:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#    fluentd-elasticsearch:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Image:      quay.io/fluentd_elasticsearch/fluentd:v2.5.2</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Port:       &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Host Port:  &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Limits:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#       memory:  200Mi</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Requests:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#       cpu:        100m</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#       memory:     200Mi</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Environment:  &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Mounts:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#       /var/lib/docker/containers from varlibdockercontainers (ro)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#       /var/log from varlog (rw)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Volumes:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#    varlog:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Type:          HostPath (bare host directory volume)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Path:          /var/log</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     HostPathType:  </span>
+</span></span><span class="line"><span class="cl"><span class="c1">#    varlibdockercontainers:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Type:          HostPath (bare host directory volume)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     Path:          /var/lib/docker/containers</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     HostPathType:  </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Events:</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Type    Reason            Age    From                  Message</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   ----    ------            ----   ----                  -------</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-rqpth</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-g5r57</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-bzv6c</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-sjt9l</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-vfs9w</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#   Normal  SuccessfulCreate  2m53s  daemonset-controller  Created pod: fluentd-elasticsearch-wxf6v</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl get pods -o wide --namespace kube-system   
+</span></span><span class="line"><span class="cl"><span class="c1"># NAME                                          READY   STATUS    RESTARTS   AGE     IP           NODE                  NOMINATED NODE   READINESS GATES</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fluentd-elasticsearch-bzv6c                   1/1     Running   0          6m38s   10.244.2.2   kind-control-plane3   &lt;none&gt;           &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fluentd-elasticsearch-g5r57                   1/1     Running   0          6m38s   10.244.0.2   kind-control-plane    &lt;none&gt;           &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fluentd-elasticsearch-rqpth                   1/1     Running   0          6m38s   10.244.1.5   kind-control-plane2   &lt;none&gt;           &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fluentd-elasticsearch-sjt9l                   1/1     Running   0          6m38s   10.244.5.2   kind-worker3          &lt;none&gt;           &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fluentd-elasticsearch-vfs9w                   1/1     Running   0          6m38s   10.244.3.2   kind-worker           &lt;none&gt;           &lt;none&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fluentd-elasticsearch-wxf6v                   1/1     Running   0          6m38s   10.244.4.2   kind-worker2          &lt;none&gt;           &lt;none&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="node-新增一個-label">node 新增一個 Label</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看 nodes 名稱有哪些</span>
+</span></span><span class="line"><span class="cl">kubectl get nodes
+</span></span><span class="line"><span class="cl"><span class="c1"># NAME                  STATUS   ROLES    AGE   VERSION</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kind-control-plane    Ready    master   34m   v1.19.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kind-control-plane2   Ready    master   33m   v1.19.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kind-control-plane3   Ready    master   32m   v1.19.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kind-worker           Ready    &lt;none&gt;   32m   v1.19.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kind-worker2          Ready    &lt;none&gt;   32m   v1.19.1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># kind-worker3          Ready    &lt;none&gt;   32m   v1.19.1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 新增一個 label</span>
+</span></span><span class="line"><span class="cl">kubectl label nodes kind-control-plane <span class="nv">ssd</span><span class="o">=</span><span class="nb">true</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看 selector ssd=true nodes</span>
+</span></span><span class="line"><span class="cl">kubectl get nodes --selector <span class="nv">ssd</span><span class="o">=</span><span class="nb">true</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">apps/v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;DaemonSet&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l">nginx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">ssd</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;true&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">nginx-fast-storage</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">selector</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l">nginx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">template</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l">nginx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">ssd</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;true&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">tolerations</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># this toleration is to have the daemonset runnable on master nodes</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># remove it if your masters can&#39;t run pods</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l">node-role.kubernetes.io/master</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">effect</span><span class="p">:</span><span class="w"> </span><span class="l">NoSchedule</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">nodeSelector</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">ssd</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;true&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">nginx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">nginx:1.10.0</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊有實作<a href="https://ithelp.ithome.com.tw/articles/10251596" target="_blank" rel="noopener noreffer ">Day-25 認識DaemonSet - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a><br>
+Pod 都沒有出來</p>
+<p>不知道是不是 Kind 出問題??</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="w">      </span><span class="nt">tolerations</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># this toleration is to have the daemonset runnable on master nodes</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># remove it if your masters can&#39;t run pods</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l">node-role.kubernetes.io/master</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="nt">effect</span><span class="p">:</span><span class="w"> </span><span class="l">NoSchedule</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這行家這個就能跑了&hellip;<br>
+在研究什麼原因</p>
+<h2 id="刪除-daemonset">刪除 DaemonSet</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl delete daemonset nginx-fast-storage
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="daemonset-tree">DaemonSet Tree</h2>
+<p>DaemonSet -&gt; ControllerRevision -&gt; Pod</p>
+<p>DaemonSet因為有ControllerRevision 可以控制版本。但無法做到Replica一樣功能。</p>
+<h3 id="kube-system-有用到-daemonset">kube-system 有用到 DaemonSet</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">kubectl -n kube-system get ds
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+</span></span><span class="line"><span class="cl">kindnet      3         3         3       3            3           &lt;none&gt;                   10d
+</span></span><span class="line"><span class="cl">kube-proxy   3         3         3       3            3           kubernetes.io/os=linux   10d
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="statefulsets">StatefulSets</h1>
+<p>有狀態的Pod。</p>
+<p>常運用儲存、網路結合。</p>
+<h3 id="network">Network</h3>
+<p>StatefulSet -&gt; Pod-1<br>
+-&gt; Pod-2<br>
+-&gt; Pod-3</p>
+<p>每個Pod都有個自Dns。</p>
+<h3 id="storage">Storage</h3>
+<p>Pod-1 -&gt; Volume-1</p>
+<p>Pod-2 -&gt; Volume-2</p>
+<h3 id="更新策略">更新策略</h3>
+<p>從後面先動作，先關掉再建立Pod。</p>
+<h3 id="tree">Tree</h3>
+<p>StatefulSet-&gt;ControllerRevision-&gt;Pod</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2021-02-18</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" data-title="Kubernetes 的 DaemonSet" data-hashtags="Kubernetes,daemonset"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" data-hashtag="Kubernetes"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" data-title="Kubernetes 的 DaemonSet"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" data-title="Kubernetes 的 DaemonSet"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Kuberentes-%E7%9A%84-DaemonSet/" data-title="Kubernetes 的 DaemonSet"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/Kubernetes/">Kubernetes</a>,&nbsp;<a href="/blog/tags/daemonset/">daemonset</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Kind-%E5%BB%BA%E7%BD%AE-Cluster/" class="prev" rel="prev" title="Kind 建置 Cluster"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Kind 建置 Cluster</a>
+            <a href="/blog/posts/SVN-%E7%A7%BB%E8%BD%89-GIT-%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="SVN 移轉 GIT 小記">SVN 移轉 GIT 小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

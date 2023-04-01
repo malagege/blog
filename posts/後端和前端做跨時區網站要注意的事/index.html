@@ -1,33 +1,295 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>後端和前端做跨時區網站要注意的事 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="後端和前端做跨時區網站要注意的事"><meta property="og:description" content="最近使用 .Net 內建 API 回傳物件，他會把 DateTime 轉成 YYYY-mm-ddTHH:MM:ssZ，最近就打算把 Entity 回傳出去給前端，後來發現前端傳給我資料我會少8小時，發現是時區問題，最後前端就先幫我加 8 小時，因為我們網站沒有做跨區問題，所以這邊花點時間我後端要怎麼調整。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-04-01T23:33:56+08:00"><meta property="article:modified_time" content="2023-04-01T23:33:56+08:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="後端和前端做跨時區網站要注意的事"><meta name=twitter:description content="最近使用 .Net 內建 API 回傳物件，他會把 DateTime 轉成 YYYY-mm-ddTHH:MM:ssZ，最近就打算把 Entity 回傳出去給前端，後來發現前端傳給我資料我會少8小時，發現是時區問題，最後前端就先幫我加 8 小時，因為我們網站沒有做跨區問題，所以這邊花點時間我後端要怎麼調整。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/><link rel=prev href=https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"後端和前端做跨時區網站要注意的事","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B\/"},"genre":"posts","keywords":"前端, 後端, 時區, js, datetime, iso8601","wordcount":196,"url":"https:\/\/malagege.github.io\/blog\/posts\/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B\/","datePublished":"2023-04-01T23:33:56+08:00","dateModified":"2023-04-01T23:33:56+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">後端和前端做跨時區網站要注意的事</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/><i class="far fa-folder fa-fw" aria-hidden=true></i>程式心法</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2023-04-01>2023-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;196 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;One minute&nbsp;</div></div><div class=featured-image><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png data-srcset="https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png, https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png 1.5x, https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png 2x" data-sizes=auto alt=https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png title=https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#心智圖>心智圖</a></li><li><a href=#iso8601-日期時間格式>ISO8601 日期時間格式</a></li><li><a href=#為什麼前端傳給我會是錯的呢>為什麼前端傳給我會是錯的呢?</a></li><li><a href=#網站是否要做多時區>網站是否要做多時區?</a></li><li><a href=#網站需要做跨時區>網站需要做跨時區</a><ul><li><a href=#前端-ui-取得日期時間處理-utc-時間方式>前端 UI 取得日期時間處理 UTC 時間方式</a></li><li><a href=#後端處理日期時間>後端處理日期時間</a></li></ul></li><li><a href=#網站不需要做跨時區>網站不需要做跨時區</a></li></ul></nav></div></div><div class=content id=content><p>最近使用 .Net 內建 API 回傳物件，他會把 <code>DateTime</code> 轉成 <code>YYYY-mm-ddTHH:MM:ssZ</code>，最近就打算把 Entity 回傳出去給前端，後來發現前端傳給我資料我會少8小時，發現是時區問題，最後前端就先幫我加 8 小時，因為我們網站沒有做跨區問題，所以這邊花點時間我後端要怎麼調整。</p><h2 id=心智圖>心智圖</h2><div class=mermaid>mindmap
-root(後端和前端做跨時區網站要注意的事)
-ISO8601 日期時間格式
-網站要做跨時區
-前端日期時間轉成 UTC 時間給後端
-前端日期時間依照瀏覽器時區轉換
-後端處理 UTC 時間到資料庫
-網站不需要做跨時區
-前後端日常使用</div><h2 id=iso8601-日期時間格式>ISO8601 日期時間格式</h2><p>簡單來說格式就是 <code>YYYY-mm-ddTHH:MM:ssZ</code>，這邊 <code>Z</code>可以改時區，例如:<code>+08:00</code>。結果會是<code>2022-02-02T12:00:00+08:00</code>，這邊可能會問 <code>T</code>是什麼?<code>Z</code>是什麼?</p><blockquote><p>T: 僅僅是分隔日期和時間的符號，沒有其他含義。所以下面的例子其實結果是一樣的。<br>Z: 這個說法也不嚴謹，指定 Z 時表示 UTC 時間，不指定時表示的是本地時間。</p></blockquote><p>詳細可以看:</p><ul><li><a href=https://zh.wikipedia.org/zh-tw/ISO_8601 target=_blank rel="noopener noreffer">ISO 8601 - 維基百科，自由的百科全書</a></li><li><a href=https://segmentfault.com/a/1190000004292140 target=_blank rel="noopener noreffer">javascript - 關於“時間”的一次探索 - 前端漲姿勢 - SegmentFault 思否</a> ==>上面說<code>TZ</code>說明來自這篇</li></ul><p>我以前也有寫過類似這個東西，不過跟這篇沒什麼關係:</p><ul><li><a href=https://malagege.github.io/blog/posts/ISO-8601-%E6%99%82%E9%96%93%E6%A0%BC%E5%BC%8F-XXXX-XX-XXTXX-XX-XXZ/ target=_blank rel="noopener noreffer">ISO 8601 時間格式 XXXX-XX-XXTXX:XX:XXZ - 程式狂想筆記</a></li><li><a href=https://malagege.github.io/blog/posts/ISO-8601-duration-%E6%99%82%E9%96%93%E6%A8%99%E6%BA%96%E5%B0%8F%E8%A8%98/ target=_blank rel="noopener noreffer">ISO 8601 duration 時間標準小記 - 程式狂想筆記</a></li></ul><h2 id=為什麼前端傳給我會是錯的呢>為什麼前端傳給我會是錯的呢?</h2><p>我當下看到我資料庫存的時間會是 <code>2022-03-02 16:00:00</code>，因為前端沒顯示時間，所以看到結果會是少一天。這邊 .Net 預設JSON轉的格式是 ISO8601 <code>YYYY-mm-ddTHH:MM:ssZ</code>，前端用 <code>toISOString</code>是不會帶時區的，所以造成這個問題。</p><p>到底要怎麼調整呢?</p><h2 id=網站是否要做多時區>網站是否要做多時區?</h2><p>像我之前工作大部分是不需要做跨時區網站，因為可能都是對台灣內部使用，之前跟 Line 案子合作過，他們有要求做跨時區，所以不是每個網站都有這個需求。之前六角學院辦的前端精神時光屋有做過倒數計時，這邊他們有討論過這個議題。</p><p>前端和後端怎麼配合呢?</p><h2 id=網站需要做跨時區>網站需要做跨時區</h2><p>後端接收前端日期時間</p><div class=mermaid>sequenceDiagram
-後端->>前端: 傳給前端 ISO8601 格式(不需要加時區)
-Note Right of 前端: 前端判斷瀏覽器時區顯示時間</div><p>前端接收後端日期時間</p><div class=mermaid>sequenceDiagram
-前端->>後端: 傳給前端 ISO8601 格式(不需要加時區)
-Note Right of 後端: 後端存入資料庫時間不加上時區</div><p>簡單來說後端正常資料要存 UTC 時間，前端依照瀏覽器去控制時區。但前端回給後端也不須加上時區或者用 ISO8601格式，如我現在<code>2023-04-01 20:00:00</code> 台灣時區，但是前端使用<code>2023-04-01T12:00:00Z</code>和<code>2023-04-01T20:00:00+08:00</code>都可以，後端其實用工具解析會得到UTC時間(沒有時區的)，存在資料庫會是 UTC時區。</p><h3 id=前端-ui-取得日期時間處理-utc-時間方式>前端 UI 取得日期時間處理 UTC 時間方式</h3><p>這邊主要說程式，這邊前端用datetimepicker 套件或用 HTML5 input[type=datetime-local] 取出時間轉 ISO8601就可以了。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=k>new</span> <span class=nb>Date</span><span class=p>(</span><span class=nx>input</span><span class=p>.</span><span class=nx>value</span><span class=p>).</span><span class=nx>toISOString</span><span class=p>();</span>
-</span></span></code></pre></td></tr></table></div></div><p>參考: <a href=https://webreflection.medium.com/using-the-input-datetime-local-9503e7efdce target=_blank rel="noopener noreffer">Using the input datetime-local. As you probably know already, in order… | by Andrea Giammarchi | Medium</a></p><h3 id=後端處理日期時間>後端處理日期時間</h3><p>每個程式語言都不一樣。這邊就放點相關處理方式。</p><ul><li><a href=https://blog.johnsonlu.org/use-iso-8601-date-and-time-format-with-php/ target=_blank rel="noopener noreffer">Use ISO-8601 Date and Time Format with PHP – 佛祖球球</a></li><li>php strtotime 也能直接轉</li><li><a href=https://blog.csdn.net/qq_26213781/article/details/114416323 target=_blank rel="noopener noreffer">Asp.Net Core Json配置（大小写、日期格式等）_Morcom.G的博客-CSDN博客</a></li><li><a href=https://dotblogs.com.tw/fire/2022/11/30/153436 target=_blank rel="noopener noreffer">[.NET Core] System.Text.Json 添加 Customize JsonConverter | K. C. - 點部落</a></li><li><a href=https://stackoverflow.com/questions/2201925/converting-iso-8601-compliant-string-to-java-util-date target=_blank rel="noopener noreffer">Converting ISO 8601-compliant String to java.util.Date - Stack Overflow</a></li><li><a href=https://www.baeldung.com/spring-boot-formatting-json-dates target=_blank rel="noopener noreffer">Formatting JSON Dates in Spring Boot | Baeldung</a></li></ul><h2 id=網站不需要做跨時區>網站不需要做跨時區</h2><p>很簡單，後端程式存現在時區格式，前端接到無需做特別轉換，這邊就真的很簡單。怕未來要做跨時區，但現在階段無須跨時區，這邊可以用 UTC 時區，傳給前端再做時區轉換。</p><p>這邊也沒有什麼規定，不過也要看公司有沒有人這樣做，不然其他人覺得你很奇怪怎麼這樣用?</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2023-04-01</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/ data-title=後端和前端做跨時區網站要注意的事 data-hashtags=前端,後端,時區,js,datetime,iso8601><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/ data-hashtag=前端><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/ data-title=後端和前端做跨時區網站要注意的事><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/ data-title=後端和前端做跨時區網站要注意的事><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/ data-title=後端和前端做跨時區網站要注意的事 data-image=https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/%E5%89%8D%E7%AB%AF/>前端</a>,&nbsp;<a href=/blog/tags/%E5%BE%8C%E7%AB%AF/>後端</a>,&nbsp;<a href=/blog/tags/%E6%99%82%E5%8D%80/>時區</a>,&nbsp;<a href=/blog/tags/js/>js</a>,&nbsp;<a href=/blog/tags/datetime/>datetime</a>,&nbsp;<a href=/blog/tags/iso8601/>iso8601</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/ class=prev rel=prev title="Raspberry Pi 2023 年安裝安裝 OS"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Raspberry Pi 2023 年安裝安裝 OS</a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>後端和前端做跨時區網站要注意的事 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="後端和前端做跨時區網站要注意的事" />
+<meta property="og:description" content="最近使用 .Net 內建 API 回傳物件，他會把 DateTime 轉成 YYYY-mm-ddTHH:MM:ssZ，最近就打算把 Entity 回傳出去給前端，後來發現前端傳給我資料我會少8小時，發現是時區問題，最後前端就先幫我加 8 小時，因為我們網站沒有做跨區問題，所以這邊花點時間我後端要怎麼調整。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-04-01T23:33:56+08:00" />
+<meta property="article:modified_time" content="2023-04-01T23:33:56+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="後端和前端做跨時區網站要注意的事"/>
+<meta name="twitter:description" content="最近使用 .Net 內建 API 回傳物件，他會把 DateTime 轉成 YYYY-mm-ddTHH:MM:ssZ，最近就打算把 Entity 回傳出去給前端，後來發現前端傳給我資料我會少8小時，發現是時區問題，最後前端就先幫我加 8 小時，因為我們網站沒有做跨區問題，所以這邊花點時間我後端要怎麼調整。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "後端和前端做跨時區網站要注意的事",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B\/"
+        },"genre": "posts","keywords": "前端, 後端, 時區, js, datetime, iso8601","wordcount":  196 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B\/","datePublished": "2023-04-01T23:33:56+08:00","dateModified": "2023-04-01T23:33:56+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">後端和前端做跨時區網站要注意的事</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-04-01">2023-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;196 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png, https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png 1.5x, https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png"
+        title="https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#iso8601-日期時間格式">ISO8601 日期時間格式</a></li>
+    <li><a href="#為什麼前端傳給我會是錯的呢">為什麼前端傳給我會是錯的呢?</a></li>
+    <li><a href="#網站是否要做多時區">網站是否要做多時區?</a></li>
+    <li><a href="#網站需要做跨時區">網站需要做跨時區</a>
+      <ul>
+        <li><a href="#前端-ui-取得日期時間處理-utc-時間方式">前端 UI 取得日期時間處理 UTC 時間方式</a></li>
+        <li><a href="#後端處理日期時間">後端處理日期時間</a></li>
+      </ul>
+    </li>
+    <li><a href="#網站不需要做跨時區">網站不需要做跨時區</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近使用 .Net 內建 API 回傳物件，他會把 <code>DateTime</code> 轉成 <code>YYYY-mm-ddTHH:MM:ssZ</code>，最近就打算把 Entity 回傳出去給前端，後來發現前端傳給我資料我會少8小時，發現是時區問題，最後前端就先幫我加 8 小時，因為我們網站沒有做跨區問題，所以這邊花點時間我後端要怎麼調整。</p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+    root(後端和前端做跨時區網站要注意的事)
+        ISO8601 日期時間格式
+        網站要做跨時區
+            前端日期時間轉成 UTC 時間給後端
+            前端日期時間依照瀏覽器時區轉換
+            後端處理 UTC 時間到資料庫
+        網站不需要做跨時區
+            前後端日常使用
+</div><h2 id="iso8601-日期時間格式">ISO8601 日期時間格式</h2>
+<p>簡單來說格式就是 <code>YYYY-mm-ddTHH:MM:ssZ</code>，這邊 <code>Z</code>可以改時區，例如:<code>+08:00</code>。結果會是<code>2022-02-02T12:00:00+08:00</code>，這邊可能會問 <code>T</code>是什麼?<code>Z</code>是什麼?</p>
+<blockquote>
+<p>T: 僅僅是分隔日期和時間的符號，沒有其他含義。所以下面的例子其實結果是一樣的。<br>
+Z: 這個說法也不嚴謹，指定 Z 時表示 UTC 時間，不指定時表示的是本地時間。</p>
+</blockquote>
+<p>詳細可以看:</p>
+<ul>
+<li><a href="https://zh.wikipedia.org/zh-tw/ISO_8601" target="_blank" rel="noopener noreffer ">ISO 8601 - 維基百科，自由的百科全書</a></li>
+<li><a href="https://segmentfault.com/a/1190000004292140" target="_blank" rel="noopener noreffer ">javascript - 關於“時間”的一次探索 - 前端漲姿勢 - SegmentFault 思否</a>  ==&gt;上面說<code>TZ</code>說明來自這篇</li>
+</ul>
+<p>我以前也有寫過類似這個東西，不過跟這篇沒什麼關係:</p>
+<ul>
+<li><a href="https://malagege.github.io/blog/posts/ISO-8601-%E6%99%82%E9%96%93%E6%A0%BC%E5%BC%8F-XXXX-XX-XXTXX-XX-XXZ/" target="_blank" rel="noopener noreffer ">ISO 8601 時間格式 XXXX-XX-XXTXX:XX:XXZ - 程式狂想筆記</a></li>
+<li><a href="https://malagege.github.io/blog/posts/ISO-8601-duration-%E6%99%82%E9%96%93%E6%A8%99%E6%BA%96%E5%B0%8F%E8%A8%98/" target="_blank" rel="noopener noreffer ">ISO 8601 duration 時間標準小記 - 程式狂想筆記</a></li>
+</ul>
+<h2 id="為什麼前端傳給我會是錯的呢">為什麼前端傳給我會是錯的呢?</h2>
+<p>我當下看到我資料庫存的時間會是 <code>2022-03-02 16:00:00</code>，因為前端沒顯示時間，所以看到結果會是少一天。這邊 .Net 預設JSON轉的格式是 ISO8601 <code>YYYY-mm-ddTHH:MM:ssZ</code>，前端用 <code>toISOString</code>是不會帶時區的，所以造成這個問題。</p>
+<p>到底要怎麼調整呢?</p>
+<h2 id="網站是否要做多時區">網站是否要做多時區?</h2>
+<p>像我之前工作大部分是不需要做跨時區網站，因為可能都是對台灣內部使用，之前跟 Line 案子合作過，他們有要求做跨時區，所以不是每個網站都有這個需求。之前六角學院辦的前端精神時光屋有做過倒數計時，這邊他們有討論過這個議題。</p>
+<p>前端和後端怎麼配合呢?</p>
+<h2 id="網站需要做跨時區">網站需要做跨時區</h2>
+<p>後端接收前端日期時間</p>
+<div class="mermaid">sequenceDiagram
+    後端->>前端: 傳給前端 ISO8601 格式(不需要加時區)
+    Note Right of 前端: 前端判斷瀏覽器時區顯示時間
+</div><p>前端接收後端日期時間</p>
+<div class="mermaid">sequenceDiagram
+    前端->>後端: 傳給前端 ISO8601 格式(不需要加時區)
+    Note Right of 後端: 後端存入資料庫時間不加上時區
+</div><p>簡單來說後端正常資料要存 UTC 時間，前端依照瀏覽器去控制時區。但前端回給後端也不須加上時區或者用 ISO8601格式，如我現在<code>2023-04-01 20:00:00</code> 台灣時區，但是前端使用<code>2023-04-01T12:00:00Z</code>和<code>2023-04-01T20:00:00+08:00</code>都可以，後端其實用工具解析會得到UTC時間(沒有時區的)，存在資料庫會是 UTC時區。</p>
+<h3 id="前端-ui-取得日期時間處理-utc-時間方式">前端 UI 取得日期時間處理 UTC 時間方式</h3>
+<p>這邊主要說程式，這邊前端用datetimepicker 套件或用 HTML5 input[type=datetime-local] 取出時間轉 ISO8601就可以了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">value</span><span class="p">).</span><span class="nx">toISOString</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考: <a href="https://webreflection.medium.com/using-the-input-datetime-local-9503e7efdce" target="_blank" rel="noopener noreffer ">Using the input datetime-local. As you probably know already, in order… | by Andrea Giammarchi | Medium</a></p>
+<h3 id="後端處理日期時間">後端處理日期時間</h3>
+<p>每個程式語言都不一樣。這邊就放點相關處理方式。</p>
+<ul>
+<li><a href="https://blog.johnsonlu.org/use-iso-8601-date-and-time-format-with-php/" target="_blank" rel="noopener noreffer ">Use ISO-8601 Date and Time Format with PHP – 佛祖球球</a></li>
+<li>php strtotime 也能直接轉</li>
+<li><a href="https://blog.csdn.net/qq_26213781/article/details/114416323" target="_blank" rel="noopener noreffer ">Asp.Net Core Json配置（大小写、日期格式等）_Morcom.G的博客-CSDN博客</a></li>
+<li><a href="https://dotblogs.com.tw/fire/2022/11/30/153436" target="_blank" rel="noopener noreffer ">[.NET Core] System.Text.Json 添加 Customize JsonConverter | K. C. - 點部落</a></li>
+<li><a href="https://stackoverflow.com/questions/2201925/converting-iso-8601-compliant-string-to-java-util-date" target="_blank" rel="noopener noreffer ">Converting ISO 8601-compliant String to java.util.Date - Stack Overflow</a></li>
+<li><a href="https://www.baeldung.com/spring-boot-formatting-json-dates" target="_blank" rel="noopener noreffer ">Formatting JSON Dates in Spring Boot | Baeldung</a></li>
+</ul>
+<h2 id="網站不需要做跨時區">網站不需要做跨時區</h2>
+<p>很簡單，後端程式存現在時區格式，前端接到無需做特別轉換，這邊就真的很簡單。怕未來要做跨時區，但現在階段無須跨時區，這邊可以用 UTC 時區，傳給前端再做時區轉換。</p>
+<p>這邊也沒有什麼規定，不過也要看公司有沒有人這樣做，不然其他人覺得你很奇怪怎麼這樣用?</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-04-01</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" data-title="後端和前端做跨時區網站要注意的事" data-hashtags="前端,後端,時區,js,datetime,iso8601"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" data-hashtag="前端"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" data-title="後端和前端做跨時區網站要注意的事"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" data-title="後端和前端做跨時區網站要注意的事"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" data-title="後端和前端做跨時區網站要注意的事" data-image="https://user-images.githubusercontent.com/6058558/229299547-9d20c635-b6bf-4e50-826a-3a5d0280fc8e.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/%E5%89%8D%E7%AB%AF/">前端</a>,&nbsp;<a href="/blog/tags/%E5%BE%8C%E7%AB%AF/">後端</a>,&nbsp;<a href="/blog/tags/%E6%99%82%E5%8D%80/">時區</a>,&nbsp;<a href="/blog/tags/js/">js</a>,&nbsp;<a href="/blog/tags/datetime/">datetime</a>,&nbsp;<a href="/blog/tags/iso8601/">iso8601</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Raspberry-Pi-2023-%E5%B9%B4%E5%AE%89%E8%A3%9D%E5%AE%89%E8%A3%9D-OS/" class="prev" rel="prev" title="Raspberry Pi 2023 年安裝安裝 OS"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Raspberry Pi 2023 年安裝安裝 OS</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

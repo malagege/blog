@@ -1,210 +1,573 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Linux ls 大量檔案卡住解決方法 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Linux ls 大量檔案卡住解決方法"><meta property="og:description" content="今天在大量檔案資料夾(約19萬個檔案)
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Linux ls 大量檔案卡住解決方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Linux ls 大量檔案卡住解決方法" />
+<meta property="og:description" content="今天在大量檔案資料夾(約19萬個檔案)
 下 command line 下 ls 之後就卡住
-不能用 Ctrl + C 跳出去&mldr;"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-09-27T10:35:21+00:00"><meta property="article:modified_time" content="2019-09-27T10:35:21+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Linux ls 大量檔案卡住解決方法"><meta name=twitter:description content="今天在大量檔案資料夾(約19萬個檔案)
+不能用 Ctrl &#43; C 跳出去&hellip;" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-09-27T10:35:21+00:00" />
+<meta property="article:modified_time" content="2019-09-27T10:35:21+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Linux ls 大量檔案卡住解決方法"/>
+<meta name="twitter:description" content="今天在大量檔案資料夾(約19萬個檔案)
 下 command line 下 ls 之後就卡住
-不能用 Ctrl + C 跳出去&mldr;"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/MySql-Lock-wait-timeout-exceeded%E5%B0%8F%E8%A8%98/><link rel=next href=https://malagege.github.io/blog/posts/ISO-8601-duration-%E6%99%82%E9%96%93%E6%A8%99%E6%BA%96%E5%B0%8F%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Linux ls 大量檔案卡住解決方法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"ls, linux","wordcount":671,"url":"https:\/\/malagege.github.io\/blog\/posts\/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95\/","datePublished":"2019-09-27T10:35:21+00:00","dateModified":"2019-09-27T10:35:21+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux ls 大量檔案卡住解決方法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Linux/><i class="far fa-folder fa-fw" aria-hidden=true></i>Linux</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2019-09-27>2019-09-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;671 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;4 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#ls--1--f>ls -1 -f</a></li><li><a href=#刪除多個檔案>刪除多個檔案</a><ul><li><a href=#strace>strace</a></li><li><a href=#rsync---delete-before>rsync &ndash;delete-before</a></li><li><a href=#別人多個測試結果>別人多個測試結果</a></li><li><a href=#實測>實測</a></li></ul></li><li><a href=#大量檔案複製>大量檔案複製</a><ul><li><a href=#實測-1>實測</a></li><li><a href=#zxvf-操作>zxvf 操作</a></li></ul></li><li><a href=#大量看檔案數>大量看檔案數</a></li><li><a href=#找大量使用inode-資料夾>找大量使用inode 資料夾</a></li><li><a href=#大量檔案看大小>大量檔案看大小</a></li></ul></nav></div></div><div class=content id=content><p>今天在大量檔案資料夾(約19萬個檔案)<br>下 command line 下 ls 之後就卡住<br>不能用 <code>Ctrl + C</code> 跳出去&mldr;</p><p>在想有什麼方法解決這個問題?</p><h2 id=ls--1--f>ls -1 -f</h2><p><strong>注意這邊 -1 是數字1，不是英文小寫L</strong><br>查看了一下 <code>-f</code> 就是不做排序，<code>-1</code>是做一欄輸出</p><p><a href=http://www.zxzblog.com/linux-morefile/ target=_blank rel="noopener noreffer">Linux下文件过多过碎问题 – 工作笔记</a></p><h2 id=刪除多個檔案>刪除多個檔案</h2><p>雖然我沒有現在要做，不過都看到方法，順便記錄一下。</p><h3 id=strace>strace</h3><p>這篇用<a href=https://beyondkmp.github.io/%E5%B8%B8%E7%94%A8%E6%8A%80%E5%B7%A7/ls%E5%91%BD%E4%BB%A4%E5%8D%A1%E4%BD%8F.html target=_blank rel="noopener noreffer">非常大的文件夹导致ls命令卡住</a> strace 方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ls -l &gt;/dev/null
-</span></span><span class=line><span class=cl>strace -p <span class=m>3963</span> 2&gt;<span class=p>&amp;</span><span class=m>1</span> <span class=p>|</span> grep lstat
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># lstat64(“xxxxx”, {st_mode=S_IFREG|0664, st_size=0, …}) = 0</span>
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://www.oschina.net/question/255612_220479 target=_blank rel="noopener noreffer">Linux 删除海量文件 rm -f 会卡死怎么破？ - OSCHINA</a></p><h3 id=rsync---delete-before>rsync &ndash;delete-before</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>rsync –delete-before -d -a –progress –stats /a/ /data/
-</span></span></code></pre></td></tr></table></div></div><p><a href=http://www.zxzblog.com/linux-morefile/ target=_blank rel="noopener noreffer">Linux下文件过多过碎问题 – 工作笔记</a><br><a href=https://www.oschina.net/question/255612_221510 target=_blank rel="noopener noreffer">还是Linux删除海量文件的问题，那些说用rsync &ndash;delete-before完全没用 - OSCHINA</a></p><h3 id=別人多個測試結果>別人多個測試結果</h3><blockquote><p><a href=http://www.slashroot.in/which-is-the-fastest-method-to-delete-files-in-linux target=_blank rel="noopener noreffer">http://www.slashroot.in/which-is-the-fastest-method-to-delete-files-in-linux</a><br>刪除50萬個文件,各種方法的速度對比:</p><p>先創建50萬個文件:<br>for i in $(seq 1 500000); do echo testing &#187; $i.txt; done</p><p>各種刪除當前目錄文件方法,先進入該目錄(比如PHP的sessions目錄),然後執行以下命令:<br>time rm -f * 刪除失敗,返回 /bin/rm: Argument list too long<br>time find ./ -type f -exec rm {} ;<br>time find ./ -type f -delete<br>time rsync -a &ndash;delete EmptyDir/ BigDir/<br>time perl -e &lsquo;for(&lt;*>){((stat)9&lt;(unlink))}&rsquo;</p><p>結果:<br>perl用了1分鐘<br>rsync用了3分鐘<br>find with -delete用了5分鐘<br>find with -exec用了14分鐘<br>直接用rm結果是刪除失敗.</p></blockquote><h3 id=實測>實測</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># 建立 500000 測試文件</span>
-</span></span><span class=line><span class=cl><span class=k>for</span> i in <span class=k>$(</span>seq <span class=m>1</span> 500000<span class=k>)</span><span class=p>;</span> <span class=k>do</span> <span class=nb>echo</span> testing &gt;&gt; <span class=nv>$i</span>.txt<span class=p>;</span> <span class=k>done</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>find /test -type f -exec rm <span class=o>{}</span> <span class=se>\;</span>
-</span></span><span class=line><span class=cl>find /test -mtime +7 -exec rm <span class=o>{}</span> <span class=se>\;</span>
-</span></span><span class=line><span class=cl>find /test -size +7M -exec rm <span class=o>{}</span> <span class=se>\;</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nb>time</span> rm -f * <span class=c1>#/bin/rm: Argument list too long</span>
-</span></span><span class=line><span class=cl><span class=nb>time</span> find ./ -type f -exec rm <span class=o>{}</span> <span class=se>\;</span>      <span class=c1>#real    14m51.735s</span>
-</span></span><span class=line><span class=cl><span class=nb>time</span> find ./ -type f -delete     <span class=c1># real    5m11.937s</span>
-</span></span><span class=line><span class=cl><span class=nb>time</span> perl -e <span class=s1>&#39;for(&lt;*&gt;){((stat)[9]&lt;(unlink))}&#39;</span>   <span class=c1># real    1m0.488s (王者)</span>
-</span></span><span class=line><span class=cl><span class=nb>time</span> rsync -a --delete blanktest/ test/   <span class=c1># real    2m52.502s</span>
-</span></span></code></pre></td></tr></table></div></div><p>測試 Perl 真的很快，不知道是用甚麼巫術。</p><p>推薦詳細可以看<a href=https://www.cnblogs.com/kevingrace/p/5766139.html target=_blank rel="noopener noreffer">Rsync同步时删除多余文件 [附：删除大量文件方法的效率对比] - 散尽浮华 - 博客园</a> <a href=web1.png rel>備份圖</a><br>裡面介紹很詳細</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># #1 刪除某資料夾檔案</span>
-</span></span><span class=line><span class=cl><span class=c1>#1）建立一個空的文件夾：</span>
-</span></span><span class=line><span class=cl><span class=c1># mkdir /tmp/test</span>
-</span></span><span class=line><span class=cl><span class=c1>#2）用rsync刪除目標目錄：</span>
-</span></span><span class=line><span class=cl><span class=c1># rsync --delete-before -a -H -v --progress --stats /tmp/test/ log/</span>
-</span></span><span class=line><span class=cl>這樣要刪除的log目錄就會被清空了，刪除的速度會非常快。rsync實際上用的是替換原理，處理數十萬個文件也是秒刪。
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># #2 刪除某資料夾檔案</span>
-</span></span><span class=line><span class=cl><span class=c1># 搬移後刪除</span>
-</span></span><span class=line><span class=cl>rsync -a --remove-source-files SOURCEDIR /mnt/TARGETDIR/
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://www.oschina.net/question/255612_220479 target=_blank rel="noopener noreffer">Linux 刪除海量文件 rm -f 會卡死怎麼破？ - OSCHINA</a></p><h2 id=大量檔案複製>大量檔案複製</h2><blockquote><p>3、小文件太多，複製太慢<br>　　1，在需要對大量小文件進行移動或複製時，用cp、mv都會顯得很沒有效率，可以用tar先壓縮再解壓縮的方式。<br>　　2，在網絡環境中傳輸時，可以再結合nc命令，通過管道和tcp端口進行傳輸。<br>　　nc和tar可以用來快速的在兩台機器之間傳輸文件和目錄，比ftp和scp要來得簡單的多。<br>　　由於nc是一個超輕量的命令，所以一般busybox都會集成它。當一個linux終端，比如linux pda,<br>　　通過usblan的方式連接到另一台linux主機的時候，這樣的嵌入式終端上一般不會集成ftp server, ssh server<br>　　這樣比較笨重的服務，這個時候， nc可能成為唯一的上傳手段。<br>　　比如將機器A上的test目錄上傳到到機器 B（192.168.0.11）上，只需要：<br>　　在機器B上，用nc來監聽一個端口，隨便就好，只要不被佔用；並且將收到的數據用tar展開。-l代表監聽模式。<br>　　#nc -l 4444 |tar -C /tmp/dir -zxf -<br>　　然後，在A上通過nc和 tar發送test目錄。使用一致的4444的端口。<br>　　#tar -zcvf - test|nc 192.168.0.11 4444</p></blockquote><p><a href=http://www.zxzblog.com/linux-morefile/ target=_blank rel="noopener noreffer">Linux下文件過多過碎問題 – 工作筆記</a></p><p><del>哪天用到再說&mldr;</del></p><h3 id=實測-1>實測</h3><p>最近工作有座大量刪除檔案，在我還滿好奇使用這個速度會有多快?上面指令竟然無法使用!!!不過後來有找到類似指令，最後測試成功。<br>參考: <a href=https://blog.gtwang.org/linux/linux-utility-netcat-examples/ target=_blank rel="noopener noreffer">Netcat（Linux nc 指令）網路管理者工具實用範例| 兩台主機之間複製整個目錄 - G. T. Wang</a></p><p>下面操作要照順序</p><p>在接收端電腦使用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>nc -l <span class=m>5000</span> <span class=p>|</span> tar xvf -
-</span></span></code></pre></td></tr></table></div></div><p>在發送端電腦使用</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># localhost 換成你的目地電腦</span>
-</span></span><span class=line><span class=cl><span class=c1># 前面可以加 time ，可以算時間</span>
-</span></span><span class=line><span class=cl><span class=c1># /path/to/dir 是要傳送檔案目錄</span>
-</span></span><span class=line><span class=cl><span class=c1># 5000 傳輸 port</span>
-</span></span><span class=line><span class=cl>tar cvf - /path/to/dir <span class=p>|</span> nc localhost <span class=m>5000</span>
-</span></span></code></pre></td></tr></table></div></div><p>相同電腦，執行速度</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>real    4m43.463s
-</span></span><span class=line><span class=cl>user    0m9.270s
-</span></span><span class=line><span class=cl>sys     0m47.256s
-</span></span></code></pre></td></tr></table></div></div><h3 id=zxvf-操作>zxvf 操作</h3><p>不會比較快，而且還會卡住&mldr;，但其實是完成的。</p><h2 id=大量看檔案數>大量看檔案數</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>time</span> perl -e <span class=s1>&#39;opendir D, &#34;.&#34;; @files = readdir D; closedir D; print scalar(@files).&#34;\n&#34;&#39;</span> <span class=c1>#1315029  real    0m0.580s user    0m0.302s sys     0m0.275s – </span>
-</span></span></code></pre></td></tr></table></div></div><p>我這邊測試時間</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>real    0m1.620s
-</span></span><span class=line><span class=cl>user    0m0.101s
-</span></span><span class=line><span class=cl>sys     0m0.565s
-</span></span></code></pre></td></tr></table></div></div><p>使用<code>time ls -f | wc -l</code>時間好像更快</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>real    0m0.397s
-</span></span><span class=line><span class=cl>user    0m0.175s
-</span></span><span class=line><span class=cl>sys     0m0.250s
-</span></span></code></pre></td></tr></table></div></div><p>參考:</p><ul><li><a href=https://stackoverflow.com/questions/1427032/fast-linux-file-count-for-a-large-number-of-files target=_blank rel="noopener noreffer">shell - Fast Linux file count for a large number of files - Stack Overflow</a></li><li><a href=https://www.unix.com/shell-programming-and-scripting/113891-perl-count-files-dir.html target=_blank rel="noopener noreffer">PERL count files in a dir</a></li></ul><h2 id=找大量使用inode-資料夾>找大量使用inode 資料夾</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>wget http://downinfo.myhostadmin.net/check_inode_counts.txt
-</span></span><span class=line><span class=cl>mv check_inode_counts.txt check_inode_counts.pl
-</span></span><span class=line><span class=cl>perl check_inode_counts.pl /
-</span></span></code></pre></td></tr></table></div></div><p>check_inode_counts.pl</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span><span class=lnt>19
-</span><span class=lnt>20
-</span><span class=lnt>21
-</span><span class=lnt>22
-</span><span class=lnt>23
-</span><span class=lnt>24
-</span><span class=lnt>25
-</span><span class=lnt>26
-</span><span class=lnt>27
-</span><span class=lnt>28
-</span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
-</span><span class=lnt>34
-</span><span class=lnt>35
-</span><span class=lnt>36
-</span><span class=lnt>37
-</span><span class=lnt>38
-</span><span class=lnt>39
-</span><span class=lnt>40
-</span><span class=lnt>41
-</span><span class=lnt>42
-</span><span class=lnt>43
-</span><span class=lnt>44
-</span><span class=lnt>45
-</span><span class=lnt>46
-</span><span class=lnt>47
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-perl data-lang=perl><span class=line><span class=cl><span class=ch>#!/usr/bin/perl -w</span>
-</span></span><span class=line><span class=cl><span class=k>use</span> <span class=nn>strict</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>my</span> <span class=nv>$threshold</span><span class=o>=</span><span class=mi>50000</span><span class=p>;</span>
-</span></span><span class=line><span class=cl><span class=k>my</span> <span class=p>(</span><span class=nv>$count</span><span class=p>,</span><span class=nv>$bigdir</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=k>sub</span> <span class=nf>count_inodes</span><span class=p>($);</span>
-</span></span><span class=line><span class=cl><span class=k>sub</span> <span class=nf>count_inodes</span><span class=p>($)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>	<span class=k>my</span> <span class=nv>$dir</span><span class=o>=</span><span class=nb>shift</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=k>if</span><span class=p>(</span><span class=nv>$count</span><span class=o>&gt;=</span><span class=nv>$threshold</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>	<span class=k>if</span><span class=p>(</span><span class=nb>opendir</span><span class=p>(</span><span class=k>my</span> <span class=nv>$dh</span><span class=p>,</span><span class=nv>$dir</span><span class=p>))</span>
-</span></span><span class=line><span class=cl>	<span class=p>{</span>
-</span></span><span class=line><span class=cl>		<span class=k>while</span><span class=p>(</span><span class=nb>defined</span><span class=p>(</span><span class=k>my</span> <span class=nv>$file</span><span class=o>=</span><span class=nb>readdir</span><span class=p>(</span><span class=nv>$dh</span><span class=p>)))</span>
-</span></span><span class=line><span class=cl>		<span class=p>{</span>
-</span></span><span class=line><span class=cl>			<span class=k>next</span> <span class=k>if</span> <span class=p>(</span><span class=nv>$file</span> <span class=ow>eq</span> <span class=s>&#39;.&#39;</span><span class=o>||</span><span class=nv>$file</span> <span class=ow>eq</span> <span class=s>&#39;..&#39;</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>			<span class=nv>$count</span><span class=o>++</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>			<span class=k>my</span> <span class=nv>$path</span><span class=o>=</span><span class=nv>$dir</span><span class=o>.</span><span class=s>&#39;/&#39;</span><span class=o>.</span><span class=nv>$file</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>			<span class=n>count_inodes</span><span class=p>(</span><span class=nv>$path</span><span class=p>)</span> <span class=k>if</span> <span class=p>(</span><span class=o>-</span><span class=n>d</span> <span class=nv>$path</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>		<span class=p>}</span>
-</span></span><span class=line><span class=cl>		<span class=nb>closedir</span><span class=p>(</span><span class=nv>$dh</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>	<span class=p>}</span><span class=k>else</span>
-</span></span><span class=line><span class=cl>	<span class=p>{</span>
-</span></span><span class=line><span class=cl>		<span class=nb>warn</span> <span class=s>&#34;couldn&#39;t open $dir - $!\n&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>	<span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=nb>push</span><span class=p>(</span><span class=nv>@ARGV</span><span class=p>,</span> <span class=s>&#39;.&#39;</span><span class=p>)</span> <span class=k>unless</span> <span class=p>(</span><span class=nv>@ARGV</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=k>while</span> <span class=p>(</span><span class=nv>@ARGV</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=p>{</span>
-</span></span><span class=line><span class=cl>	<span class=k>my</span> <span class=nv>$main</span><span class=o>=</span><span class=nb>shift</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>	<span class=nv>$main</span><span class=o>.=</span><span class=s>&#39;/&#39;</span> <span class=k>unless</span><span class=p>(</span><span class=nv>$main</span><span class=o>=~</span><span class=sr>/\/$/</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>	<span class=k>if</span><span class=p>(</span><span class=nb>opendir</span><span class=p>(</span><span class=k>my</span> <span class=nv>$dh</span><span class=p>,</span> <span class=nv>$main</span><span class=p>))</span>
-</span></span><span class=line><span class=cl>	<span class=p>{</span>
-</span></span><span class=line><span class=cl>		<span class=k>while</span><span class=p>(</span><span class=nb>defined</span><span class=p>(</span><span class=k>my</span> <span class=nv>$file</span><span class=o>=</span><span class=nb>readdir</span><span class=p>(</span><span class=nv>$dh</span><span class=p>)))</span>
-</span></span><span class=line><span class=cl>		<span class=p>{</span>
-</span></span><span class=line><span class=cl>			<span class=nv>$count</span><span class=o>=</span><span class=mi>0</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>			<span class=k>next</span> <span class=k>if</span><span class=p>(</span><span class=nv>$file</span> <span class=ow>eq</span> <span class=s>&#39;.&#39;</span><span class=o>||</span><span class=nv>$file</span> <span class=ow>eq</span> <span class=s>&#39;..&#39;</span><span class=o>||!</span> <span class=o>-</span><span class=n>d</span> <span class=nv>$main</span><span class=o>.</span><span class=nv>$file</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>			<span class=n>count_inodes</span><span class=p>(</span><span class=nv>$main</span><span class=o>.</span><span class=nv>$file</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>			<span class=nv>$count</span><span class=o>=</span><span class=s>&#34;&gt;&#34;</span><span class=o>.</span><span class=nv>$threshold</span> <span class=k>if</span><span class=p>(</span><span class=nv>$count</span><span class=o>&gt;=</span><span class=nv>$threshold</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>			<span class=nb>printf</span> <span class=s>&#34;%10s\t%s\n&#34;</span><span class=p>,</span> <span class=nv>$count</span><span class=p>,</span> <span class=nv>$main</span><span class=o>.</span><span class=nv>$file</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>		<span class=p>}</span>
-</span></span><span class=line><span class=cl>		<span class=nb>closedir</span><span class=p>(</span><span class=nv>$dh</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>	<span class=p>}</span>
-</span></span><span class=line><span class=cl>	<span class=k>else</span>
-</span></span><span class=line><span class=cl>	<span class=p>{</span>
-</span></span><span class=line><span class=cl>		<span class=nb>warn</span> <span class=s>&#34;couldn&#39;t open $main - $!\n&#34;</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>	<span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div><p><a href=https://www.huaweicloud.com/articles/b989923796f37fb1736e0063f83b2c24.html target=_blank rel="noopener noreffer">linux系统磁盘block、inode占满处理 - 华为云</a></p><h2 id=大量檔案看大小>大量檔案看大小</h2><p><a href=https://unix.stackexchange.com/questions/307583/fast-way-to-display-the-size-of-each-subdirectory-in-a-directory target=_blank rel="noopener noreffer">command line - Fast way to display the size of each subdirectory in a directory - Unix & Linux Stack Exchange</a></p><p><a href=https://lwn.net/Articles/400629/ target=_blank rel="noopener noreffer">One billion files on Linux [LWN.net]</a></p><p><a href=https://serverfault.com/questions/43133/filesystem-large-number-of-files-in-a-single-directory target=_blank rel="noopener noreffer">linux - Filesystem large number of files in a single directory - Server Fault</a></p><p><a href=http://xiaqunfeng.cc/2017/07/06/XFS-vs-EXT4/ target=_blank rel="noopener noreffer">XFS vs EXT4 | 夏天的风的博客</a></p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2019-09-27</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ data-title="Linux ls 大量檔案卡住解決方法" data-hashtags=ls,linux><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ data-hashtag=ls><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ data-title="Linux ls 大量檔案卡住解決方法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ data-title="Linux ls 大量檔案卡住解決方法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/ data-title="Linux ls 大量檔案卡住解決方法"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/ls/>ls</a>,&nbsp;<a href=/blog/tags/Linux/>Linux</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/MySql-Lock-wait-timeout-exceeded%E5%B0%8F%E8%A8%98/ class=prev rel=prev title="MySql Lock wait timeout exceeded 小記"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>MySql Lock wait timeout exceeded 小記</a>
-<a href=/blog/posts/ISO-8601-duration-%E6%99%82%E9%96%93%E6%A8%99%E6%BA%96%E5%B0%8F%E8%A8%98/ class=next rel=next title="ISO 8601 duration 時間標準小記">ISO 8601 duration 時間標準小記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+不能用 Ctrl &#43; C 跳出去&hellip;"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/MySql-Lock-wait-timeout-exceeded%E5%B0%8F%E8%A8%98/" /><link rel="next" href="https://malagege.github.io/blog/posts/ISO-8601-duration-%E6%99%82%E9%96%93%E6%A8%99%E6%BA%96%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Linux ls 大量檔案卡住解決方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95\/"
+        },"genre": "posts","keywords": "ls, linux","wordcount":  671 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95\/","datePublished": "2019-09-27T10:35:21+00:00","dateModified": "2019-09-27T10:35:21+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux ls 大量檔案卡住解決方法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2019-09-27">2019-09-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;671 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#ls--1--f">ls -1 -f</a></li>
+    <li><a href="#刪除多個檔案">刪除多個檔案</a>
+      <ul>
+        <li><a href="#strace">strace</a></li>
+        <li><a href="#rsync---delete-before">rsync &ndash;delete-before</a></li>
+        <li><a href="#別人多個測試結果">別人多個測試結果</a></li>
+        <li><a href="#實測">實測</a></li>
+      </ul>
+    </li>
+    <li><a href="#大量檔案複製">大量檔案複製</a>
+      <ul>
+        <li><a href="#實測-1">實測</a></li>
+        <li><a href="#zxvf-操作">zxvf 操作</a></li>
+      </ul>
+    </li>
+    <li><a href="#大量看檔案數">大量看檔案數</a></li>
+    <li><a href="#找大量使用inode-資料夾">找大量使用inode 資料夾</a></li>
+    <li><a href="#大量檔案看大小">大量檔案看大小</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>今天在大量檔案資料夾(約19萬個檔案)<br>
+下 command line 下 ls 之後就卡住<br>
+不能用 <code>Ctrl + C</code> 跳出去&hellip;</p>
+<p>在想有什麼方法解決這個問題?</p>
+<h2 id="ls--1--f">ls -1 -f</h2>
+<p><strong>注意這邊 -1 是數字1，不是英文小寫L</strong><br>
+查看了一下 <code>-f</code> 就是不做排序，<code>-1</code>是做一欄輸出</p>
+<p><a href="http://www.zxzblog.com/linux-morefile/" target="_blank" rel="noopener noreffer ">Linux下文件过多过碎问题 – 工作笔记</a></p>
+<h2 id="刪除多個檔案">刪除多個檔案</h2>
+<p>雖然我沒有現在要做，不過都看到方法，順便記錄一下。</p>
+<h3 id="strace">strace</h3>
+<p>這篇用<a href="https://beyondkmp.github.io/%E5%B8%B8%E7%94%A8%E6%8A%80%E5%B7%A7/ls%E5%91%BD%E4%BB%A4%E5%8D%A1%E4%BD%8F.html" target="_blank" rel="noopener noreffer ">非常大的文件夹导致ls命令卡住</a> strace 方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ls -l &gt;/dev/null
+</span></span><span class="line"><span class="cl">strace -p <span class="m">3963</span> 2&gt;<span class="p">&amp;</span><span class="m">1</span> <span class="p">|</span> grep lstat
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># lstat64(“xxxxx”, {st_mode=S_IFREG|0664, st_size=0, …}) = 0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://www.oschina.net/question/255612_220479" target="_blank" rel="noopener noreffer ">Linux 删除海量文件 rm -f 会卡死怎么破？ - OSCHINA</a></p>
+<h3 id="rsync---delete-before">rsync &ndash;delete-before</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">rsync –delete-before -d -a –progress –stats /a/ /data/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="http://www.zxzblog.com/linux-morefile/" target="_blank" rel="noopener noreffer ">Linux下文件过多过碎问题 – 工作笔记</a><br>
+<a href="https://www.oschina.net/question/255612_221510" target="_blank" rel="noopener noreffer ">还是Linux删除海量文件的问题，那些说用rsync &ndash;delete-before完全没用 - OSCHINA</a></p>
+<h3 id="別人多個測試結果">別人多個測試結果</h3>
+<blockquote>
+<p><a href="http://www.slashroot.in/which-is-the-fastest-method-to-delete-files-in-linux" target="_blank" rel="noopener noreffer ">http://www.slashroot.in/which-is-the-fastest-method-to-delete-files-in-linux</a><br>
+刪除50萬個文件,各種方法的速度對比:</p>
+<p>先創建50萬個文件:<br>
+for i in $(seq 1 500000); do echo testing &raquo; $i.txt; done</p>
+<p>各種刪除當前目錄文件方法,先進入該目錄(比如PHP的sessions目錄),然後執行以下命令:<br>
+time rm -f * 刪除失敗,返回 /bin/rm: Argument list too long<br>
+time find ./ -type f -exec rm {} ;<br>
+time find ./ -type f -delete<br>
+time rsync -a &ndash;delete EmptyDir/ BigDir/<br>
+time perl -e &lsquo;for(&lt;*&gt;){((stat)9&lt;(unlink))}&rsquo;</p>
+<p>結果:<br>
+perl用了1分鐘<br>
+rsync用了3分鐘<br>
+find with -delete用了5分鐘<br>
+find with -exec用了14分鐘<br>
+直接用rm結果是刪除失敗.</p>
+</blockquote>
+<h3 id="實測">實測</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 建立 500000 測試文件</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> i in <span class="k">$(</span>seq <span class="m">1</span> 500000<span class="k">)</span><span class="p">;</span> <span class="k">do</span> <span class="nb">echo</span> testing &gt;&gt; <span class="nv">$i</span>.txt<span class="p">;</span> <span class="k">done</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">find /test -type f -exec rm <span class="o">{}</span> <span class="se">\;</span>
+</span></span><span class="line"><span class="cl">find /test -mtime +7 -exec rm <span class="o">{}</span> <span class="se">\;</span>
+</span></span><span class="line"><span class="cl">find /test -size +7M -exec rm <span class="o">{}</span> <span class="se">\;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nb">time</span> rm -f * <span class="c1">#/bin/rm: Argument list too long</span>
+</span></span><span class="line"><span class="cl"><span class="nb">time</span> find ./ -type f -exec rm <span class="o">{}</span> <span class="se">\;</span>      <span class="c1">#real    14m51.735s</span>
+</span></span><span class="line"><span class="cl"><span class="nb">time</span> find ./ -type f -delete     <span class="c1"># real    5m11.937s</span>
+</span></span><span class="line"><span class="cl"><span class="nb">time</span> perl -e <span class="s1">&#39;for(&lt;*&gt;){((stat)[9]&lt;(unlink))}&#39;</span>   <span class="c1"># real    1m0.488s (王者)</span>
+</span></span><span class="line"><span class="cl"><span class="nb">time</span> rsync -a --delete blanktest/ test/   <span class="c1"># real    2m52.502s</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>測試 Perl 真的很快，不知道是用甚麼巫術。</p>
+<p>推薦詳細可以看<a href="https://www.cnblogs.com/kevingrace/p/5766139.html" target="_blank" rel="noopener noreffer ">Rsync同步时删除多余文件 [附：删除大量文件方法的效率对比] - 散尽浮华 - 博客园</a> <a href="web1.png" rel="">備份圖</a><br>
+裡面介紹很詳細</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># #1 刪除某資料夾檔案</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#1）建立一個空的文件夾：</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># mkdir /tmp/test</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#2）用rsync刪除目標目錄：</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># rsync --delete-before -a -H -v --progress --stats /tmp/test/ log/</span>
+</span></span><span class="line"><span class="cl">這樣要刪除的log目錄就會被清空了，刪除的速度會非常快。rsync實際上用的是替換原理，處理數十萬個文件也是秒刪。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># #2 刪除某資料夾檔案</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 搬移後刪除</span>
+</span></span><span class="line"><span class="cl">rsync -a --remove-source-files SOURCEDIR /mnt/TARGETDIR/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://www.oschina.net/question/255612_220479" target="_blank" rel="noopener noreffer ">Linux 刪除海量文件 rm -f 會卡死怎麼破？ - OSCHINA</a></p>
+<h2 id="大量檔案複製">大量檔案複製</h2>
+<blockquote>
+<p>3、小文件太多，複製太慢<br>
+　　1，在需要對大量小文件進行移動或複製時，用cp、mv都會顯得很沒有效率，可以用tar先壓縮再解壓縮的方式。<br>
+　　2，在網絡環境中傳輸時，可以再結合nc命令，通過管道和tcp端口進行傳輸。<br>
+　　nc和tar可以用來快速的在兩台機器之間傳輸文件和目錄，比ftp和scp要來得簡單的多。<br>
+　　由於nc是一個超輕量的命令，所以一般busybox都會集成它。當一個linux終端，比如linux pda,<br>
+　　通過usblan的方式連接到另一台linux主機的時候，這樣的嵌入式終端上一般不會集成ftp server, ssh server<br>
+　　這樣比較笨重的服務，這個時候， nc可能成為唯一的上傳手段。<br>
+　　比如將機器A上的test目錄上傳到到機器 B（192.168.0.11）上，只需要：<br>
+　　在機器B上，用nc來監聽一個端口，隨便就好，只要不被佔用；並且將收到的數據用tar展開。-l代表監聽模式。<br>
+　　#nc -l 4444 |tar -C /tmp/dir -zxf -<br>
+　　然後，在A上通過nc和 tar發送test目錄。使用一致的4444的端口。<br>
+　　#tar -zcvf - test|nc 192.168.0.11 4444</p>
+</blockquote>
+<p><a href="http://www.zxzblog.com/linux-morefile/" target="_blank" rel="noopener noreffer ">Linux下文件過多過碎問題 – 工作筆記</a></p>
+<p><del>哪天用到再說&hellip;</del></p>
+<h3 id="實測-1">實測</h3>
+<p>最近工作有座大量刪除檔案，在我還滿好奇使用這個速度會有多快?上面指令竟然無法使用!!!不過後來有找到類似指令，最後測試成功。<br>
+參考: <a href="https://blog.gtwang.org/linux/linux-utility-netcat-examples/" target="_blank" rel="noopener noreffer ">Netcat（Linux nc 指令）網路管理者工具實用範例| 兩台主機之間複製整個目錄 - G. T. Wang</a></p>
+<p>下面操作要照順序</p>
+<p>在接收端電腦使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">nc -l <span class="m">5000</span> <span class="p">|</span> tar xvf -
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在發送端電腦使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># localhost 換成你的目地電腦</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 前面可以加 time ，可以算時間</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># /path/to/dir 是要傳送檔案目錄</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 5000 傳輸 port</span>
+</span></span><span class="line"><span class="cl">tar cvf - /path/to/dir <span class="p">|</span> nc localhost <span class="m">5000</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>相同電腦，執行速度</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">real    4m43.463s
+</span></span><span class="line"><span class="cl">user    0m9.270s
+</span></span><span class="line"><span class="cl">sys     0m47.256s
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="zxvf-操作">zxvf 操作</h3>
+<p>不會比較快，而且還會卡住&hellip;，但其實是完成的。</p>
+<h2 id="大量看檔案數">大量看檔案數</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="nb">time</span> perl -e <span class="s1">&#39;opendir D, &#34;.&#34;; @files = readdir D; closedir D; print scalar(@files).&#34;\n&#34;&#39;</span> <span class="c1">#1315029  real    0m0.580s user    0m0.302s sys     0m0.275s – </span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我這邊測試時間</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">real    0m1.620s
+</span></span><span class="line"><span class="cl">user    0m0.101s
+</span></span><span class="line"><span class="cl">sys     0m0.565s
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用<code>time ls -f | wc -l</code>時間好像更快</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">real    0m0.397s
+</span></span><span class="line"><span class="cl">user    0m0.175s
+</span></span><span class="line"><span class="cl">sys     0m0.250s
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考:</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/1427032/fast-linux-file-count-for-a-large-number-of-files" target="_blank" rel="noopener noreffer ">shell - Fast Linux file count for a large number of files - Stack Overflow</a></li>
+<li><a href="https://www.unix.com/shell-programming-and-scripting/113891-perl-count-files-dir.html" target="_blank" rel="noopener noreffer ">PERL count files in a dir</a></li>
+</ul>
+<h2 id="找大量使用inode-資料夾">找大量使用inode 資料夾</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">wget http://downinfo.myhostadmin.net/check_inode_counts.txt
+</span></span><span class="line"><span class="cl">mv check_inode_counts.txt check_inode_counts.pl
+</span></span><span class="line"><span class="cl">perl check_inode_counts.pl /
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>check_inode_counts.pl</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-perl" data-lang="perl"><span class="line"><span class="cl"><span class="ch">#!/usr/bin/perl -w</span>
+</span></span><span class="line"><span class="cl"><span class="k">use</span> <span class="nn">strict</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">my</span> <span class="nv">$threshold</span><span class="o">=</span><span class="mi">50000</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">my</span> <span class="p">(</span><span class="nv">$count</span><span class="p">,</span><span class="nv">$bigdir</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">sub</span> <span class="nf">count_inodes</span><span class="p">($);</span>
+</span></span><span class="line"><span class="cl"><span class="k">sub</span> <span class="nf">count_inodes</span><span class="p">($)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">my</span> <span class="nv">$dir</span><span class="o">=</span><span class="nb">shift</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="k">if</span><span class="p">(</span><span class="nv">$count</span><span class="o">&gt;=</span><span class="nv">$threshold</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span><span class="p">(</span><span class="nb">opendir</span><span class="p">(</span><span class="k">my</span> <span class="nv">$dh</span><span class="p">,</span><span class="nv">$dir</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">while</span><span class="p">(</span><span class="nb">defined</span><span class="p">(</span><span class="k">my</span> <span class="nv">$file</span><span class="o">=</span><span class="nb">readdir</span><span class="p">(</span><span class="nv">$dh</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">next</span> <span class="k">if</span> <span class="p">(</span><span class="nv">$file</span> <span class="ow">eq</span> <span class="s">&#39;.&#39;</span><span class="o">||</span><span class="nv">$file</span> <span class="ow">eq</span> <span class="s">&#39;..&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="nv">$count</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="k">my</span> <span class="nv">$path</span><span class="o">=</span><span class="nv">$dir</span><span class="o">.</span><span class="s">&#39;/&#39;</span><span class="o">.</span><span class="nv">$file</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="n">count_inodes</span><span class="p">(</span><span class="nv">$path</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="o">-</span><span class="n">d</span> <span class="nv">$path</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="nb">closedir</span><span class="p">(</span><span class="nv">$dh</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span><span class="k">else</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nb">warn</span> <span class="s">&#34;couldn&#39;t open $dir - $!\n&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nb">push</span><span class="p">(</span><span class="nv">@ARGV</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">)</span> <span class="k">unless</span> <span class="p">(</span><span class="nv">@ARGV</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="p">(</span><span class="nv">@ARGV</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">my</span> <span class="nv">$main</span><span class="o">=</span><span class="nb">shift</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nv">$main</span><span class="o">.=</span><span class="s">&#39;/&#39;</span> <span class="k">unless</span><span class="p">(</span><span class="nv">$main</span><span class="o">=~</span><span class="sr">/\/$/</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span><span class="p">(</span><span class="nb">opendir</span><span class="p">(</span><span class="k">my</span> <span class="nv">$dh</span><span class="p">,</span> <span class="nv">$main</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">while</span><span class="p">(</span><span class="nb">defined</span><span class="p">(</span><span class="k">my</span> <span class="nv">$file</span><span class="o">=</span><span class="nb">readdir</span><span class="p">(</span><span class="nv">$dh</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="nv">$count</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">			<span class="k">next</span> <span class="k">if</span><span class="p">(</span><span class="nv">$file</span> <span class="ow">eq</span> <span class="s">&#39;.&#39;</span><span class="o">||</span><span class="nv">$file</span> <span class="ow">eq</span> <span class="s">&#39;..&#39;</span><span class="o">||!</span> <span class="o">-</span><span class="n">d</span> <span class="nv">$main</span><span class="o">.</span><span class="nv">$file</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="n">count_inodes</span><span class="p">(</span><span class="nv">$main</span><span class="o">.</span><span class="nv">$file</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="nv">$count</span><span class="o">=</span><span class="s">&#34;&gt;&#34;</span><span class="o">.</span><span class="nv">$threshold</span> <span class="k">if</span><span class="p">(</span><span class="nv">$count</span><span class="o">&gt;=</span><span class="nv">$threshold</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="nb">printf</span> <span class="s">&#34;%10s\t%s\n&#34;</span><span class="p">,</span> <span class="nv">$count</span><span class="p">,</span> <span class="nv">$main</span><span class="o">.</span><span class="nv">$file</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="nb">closedir</span><span class="p">(</span><span class="nv">$dh</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">else</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nb">warn</span> <span class="s">&#34;couldn&#39;t open $main - $!\n&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://www.huaweicloud.com/articles/b989923796f37fb1736e0063f83b2c24.html" target="_blank" rel="noopener noreffer ">linux系统磁盘block、inode占满处理 - 华为云</a></p>
+<h2 id="大量檔案看大小">大量檔案看大小</h2>
+<p><a href="https://unix.stackexchange.com/questions/307583/fast-way-to-display-the-size-of-each-subdirectory-in-a-directory" target="_blank" rel="noopener noreffer ">command line - Fast way to display the size of each subdirectory in a directory - Unix &amp; Linux Stack Exchange</a></p>
+<p><a href="https://lwn.net/Articles/400629/" target="_blank" rel="noopener noreffer ">One billion files on Linux [LWN.net]</a></p>
+<p><a href="https://serverfault.com/questions/43133/filesystem-large-number-of-files-in-a-single-directory" target="_blank" rel="noopener noreffer ">linux - Filesystem large number of files in a single directory - Server Fault</a></p>
+<p><a href="http://xiaqunfeng.cc/2017/07/06/XFS-vs-EXT4/" target="_blank" rel="noopener noreffer ">XFS vs EXT4 | 夏天的风的博客</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2019-09-27</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" data-title="Linux ls 大量檔案卡住解決方法" data-hashtags="ls,linux"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" data-hashtag="ls"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" data-title="Linux ls 大量檔案卡住解決方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" data-title="Linux ls 大量檔案卡住解決方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Linux-ls-%E5%A4%A7%E9%87%8F%E8%B3%87%E6%96%99%E5%8D%A1%E4%BD%8F%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%B3%95/" data-title="Linux ls 大量檔案卡住解決方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/ls/">ls</a>,&nbsp;<a href="/blog/tags/Linux/">Linux</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/MySql-Lock-wait-timeout-exceeded%E5%B0%8F%E8%A8%98/" class="prev" rel="prev" title="MySql Lock wait timeout exceeded 小記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>MySql Lock wait timeout exceeded 小記</a>
+            <a href="/blog/posts/ISO-8601-duration-%E6%99%82%E9%96%93%E6%A8%99%E6%BA%96%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="ISO 8601 duration 時間標準小記">ISO 8601 duration 時間標準小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

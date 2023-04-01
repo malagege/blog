@@ -1,36 +1,299 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Maven 使用 Modules 載入 Project 的 Jar 方法 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Maven 使用 Modules 載入 Project 的 Jar 方法"><meta property="og:description" content="前言
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Maven 使用 Modules 載入 Project 的 Jar 方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Maven 使用 Modules 載入 Project 的 Jar 方法" />
+<meta property="og:description" content="前言
 之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。
 
-我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-07-31T01:10:41+00:00"><meta property="article:modified_time" content="2022-07-31T01:10:41+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Maven 使用 Modules 載入 Project 的 Jar 方法"><meta name=twitter:description content="前言
+我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-07-31T01:10:41+00:00" />
+<meta property="article:modified_time" content="2022-07-31T01:10:41+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Maven 使用 Modules 載入 Project 的 Jar 方法"/>
+<meta name="twitter:description" content="前言
 之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。
 
-我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/><link rel=prev href=https://malagege.github.io/blog/posts/Java-Csv-Library/><link rel=next href=https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-sftp-server-SFTPGo/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Maven 使用 Modules 載入 Project 的 Jar 方法","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95\/"},"genre":"posts","keywords":"maven, java, jar","wordcount":84,"url":"https:\/\/malagege.github.io\/blog\/posts\/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95\/","datePublished":"2022-07-31T01:10:41+00:00","dateModified":"2022-07-31T01:10:41+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Maven 使用 Modules 載入 Project 的 Jar 方法</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Java/><i class="far fa-folder fa-fw" aria-hidden=true></i>Java</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2022-07-31>2022-07-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;84 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;One minute&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#前言>前言</a></li><li><a href=#有關-maven-文章整理>有關 Maven 文章整理</a></li><li><a href=#了解前最好了解東西>了解前最好了解東西</a><ul><li><a href=#properties>Properties</a></li><li><a href=#父子層-dependenciesdependencymanagement>父子層 dependencies、dependencyManagement</a></li></ul></li><li><a href=#網路範例>網路範例</a><ul><li><a href=#我踩到什麼雷>我踩到什麼雷?</a></li></ul></li></ul></nav></div></div><div class=content id=content><h2 id=前言>前言</h2><p>之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/Atng1B7.png data-srcset="https://i.imgur.com/Atng1B7.png, https://i.imgur.com/Atng1B7.png 1.5x, https://i.imgur.com/Atng1B7.png 2x" data-sizes=auto alt=https://i.imgur.com/Atng1B7.png title=https://i.imgur.com/Atng1B7.png></p><p>我找到是使用 Module 方法，<del>發現這水很深</del>，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。</p><h2 id=有關-maven-文章整理>有關 Maven 文章整理</h2><p>網路找到一些不錯文章，先整理在這邊。</p><ul><li><a href=https://blog.csdn.net/Love666Code/article/details/78859408 target=_blank rel="noopener noreffer">Eclipse中Maven Module和Maven Project的区别_程序媛搬砖的博客-CSDN博客_maven module和maven project</a> <a href=https://user-images.githubusercontent.com/6058558/168426302-901faf8e-6097-4281-b590-fd224e29ee17.png target=_blank rel="noopener noreffer">備份圖</a></li><li><a href=https://mp.weixin.qq.com/s/9aMRFEXbh0-usVE96uZ8Ag target=_blank rel="noopener noreffer">學 Maven，看松哥這一篇就夠了</a> <a href=https://user-images.githubusercontent.com/6058558/168426263-0ef91223-486a-4529-b57c-0913a69837b6.png target=_blank rel="noopener noreffer">備份圖</a></li><li><a href=https://codertw.com/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80/535965/ target=_blank rel="noopener noreffer">maven模組化管理 | 程式前沿</a></li><li><a href=https://www.cnblogs.com/youzhibing/p/5427130.html target=_blank rel="noopener noreffer">Maven pom.xml中的元素modules、parent、properties以及import - 青石路 - 博客园</a> <a href=https://user-images.githubusercontent.com/6058558/168426381-081a8ddc-e2ad-4c17-9c5b-ac920b07a16a.png target=_blank rel="noopener noreffer">備份圖</a></li><li><a href=https://www.bilibili.com/video/BV1Th411Z76q target=_blank rel="noopener noreffer">项目构建工具Maven-11多模块-继承-聚合-依赖_哔哩哔哩_bilibili</a></li></ul><h2 id=了解前最好了解東西>了解前最好了解東西</h2><p>完全不熟的人可以推薦看一下<a href=https://www.bilibili.com/video/BV1Th411Z76q target=_blank rel="noopener noreffer">项目构建工具Maven-11多模块-继承-聚合-依赖_哔哩哔哩_bilibili</a>影片，看完應該就大概了解怎麼使用。</p><h3 id=properties>Properties</h3><p>主要放置設定參數或使用者參數。</p><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/vuJ2wAv.png data-srcset="https://i.imgur.com/vuJ2wAv.png, https://i.imgur.com/vuJ2wAv.png 1.5x, https://i.imgur.com/vuJ2wAv.png 2x" data-sizes=auto alt=https://i.imgur.com/vuJ2wAv.png title=https://i.imgur.com/vuJ2wAv.png></p><p>主要看<code>${poi.version}</code>。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl>		<span class=nt>&lt;dependency&gt;</span>
-</span></span><span class=line><span class=cl>			<span class=nt>&lt;groupId&gt;</span>org.apache.poi<span class=nt>&lt;/groupId&gt;</span>
-</span></span><span class=line><span class=cl>			<span class=nt>&lt;artifactId&gt;</span>poi<span class=nt>&lt;/artifactId&gt;</span>
-</span></span><span class=line><span class=cl>			<span class=nt>&lt;version&gt;</span>${poi.version}<span class=nt>&lt;/version&gt;</span>
-</span></span><span class=line><span class=cl>		<span class=nt>&lt;/dependency&gt;</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=父子層-dependenciesdependencymanagement>父子層 dependencies、dependencyManagement</h3><p>這個是重點，以為跟我踩到的雷有點關係。</p><p>這邊會分父層(上層) pom.xml 和 子層(下層) pom.xml。<br>寫在父層pom.xml一定可以繼承到子層 pom.xml。</p><p>寫在<code>dependencyManagement</code>的套件可以選擇性讓子層pom.xml做依賴動作，但版本可以訂在父層 pom.xml，子層可以省略或強制改寫，但我建議不寫比較好管理。</p><p>這邊 maven 在父層做包檔動作，會把所有子層做動作。但是載子層目錄下做只會做子層動作，所以<code>&lt;parent></code>設定不能做錯。</p><h2 id=網路範例>網路範例</h2><p><a href=https://github.com/Quison/maven-muilti-module-demo/tree/master/mvn-parent target=_blank rel="noopener noreffer">maven-muilti-module-demo/mvn-parent at master · Quison/maven-muilti-module-demo</a></p><p>從上面我可以能知道 <code>&lt;module></code>的名稱可以放在依賴 dependencies tag。但不幸我都失敗了</p><h3 id=我踩到什麼雷>我踩到什麼雷?</h3><p><img class=lazyload src=/blog/svg/loading.min.svg data-src=https://i.imgur.com/9OONdT6.png data-srcset="https://i.imgur.com/9OONdT6.png, https://i.imgur.com/9OONdT6.png 1.5x, https://i.imgur.com/9OONdT6.png 2x" data-sizes=auto alt=https://i.imgur.com/9OONdT6.png title=https://i.imgur.com/9OONdT6.png></p><p>最後發現是要加 Version，等等父層加也沒用。後來發現子層一定要加上去。但比較推薦用<code>&lt;version>${project.version}&lt;/version></code>，通常依賴版本應該都會跟 maven其他依賴版本一致ˋ，可以這樣設定。很多文章這邊都沒講清楚，雖然我也不知道為什麼，但找到原因就這邊紀錄一下。</p><p>這邊跟上面依賴規則跟我說的不太一樣，所以剛開始設定就會踩到這個雷，原理也不知道是什麼。</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2022-07-31</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/ data-title="Maven 使用 Modules 載入 Project 的 Jar 方法" data-hashtags=maven,java,jar><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/ data-hashtag=maven><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/ data-title="Maven 使用 Modules 載入 Project 的 Jar 方法"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/ data-title="Maven 使用 Modules 載入 Project 的 Jar 方法"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/ data-title="Maven 使用 Modules 載入 Project 的 Jar 方法"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/maven/>maven</a>,&nbsp;<a href=/blog/tags/java/>java</a>,&nbsp;<a href=/blog/tags/jar/>jar</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/Java-Csv-Library/ class=prev rel=prev title="Java Csv Library"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>Java Csv Library</a>
-<a href=/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-sftp-server-SFTPGo/ class=next rel=next title="快速建置 sftp server (SFTPGo)">快速建置 sftp server (SFTPGo)<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Java-Csv-Library/" /><link rel="next" href="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-sftp-server-SFTPGo/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Maven 使用 Modules 載入 Project 的 Jar 方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95\/"
+        },"genre": "posts","keywords": "maven, java, jar","wordcount":  84 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95\/","datePublished": "2022-07-31T01:10:41+00:00","dateModified": "2022-07-31T01:10:41+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Maven 使用 Modules 載入 Project 的 Jar 方法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-07-31">2022-07-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;84 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#有關-maven-文章整理">有關 Maven 文章整理</a></li>
+    <li><a href="#了解前最好了解東西">了解前最好了解東西</a>
+      <ul>
+        <li><a href="#properties">Properties</a></li>
+        <li><a href="#父子層-dependenciesdependencymanagement">父子層 dependencies、dependencyManagement</a></li>
+      </ul>
+    </li>
+    <li><a href="#網路範例">網路範例</a>
+      <ul>
+        <li><a href="#我踩到什麼雷">我踩到什麼雷?</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="前言">前言</h2>
+<p>之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/Atng1B7.png"
+        data-srcset="https://i.imgur.com/Atng1B7.png, https://i.imgur.com/Atng1B7.png 1.5x, https://i.imgur.com/Atng1B7.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/Atng1B7.png"
+        title="https://i.imgur.com/Atng1B7.png" /></p>
+<p>我找到是使用 Module 方法，<del>發現這水很深</del>，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。</p>
+<h2 id="有關-maven-文章整理">有關 Maven 文章整理</h2>
+<p>網路找到一些不錯文章，先整理在這邊。</p>
+<ul>
+<li><a href="https://blog.csdn.net/Love666Code/article/details/78859408" target="_blank" rel="noopener noreffer ">Eclipse中Maven Module和Maven Project的区别_程序媛搬砖的博客-CSDN博客_maven module和maven project</a> <a href="https://user-images.githubusercontent.com/6058558/168426302-901faf8e-6097-4281-b590-fd224e29ee17.png" target="_blank" rel="noopener noreffer ">備份圖</a></li>
+<li><a href="https://mp.weixin.qq.com/s/9aMRFEXbh0-usVE96uZ8Ag" target="_blank" rel="noopener noreffer ">學 Maven，看松哥這一篇就夠了</a> <a href="https://user-images.githubusercontent.com/6058558/168426263-0ef91223-486a-4529-b57c-0913a69837b6.png" target="_blank" rel="noopener noreffer ">備份圖</a></li>
+<li><a href="https://codertw.com/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80/535965/" target="_blank" rel="noopener noreffer ">maven模組化管理 | 程式前沿</a></li>
+<li><a href="https://www.cnblogs.com/youzhibing/p/5427130.html" target="_blank" rel="noopener noreffer ">Maven pom.xml中的元素modules、parent、properties以及import - 青石路 - 博客园</a> <a href="https://user-images.githubusercontent.com/6058558/168426381-081a8ddc-e2ad-4c17-9c5b-ac920b07a16a.png" target="_blank" rel="noopener noreffer ">備份圖</a></li>
+<li><a href="https://www.bilibili.com/video/BV1Th411Z76q" target="_blank" rel="noopener noreffer ">项目构建工具Maven-11多模块-继承-聚合-依赖_哔哩哔哩_bilibili</a></li>
+</ul>
+<h2 id="了解前最好了解東西">了解前最好了解東西</h2>
+<p>完全不熟的人可以推薦看一下<a href="https://www.bilibili.com/video/BV1Th411Z76q" target="_blank" rel="noopener noreffer ">项目构建工具Maven-11多模块-继承-聚合-依赖_哔哩哔哩_bilibili</a>影片，看完應該就大概了解怎麼使用。</p>
+<h3 id="properties">Properties</h3>
+<p>主要放置設定參數或使用者參數。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/vuJ2wAv.png"
+        data-srcset="https://i.imgur.com/vuJ2wAv.png, https://i.imgur.com/vuJ2wAv.png 1.5x, https://i.imgur.com/vuJ2wAv.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/vuJ2wAv.png"
+        title="https://i.imgur.com/vuJ2wAv.png" /></p>
+<p>主要看<code>${poi.version}</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">		<span class="nt">&lt;dependency&gt;</span>
+</span></span><span class="line"><span class="cl">			<span class="nt">&lt;groupId&gt;</span>org.apache.poi<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">			<span class="nt">&lt;artifactId&gt;</span>poi<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">			<span class="nt">&lt;version&gt;</span>${poi.version}<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">		<span class="nt">&lt;/dependency&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="父子層-dependenciesdependencymanagement">父子層 dependencies、dependencyManagement</h3>
+<p>這個是重點，以為跟我踩到的雷有點關係。</p>
+<p>這邊會分父層(上層) pom.xml 和 子層(下層) pom.xml。<br>
+寫在父層pom.xml一定可以繼承到子層 pom.xml。</p>
+<p>寫在<code>dependencyManagement</code>的套件可以選擇性讓子層pom.xml做依賴動作，但版本可以訂在父層 pom.xml，子層可以省略或強制改寫，但我建議不寫比較好管理。</p>
+<p>這邊 maven 在父層做包檔動作，會把所有子層做動作。但是載子層目錄下做只會做子層動作，所以<code>&lt;parent&gt;</code>設定不能做錯。</p>
+<h2 id="網路範例">網路範例</h2>
+<p><a href="https://github.com/Quison/maven-muilti-module-demo/tree/master/mvn-parent" target="_blank" rel="noopener noreffer ">maven-muilti-module-demo/mvn-parent at master · Quison/maven-muilti-module-demo</a></p>
+<p>從上面我可以能知道 <code>&lt;module&gt;</code>的名稱可以放在依賴 dependencies tag。但不幸我都失敗了</p>
+<h3 id="我踩到什麼雷">我踩到什麼雷?</h3>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/9OONdT6.png"
+        data-srcset="https://i.imgur.com/9OONdT6.png, https://i.imgur.com/9OONdT6.png 1.5x, https://i.imgur.com/9OONdT6.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/9OONdT6.png"
+        title="https://i.imgur.com/9OONdT6.png" /></p>
+<p>最後發現是要加 Version，等等父層加也沒用。後來發現子層一定要加上去。但比較推薦用<code>&lt;version&gt;${project.version}&lt;/version&gt;</code>，通常依賴版本應該都會跟 maven其他依賴版本一致ˋ，可以這樣設定。很多文章這邊都沒講清楚，雖然我也不知道為什麼，但找到原因就這邊紀錄一下。</p>
+<p>這邊跟上面依賴規則跟我說的不太一樣，所以剛開始設定就會踩到這個雷，原理也不知道是什麼。</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2022-07-31</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" data-title="Maven 使用 Modules 載入 Project 的 Jar 方法" data-hashtags="maven,java,jar"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" data-hashtag="maven"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" data-title="Maven 使用 Modules 載入 Project 的 Jar 方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" data-title="Maven 使用 Modules 載入 Project 的 Jar 方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" data-title="Maven 使用 Modules 載入 Project 的 Jar 方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/maven/">maven</a>,&nbsp;<a href="/blog/tags/java/">java</a>,&nbsp;<a href="/blog/tags/jar/">jar</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Java-Csv-Library/" class="prev" rel="prev" title="Java Csv Library"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Java Csv Library</a>
+            <a href="/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-sftp-server-SFTPGo/" class="next" rel="next" title="快速建置 sftp server (SFTPGo)">快速建置 sftp server (SFTPGo)<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

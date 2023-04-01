@@ -1,85 +1,371 @@
-<!doctype html><html lang=zh-tw><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><title>Docker 使用容量撐爆 Raspberry PI 硬碟空間 - 程式狂想筆記</title><meta name=Description content="記錄著我接觸程式藝文"><meta property="og:title" content="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><meta property="og:description" content="使用 Docker 我們知道rm container 所有東西不會被保留
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Docker 使用容量撐爆 Raspberry PI 硬碟空間 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Docker 使用容量撐爆 Raspberry PI 硬碟空間" />
+<meta property="og:description" content="使用 Docker 我們知道rm container 所有東西不會被保留
 但我往往會忽略有 images 占空間
 我發現 PI 1 已經吃 14GB (總共空間 15GB)
 後來發現是裝太多 images
 原因是我往往先丟 PI 1 測試能不能跑
 日積月累爆掉
-PS: 是更新 apt upgrade 才發現   哈哈"><meta property="og:type" content="article"><meta property="og:url" content="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-11-25T19:53:11+00:00"><meta property="article:modified_time" content="2020-11-25T19:53:11+00:00"><meta property="og:site_name" content="程式狂想筆記"><meta name=twitter:card content="summary"><meta name=twitter:title content="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><meta name=twitter:description content="使用 Docker 我們知道rm container 所有東西不會被保留
+PS: 是更新 apt upgrade 才發現   哈哈" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-11-25T19:53:11+00:00" />
+<meta property="article:modified_time" content="2020-11-25T19:53:11+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Docker 使用容量撐爆 Raspberry PI 硬碟空間"/>
+<meta name="twitter:description" content="使用 Docker 我們知道rm container 所有東西不會被保留
 但我往往會忽略有 images 占空間
 我發現 PI 1 已經吃 14GB (總共空間 15GB)
 後來發現是裝太多 images
 原因是我往往先丟 PI 1 測試能不能跑
 日積月累爆掉
-PS: 是更新 apt upgrade 才發現   哈哈"><meta name=application-name content="程式狂想筆記"><meta name=apple-mobile-web-app-title content="程式狂想筆記"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/><link rel=prev href=https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Wiremock-%E6%90%AD%E5%BB%BA-mockapi/><link rel=next href=https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/><link rel=stylesheet href=/blog/css/style.min.css><link rel=preload href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css></noscript><link rel=preload href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css as=style onload='this.onload=null,this.rel="stylesheet"'><noscript><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Docker 使用容量撐爆 Raspberry PI 硬碟空間","inLanguage":"zh-tw","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/malagege.github.io\/blog\/posts\/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93\/"},"genre":"posts","keywords":"docker","wordcount":278,"url":"https:\/\/malagege.github.io\/blog\/posts\/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93\/","datePublished":"2020-11-25T19:53:11+00:00","dateModified":"2020-11-25T19:53:11+00:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"malagege"},"description":""}</script></head><body data-header-desktop=fixed data-header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("theme","dark")</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/blog/>首頁 </a><a class=menu-item href=/blog/posts/>文章 </a><a class=menu-item href=/blog/tags/>標籤 </a><a class=menu-item href=/blog/categories/>分類 </a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop>
-<input type=text placeholder="Search titles or contents..." id=search-input-desktop>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span>
-</span><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme"><i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/blog/ title=程式狂想筆記>程式狂想筆記</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder="Search titles or contents..." id=search-input-mobile>
-<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=Search><i class="fas fa-search fa-fw" aria-hidden=true></i></a>
-<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=Clear><i class="fas fa-times-circle fa-fw" aria-hidden=true></i></a>
-<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin" aria-hidden=true></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>Cancel</a></div><a class=menu-item href=/blog/ title>首頁</a><a class=menu-item href=/blog/posts/ title>文章</a><a class=menu-item href=/blog/tags/ title>標籤</a><a class=menu-item href=/blog/categories/ title>分類</a><a class=menu-item href=/blog/links/ title=覺得不錯好站都會放在這邊>好站連結</a><a href=javascript:void(0); class="menu-item theme-switch" title="Switch Theme">
-<i class="fas fa-adjust fa-fw" aria-hidden=true></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>Contents</h2><div class=toc-content id=toc-content-auto></div><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=4661282975></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker 使用容量撐爆 Raspberry PI 硬碟空間</h1><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/blog/ title=Author rel=author class=author><i class="fas fa-user-circle fa-fw" aria-hidden=true></i>malagege</a></span>&nbsp;<span class=post-category>included in <a href=/blog/categories/Docker/><i class="far fa-folder fa-fw" aria-hidden=true></i>Docker</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw" aria-hidden=true></i>&nbsp;<time datetime=2020-11-25>2020-11-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden=true></i>&nbsp;278 words&nbsp;
-<i class="far fa-clock fa-fw" aria-hidden=true></i>&nbsp;2 minutes&nbsp;</div></div><div class="details toc" id=toc-static data-kept><div class="details-summary toc-title"><span>Contents</span>
-<span><i class="details-icon fas fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#尋找所占目錄空間方法>尋找所占目錄空間方法</a></li><li><a href=#docker-清除空間>docker 清除空間</a><ul><li><a href=#確認所占空間>確認所占空間</a></li><li><a href=#手動清除>手動清除</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>使用 Docker 我們知道rm container 所有東西不會被保留<br>但我往往會忽略有 images 占空間<br>我發現 PI 1 已經吃 14GB (總共空間 15GB)<br>後來發現是裝太多 images<br>原因是我往往先丟 PI 1 測試能不能跑<br>日積月累爆掉<br>PS: 是更新 apt upgrade 才發現 哈哈</p><h2 id=尋找所占目錄空間方法>尋找所占目錄空間方法</h2><p>參考: <a href="http://blog.ilc.edu.tw/blog/index.php?op=printView&amp;articleId=581867&amp;blogId=25793" target=_blank rel="noopener noreffer">Linux - 找出佔用磁碟空間最大的目錄/檔案</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>du -hsx /home/* <span class=p>|</span> sort -hr <span class=p>|</span> head
-</span></span></code></pre></td></tr></table></div></div><p>這個好處能找到外面層所占目錄<br>可以慢慢跑裡面哪一個資料夾吃大空間</p><p>最後改成當下執行目錄前大空間大小</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>du -hsx ./* <span class=p>|</span> sort -hr <span class=p>|</span> head
-</span></span></code></pre></td></tr></table></div></div><p>找到 docker</p><p>其實 df 就能看到是 /lib/docker/overlay/&mldr;</p><h2 id=docker-清除空間>docker 清除空間</h2><p>以下參考整理</p><ul><li><a href=https://zhuanlan.zhihu.com/p/36956285 target=_blank rel="noopener noreffer">Docker:我們的硬盤空間去哪了？ - 知乎</a></li><li><a href=https://developer.aliyun.com/article/272173 target=_blank rel="noopener noreffer">Docker 空間使用分析與清理-阿里雲開發者社區</a></li><li><a href=https://blog.fundebug.com/2018/01/10/how-to-clean-docker-disk/ target=_blank rel="noopener noreffer">如何清理Docker占用的磁盘空间? | Fundebug博客 - 一行代码搞定BUG监控 - 网站错误监控|JS错误监控|资源加载错误|网络请求错误|小程序错误监控|Java异常监控|监控报警|Source Map|用户行为|可视化重现</a></li></ul><h3 id=確認所占空間>確認所占空間</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>docker system df
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>Images              <span class=m>22</span>                  <span class=m>6</span>                   4.827GB             3.517GB <span class=o>(</span>72%<span class=o>)</span>
-</span></span><span class=line><span class=cl>Containers          <span class=m>6</span>                   <span class=m>4</span>                   93.54MB             8.661MB <span class=o>(</span>9%<span class=o>)</span>
-</span></span><span class=line><span class=cl>Local Volumes       <span class=m>3</span>                   <span class=m>1</span>                   214.6kB             66.34kB <span class=o>(</span>30%<span class=o>)</span>
-</span></span><span class=line><span class=cl>Build Cache         <span class=m>0</span>                   <span class=m>0</span>                   0B                  0B
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 詳細資訊</span>
-</span></span><span class=line><span class=cl>docker system df -v
-</span></span><span class=line><span class=cl><span class=c1># 可以看更詳細資訊...</span>
-</span></span></code></pre></td></tr></table></div></div><h3 id=手動清除>手動清除</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># 刪除所有關閉的容器</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>docker ps -a <span class=p>|</span> grep Exit <span class=p>|</span> cut -d <span class=s1>&#39; &#39;</span> -f <span class=m>1</span> <span class=p>|</span> xargs docker rm
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 刪除所有 dangling 鏡像(即無 tag 的鏡像)：</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>docker rmi <span class=k>$(</span>docker images <span class=p>|</span> grep <span class=s2>&#34;^&lt;none&gt;&#34;</span> <span class=p>|</span> awk <span class=s2>&#34;{print </span><span class=nv>$3</span><span class=s2>}&#34;</span><span class=k>)</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1># 刪除所有 dangling 數據卷(即無用的 volume)：</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>docker volume rm <span class=k>$(</span>docker volume ls -qf <span class=nv>dangling</span><span class=o>=</span><span class=nb>true</span><span class=k>)</span>
-</span></span></code></pre></td></tr></table></div></div><p>這邊有更快清除方法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>docker system prune
-</span></span></code></pre></td></tr></table></div></div><blockquote><p>Tips ：</p></blockquote><blockquote><p>不同狀態的鏡像</p></blockquote><blockquote><pre><code>   已使用鏡像（used image）： 指所有已被容器（包括已停止的）關聯的鏡像。即 docker ps -a 看到的所有容器使用的鏡像。
+PS: 是更新 apt upgrade 才發現   哈哈"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Wiremock-%E6%90%AD%E5%BB%BA-mockapi/" /><link rel="next" href="https://malagege.github.io/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Docker 使用容量撐爆 Raspberry PI 硬碟空間",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93\/"
+        },"genre": "posts","keywords": "docker","wordcount":  278 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93\/","datePublished": "2020-11-25T19:53:11+00:00","dateModified": "2020-11-25T19:53:11+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker 使用容量撐爆 Raspberry PI 硬碟空間</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2020-11-25">2020-11-25</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;278 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#尋找所占目錄空間方法">尋找所占目錄空間方法</a></li>
+    <li><a href="#docker-清除空間">docker 清除空間</a>
+      <ul>
+        <li><a href="#確認所占空間">確認所占空間</a></li>
+        <li><a href="#手動清除">手動清除</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>使用 Docker 我們知道rm container 所有東西不會被保留<br>
+但我往往會忽略有 images 占空間<br>
+我發現 PI 1 已經吃 14GB (總共空間 15GB)<br>
+後來發現是裝太多 images<br>
+原因是我往往先丟 PI 1 測試能不能跑<br>
+日積月累爆掉<br>
+PS: 是更新 apt upgrade 才發現   哈哈</p>
+<h2 id="尋找所占目錄空間方法">尋找所占目錄空間方法</h2>
+<p>參考: <a href="http://blog.ilc.edu.tw/blog/index.php?op=printView&amp;articleId=581867&amp;blogId=25793" target="_blank" rel="noopener noreffer ">Linux - 找出佔用磁碟空間最大的目錄/檔案</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">du -hsx /home/* <span class="p">|</span> sort -hr <span class="p">|</span> head
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個好處能找到外面層所占目錄<br>
+可以慢慢跑裡面哪一個資料夾吃大空間</p>
+<p>最後改成當下執行目錄前大空間大小</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">du -hsx ./* <span class="p">|</span> sort -hr <span class="p">|</span> head
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>找到 docker</p>
+<p>其實 df 就能看到是 /lib/docker/overlay/&hellip;</p>
+<h2 id="docker-清除空間">docker 清除空間</h2>
+<p>以下參考整理</p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/36956285" target="_blank" rel="noopener noreffer ">Docker:我們的硬盤空間去哪了？ - 知乎</a></li>
+<li><a href="https://developer.aliyun.com/article/272173" target="_blank" rel="noopener noreffer ">Docker 空間使用分析與清理-阿里雲開發者社區</a></li>
+<li><a href="https://blog.fundebug.com/2018/01/10/how-to-clean-docker-disk/" target="_blank" rel="noopener noreffer ">如何清理Docker占用的磁盘空间? | Fundebug博客 - 一行代码搞定BUG监控 - 网站错误监控|JS错误监控|资源加载错误|网络请求错误|小程序错误监控|Java异常监控|监控报警|Source Map|用户行为|可视化重现</a></li>
+</ul>
+<h3 id="確認所占空間">確認所占空間</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">docker system df
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Images              <span class="m">22</span>                  <span class="m">6</span>                   4.827GB             3.517GB <span class="o">(</span>72%<span class="o">)</span>
+</span></span><span class="line"><span class="cl">Containers          <span class="m">6</span>                   <span class="m">4</span>                   93.54MB             8.661MB <span class="o">(</span>9%<span class="o">)</span>
+</span></span><span class="line"><span class="cl">Local Volumes       <span class="m">3</span>                   <span class="m">1</span>                   214.6kB             66.34kB <span class="o">(</span>30%<span class="o">)</span>
+</span></span><span class="line"><span class="cl">Build Cache         <span class="m">0</span>                   <span class="m">0</span>                   0B                  0B
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 詳細資訊</span>
+</span></span><span class="line"><span class="cl">docker system df -v
+</span></span><span class="line"><span class="cl"><span class="c1"># 可以看更詳細資訊...</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="手動清除">手動清除</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># 刪除所有關閉的容器</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">docker ps -a <span class="p">|</span> grep Exit <span class="p">|</span> cut -d <span class="s1">&#39; &#39;</span> -f <span class="m">1</span> <span class="p">|</span> xargs docker rm
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 刪除所有 dangling 鏡像(即無 tag 的鏡像)：</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">docker rmi <span class="k">$(</span>docker images <span class="p">|</span> grep <span class="s2">&#34;^&lt;none&gt;&#34;</span> <span class="p">|</span> awk <span class="s2">&#34;{print </span><span class="nv">$3</span><span class="s2">}&#34;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 刪除所有 dangling 數據卷(即無用的 volume)：</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">docker volume rm <span class="k">$(</span>docker volume ls -qf <span class="nv">dangling</span><span class="o">=</span><span class="nb">true</span><span class="k">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊有更快清除方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker system prune
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>Tips ：</p>
+</blockquote>
+<blockquote>
+<p>不同狀態的鏡像</p>
+</blockquote>
+<blockquote>
+<pre><code>   已使用鏡像（used image）： 指所有已被容器（包括已停止的）關聯的鏡像。即 docker ps -a 看到的所有容器使用的鏡像。
    未引用鏡像（unreferenced image）：沒有被分配或使用在容器中的鏡像，但它有 Tag 信息。
    懸空鏡像（dangling image）：未配置任何 Tag （也就無法被引用）的鏡像，所以懸空。這通常是由於鏡像 build 的時候沒有指定 -t 參數配置 Tag 導致的。比如:
-</code></pre></blockquote><blockquote><p>REPOSITORY TAG IMAGE ID CREATED SIZE<br>&lt; none > 6ad733544a63 5 days ago 1.13 MB > # 懸空鏡像（dangling image）<br>掛起的卷（dangling Volume)<br>類似的，dangling=true 的 Volume 表示沒有被任何容器引用的卷。</p></blockquote><p>docker system prune 自動清理說明：</p><p>該指令默認會清除所有如下資源：<br>已停止的容器（container）<br>未被任何容器所使用的卷（volume）<br>未被任何容器所關聯的網絡（network）<br>所有懸空鏡像（image）。<br>該指令默認只會清除懸空鏡像，未被使用的鏡像不會被刪除。<br>添加 -a 或 &ndash;all 參數後，可以一併清除所有未使用的鏡像和懸空鏡像。<br>可以添加 -f 或 &ndash;force 參數用以忽略相關告警確認信息。<br>指令結尾處會顯示總計清理釋放的空間大小。</p><p>以上指令沒有清除到空間，但加了 -a 就清除掉了<br><del>可以做 apt upgrade 了</del></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>docker system prune -a
-</span></span></code></pre></td></tr></table></div></div><p>有空再整理什麼是 懸空鏡像 東西&mldr; 跟 docker log 處理</p><div align=center><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin=anonymous></script>
-<ins class=adsbygoogle style=display:block;text-align:center data-ad-layout=in-article data-ad-format=fluid data-ad-client=ca-pub-1439458814178865 data-ad-slot=2236653478></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>Updated on 2020-11-25</span></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on Twitter" data-sharer=twitter data-url=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/ data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間" data-hashtags=docker><i class="fab fa-twitter fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/ data-hashtag=docker><i class="fab fa-facebook-square fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Hacker News" data-sharer=hackernews data-url=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/ data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i class="fab fa-hacker-news fa-fw" aria-hidden=true></i></a><a href=javascript:void(0); title="Share on Line" data-sharer=line data-url=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/ data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i data-svg-src=https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg aria-hidden=true></i></a><a href=javascript:void(0); title="Share on 微博" data-sharer=weibo data-url=https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/ data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i class="fab fa-weibo fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw" aria-hidden=true></i>&nbsp;<a href=/blog/tags/docker/>docker</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/blog/>Home</a></span></section></div><div class=post-nav><a href=/blog/posts/%E4%BD%BF%E7%94%A8-Wiremock-%E6%90%AD%E5%BB%BA-mockapi/ class=prev rel=prev title="使用 Wiremock 搭建 mockapi"><i class="fas fa-angle-left fa-fw" aria-hidden=true></i>使用 Wiremock 搭建 mockapi</a>
-<a href=/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/ class=next rel=next title="Systemd 時間排程筆記">Systemd 時間排程筆記<i class="fas fa-angle-right fa-fw" aria-hidden=true></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>Powered by <a href=https://gohugo.io/ target=_blank rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href=https://github.com/dillonzq/LoveIt target=_blank rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden=true></i> LoveIt</a></div><div class=footer-line itemscope itemtype=http://schema.org/CreativeWork><i class="far fa-copyright fa-fw" aria-hidden=true></i><span itemprop=copyrightYear>2022 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/blog/ target=_blank>malagege</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title="Back to Top"><i class="fas fa-arrow-up fa-fw" aria-hidden=true></i>
-</a><a href=# id=view-comments class=fixed-button title="View Comments"><i class="fas fa-comment fa-fw" aria-hidden=true></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css><script type=text/javascript src=https://malagege-blog.disqus.com/embed.js defer></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"Copy to clipboard",maxShownLines:50},comment:{},lightgallery:!0,search:{algoliaAppID:"4LYONZIY18",algoliaIndex:"malagege_blog",algoliaSearchKey:"30dc05f673e702e0701b9b40cfa44eac",highlightTag:"em",maxResultLength:10,noResultsFound:"No results found",snippetLength:30,type:"algolia"}}</script><script type=text/javascript src=/blog/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","UA-105195903-2",{anonymize_ip:!0})</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body></html>
+</code></pre>
+</blockquote>
+<blockquote>
+<p>REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE<br>
+&lt; none &gt;                                                      <!-- raw HTML omitted -->              6ad733544a63        5 days ago          1.13 MB   &gt; # 懸空鏡像（dangling image）<br>
+掛起的卷（dangling Volume)<br>
+類似的，dangling=true 的 Volume 表示沒有被任何容器引用的卷。</p>
+</blockquote>
+<p>docker system prune 自動清理說明：</p>
+<p>該指令默認會清除所有如下資源：<br>
+已停止的容器（container）<br>
+未被任何容器所使用的卷（volume）<br>
+未被任何容器所關聯的網絡（network）<br>
+所有懸空鏡像（image）。<br>
+該指令默認只會清除懸空鏡像，未被使用的鏡像不會被刪除。<br>
+添加 -a 或 &ndash;all 參數後，可以一併清除所有未使用的鏡像和懸空鏡像。<br>
+可以添加 -f 或 &ndash;force 參數用以忽略相關告警確認信息。<br>
+指令結尾處會顯示總計清理釋放的空間大小。</p>
+<p>以上指令沒有清除到空間，但加了 -a 就清除掉了<br>
+<del>可以做 apt upgrade 了</del></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker system prune -a
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>有空再整理什麼是 懸空鏡像 東西&hellip; 跟 docker log 處理</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2020-11-25</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間" data-hashtags="docker"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Docker-%E4%BD%BF%E7%94%A8%E5%AE%B9%E9%87%8F%E6%92%90%E7%88%86-Raspberry-PI-%E7%A1%AC%E7%A2%9F%E7%A9%BA%E9%96%93/" data-title="Docker 使用容量撐爆 Raspberry PI 硬碟空間"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/docker/">docker</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E4%BD%BF%E7%94%A8-Wiremock-%E6%90%AD%E5%BB%BA-mockapi/" class="prev" rel="prev" title="使用 Wiremock 搭建 mockapi"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>使用 Wiremock 搭建 mockapi</a>
+            <a href="/blog/posts/Systemd-%E6%99%82%E9%96%93%E6%8E%92%E7%A8%8B%E7%AD%86%E8%A8%98/" class="next" rel="next" title="Systemd 時間排程筆記">Systemd 時間排程筆記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.111.3">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
