@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Web IIS Web Deploy 操作記錄 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Web IIS Web Deploy 操作記錄" />
+<meta property="og:description" content="Web Deploy 是微軟提供 IIS 部屬 Net Core 程式一種方法。因為工作關係我同事有在研究 CI/CD佈署，這邊有看到微軟出的 Web Deploy，但發現這個沒有跨平台，最後發現其實感覺微軟現在都不建議這個佈署，但我覺得工作還是有機會用到，這邊研究了順便記錄下來。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-06-11T20:14:49+08:00" />
+<meta property="article:modified_time" content="2023-06-11T20:14:49+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Web IIS Web Deploy 操作記錄"/>
+<meta name="twitter:description" content="Web Deploy 是微軟提供 IIS 部屬 Net Core 程式一種方法。因為工作關係我同事有在研究 CI/CD佈署，這邊有看到微軟出的 Web Deploy，但發現這個沒有跨平台，最後發現其實感覺微軟現在都不建議這個佈署，但我覺得工作還是有機會用到，這邊研究了順便記錄下來。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" /><link rel="prev" href="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" /><link rel="next" href="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Web IIS Web Deploy 操作記錄",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84\/"
+        },"genre": "posts","keywords": ".netcore, iis, web, webserver, deploy","wordcount":  305 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84\/","datePublished": "2023-06-11T20:14:49+08:00","dateModified": "2023-06-11T20:14:49+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003eWeb Deploy 是微軟提供 IIS 部屬 Net Core 程式一種方法。因為工作關係我同事有在研究 CI/CD佈署，這邊有看到微軟出的 Web Deploy，但發現這個沒有跨平台，最後發現其實感覺微軟現在都不建議這個佈署，但我覺得工作還是有機會用到，這邊研究了順便記錄下來。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Web IIS Web Deploy 操作記錄</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-06-11">2023-06-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;305 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png, https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png 1.5x, https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png"
+        title="https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#iis-安裝-web-deploy">IIS 安裝 Web Deploy</a></li>
+    <li><a href="#visual-studio-發佈">Visual Studio 發佈</a></li>
+    <li><a href="#遠端-web-deploy-注意事項">遠端 Web Deploy 注意事項</a></li>
+    <li><a href="#發現詳細多種-web-deploy-教學">發現詳細多種 Web Deploy 教學</a></li>
+    <li><a href="#已經廢棄不維護">已經廢棄不維護?!</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>Web Deploy 是微軟提供 IIS 部屬 Net Core 程式一種方法。因為工作關係我同事有在研究 CI/CD佈署，這邊有看到微軟出的 Web Deploy，但發現這個沒有跨平台，最後發現其實感覺微軟現在都不建議這個佈署，但我覺得工作還是有機會用到，這邊研究了順便記錄下來。</p>
+<h2 id="心智圖">心智圖</h2>
+<h2 id="iis-安裝-web-deploy">IIS 安裝 Web Deploy</h2>
+<ol>
+<li>安裝 IIS 管理服務<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/xp9xNqv.png"
+        data-srcset="https://i.imgur.com/xp9xNqv.png, https://i.imgur.com/xp9xNqv.png 1.5x, https://i.imgur.com/xp9xNqv.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/xp9xNqv.png"
+        title="https://i.imgur.com/xp9xNqv.png" /></li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/eCtuksM.png"
+        data-srcset="https://i.imgur.com/eCtuksM.png, https://i.imgur.com/eCtuksM.png 1.5x, https://i.imgur.com/eCtuksM.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/eCtuksM.png"
+        title="https://i.imgur.com/eCtuksM.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/IYMiJAH.png"
+        data-srcset="https://i.imgur.com/IYMiJAH.png, https://i.imgur.com/IYMiJAH.png 1.5x, https://i.imgur.com/IYMiJAH.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/IYMiJAH.png"
+        title="https://i.imgur.com/IYMiJAH.png" /></p>
+<p>注意有這個要重啟服務才會生效。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/XWhGt2R.png"
+        data-srcset="https://i.imgur.com/XWhGt2R.png, https://i.imgur.com/XWhGt2R.png 1.5x, https://i.imgur.com/XWhGt2R.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/XWhGt2R.png"
+        title="https://i.imgur.com/XWhGt2R.png" /></p>
+<p>參考: <a href="https://blog.miniasp.com/post/2010/05/03/Deploying-Web-Application-Project-Using-One-Click-Publish#:~:text=%E5%9C%A8%E8%A8%AD%E5%AE%9A%E3%80%8C%E7%AE%A1%E7%90%86%E6%9C%8D%E5%8B%99%E3%80%8D%E7%9A%84%E6%99%82%E5%80%99%E5%BF%85%E9%A0%88%E5%85%88%E6%9A%AB%E6%99%82%E5%81%9C%E7%94%A8%20Web%20Management%20Service%20%E6%9C%8D%E5%8B%99%E6%89%8D%E8%83%BD%E8%AE%8A%E6%9B%B4%E8%A8%AD%E5%AE%9A" target="_blank" rel="noopener noreffer ">如何使用 Visual Studio 2010 的「單鍵發行」功能 (MsDeploy) | The Will Will Web</a></p>
+<p>然後一直下一步，安裝。</p>
+<p>看到這個有在上面就是有安裝成功。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/1HKOesf.png"
+        data-srcset="https://i.imgur.com/1HKOesf.png, https://i.imgur.com/1HKOesf.png 1.5x, https://i.imgur.com/1HKOesf.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/1HKOesf.png"
+        title="https://i.imgur.com/1HKOesf.png" /></p>
+<p>啟用服務。這邊特別說明，你可能本機佈署程式沒有發生打帳號密碼，這邊我同事之前沒用過帳號密碼，但我們做遠端佈署發現這一段會驗證不過，這邊你在同一台電腦做可能不會有這個問題，這邊要注意一樣，這邊流程就不特別用。]<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/9JQoV5f.png"
+        data-srcset="https://i.imgur.com/9JQoV5f.png, https://i.imgur.com/9JQoV5f.png 1.5x, https://i.imgur.com/9JQoV5f.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/9JQoV5f.png"
+        title="https://i.imgur.com/9JQoV5f.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/tfHrYbX.png"
+        data-srcset="https://i.imgur.com/tfHrYbX.png, https://i.imgur.com/tfHrYbX.png 1.5x, https://i.imgur.com/tfHrYbX.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/tfHrYbX.png"
+        title="https://i.imgur.com/tfHrYbX.png" /></p>
+<ol start="3">
+<li>下載 Web Deploy 並且安裝。</li>
+</ol>
+<p><a href="https://www.iis.net/downloads/microsoft/web-deploy" target="_blank" rel="noopener noreffer ">Web Deploy 3.6 : The Official Microsoft IIS Site</a></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/dUmW8T7.png"
+        data-srcset="https://i.imgur.com/dUmW8T7.png, https://i.imgur.com/dUmW8T7.png 1.5x, https://i.imgur.com/dUmW8T7.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/dUmW8T7.png"
+        title="https://i.imgur.com/dUmW8T7.png" /></p>
+<p>這邊注意，安裝要選<code>自訂</code>安裝，整個服務都要勾選安裝。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/zilCl5e.png"
+        data-srcset="https://i.imgur.com/zilCl5e.png, https://i.imgur.com/zilCl5e.png 1.5x, https://i.imgur.com/zilCl5e.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/zilCl5e.png"
+        title="https://i.imgur.com/zilCl5e.png" /></p>
+<p>安裝完，確認是否安裝成功。IIS 管理視窗關掉重開，你在站台右鍵會看到佈署選單，這樣就表示成功。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/5vR6ffb.png"
+        data-srcset="https://i.imgur.com/5vR6ffb.png, https://i.imgur.com/5vR6ffb.png 1.5x, https://i.imgur.com/5vR6ffb.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/5vR6ffb.png"
+        title="https://i.imgur.com/5vR6ffb.png" /></p>
+<h2 id="visual-studio-發佈">Visual Studio 發佈</h2>
+<p>專案 右鍵選擇<code>發佈</code>選項，再選擇 <code>IIS 伺服器</code>選項。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/FGWsnie.png"
+        data-srcset="https://i.imgur.com/FGWsnie.png, https://i.imgur.com/FGWsnie.png 1.5x, https://i.imgur.com/FGWsnie.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/FGWsnie.png"
+        title="https://i.imgur.com/FGWsnie.png" /></p>
+<p>選擇 <code>Web Deploy</code>。</p>
+<p>:::info<br>
+Web Deploy 封裝會幫你打包程式 zip 和 cmd(web deploy)，這邊有興趣可以試試。<br>
+:::</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/TZ8tdoQ.png"
+        data-srcset="https://i.imgur.com/TZ8tdoQ.png, https://i.imgur.com/TZ8tdoQ.png 1.5x, https://i.imgur.com/TZ8tdoQ.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/TZ8tdoQ.png"
+        title="https://i.imgur.com/TZ8tdoQ.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/CCPMC2E.png"
+        data-srcset="https://i.imgur.com/CCPMC2E.png, https://i.imgur.com/CCPMC2E.png 1.5x, https://i.imgur.com/CCPMC2E.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/CCPMC2E.png"
+        title="https://i.imgur.com/CCPMC2E.png" /></p>
+<p>設定完就可以點<code>發佈</code>按鈕做發佈。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/AvuvrXd.png"
+        data-srcset="https://i.imgur.com/AvuvrXd.png, https://i.imgur.com/AvuvrXd.png 1.5x, https://i.imgur.com/AvuvrXd.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/AvuvrXd.png"
+        title="https://i.imgur.com/AvuvrXd.png" /></p>
+<p><a href="https://johan.driessen.se/posts/Deploying-to-remote-IIS-with-MsDeploy/" target="_blank" rel="noopener noreffer ">Deploying to remote IIS with MsDeploy | Johan Driessen</a></p>
+<p><a href="https://github.com/RahulParmarRP/dotnet-build-test-msdeploy/blob/master/.github/workflows/main.yml" target="_blank" rel="noopener noreffer ">dotnet-build-test-msdeploy/main.yml at master · RahulParmarRP/dotnet-build-test-msdeploy</a></p>
+<h2 id="遠端-web-deploy-注意事項">遠端 Web Deploy 注意事項</h2>
+<ol>
+<li>完整安裝 Web Deploy，參考上方流程。</li>
+<li>防火牆開通 Port 8172，很多公司有防火牆需要注意這個。</li>
+<li>啟用 IIS Management 服務，上面 IIS設定。</li>
+<li>設定 IIS 帳號權限，這邊可以指定 IIS站台帳號密碼或者用 Windows帳號，新增完記得要回來站台新增帳號進去。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/6VWTZJ2.png"
+        data-srcset="https://i.imgur.com/6VWTZJ2.png, https://i.imgur.com/6VWTZJ2.png 1.5x, https://i.imgur.com/6VWTZJ2.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/6VWTZJ2.png"
+        title="https://i.imgur.com/6VWTZJ2.png" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/4Yo8KJP.png"
+        data-srcset="https://i.imgur.com/4Yo8KJP.png, https://i.imgur.com/4Yo8KJP.png 1.5x, https://i.imgur.com/4Yo8KJP.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/4Yo8KJP.png"
+        title="https://i.imgur.com/4Yo8KJP.png" /></li>
+</ol>
+<p>更完整教學可以參考:<a href="https://blog.csdn.net/weixin_40001805/article/details/116960168" target="_blank" rel="noopener noreffer ">Linux Deploy搭建web,Web Deploy 服务器安装设置与使用_weixin_40001805的博客-CSDN博客</a></p>
+<p>我們範例都使用 Visual Studio 發佈，可能會問這個有沒有指令版本?這邊可以做到的，但我後來發現最新這個 Web Deploy 已經不是建議發佈方法，這邊就不打算深入研究，不過是有看到不錯文章記入滿多功能的。</p>
+<h2 id="發現詳細多種-web-deploy-教學">發現詳細多種 Web Deploy 教學</h2>
+<p>這邊我工作上面沒用到，暫時不深入研究。</p>
+<p><a href="http://larrynung.github.io/2016/12/15/Web-Deploy-Web-Deploy-Command-Line/" target="_blank" rel="noopener noreffer ">Web Deploy - Web Deploy Command Line | Level Up</a></p>
+<p><a href="http://larrynung.github.io/2017/01/11/Web-Deploy-Restart-remote-IIS/" target="_blank" rel="noopener noreffer ">Web Deploy - Restart remote IIS | Level Up</a></p>
+<p><a href="http://larrynung.github.io/2016/12/05/Web-Deploy-Install-setup-web-deploy/" target="_blank" rel="noopener noreffer ">Web Deploy - Install &amp; setup web deploy | Level Up</a></p>
+<p>&hellip;更多可以看作者文章<a href="http://larrynung.github.io/tags/Web-Deploy/" target="_blank" rel="noopener noreffer ">Tag: Web Deploy | Level Up</a>。</p>
+<p>也可以參考: <a href="https://learn.microsoft.com/zh-tw/aspnet/web-forms/overview/deployment/visual-studio-web-deployment/command-line-deployment#web-publish-methods-supported-for-command-line-publishing" target="_blank" rel="noopener noreffer ">使用 Visual Studio ASP.NET Web 部署：命令列部署 | Microsoft Learn</a></p>
+<h2 id="已經廢棄不維護">已經廢棄不維護?!</h2>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png" title="https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png, https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png 1.5x, https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/212624110-c26bb59d-ae02-4b8a-ace8-c4a784e03120.png" />
+    </a>
+<p>從這篇 <a href="https://ithelp.ithome.com.tw/articles/10310527" target="_blank" rel="noopener noreffer ">IIS7 發佈工具比較 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a> 看到，原本想說這篇想拆幾篇來記錄詳細作法，但看到這個感覺這個方法已經不是主流，這邊就不詳細紀錄。</p>
+<blockquote>
+<p>注意：Web Platform Installer (WebPI) 將於 2022 年 7 月 1 日停用。有關詳細信息，請參閱此博客文章：https://blogs.iis.net/iisteam/web-platform-installer-end-of-support-feed<br>
+參考: <a href="https://ithelp.ithome.com.tw/articles/10188362" target="_blank" rel="noopener noreffer ">從零開始的MVC開發-Web Deploy佈署網站 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p>
+</blockquote>
+<p>所以使用這個方法可能要注意一下，未來可能有替代方法。</p>
+<p>其實我找不到 IIS 自動佈署工具，也許現在都用容器佈署，可能沒有人在折騰實體主機佈署，看起來都是不安全 IIS 停止站台複製程式方法，然後再啟動站台。</p>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li>
+<p><a href="https://github.com/RahulParmarRP/dotnet-build-test-msdeploy/blob/master/.github/workflows/main.yml" target="_blank" rel="noopener noreffer ">dotnet-build-test-msdeploy/main.yml at master · RahulParmarRP/dotnet-build-test-msdeploy</a></p>
+</li>
+<li></li>
+<li>
+<p><a href="https://blog.miniasp.com/post/2021/06/07/Deploy-ASPNET-Core-to-IIS-without-locking-issue" target="_blank" rel="noopener noreffer ">如何正確地發行 ASP.NET Core 網站到遠端 IIS 站台 | The Will Will Web</a></p>
+</li>
+<li>
+<p><a href="https://sdwh.dev/posts/2022/04/dotnet-Deploy-To-IIS/" target="_blank" rel="noopener noreffer ">.NET Deploy To IIS Tutorial (How to Host .NET Core in IIS) | The Skeptical Software Engineer</a></p>
+</li>
+<li>
+<p><a href="https://stackoverflow.com/questions/71754411/deploy-website-to-iis-from-linux-build-agent" target="_blank" rel="noopener noreffer ">asp.net core - Deploy website to IIS from linux build agent - Stack Overflow</a></p>
+</li>
+<li>
+<p><a href="https://blog.51cto.com/u_15162069/2756194" target="_blank" rel="noopener noreffer ">超简单！asp.net core前后端分离项目使用gitlab-ci持续集成到IIS_mb607022e25a607的技术博客_51CTO博客</a><br>
+正常正式 Server 不會當 Runner ，但可以參考。</p>
+</li>
+<li>
+<p><a href="https://hackmd.io/@ILLzjqclQ1-M3mhr6ieCpA/Sk4cO_o6Y" target="_blank" rel="noopener noreffer ">.Net 6 IIS陰影複製 - HackMD</a></p>
+</li>
+<li>
+<p><a href="https://bryanyu.github.io/2018/01/07/IISDeploy/" target="_blank" rel="noopener noreffer ">[IIS]-設定允許遠端佈署 | 布萊恩的技術相談室</a></p>
+</li>
+<li>
+<p><a href="https://blog.darkthread.net/blog/appoffline-msbuild-task/" target="_blank" rel="noopener noreffer ">用 MSBuild 事件解決 ASP.NET Core 發佈 IIS 目錄之 DLL 鎖定問題-黑暗執行緒</a></p>
+</li>
+<li>
+<p><a href="https://github.com/rajbos/rajbos.github.io/discussions/11#discussioncomment-2722114" target="_blank" rel="noopener noreffer ">Use GitHub Actions with a private runner to deploy to IIS · Discussion #11 · rajbos/rajbos.github.io</a></p>
+</li>
+</ul>
+<p>無相關</p>
+<ul>
+<li><a href="https://serverfault.com/questions/913523/nginx-setup-for-wss-keep-getting-301-redirects" target="_blank" rel="noopener noreffer ">websocket - nginx setup for wss:// keep getting 301 redirects - Server Fault</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-06-11</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" data-title="Web IIS Web Deploy 操作記錄" data-hashtags=".netcore,iis,web,webserver,deploy"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" data-hashtag=".netcore"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" data-title="Web IIS Web Deploy 操作記錄"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" data-title="Web IIS Web Deploy 操作記錄"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" data-title="Web IIS Web Deploy 操作記錄" data-image="https://user-images.githubusercontent.com/6058558/244935446-73d39354-bf2a-45bd-9d6e-3e028ae7bd6f.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/.netcore/">.netcore</a>,&nbsp;<a href="/blog/tags/iis/">iis</a>,&nbsp;<a href="/blog/tags/web/">web</a>,&nbsp;<a href="/blog/tags/webserver/">webserver</a>,&nbsp;<a href="/blog/tags/deploy/">deploy</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" class="prev" rel="prev" title="AdGuard Home 架設可防廣告 DNS Server"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>AdGuard Home 架設可防廣告 DNS Server</a>
+            <a href="/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" class="next" rel="next" title="Tcping 測試 Tcp Port 網路狀況">Tcping 測試 Tcp Port 網路狀況<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.113.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

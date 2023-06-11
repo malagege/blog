@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Raspberry Pi 架設好用線上音樂播放器 - Navidrome - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Raspberry Pi 架設好用線上音樂播放器 - Navidrome" />
+<meta property="og:description" content="前陣子都沒有發現好用的音樂播放器，最後用 NextCloud 空間加裝裡面 audio player，但覺得使用樹梅派速度非常慢，再產生亂數音樂覺得一點也不亂數，有時候會聽到同一首歌很近聽多次，最近看到 Navidrome 看到介面還不錯，這邊就來架設看看。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-05-08T20:03:10+08:00" />
+<meta property="article:modified_time" content="2023-05-08T20:03:10+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Raspberry Pi 架設好用線上音樂播放器 - Navidrome"/>
+<meta name="twitter:description" content="前陣子都沒有發現好用的音樂播放器，最後用 NextCloud 空間加裝裡面 audio player，但覺得使用樹梅派速度非常慢，再產生亂數音樂覺得一點也不亂數，有時候會聽到同一首歌很近聽多次，最近看到 Navidrome 看到介面還不錯，這邊就來架設看看。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" /><link rel="next" href="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Raspberry Pi 架設好用線上音樂播放器 - Navidrome",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome\/"
+        },"genre": "posts","keywords": "player, navidrome, raspberrypi","wordcount":  296 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome\/","datePublished": "2023-05-08T20:03:10+08:00","dateModified": "2023-05-08T20:03:10+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e前陣子都沒有發現好用的音樂播放器，最後用 NextCloud 空間加裝裡面 audio player，但覺得使用樹梅派速度非常慢，再產生亂數音樂覺得一點也不亂數，有時候會聽到同一首歌很近聽多次，最近看到 Navidrome 看到介面還不錯，這邊就來架設看看。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Raspberry Pi 架設好用線上音樂播放器 - Navidrome</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-05-08">2023-05-08</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;296 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png, https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png 1.5x, https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png"
+        title="https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#demo">DEMO</a></li>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#使用-docker-在樹梅派架設">使用 docker 在樹梅派架設</a>
+      <ul>
+        <li><a href="#traefik-加上反向代理設定">Traefik 加上反向代理設定</a></li>
+        <li><a href="#因為-healthcheck-問題反向代理失敗">因為 healthcheck 問題反向代理失敗</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>前陣子都沒有發現好用的音樂播放器，最後用 NextCloud 空間加裝裡面 audio player，但覺得使用樹梅派速度非常慢，再產生亂數音樂覺得一點也不亂數，有時候會聽到同一首歌很近聽多次，最近看到 Navidrome 看到介面還不錯，這邊就來架設看看。</p>
+<h2 id="demo">DEMO</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/236818476-63371ed6-d6f1-42c3-8a02-edd4b749ca4d.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/236818476-63371ed6-d6f1-42c3-8a02-edd4b749ca4d.png, https://user-images.githubusercontent.com/6058558/236818476-63371ed6-d6f1-42c3-8a02-edd4b749ca4d.png 1.5x, https://user-images.githubusercontent.com/6058558/236818476-63371ed6-d6f1-42c3-8a02-edd4b749ca4d.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/236818476-63371ed6-d6f1-42c3-8a02-edd4b749ca4d.png"
+        title="圖片" /></p>
+<p>官方有Demo網站可以給你試用。<a href="https://www.navidrome.org/demo/" target="_blank" rel="noopener noreffer ">Navidrome Demo | Navidrome</a></p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+  root((Navidrome))
+    架設 Navidrome
+        使用 Docker 架設 Navidrome
+        Traefik 反向代理 Navidrome
+    因為 healthcheck 問題反向代理失敗
+        WorkAround 解法
+        libseccomp2 安裝方法排除 Docker 啟動問題
+</div><h2 id="使用-docker-在樹梅派架設">使用 docker 在樹梅派架設</h2>
+<p>看下官網 docker 有支援 ARM 架構，所以直接設定 docker-compose.yml 就能執行了。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/236116246-ae4cec3b-437d-4aed-9c7d-17098be4e7a8.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/236116246-ae4cec3b-437d-4aed-9c7d-17098be4e7a8.png, https://user-images.githubusercontent.com/75846914/236116246-ae4cec3b-437d-4aed-9c7d-17098be4e7a8.png 1.5x, https://user-images.githubusercontent.com/75846914/236116246-ae4cec3b-437d-4aed-9c7d-17098be4e7a8.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/236116246-ae4cec3b-437d-4aed-9c7d-17098be4e7a8.png"
+        title="image" /></p>
+<p>docker-compose.yml</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;3&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">navidrome</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">deluan/navidrome:latest</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;4533:4533&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># Optional: put your config options customization here. Examples:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">ND_SCANSCHEDULE</span><span class="p">:</span><span class="w"> </span><span class="l">1h</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">ND_LOGLEVEL</span><span class="p">:</span><span class="w"> </span><span class="l">info</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">ND_BASEURL</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;./data:/data&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;/media/USBdrive/ncp2/nextcloud/data/malagege/files/音樂:/music:ro&#34;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker compose up -d
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="traefik-加上反向代理設定">Traefik 加上反向代理設定</h3>
+<p>參考:</p>
+<ul>
+<li><a href="https://malagege.github.io/blog/posts/%E5%9C%A8-Raspberry-PI-%E6%9E%B6%E8%A8%AD-Traefik-%E5%88%9D%E9%AB%94%E9%A9%97/" target="_blank" rel="noopener noreffer ">在 Raspberry PI 架設 Traefik 初體驗 - 程式狂想筆記</a></li>
+<li><a href="https://malagege.github.io/blog/posts/Traefik-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86-Reverse-Proxy-IP-Host-%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">Traefik 反向代理 (Reverse Proxy) IP Host 方法 - 程式狂想筆記</a></li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;3&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">navidrome</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">deluan/navidrome:latest</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c">#ports:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c">#  - &#34;4533:4533&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># Optional: put your config options customization here. Examples:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">ND_SCANSCHEDULE</span><span class="p">:</span><span class="w"> </span><span class="l">1h</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">ND_LOGLEVEL</span><span class="p">:</span><span class="w"> </span><span class="l">info</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">ND_BASEURL</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">traefik_network</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;./data:/data&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;/media/USBdrive/ncp2/nextcloud/data/malagege/files/音樂:/music:ro&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l">unless-stopped</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;traefik.http.routers.navidrome.rule=Host(`xxx.xxx.duckdns.org`)&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;traefik.http.routers.navidrome.tls=true&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">healthcheck</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">disable</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">traefik_network</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">external</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="因為-healthcheck-問題反向代理失敗">因為 healthcheck 問題反向代理失敗</h3>
+<p>想說 Traefik 上傳失敗，後來發現是healthcheck <code>unhealthy</code> 健康度關係。有找到 workaround 方法，就是關閉 healthcheck 檢查。</p>
+<p><a href="https://github.com/navidrome/navidrome/issues/773" target="_blank" rel="noopener noreffer ">Navidrome 0.40 - unhealthy docker container on armv7 · Issue #773 · navidrome/navidrome</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">healthcheck</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">disable</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>其實有比較正解的方法，之前<a href="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" target="_blank" rel="noopener noreffer ">2023年樹莓派重裝 Flexget - 程式狂想筆記</a>這篇在使用 docker 跑 flexget 容器就遇到，但礙於安裝方法複雜就沒特別，這邊還要特別更新 <code>libseccomp2</code>( from buster-backports.)，當然要而外特別安裝軟體，不知道未來 apt 更新會不會解決這個問題，這邊就簡單留解決文章。</p>
+<p>相關解決 <code>libseccomp2</code> 問題文章:</p>
+<ul>
+<li><a href="https://forums.raspberrypi.com/viewtopic.php?t=339240" target="_blank" rel="noopener noreffer ">Any way to get libseccom2 version bumped in 32bit Buster RPiOS - Raspberry Pi Forums</a></li>
+</ul>
+<p>當初使用 <a href="http://ftp.debian.org/debian/pool/main/libs/libseccomp/" target="_blank" rel="noopener noreffer ">連結</a> 裡面安裝 <code>libseccomp2_2.5.4-1+rpi1+b1_armhf.deb</code> 安裝<a href="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" target="_blank" rel="noopener noreffer ">2023年樹莓派重裝 Flexget - 程式狂想筆記</a> 解決無法啟動容器問題。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/Cz1FWNo.png"
+        data-srcset="https://i.imgur.com/Cz1FWNo.png, https://i.imgur.com/Cz1FWNo.png 1.5x, https://i.imgur.com/Cz1FWNo.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/Cz1FWNo.png"
+        title="https://i.imgur.com/Cz1FWNo.png" /></p>
+<ul>
+<li><a href="https://owre.se/update-libseccomp2-to-resolve-issues-with-time-not-being-set-correctly-inside-containers/" target="_blank" rel="noopener noreffer ">Update libseccomp2 to resolve issues with time not being set correctly inside containers - owre.se</a></li>
+<li><a href="https://github.com/tianon/docker-brew-ubuntu-core/issues/196" target="_blank" rel="noopener noreffer ">Ubuntu 20.04 image fails to provide realtime clock on arm32v7 raspberry pi · Issue #196 · tianon/docker-brew-ubuntu-core</a></li>
+<li><a href="https://packages.debian.org/sid/libseccomp2" target="_blank" rel="noopener noreffer ">Debian &ndash; 在 sid 中的 libseccomp2 套件詳細資訊</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-05-08</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" data-title="Raspberry Pi 架設好用線上音樂播放器 - Navidrome" data-hashtags="player,navidrome,raspberrypi"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" data-hashtag="player"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" data-title="Raspberry Pi 架設好用線上音樂播放器 - Navidrome"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" data-title="Raspberry Pi 架設好用線上音樂播放器 - Navidrome"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" data-title="Raspberry Pi 架設好用線上音樂播放器 - Navidrome" data-image="https://user-images.githubusercontent.com/6058558/236819458-1c96871f-8303-4410-bbd8-756d903e9db1.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/player/">player</a>,&nbsp;<a href="/blog/tags/navidrome/">navidrome</a>,&nbsp;<a href="/blog/tags/raspberrypi/">raspberrypi</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E5%BE%8C%E7%AB%AF%E5%92%8C%E5%89%8D%E7%AB%AF%E5%81%9A%E8%B7%A8%E6%99%82%E5%8D%80%E7%B6%B2%E7%AB%99%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%BA%8B/" class="prev" rel="prev" title="後端和前端做跨時區網站要注意的事"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>後端和前端做跨時區網站要注意的事</a>
+            <a href="/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" class="next" rel="next" title="AdGuard Home 架設可防廣告 DNS Server">AdGuard Home 架設可防廣告 DNS Server<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.113.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

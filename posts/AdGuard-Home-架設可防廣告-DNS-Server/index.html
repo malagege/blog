@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>AdGuard Home 架設可防廣告 DNS Server - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="AdGuard Home 架設可防廣告 DNS Server" />
+<meta property="og:description" content="其實這個已經玩很久了，之前應該有要記錄這篇，但忘記什麼原因就沒紀錄了。可能太過簡單了，就沒記錄。🤣
+最近我朋友跟我索取動物機，這邊準備要搬到3代動物機，順便留一些記錄。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-06-11T19:52:41+08:00" />
+<meta property="article:modified_time" content="2023-06-11T19:52:41+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="AdGuard Home 架設可防廣告 DNS Server"/>
+<meta name="twitter:description" content="其實這個已經玩很久了，之前應該有要記錄這篇，但忘記什麼原因就沒紀錄了。可能太過簡單了，就沒記錄。🤣
+最近我朋友跟我索取動物機，這邊準備要搬到3代動物機，順便留一些記錄。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" /><link rel="next" href="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "AdGuard Home 架設可防廣告 DNS Server",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server\/"
+        },"genre": "posts","keywords": "dns","wordcount":  425 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server\/","datePublished": "2023-06-11T19:52:41+08:00","dateModified": "2023-06-11T19:52:41+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e其實這個已經玩很久了，之前應該有要記錄這篇，但忘記什麼原因就沒紀錄了。可能太過簡單了，就沒記錄。🤣\u003cbr\u003e\n最近我朋友跟我索取動物機，這邊準備要搬到3代動物機，順便留一些記錄。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">AdGuard Home 架設可防廣告 DNS Server</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-06-11">2023-06-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;425 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png, https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png 1.5x, https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png"
+        title="https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#adguard-home">AdGuard Home</a></li>
+    <li><a href="#安裝">安裝</a></li>
+    <li><a href="#dns-每秒連線數調整無限制">DNS 每秒連線數調整無限制</a></li>
+    <li><a href="#dns-改寫">DNS 改寫</a></li>
+    <li><a href="#dns-封鎖清單">DNS 封鎖清單</a></li>
+    <li><a href="#舊的安裝記錄">舊的安裝記錄</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>其實這個已經玩很久了，之前應該有要記錄這篇，但忘記什麼原因就沒紀錄了。可能太過簡單了，就沒記錄。🤣<br>
+最近我朋友跟我索取動物機，這邊準備要搬到3代動物機，順便留一些記錄。</p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+  root((AdGuard))
+    介紹
+    使用 docker 安裝
+    相關配置
+        DNS 每秒連線數調整無限制
+        DNS 改寫
+        DNS 封鎖清單
+</div><h2 id="adguard-home">AdGuard Home</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224492863-2db5083b-91ba-492b-a76e-b02db23b7584.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224492863-2db5083b-91ba-492b-a76e-b02db23b7584.png, https://user-images.githubusercontent.com/6058558/224492863-2db5083b-91ba-492b-a76e-b02db23b7584.png 1.5x, https://user-images.githubusercontent.com/6058558/224492863-2db5083b-91ba-492b-a76e-b02db23b7584.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224492863-2db5083b-91ba-492b-a76e-b02db23b7584.png"
+        title="圖片" /></p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=k5wCWXlOo_k" target="_blank" rel="noopener noreffer ">(29) AdGuard Home 另一個Pi-hole？兩者有什麼區別？DNS擋廣告 樹莓派安裝教程！【明富其識】 - YouTube</a></li>
+<li><a href="https://koding.work/build-adguard-home-is-super-easy/" target="_blank" rel="noopener noreffer ">AdGuard Home 超簡單架設教學！ | Adguard DNS - 叩頂窩客</a><br>
+裡面有提到<code>DNS sinkhole</code>，可以看一下原理。</li>
+<li><a href="https://www.jkg.tw/p2158/" target="_blank" rel="noopener noreffer ">是時候裝一套 AdGuard Home 全局擋廣告神器了！ | jkgtw&rsquo;s blog </a></li>
+</ul>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊可能你設定，在看 Youtube 時候還會看到廣告，原因不是 DNS 沒用。因為是&hellip;APP使用 DNS over HTTPS(DoT)，所以你的 DNS 根本沒辦法阻擋，目前這個方法是無解的。</div>
+        </div>
+    </div>
+<h2 id="安裝">安裝</h2>
+<p>這邊其實只要執行檔執行就可以了，因為 Golang 可編譯跨平台執行真的超級方便的。Docker run 也可以簡單完成，官方就有 Docker 映像檔可以用。<a href="https://hub.docker.com/r/adguard/adguardhome/tags" target="_blank" rel="noopener noreffer ">這邊</a>還發現各種架構都支援。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">mkdir -p <span class="nv">$PWD</span>/adguardhome/workdir
+</span></span><span class="line"><span class="cl">mkdir -p <span class="nv">$PWD</span>/adguardhome/confdir
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">docker run --name adguardhome<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    --restart unless-stopped<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v <span class="nv">$PWD</span>/adguardhome/workdir:/opt/adguardhome/work <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v <span class="nv">$PWD</span>/adguardhome/confdir:/opt/adguardhome/conf <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 53:53/tcp -p 53:53/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 67:67/udp -p 68:68/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 80:80/tcp -p 443:443/tcp -p 443:443/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    <span class="c1">#-p 3000:3000/tcp\</span>
+</span></span><span class="line"><span class="cl">    -p 853:853/tcp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 784:784/udp -p 853:853/udp -p 8853:8853/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 5443:5443/tcp -p 5443:5443/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -d adguard/adguardhome
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面還滿多Port，我看官方 Port 設定，可以拿掉沒有要用的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">    -p 53:53/tcp -p 53:53/udp: plain DNS.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    -p 67:67/udp -p 68:68/tcp -p 68:68/udp: add if you intend to use AdGuard Home as a DHCP server.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    -p 80:80/tcp -p 443:443/tcp -p 443:443/udp -p 3000:3000/tcp: add if you are going to use AdGuard Home&#39;s admin panel as well as run AdGuard Home as an HTTPS/DNS-over-HTTPS server.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    -p 853:853/tcp: add if you are going to run AdGuard Home as a DNS-over-TLS server.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    -p 784:784/udp -p 853:853/udp -p 8853:8853/udp: add if you are going to run AdGuard Home as a DNS-over-QUIC server. You may only leave one or two of these.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    -p 5443:5443/tcp -p 5443:5443/udp: add if you are going to run AdGuard Home as a DNSCrypt server.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>因為我 <code>3000</code> web port 已經有服務再用，所以我直接從 80 倒進 3000 port。之後好像 port會變成 80再改回去。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">mkdir -p <span class="nv">$PWD</span>/adguardhome/workdir
+</span></span><span class="line"><span class="cl">mkdir -p <span class="nv">$PWD</span>/adguardhome/confdir
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">docker run --name adguardhome<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    --restart unless-stopped<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v <span class="nv">$PWD</span>/adguardhome/workdir:/opt/adguardhome/work <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v <span class="nv">$PWD</span>/adguardhome/confdir:/opt/adguardhome/conf <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 53:53/tcp -p 53:53/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 80:3000/tcp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -p 5443:5443/tcp -p 5443:5443/udp<span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    -d adguard/adguardhome
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>進去網站設定。</p>
+<ol>
+<li>
+<p>點選開始<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/6LHbtWw.png"
+        data-srcset="https://i.imgur.com/6LHbtWw.png, https://i.imgur.com/6LHbtWw.png 1.5x, https://i.imgur.com/6LHbtWw.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/6LHbtWw.png"
+        title="https://i.imgur.com/6LHbtWw.png" /></p>
+</li>
+<li>
+<p>設定帳號密碼<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224495819-a040c993-5961-4070-aa80-ddfeb4fc59a7.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224495819-a040c993-5961-4070-aa80-ddfeb4fc59a7.png, https://user-images.githubusercontent.com/6058558/224495819-a040c993-5961-4070-aa80-ddfeb4fc59a7.png 1.5x, https://user-images.githubusercontent.com/6058558/224495819-a040c993-5961-4070-aa80-ddfeb4fc59a7.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224495819-a040c993-5961-4070-aa80-ddfeb4fc59a7.png"
+        title="圖片" /></p>
+</li>
+<li>
+<p>在路由器設定 Dns。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224495861-ddcffcdb-aff5-4a54-b387-66ae5938602f.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224495861-ddcffcdb-aff5-4a54-b387-66ae5938602f.png, https://user-images.githubusercontent.com/6058558/224495861-ddcffcdb-aff5-4a54-b387-66ae5938602f.png 1.5x, https://user-images.githubusercontent.com/6058558/224495861-ddcffcdb-aff5-4a54-b387-66ae5938602f.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224495861-ddcffcdb-aff5-4a54-b387-66ae5938602f.png"
+        title="圖片" /></p>
+</li>
+</ol>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊注意!!不是每一個路由器做 <code>DHCP</code> 派送會有 DNS 設定。像是中華電信 P883 沒有這個設定，所以無法做調整，但我在我的防火牆那台設定。沒支援也沒關係，可以把你的路由器 DHCP關掉，開啟 AdGuard Home 裡面的 DHCP，也可以解決這個問題。<strong>注意!!一個區網只能有一個 DHCP Server!!</strong><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224497031-587392de-3e4b-4925-9b68-e8391305b020.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224497031-587392de-3e4b-4925-9b68-e8391305b020.png, https://user-images.githubusercontent.com/6058558/224497031-587392de-3e4b-4925-9b68-e8391305b020.png 1.5x, https://user-images.githubusercontent.com/6058558/224497031-587392de-3e4b-4925-9b68-e8391305b020.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224497031-587392de-3e4b-4925-9b68-e8391305b020.png"
+        title="圖片" /></div>
+        </div>
+    </div>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224495873-d3feffd1-930c-4493-b107-faa58fe63d92.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224495873-d3feffd1-930c-4493-b107-faa58fe63d92.png, https://user-images.githubusercontent.com/6058558/224495873-d3feffd1-930c-4493-b107-faa58fe63d92.png 1.5x, https://user-images.githubusercontent.com/6058558/224495873-d3feffd1-930c-4493-b107-faa58fe63d92.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224495873-d3feffd1-930c-4493-b107-faa58fe63d92.png"
+        title="圖片" /></p>
+<p>其實到這邊就可以結束了。</p>
+<h2 id="dns-每秒連線數調整無限制">DNS 每秒連線數調整無限制</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224689010-dc0dc827-3774-4a38-b036-34b6103883f8.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224689010-dc0dc827-3774-4a38-b036-34b6103883f8.png, https://user-images.githubusercontent.com/6058558/224689010-dc0dc827-3774-4a38-b036-34b6103883f8.png 1.5x, https://user-images.githubusercontent.com/6058558/224689010-dc0dc827-3774-4a38-b036-34b6103883f8.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224689010-dc0dc827-3774-4a38-b036-34b6103883f8.png"
+        title="圖片" /></p>
+<p>有看到別的網站有做這個限制，不過我前面是沒調整，但也沒遇到什麼問題。網路文章上看到說調整這個設定，區網沒必要做限制，但對外網路可能就需要。</p>
+<h2 id="dns-改寫">DNS 改寫</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224493991-7318fa65-4459-4171-9d64-2300369e4e74.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224493991-7318fa65-4459-4171-9d64-2300369e4e74.png, https://user-images.githubusercontent.com/6058558/224493991-7318fa65-4459-4171-9d64-2300369e4e74.png 1.5x, https://user-images.githubusercontent.com/6058558/224493991-7318fa65-4459-4171-9d64-2300369e4e74.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224493991-7318fa65-4459-4171-9d64-2300369e4e74.png"
+        title="圖片" /></p>
+<p>因為有一組外網 DNS，希望可以直連內網 IP，可以這樣做設定，這樣也能 TLS 連線安全。</p>
+<h2 id="dns-封鎖清單">DNS 封鎖清單</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/224493271-0f155f51-4770-42f4-9bea-c3b6998650ff.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/224493271-0f155f51-4770-42f4-9bea-c3b6998650ff.png, https://user-images.githubusercontent.com/6058558/224493271-0f155f51-4770-42f4-9bea-c3b6998650ff.png 1.5x, https://user-images.githubusercontent.com/6058558/224493271-0f155f51-4770-42f4-9bea-c3b6998650ff.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/224493271-0f155f51-4770-42f4-9bea-c3b6998650ff.png"
+        title="圖片" /></p>
+<ul>
+<li><a href="https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt" target="_blank" rel="noopener noreffer ">adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt</a></li>
+<li><a href="https://easylist-downloads.adblockplus.org/easylistchina&#43;easylist.txt" target="_blank" rel="noopener noreffer ">easylist-downloads.adblockplus.org/easylistchina+easylist.txt</a></li>
+<li><a href="https://cdn.jsdelivr.net/gh/neoFelhz/neohosts@gh-pages/full/hosts.txt" target="_blank" rel="noopener noreffer ">cdn.jsdelivr.net/gh/neoFelhz/neohosts@gh-pages/full/hosts.txt</a></li>
+<li><a href="https://anti-ad.net/easylist.txt" target="_blank" rel="noopener noreffer ">anti-ad.net/easylist.txt</a></li>
+</ul>
+<h2 id="舊的安裝記錄">舊的安裝記錄</h2>
+<p><code>adguard/adguardhome:armhf-latest</code>以前都要做 <code>armhf-latest</code>，之後版本都不需要做設定。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">mkdir -p <span class="nv">$PWD</span>/adguardhome/workdir
+</span></span><span class="line"><span class="cl">mkdir -p <span class="nv">$PWD</span>/adguardhome/confdir
+</span></span><span class="line"><span class="cl">docker rm -f adguardhome
+</span></span><span class="line"><span class="cl">docker run <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -d <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --name<span class="o">=</span>adguardhome <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --restart<span class="o">=</span>always <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v <span class="nv">$PWD</span>/adguardhome/workdir:/opt/adguardhome/work <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v <span class="nv">$PWD</span>/adguardhome/confdir:/opt/adguardhome/conf <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 53:53/tcp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 53:53/udp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 67:67/udp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 69:68/tcp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 69:68/udp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 80:80/tcp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 443:443/tcp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 853:853/tcp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 3000:3000/tcp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  adguard/adguardhome:armhf-latest
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-06-11</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" data-title="AdGuard Home 架設可防廣告 DNS Server" data-hashtags="dns"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" data-hashtag="dns"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" data-title="AdGuard Home 架設可防廣告 DNS Server"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" data-title="AdGuard Home 架設可防廣告 DNS Server"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/AdGuard-Home-%E6%9E%B6%E8%A8%AD%E5%8F%AF%E9%98%B2%E5%BB%A3%E5%91%8A-DNS-Server/" data-title="AdGuard Home 架設可防廣告 DNS Server" data-image="https://user-images.githubusercontent.com/6058558/244935208-f0505d3a-c39b-4e33-af15-7704048c4738.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/dns/">dns</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Raspberry-Pi-%E6%9E%B6%E8%A8%AD%E5%A5%BD%E7%94%A8%E7%B7%9A%E4%B8%8A%E9%9F%B3%E6%A8%82%E6%92%AD%E6%94%BE%E5%99%A8-Navidrome/" class="prev" rel="prev" title="Raspberry Pi 架設好用線上音樂播放器 - Navidrome"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Raspberry Pi 架設好用線上音樂播放器 - Navidrome</a>
+            <a href="/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" class="next" rel="next" title="Web IIS Web Deploy 操作記錄">Web IIS Web Deploy 操作記錄<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.113.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

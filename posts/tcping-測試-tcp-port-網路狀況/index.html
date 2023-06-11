@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Tcping 測試 Tcp Port 網路狀況 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Tcping 測試 Tcp Port 網路狀況" />
+<meta property="og:description" content="在一般網路我們都使用 ping 指令去做測試網路狀況，但大多安全行關係，防火牆會把 ICMP 封鎖，導致無法測試網路，只能連該服務 port。最近公司網路出點狀況，之前有用過 MTR 測試網路狀況(參考:Java 遇到 connection timed out 問題 - 程式狂想筆記)，但這次不能做 traceroute，再找找有沒有查詢方法，結果發現這個好玩的東西。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-06-11T20:24:05+08:00" />
+<meta property="article:modified_time" content="2023-06-11T20:24:05+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Tcping 測試 Tcp Port 網路狀況"/>
+<meta name="twitter:description" content="在一般網路我們都使用 ping 指令去做測試網路狀況，但大多安全行關係，防火牆會把 ICMP 封鎖，導致無法測試網路，只能連該服務 port。最近公司網路出點狀況，之前有用過 MTR 測試網路狀況(參考:Java 遇到 connection timed out 問題 - 程式狂想筆記)，但這次不能做 traceroute，再找找有沒有查詢方法，結果發現這個好玩的東西。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" /><link rel="next" href="https://malagege.github.io/blog/posts/API-Blueprint-%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7%E5%B0%8F%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Tcping 測試 Tcp Port 網路狀況",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81\/"
+        },"genre": "posts","keywords": "tcping, tcp, 監控, 網路","wordcount":  141 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81\/","datePublished": "2023-06-11T20:24:05+08:00","dateModified": "2023-06-11T20:24:05+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e在一般網路我們都使用 \u003ccode\u003eping\u003c/code\u003e 指令去做測試網路狀況，但大多安全行關係，防火牆會把 \u003ccode\u003eICMP\u003c/code\u003e 封鎖，導致無法測試網路，只能連該服務 port。最近公司網路出點狀況，之前有用過 MTR 測試網路狀況(參考:\u003ca href=\"https://malagege.github.io/blog/posts/Java-%E9%81%87%E5%88%B0-connection-timed-out-%E5%95%8F%E9%A1%8C/\" target=\"_blank\" rel=\"noopener noreffer \"\u003eJava 遇到 connection timed out 問題 - 程式狂想筆記\u003c/a\u003e)，但這次不能做 traceroute，再找找有沒有查詢方法，結果發現這個好玩的東西。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Tcping 測試 Tcp Port 網路狀況</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-06-11">2023-06-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;141 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png, https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png 1.5x, https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png"
+        title="https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#工作原理">工作原理</a></li>
+    <li><a href="#安裝">安裝</a>
+      <ul>
+        <li><a href="#ubuntu-安裝">Ubuntu 安裝</a></li>
+        <li><a href="#window-安裝">Window 安裝</a></li>
+      </ul>
+    </li>
+    <li><a href="#使用-tcping-方法">使用 tcping 方法</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#其他工具">其他工具</a></li>
+    <li><a href="#不算能測試-http-服務穩定性">不算能測試 http 服務穩定性</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>在一般網路我們都使用 <code>ping</code> 指令去做測試網路狀況，但大多安全行關係，防火牆會把 <code>ICMP</code> 封鎖，導致無法測試網路，只能連該服務 port。最近公司網路出點狀況，之前有用過 MTR 測試網路狀況(參考:<a href="https://malagege.github.io/blog/posts/Java-%E9%81%87%E5%88%B0-connection-timed-out-%E5%95%8F%E9%A1%8C/" target="_blank" rel="noopener noreffer ">Java 遇到 connection timed out 問題 - 程式狂想筆記</a>)，但這次不能做 traceroute，再找找有沒有查詢方法，結果發現這個好玩的東西。</p>
+<h2 id="工作原理">工作原理</h2>
+<blockquote>
+<ul>
+<li>
+<p>traceroute:IP路由過程中對封包TTL(Time to Live，存活時間)進行處理。當路由器收到一個IP包時，會修改IP包的TTL（及由此造成的頭部檢驗和checksum變化）。每收到一個包，檢查這個 的TTL是否是0。如果是，表明這個包還沒有到達目的地，而且剩餘時間不多了，肯定是到不了目的地了。這樣路由器就簡單地丟棄這個包，並給源主機傳送 ICMP通知，說這個包已經超時了。ICMP的通知資訊裡包含當前路由器傳送時所用的IP。這樣就可以通過構造封包，來間接檢查到達一個主機時經過了哪些路由。一開始傳送一個TTL為1的包，這樣到達第一個路由器的時候就已經超時了，第一個路由器就發通知說包超時，這樣就可以記錄下 所經過的第一個路由器的IP。然後TTL加1，安全通過第一個路由器，而第二個路由器的的處理與第一個相同，丟包，發通知說包超時了，這樣記錄下第二個路 由器IP，由此可以一直進行下去，直到這個封包到達目標主機，由此列印出所有經過的路由器。</p>
+</li>
+<li>
+<p>tcptraceroute：現代網路廣泛使用防火牆，導致傳統路由跟蹤工具發出的（ICMP應答（ICMP echo）或UDP）封包都被過濾掉了，所以無法進行完整的路由跟蹤。儘管如此，許多情況下，防火牆會准許TCP封包通過防火牆到達指定連接埠，這些連接埠是主機內防火牆背後的一些程序和外界連接用的。通過傳送TCP SYN封包來代替UDP或者ICMP應答封包，tcptraceroute可以穿透大多數防火牆。</p>
+</li>
+</ul>
+</blockquote>
+<p>參考: <a href="https://www.cnblogs.com/sunshine-cat/p/8081974.html" target="_blank" rel="noopener noreffer ">路由追蹤：traceroute/tcptraceroute - 思卻 - 部落格園</a></p>
+<h2 id="安裝">安裝</h2>
+<p>參考:<br>
+<a href="https://zzz.buzz/zh/2020/01/30/use-tcptraceroute-to-test-connections-via-tproxy/" target="_blank" rel="noopener noreffer ">用 tcp 协议的 traceroute 测试连接是否经过透明代理</a><br>
+<a href="https://blog.51cto.com/u_12763213/5640012" target="_blank" rel="noopener noreffer ">Linux下网络测试工具tcpping、tcptraceroute的使用_51CTO博客_linux 网络测试工具</a></p>
+<h3 id="ubuntu-安裝">Ubuntu 安裝</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt install tcptraceroute 
+</span></span><span class="line"><span class="cl">sudo wget http://www.vdberg.org/~richard/tcpping -O /usr/bin/tcping
+</span></span><span class="line"><span class="cl">sudo chmod <span class="m">755</span> /usr/bin/tcping
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>執行發生錯誤可能需要再安裝<code>bc</code>。</p>
+<h3 id="window-安裝">Window 安裝</h3>
+<p>可直接 scoop 快速安裝。可以看<a href="https://scoop.sh/#/apps?q=tcping&amp;s=0&amp;d=1&amp;o=true" target="_blank" rel="noopener noreffer ">Scoop - Apps (tcping)</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">scoop bucket add main
+</span></span><span class="line"><span class="cl">scoop install tcping
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="使用-tcping-方法">使用 tcping 方法</h2>
+<p><code>tcping tw.yahoo.com 443</code></p>
+<p>可以看到連線結果。你會發現有時候會回 <code>No Response</code>，代表網路沒通。</p>
+<h2 id="demo">Demo</h2>
+<p>身邊沒有網路不穩的系統。想嘗試看看嗎?我之前有特別找<a href="https://malagege.github.io/blog/posts/%E6%A8%A1%E6%93%AC%E4%B8%8D%E8%89%AF%E7%B6%B2%E8%B7%AF%E7%92%B0%E5%A2%83%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">模擬不良網路環境方法 - 程式狂想筆記</a>方法，這邊就實作了一下。</p>
+<p>記得電腦要在旁邊，不然無法取消就麻煩了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> sudo tc  qdisc  add  dev  wlp3s0  root  netem  loss  40%
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/225069996-375375ac-a584-4c18-99e5-dfffe75e0e2c.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/225069996-375375ac-a584-4c18-99e5-dfffe75e0e2c.png, https://user-images.githubusercontent.com/6058558/225069996-375375ac-a584-4c18-99e5-dfffe75e0e2c.png 1.5x, https://user-images.githubusercontent.com/6058558/225069996-375375ac-a584-4c18-99e5-dfffe75e0e2c.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/225069996-375375ac-a584-4c18-99e5-dfffe75e0e2c.png"
+        title="圖片" /></p>
+<p>想取消可執行下指令或重開機都可以。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> sudo tc  qdisc  del  dev  wlp3s0  root  netem  loss  40%
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="其他工具">其他工具</h2>
+<p><a href="https://github.com/i3h/tcping" target="_blank" rel="noopener noreffer ">https://github.com/i3h/tcping</a><br>
+<a href="https://github.com/zhengxiaowai/tcping" target="_blank" rel="noopener noreffer ">https://github.com/zhengxiaowai/tcping</a></p>
+<h2 id="不算能測試-http-服務穩定性">不算能測試 http 服務穩定性</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/Qxr0BPG.jpg"
+        data-srcset="https://i.imgur.com/Qxr0BPG.jpg, https://i.imgur.com/Qxr0BPG.jpg 1.5x, https://i.imgur.com/Qxr0BPG.jpg 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/Qxr0BPG.jpg"
+        title="https://i.imgur.com/Qxr0BPG.jpg" /></p>
+<p>最近公司網路部穩，部分打 Google API 會有些狀況，這邊研究 tcping 測試網路服務，雖然指令有 proxy 指令，但回來結果都是 400。後來突然想到不應該用這個，應該用 ab 壓力測試工具測試。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ab -n <span class="m">100</span> -c <span class="m">1</span> -X proxy<span class="o">[</span>:port<span class="o">]</span>   http://www.example.com/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-06-11</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" data-title="Tcping 測試 Tcp Port 網路狀況" data-hashtags="tcping,tcp,監控,網路"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" data-hashtag="tcping"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" data-title="Tcping 測試 Tcp Port 網路狀況"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" data-title="Tcping 測試 Tcp Port 網路狀況"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/tcping-%E6%B8%AC%E8%A9%A6-tcp-port-%E7%B6%B2%E8%B7%AF%E7%8B%80%E6%B3%81/" data-title="Tcping 測試 Tcp Port 網路狀況" data-image="https://user-images.githubusercontent.com/6058558/244936123-445ce7c6-85c3-4a21-bd33-8d4991884f27.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/tcping/">tcping</a>,&nbsp;<a href="/blog/tags/tcp/">tcp</a>,&nbsp;<a href="/blog/tags/%E7%9B%A3%E6%8E%A7/">監控</a>,&nbsp;<a href="/blog/tags/%E7%B6%B2%E8%B7%AF/">網路</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" class="prev" rel="prev" title="Web IIS Web Deploy 操作記錄"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Web IIS Web Deploy 操作記錄</a>
+            <a href="/blog/posts/API-Blueprint-%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7%E5%B0%8F%E8%A8%98/" class="next" rel="next" title="API Blueprint 實用工具小記">API Blueprint 實用工具小記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.113.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
