@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>ASP.NET Core 中間件(Middleware) - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="ASP.NET Core 中間件(Middleware)" />
+<meta property="og:description" content="中間件(Middleware)在程式架構上設計是很重要功能，之前我在學習 Spring Boot 對應 Request 所對應處理都使用 AOP，AOP概念很像 Middleware，但還是有點差異的，要如何使用 Middleware 讓開發程式更有效率、簡單，不需要異動程式這是很重要的。
+這個筆記很久之前就寫完了，但想說有空再整理一下，結果都沒改什麼東西。最近剛好寫中間件文章，覺得還是整理出來好了。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-06-22T21:57:40+08:00" />
+<meta property="article:modified_time" content="2023-06-22T21:57:40+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ASP.NET Core 中間件(Middleware)"/>
+<meta name="twitter:description" content="中間件(Middleware)在程式架構上設計是很重要功能，之前我在學習 Spring Boot 對應 Request 所對應處理都使用 AOP，AOP概念很像 Middleware，但還是有點差異的，要如何使用 Middleware 讓開發程式更有效率、簡單，不需要異動程式這是很重要的。
+這個筆記很久之前就寫完了，但想說有空再整理一下，結果都沒改什麼東西。最近剛好寫中間件文章，覺得還是整理出來好了。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Net-Core-Middleware-%E6%93%B7%E5%8F%96-Request-%E5%8F%83%E6%95%B8/" /><link rel="next" href="https://malagege.github.io/blog/posts/Excel-%E8%BD%89%E6%88%90-JSON-%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "ASP.NET Core 中間件(Middleware)",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware\/"
+        },"genre": "posts","keywords": ".netcore","wordcount":  238 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware\/","datePublished": "2023-06-22T21:57:40+08:00","dateModified": "2023-06-22T21:57:40+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e中間件(Middleware)在程式架構上設計是很重要功能，之前我在學習 Spring Boot 對應 Request 所對應處理都使用 AOP，AOP概念很像 Middleware，但還是有點差異的，要如何使用 Middleware 讓開發程式更有效率、簡單，不需要異動程式這是很重要的。\u003c/p\u003e\n\u003cp\u003e這個筆記很久之前就寫完了，但想說有空再整理一下，結果都沒改什麼東西。最近剛好寫中間件文章，覺得還是整理出來好了。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">ASP.NET Core 中間件(Middleware)</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-06-22">2023-06-22</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;238 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png, https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png 1.5x, https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"
+        title="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#中間件範列">中間件範列</a></li>
+    <li><a href="#靜態文件">靜態文件</a></li>
+    <li><a href="#異常頁面中間件">異常頁面中間件</a>
+      <ul>
+        <li><a href="#自定義中間件異常">自定義中間件異常</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他文章">其他文章</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>中間件(Middleware)在程式架構上設計是很重要功能，之前我在學習 Spring Boot 對應 Request 所對應處理都使用 AOP，AOP概念很像 Middleware，但還是有點差異的，要如何使用 Middleware 讓開發程式更有效率、簡單，不需要異動程式這是很重要的。</p>
+<p>這個筆記很久之前就寫完了，但想說有空再整理一下，結果都沒改什麼東西。最近剛好寫中間件文章，覺得還是整理出來好了。</p>
+<p>處理 HTTP Request，很重要的管道。例如: 網頁帳號檢查、錯誤的處理。</p>
+<p>&hellip;-&gt;Logging -&gt;StaticFiles -&gt; MVC -&gt;&hellip;</p>
+<p>ASP.NET Core 中間件<br>
+Logging 記錄使用者 IP等資訊<br>
+StaticFiles 取得js/img靜態文件<br>
+MVC 終端中間件。</p>
+<p>可做到的事情:</p>
+<ul>
+<li>可同時被訪問和請求</li>
+<li>可處理請求後，然後將請求傳遞給下一個中間件</li>
+<li>可以處理請求後，并使管道短路。</li>
+<li>可以處理傳出響應。</li>
+<li>中間件是按照添加的順序執行的。</li>
+</ul>
+<p>官方順序可以參考:<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/9xF8rfr.png"
+        data-srcset="https://i.imgur.com/9xF8rfr.png, https://i.imgur.com/9xF8rfr.png 1.5x, https://i.imgur.com/9xF8rfr.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/9xF8rfr.png"
+        title="https://i.imgur.com/9xF8rfr.png" /><br>
+<a href="https://docs.microsoft.com/zh-tw/aspnet/core/fundamentals/middleware/?view=aspnetcore-6.0" target="_blank" rel="noopener noreffer ">ASP.NET Core 中介軟體 | Microsoft Docs</a></p>
+<h2 id="中間件範列">中間件範列</h2>
+<p>靜態文件建立需要建立 <code>wwwroot</code></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/O39qbsh.png"
+        data-srcset="https://i.imgur.com/O39qbsh.png, https://i.imgur.com/O39qbsh.png 1.5x, https://i.imgur.com/O39qbsh.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/O39qbsh.png"
+        title="https://i.imgur.com/O39qbsh.png" /></p>
+<p><code>app.Run()</code>是一個終端中間件，他使用會短路。<br>
+下面範例只會印出<code>Hello World1</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">Run</span><span class="p">(</span><span class="k">async</span> <span class="p">(</span><span class="n">context</span><span class="p">)=&gt;{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">WriteAsync</span><span class="p">(</span><span class="s">&#34;hello world 1&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">app</span><span class="p">.</span><span class="n">Run</span><span class="p">(</span><span class="k">async</span> <span class="p">(</span><span class="n">context</span><span class="p">)=&gt;{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">WriteAsync</span><span class="p">(</span><span class="s">&#34;hello world 2&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>app.Use</code>可以解決這個問題，使用 <code>next</code>可調用到下一個 Middleware。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">Use</span><span class="p">(</span><span class="k">async</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="n">next</span><span class="p">)=&gt;{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">ContentType</span> <span class="p">=</span> <span class="s">&#34;text/plain;charset=utf-8&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">WriteAsync</span><span class="p">(</span><span class="s">&#34;hello world 1&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">await</span> <span class="n">next</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">app</span><span class="p">.</span><span class="n">Run</span><span class="p">(</span><span class="k">async</span> <span class="p">(</span><span class="n">context</span><span class="p">)=&gt;{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">WriteAsync</span><span class="p">(</span><span class="s">&#34;hello world 2&#34;</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="靜態文件">靜態文件</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="c1">//靜態文件中間件</span>
+</span></span><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">UseStaticFiles</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>UseDefaultFiles</code>一定要放在 <code>UseStaticFiles</code> 前面。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="c1">//加入默認文件中間件 index.html index.htm default.html default.htm</span>
+</span></span><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">UseDefaultFiles</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>更改預設 html網頁;</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="n">DefaultFilesOptions</span> <span class="n">defaultFilesOptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DefaultFilesOptions</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">defaultFilesOptions</span><span class="p">.</span><span class="n">DefaultFileNames</span><span class="p">.</span><span class="n">Clear</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">defaultFilesOptions</span><span class="p">.</span><span class="n">DefaultFileNames</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&#34;hello.html&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">UseDefaultFiles</span><span class="p">(</span><span class="n">defaultFilesOptions</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊太長了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="c1">// app.UseFileServer(); // 結合UseStaticFiles, UseDefaultFiles, UseDirectoryBrowser</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// app.UseDirectoryBrowser();  // 查看文件夾內容</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">FileServerOptions</span> <span class="n">fileServerOptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">FileServerOptions</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">fileServerOptions</span><span class="p">.</span><span class="n">DefaultFilesOptions</span><span class="p">.</span><span class="n">DefaultFileNames</span><span class="p">.</span><span class="n">Clear</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">fileServerOptions</span><span class="p">.</span><span class="n">DefaultFilesOptions</span><span class="p">.</span><span class="n">DefaultFileNames</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&#34;hello.htm&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">UseFileServer</span><span class="p">(</span><span class="n">fileServerOptions</span><span class="p">);</span> 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>app.use...</code>有很多中間件可以用。</p>
+<h2 id="異常頁面中間件">異常頁面中間件</h2>
+<p>盡量放在中間件前面，預防其他錯誤，否則不會跑出結果。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="c1">// 盡量放在中間件前面，預防其他錯誤，否則不會跑出結果</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span><span class="p">(</span><span class="n">env</span><span class="p">.</span><span class="n">IsDevelopment</span><span class="p">()){</span>
+</span></span><span class="line"><span class="cl">    <span class="n">app</span><span class="p">.</span><span class="n">UseDeveloperExceptionPage</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="自定義中間件異常">自定義中間件異常</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="n">DeveloperExceptionPageOptions</span> <span class="n">developerExceptionPageOptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">DeveloperExceptionPageOptions</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">developerExceptionPageOptions</span><span class="p">.</span><span class="n">SourceCodeLineCount</span> <span class="p">=</span> <span class="m">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">app</span><span class="p">.</span><span class="n">UseDeveloperExceptionPage</span><span class="p">(</span><span class="n">developerExceptionPageOptions</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>.Net 6 之前版本要怎麼辦? 我之前有寫過這篇<a href="https://malagege.github.io/blog/posts/Net-Core-Middleware-%E6%93%B7%E5%8F%96-Request-%E5%8F%83%E6%95%B8/" target="_blank" rel="noopener noreffer ">.Net Core Middleware 擷取 Request 參數 - 程式狂想筆記</a>可以參考。</p>
+<h2 id="其他文章">其他文章</h2>
+<p><a href="https://blog.darkthread.net/blog/aspnetcore-middleware-lab/" target="_blank" rel="noopener noreffer ">ASP.NET Core 基礎 - Middleware-黑暗執行緒</a></p>
+<p><a href="https://www.cnblogs.com/RainingNight/p/middleware-in-asp-net-core.html" target="_blank" rel="noopener noreffer ">ASP.NET Core 运行原理解剖[3]:Middleware-请求管道的构成 - 雨夜朦胧 - 博客园</a></p>
+<p><a href="https://stackoverflow.com/questions/59717272/how-to-register-services-for-custom-net-core-middleware" target="_blank" rel="noopener noreffer ">c# - How To Register Services For Custom .Net Core Middleware - Stack Overflow</a></p>
+<p><a href="https://blog.poychang.net/logging-http-request-in-asp-net-core/" target="_blank" rel="noopener noreffer ">收集 ASP.NET Core 網站所有的 HTTP Request 資訊</a></p>
+<p><a href="https://code-maze.com/global-error-handling-aspnetcore/" target="_blank" rel="noopener noreffer ">Global Error Handling in ASP.NET Core Web API - Code Maze</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-06-22</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" data-title="ASP.NET Core 中間件(Middleware)" data-hashtags=".netcore"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" data-hashtag=".netcore"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" data-title="ASP.NET Core 中間件(Middleware)"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" data-title="ASP.NET Core 中間件(Middleware)"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/ASP.NET-Core-%E4%B8%AD%E9%96%93%E4%BB%B6-Middleware/" data-title="ASP.NET Core 中間件(Middleware)" data-image="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/.netcore/">.netcore</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Net-Core-Middleware-%E6%93%B7%E5%8F%96-Request-%E5%8F%83%E6%95%B8/" class="prev" rel="prev" title=".Net Core Middleware 擷取 Request 參數"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>.Net Core Middleware 擷取 Request 參數</a>
+            <a href="/blog/posts/Excel-%E8%BD%89%E6%88%90-JSON-%E6%96%B9%E6%B3%95/" class="next" rel="next" title="Excel 轉成 JSON 方法">Excel 轉成 JSON 方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.114.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
