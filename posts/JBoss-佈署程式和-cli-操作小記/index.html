@@ -4,20 +4,20 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>JBoss 佈署程式和 cli 操作小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="JBoss 佈署程式和 cli 操作小記" />
-<meta property="og:description" content="最近公司佈署 war 檔程式
+        <title>JBoss 部署程式和 cli 操作小記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="JBoss 部署程式和 cli 操作小記" />
+<meta property="og:description" content="最近公司部署 war 檔程式
 總是常常遇到 OOM(Out of Memory) 狀況
-這時候有幾個佈署必須要想辦法排除
+這時候有幾個部署必須要想辦法排除
 這邊只記錄我排除經驗與猜測" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-09-29T20:59:04+00:00" />
 <meta property="article:modified_time" content="2020-09-29T20:59:04+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="JBoss 佈署程式和 cli 操作小記"/>
-<meta name="twitter:description" content="最近公司佈署 war 檔程式
+<meta name="twitter:title" content="JBoss 部署程式和 cli 操作小記"/>
+<meta name="twitter:description" content="最近公司部署 war 檔程式
 總是常常遇到 OOM(Out of Memory) 狀況
-這時候有幾個佈署必須要想辦法排除
+這時候有幾個部署必須要想辦法排除
 這邊只記錄我排除經驗與猜測"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
@@ -28,7 +28,7 @@
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "JBoss 佈署程式和 cli 操作小記",
+        "headline": "JBoss 部署程式和 cli 操作小記",
         "inLanguage": "zh-tw",
         "mainEntityOfPage": {
             "@type": "WebPage",
@@ -39,7 +39,7 @@
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近公司佈署 war 檔程式\u003cbr\u003e\n總是常常遇到 OOM(Out of Memory) 狀況\u003cbr\u003e\n這時候有幾個佈署必須要想辦法排除\u003cbr\u003e\n這邊只記錄我排除經驗與猜測\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近公司部署 war 檔程式\u003cbr\u003e\n總是常常遇到 OOM(Out of Memory) 狀況\u003cbr\u003e\n這時候有幾個部署必須要想辦法排除\u003cbr\u003e\n這邊只記錄我排除經驗與猜測\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -123,7 +123,7 @@
     </script>
   </div>
   
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">JBoss 佈署程式和 cli 操作小記</h1>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">JBoss 部署程式和 cli 操作小記</h1>
 
         <div align="center">
     <script
@@ -153,8 +153,8 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#手動重新佈署">手動重新佈署</a></li>
-    <li><a href="#異常事件重新佈署上到舊程式">異常事件重新佈署上到舊程式</a>
+    <li><a href="#手動重新部署">手動重新部署</a></li>
+    <li><a href="#異常事件重新部署上到舊程式">異常事件重新部署上到舊程式</a>
       <ul>
         <li><a href="#異常事件原因">異常事件原因</a></li>
       </ul>
@@ -169,22 +169,22 @@
     <li><a href="#oom">OOM</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>最近公司佈署 war 檔程式<br>
+            </div><div class="content" id="content"><p>最近公司部署 war 檔程式<br>
 總是常常遇到 OOM(Out of Memory) 狀況<br>
-這時候有幾個佈署必須要想辦法排除<br>
+這時候有幾個部署必須要想辦法排除<br>
 這邊只記錄我排除經驗與猜測</p>
-<p>首先，我先講我認知的佈署 war 兩個方法<br>
-在 <code>$JBOSS_HOME/standalone/deployment</code> 裡面放置 war 檔案就可以佈署<br>
-另一個方法是用 SE 會用一個方法佈署到 JBoss 裡面<br>
+<p>首先，我先講我認知的部署 war 兩個方法<br>
+在 <code>$JBOSS_HOME/standalone/deployment</code> 裡面放置 war 檔案就可以部署<br>
+另一個方法是用 SE 會用一個方法部署到 JBoss 裡面<br>
 但是 <code>$JBOSS_HOME/standalone/deployment</code> 不會看到 war 檔</p>
-<h2 id="手動重新佈署">手動重新佈署</h2>
+<h2 id="手動重新部署">手動重新部署</h2>
 <p>假如上的 war 沒有動作</p>
 <p>touch jboss-helloworld.war.dodeploy</p>
 <p>可以這樣做</p>
-<h2 id="異常事件重新佈署上到舊程式">異常事件重新佈署上到舊程式</h2>
-<p>首先，我專案用的佈署 war 是 Jenkins<br>
-因為是 SE 關係，所以我沒辦法看到他設定怎麼佈署<br>
-但有時候佈署程式，需要手動上 war。</p>
+<h2 id="異常事件重新部署上到舊程式">異常事件重新部署上到舊程式</h2>
+<p>首先，我專案用的部署 war 是 Jenkins<br>
+因為是 SE 關係，所以我沒辦法看到他設定怎麼部署<br>
+但有時候部署程式，需要手動上 war。</p>
 <p>最近發生怪事情，就是有時候遇到 OOM ， restart JBoss 會 failed<br>
 然後我把 JBoss 的 <code>$JBOSS_HOME/standalone/config/standalone.xml</code><br>
 裡面 deployment tag 我上失敗 war 清掉<br>
@@ -192,26 +192,26 @@
 <p>但最近不知道 SE ，他們 Jenkns 有調整?<br>
 我 <code>$JBOSS_HOME/standalone/config/standalone.xml</code></p>
 <h3 id="異常事件原因">異常事件原因</h3>
-<p>最近剛好看到 JBoss-cli 這個功能，他可以遠端(Remote)佈署 war<br>
-感覺 SE 是用這個方式佈署 war</p>
-<p>首先遠端佈署你的 JBoss Server 就要啟動(port 9990)</p>
+<p>最近剛好看到 JBoss-cli 這個功能，他可以遠端(Remote)部署 war<br>
+感覺 SE 是用這個方式部署 war</p>
+<p>首先遠端部署你的 JBoss Server 就要啟動(port 9990)</p>
 <blockquote>
-<p>難怪之前 stop JBoss Server ，用 Jenkns 佈署會失敗&hellip;</p>
+<p>難怪之前 stop JBoss Server ，用 Jenkns 部署會失敗&hellip;</p>
 </blockquote>
 <p>在 local 端使用 $JBOSS_HOME/bin/jboss-cli.sh<br>
 進去會看到類似 cli 指令可以輸入</p>
 <p>connect xx.xx.xx.xx 就可以進去(沒有設定密碼，會看到 cli 介面)</p>
-<p>這時候就可以輸入 deploy xxxx.war(local) 就可以佈署 <del>其實我還沒有機會嘗試</del></p>
+<p>這時候就可以輸入 deploy xxxx.war(local) 就可以部署 <del>其實我還沒有機會嘗試</del></p>
 <h2 id="這邊疑問">這邊疑問</h2>
 <p>$JBOSS_HOME/standalone/config/standalone.xml</p>
 <p>和</p>
 <p>jboss-cli deploy</p>
-<p>佈署會不會衝突? 這邊是我的猜測<br>
+<p>部署會不會衝突? 這邊是我的猜測<br>
 然後 $JBOSS_HOME/standalone/config/standalone.xml 裡面的 deployment<br>
-可以看到 cli 佈署出來 war tag</p>
-<p>其實我還沒搞清楚熱佈署是什麼<br>
-$JBOSS_HOME/standalone/deployment 其實我在懷疑這邊是不是熱佈署?</p>
-<p>為什麼正式環境改用這jboss-cli 佈署呢?</p>
+可以看到 cli 部署出來 war tag</p>
+<p>其實我還沒搞清楚熱部署是什麼<br>
+$JBOSS_HOME/standalone/deployment 其實我在懷疑這邊是不是熱部署?</p>
+<p>為什麼正式環境改用這jboss-cli 部署呢?</p>
 <h2 id="jboss-cli-指令">jboss-cli 指令</h2>
 <p><code>deployment-info </code><br>
 NAME                 RUNTIME-NAME         PERSISTENT ENABLED STATUS<br>
@@ -295,7 +295,7 @@ singleton_in_war.war singleton_in_war.war true       true    OK</p>
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 佈署程式和 cli 操作小記" data-hashtags="jboss"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-hashtag="jboss"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 佈署程式和 cli 操作小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 佈署程式和 cli 操作小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 佈署程式和 cli 操作小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 部署程式和 cli 操作小記" data-hashtags="jboss"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-hashtag="jboss"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 部署程式和 cli 操作小記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 部署程式和 cli 操作小記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/JBoss-%E4%BD%88%E7%BD%B2%E7%A8%8B%E5%BC%8F%E5%92%8C-cli-%E6%93%8D%E4%BD%9C%E5%B0%8F%E8%A8%98/" data-title="JBoss 部署程式和 cli 操作小記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
@@ -314,7 +314,7 @@ singleton_in_war.war singleton_in_war.war true       true    OK</p>
                 Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
             </noscript></div></article></div>
             </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.117.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.118.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
                 </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
         </div>
     </footer></div>

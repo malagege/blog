@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>在 IIS 佈署 .Net Core 程式 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="在 IIS 佈署 .Net Core 程式" />
+<meta property="og:description" content="第一次部屬Net Core程式，部屬要怎麼做。參考網路方式，有看到Web Deploy，不過第一次部屬我覺得還是先用手動部屬，之後再嘗試 Web Deploy。本篇採取手動布署程式。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-03T19:36:28+08:00" />
+<meta property="article:modified_time" content="2023-09-03T19:36:28+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在 IIS 佈署 .Net Core 程式"/>
+<meta name="twitter:description" content="第一次部屬Net Core程式，部屬要怎麼做。參考網路方式，有看到Web Deploy，不過第一次部屬我覺得還是先用手動部屬，之後再嘗試 Web Deploy。本篇採取手動布署程式。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Window-Server-2019-%E5%AE%89%E8%A3%9D-IIS/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "在 IIS 佈署 .Net Core 程式",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F\/"
+        },"genre": "posts","keywords": "windows, iis, .net core, deploy","wordcount":  179 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F\/","datePublished": "2023-09-03T19:36:28+08:00","dateModified": "2023-09-03T19:36:28+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e第一次部屬\u003ccode\u003eNet Core\u003c/code\u003e程式，部屬要怎麼做。參考網路方式，有看到\u003ccode\u003eWeb Deploy\u003c/code\u003e，不過第一次部屬我覺得還是先用手動部屬，之後再嘗試 \u003ccode\u003eWeb Deploy\u003c/code\u003e。本篇採取手動布署程式。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在 IIS 佈署 .Net Core 程式</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Windows/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Windows</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-03">2023-09-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;179 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png, https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png 1.5x, https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png"
+        title="https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#安裝步驟">安裝步驟</a></li>
+    <li><a href="#特別設定">特別設定</a>
+      <ul>
+        <li><a href="#選擇無託管">選擇無託管</a></li>
+      </ul>
+    </li>
+    <li><a href="#布署錯誤問題">布署錯誤問題</a>
+      <ul>
+        <li><a href="#netcore-web部署之後訪問報錯http-error-50031---ancm-failed-to-find-native-dependencies">.netcore web部署之後訪問報錯HTTP Error 500.31 - ANCM Failed to Find Native Dependencies</a></li>
+        <li><a href="#404-問題">404 問題</a></li>
+        <li><a href="#發布排除-webconfig">發布排除 web.config</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>第一次部屬<code>Net Core</code>程式，部屬要怎麼做。參考網路方式，有看到<code>Web Deploy</code>，不過第一次部屬我覺得還是先用手動部屬，之後再嘗試 <code>Web Deploy</code>。本篇採取手動布署程式。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><blockquote>
+<p>之後再嘗試 <code>Web Deploy</code>。</p>
+</blockquote>
+<p>有完成筆記紀錄，不過是不建議使用方式。相關可參考這篇<a href="https://malagege.github.io/blog/posts/Web-IIS-Web-Deploy-%E6%93%8D%E4%BD%9C%E8%A8%98%E9%8C%84/" target="_blank" rel="noopener noreffer ">Web IIS Web Deploy 操作記錄 - 程式狂想筆記</a>)。</p>
+</div>
+        </div>
+    </div>
+<h2 id="安裝步驟">安裝步驟</h2>
+<p>參考:<a href="https://nina-weng.medium.com/%E9%BC%A0%E5%B9%B4%E5%85%A8%E9%A6%AC%E9%90%B5%E4%BA%BA%E6%8C%91%E6%88%B0-week02-%E9%83%A8%E7%BD%B2asp-net-core-3-1-%E5%B0%88%E6%A1%88%E8%87%B3iis%E4%B8%8A-c9966f6eaf59" target="_blank" rel="noopener noreffer ">[鼠年全馬鐵人挑戰]Week02-部署ASP.NET Core 3.1 專案至IIS上 | by Nina Weng | Medium</a></p>
+<ol>
+<li>安裝 .NET Core 的 Hosting Bundle 版本<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/LKtBSM3.png"
+        data-srcset="https://i.imgur.com/LKtBSM3.png, https://i.imgur.com/LKtBSM3.png 1.5x, https://i.imgur.com/LKtBSM3.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/LKtBSM3.png"
+        title="https://i.imgur.com/LKtBSM3.png" /></li>
+</ol>
+<p>安裝過程不詳細說明。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/265262551-da6918d2-baa8-428b-a44f-cb913e2d2045.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/265262551-da6918d2-baa8-428b-a44f-cb913e2d2045.png, https://user-images.githubusercontent.com/6058558/265262551-da6918d2-baa8-428b-a44f-cb913e2d2045.png 1.5x, https://user-images.githubusercontent.com/6058558/265262551-da6918d2-baa8-428b-a44f-cb913e2d2045.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/265262551-da6918d2-baa8-428b-a44f-cb913e2d2045.png"
+        title="圖片" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://hackmd.io/_uploads/SkfuVgf0n.png"
+        data-srcset="https://hackmd.io/_uploads/SkfuVgf0n.png, https://hackmd.io/_uploads/SkfuVgf0n.png 1.5x, https://hackmd.io/_uploads/SkfuVgf0n.png 2x"
+        data-sizes="auto"
+        alt="https://hackmd.io/_uploads/SkfuVgf0n.png"
+        title="https://hackmd.io/_uploads/SkfuVgf0n.png" /></p>
+<ol start="2">
+<li>
+<p>啟用 IIS</p>
+</li>
+<li>
+<p>IIS 新增站台<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://hackmd.io/_uploads/HyCyBxfCh.png"
+        data-srcset="https://hackmd.io/_uploads/HyCyBxfCh.png, https://hackmd.io/_uploads/HyCyBxfCh.png 1.5x, https://hackmd.io/_uploads/HyCyBxfCh.png 2x"
+        data-sizes="auto"
+        alt="https://hackmd.io/_uploads/HyCyBxfCh.png"
+        title="https://hackmd.io/_uploads/HyCyBxfCh.png" /></p>
+</li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/nBV7nUu.png"
+        data-srcset="https://i.imgur.com/nBV7nUu.png, https://i.imgur.com/nBV7nUu.png 1.5x, https://i.imgur.com/nBV7nUu.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/nBV7nUu.png"
+        title="https://i.imgur.com/nBV7nUu.png" /></p>
+<ol start="4">
+<li>Visual Stuio 發布專案</li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/n9Xho3I.png"
+        data-srcset="https://i.imgur.com/n9Xho3I.png, https://i.imgur.com/n9Xho3I.png 1.5x, https://i.imgur.com/n9Xho3I.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/n9Xho3I.png"
+        title="https://i.imgur.com/n9Xho3I.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/tE8yIlZ.png"
+        data-srcset="https://i.imgur.com/tE8yIlZ.png, https://i.imgur.com/tE8yIlZ.png 1.5x, https://i.imgur.com/tE8yIlZ.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/tE8yIlZ.png"
+        title="https://i.imgur.com/tE8yIlZ.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/hOKNLc7.png"
+        data-srcset="https://i.imgur.com/hOKNLc7.png, https://i.imgur.com/hOKNLc7.png 1.5x, https://i.imgur.com/hOKNLc7.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/hOKNLc7.png"
+        title="https://i.imgur.com/hOKNLc7.png" /></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/YMC5tOX.png"
+        data-srcset="https://i.imgur.com/YMC5tOX.png, https://i.imgur.com/YMC5tOX.png 1.5x, https://i.imgur.com/YMC5tOX.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/YMC5tOX.png"
+        title="https://i.imgur.com/YMC5tOX.png" /></p>
+<ol start="4">
+<li>把相對應路徑複製到 IIS 站台路徑</li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/2O9rbP3.png"
+        data-srcset="https://i.imgur.com/2O9rbP3.png, https://i.imgur.com/2O9rbP3.png 1.5x, https://i.imgur.com/2O9rbP3.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/2O9rbP3.png"
+        title="https://i.imgur.com/2O9rbP3.png" /></p>
+<p>注意這邊 <code>web.config</code>是 IIS 設定。</p>
+<h2 id="特別設定">特別設定</h2>
+<h3 id="選擇無託管">選擇無託管</h3>
+<p>我朋友建議選這個選項，但我還沒研究為什麼要選這個。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/ifeY38X.png"
+        data-srcset="https://i.imgur.com/ifeY38X.png, https://i.imgur.com/ifeY38X.png 1.5x, https://i.imgur.com/ifeY38X.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/ifeY38X.png"
+        title="https://i.imgur.com/ifeY38X.png" /></p>
+<h2 id="布署錯誤問題">布署錯誤問題</h2>
+<h3 id="netcore-web部署之後訪問報錯http-error-50031---ancm-failed-to-find-native-dependencies">.netcore web部署之後訪問報錯HTTP Error 500.31 - ANCM Failed to Find Native Dependencies</h3>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/qBkX5nz.png"
+        data-srcset="https://i.imgur.com/qBkX5nz.png, https://i.imgur.com/qBkX5nz.png 1.5x, https://i.imgur.com/qBkX5nz.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/qBkX5nz.png"
+        title="https://i.imgur.com/qBkX5nz.png" /></p>
+<p>參考: <a href="https://www.cnblogs.com/wanggang2016/p/12326202.html" target="_blank" rel="noopener noreffer ">.netcore web部署之后访问报错HTTP Error 500.31 - ANCM Failed to Find Native Dependencies - 安然亦智 - 博客园</a></p>
+<p><a href="https://marcus116.blogspot.com/2019/05/netcore-aspnet-core-failed-to-start.html" target="_blank" rel="noopener noreffer ">[NETCore] ASP.NET Core 啟動失敗 - failed to start process with commandline ~ m@rcus 學習筆記</a></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://i.imgur.com/v4HxbRt.png"
+        data-srcset="https://i.imgur.com/v4HxbRt.png, https://i.imgur.com/v4HxbRt.png 1.5x, https://i.imgur.com/v4HxbRt.png 2x"
+        data-sizes="auto"
+        alt="https://i.imgur.com/v4HxbRt.png"
+        title="https://i.imgur.com/v4HxbRt.png" /></p>
+<h3 id="404-問題">404 問題</h3>
+<ol>
+<li>web.config</li>
+<li>確認 IIS 權限</li>
+</ol>
+<ul>
+<li>IUSRS</li>
+<li>IIS_USRS</li>
+<li>IIS AppPool\xxxName</li>
+</ul>
+<p>相關文章可參考:</p>
+<ul>
+<li><a href="https://sdwh.dev/posts/2020/05/IIS-Folder/" target="_blank" rel="noopener noreffer ">IIS 資料夾權限的設定方式 | The Skeptical Software Engineer</a></li>
+<li><a href="https://shunnien.github.io/2019/02/04/Granting-folder-permissions-to-IIS-application-pools/" target="_blank" rel="noopener noreffer ">IIS 應用程式設定資料夾權限 | ShunNien&rsquo;s Blog</a></li>
+<li><a href="http://shaurong.blogspot.com/2019/04/iusr-iisusrs.html" target="_blank" rel="noopener noreffer ">浮雲雅築: [研究] IUSR 與 IIS_USRS 差別</a></li>
+</ul>
+<h3 id="發布排除-webconfig">發布排除 web.config</h3>
+<p>參考:<a href="https://blog.no2don.com/2020/12/net-net-core-azure-vm-iis-webconfig.html" target="_blank" rel="noopener noreffer ">[.Net] 佈署 .net core 到 Azure VM 上的 IIS 但是忽略 web.config | 當麻許的超技八</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">  <span class="nt">&lt;PropertyGroup&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;TargetFramework&gt;</span>netcoreapp3.1<span class="nt">&lt;/TargetFramework&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;IsTransformWebConfigDisabled&gt;</span>true<span class="nt">&lt;/IsTransformWebConfigDisabled&gt;</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&lt;/PropertyGroup&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其他相關文章:</p>
+<ul>
+<li><a href="https://docs.microsoft.com/zh-tw/aspnet/web-forms/overview/deployment/advanced-enterprise-web-deployment/excluding-files-and-folders-from-deployment" target="_blank" rel="noopener noreffer ">從部署|排除檔案和資料夾Microsoft Docs | Microsoft Docs</a></li>
+<li><a href="https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-3.1&amp;fbclid=IwAR20Qg4kZd4wKViZoFva0PLbwr_p2XTLcf0upwHtETwg4EX7fdc-3BXDzRw#webconfig-file" target="_blank" rel="noopener noreffer ">使用 IIS 在 Windows 上託管 ASP.NET Core | 微軟文檔</a></li>
+<li><a href="https://blog.miniasp.com/post/2010/09/01/MSDeploy-Skip-Command-for-Webconfig-file" target="_blank" rel="noopener noreffer ">使用 MSDeploy 手動部署網站時如何避免 Web.config 被更新 | The Will Will Web</a><br>
+感覺是<code>.Net Standard</code>舊程式設定，不確定在.NET Core有沒有效。</li>
+</ul>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">之前同事說假如有調整 <code>web.config</code> 的話，可以在專案建立 <code>web.config</code>。在產生布署檔案會順便憶起產生。所以可能也不需要這樣設定?</div>
+        </div>
+    </div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-09-03</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" data-title="在 IIS 佈署 .Net Core 程式" data-hashtags="windows,iis,.net core,deploy"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" data-hashtag="windows"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" data-title="在 IIS 佈署 .Net Core 程式"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" data-title="在 IIS 佈署 .Net Core 程式"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-IIS-%E9%83%A8%E7%BD%B2-Net-Core-%E7%A8%8B%E5%BC%8F/" data-title="在 IIS 佈署 .Net Core 程式" data-image="https://user-images.githubusercontent.com/6058558/265261695-7a8cfc35-7e06-4754-a5f0-90675a8d483a.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/windows/">windows</a>,&nbsp;<a href="/blog/tags/iis/">iis</a>,&nbsp;<a href="/blog/tags/.net-core/">.net core</a>,&nbsp;<a href="/blog/tags/deploy/">deploy</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Window-Server-2019-%E5%AE%89%E8%A3%9D-IIS/" class="prev" rel="prev" title="Window Server 2019 安裝 IIS"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Window Server 2019 安裝 IIS</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.118.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
