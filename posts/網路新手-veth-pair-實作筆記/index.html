@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="網路新手虛擬網路設備 veth pair 實作筆記" />
+<meta property="og:description" content="原本自己電腦 KVM 都特別要設定路由表特別把 IP 指定到 KVM 主機上面， KVM 主機也要設定 SNAT 設定上面，最近看到可以用橋接接受到外面設定 IP，這邊就簡單做個研究。看到 veth peer就好其實做看看。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-11T20:29:20+08:00" />
+<meta property="article:modified_time" content="2023-09-11T20:29:20+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="網路新手虛擬網路設備 veth pair 實作筆記"/>
+<meta name="twitter:description" content="原本自己電腦 KVM 都特別要設定路由表特別把 IP 指定到 KVM 主機上面， KVM 主機也要設定 SNAT 設定上面，最近看到可以用橋接接受到外面設定 IP，這邊就簡單做個研究。看到 veth peer就好其實做看看。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E7%B6%B2%E5%9D%80%E5%87%BA%E7%8F%BE-Zero-width-space-%E5%95%8F%E9%A1%8C%E8%88%87%E8%A7%A3%E6%B1%BA%E6%96%B9%E5%BC%8F/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "網路新手虛擬網路設備 veth pair 實作筆記",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98\/"
+        },"genre": "posts","keywords": "網路, veth, kvm, ip, bridge","wordcount":  1311 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98\/","datePublished": "2023-09-11T20:29:20+08:00","dateModified": "2023-09-11T20:29:20+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e原本自己電腦 KVM 都特別要設定路由表特別把 IP 指定到 KVM 主機上面， KVM 主機也要設定 SNAT 設定上面，最近看到可以用橋接接受到外面設定 IP，這邊就簡單做個研究。看到 \u003ccode\u003eveth peer\u003c/code\u003e就好其實做看看。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">網路新手虛擬網路設備 veth pair 實作筆記</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-11">2023-09-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1311 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png, https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png 1.5x, https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"
+        title="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#網路文章">網路文章</a></li>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#簡單實作">簡單實作</a>
+      <ul>
+        <li><a href="#指令解說">指令解說</a></li>
+        <li><a href="#指令流程觀察介面">指令流程觀察介面</a></li>
+        <li><a href="#圖示解釋">圖示解釋</a></li>
+      </ul>
+    </li>
+    <li><a href="#host-連上-namespace加碼">host 連上 namespace(加碼)</a></li>
+    <li><a href="#總結">總結</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>原本自己電腦 KVM 都特別要設定路由表特別把 IP 指定到 KVM 主機上面， KVM 主機也要設定 SNAT 設定上面，最近看到可以用橋接接受到外面設定 IP，這邊就簡單做個研究。看到 <code>veth peer</code>就好其實做看看。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">本人非專業網路人員，針對網路蒐集一些資訊整理，實作把相關內容筆記下來，內容可能有誤。</div>
+        </div>
+    </div>
+<h2 id="網路文章">網路文章</h2>
+<ul>
+<li><a href="https://joehuang-pop.github.io/2020/04/26/Linux-%E5%85%A7%E6%A0%B8%E8%99%9B%E6%93%ACBridge-veth%E5%8E%9F%E7%90%86%E8%88%87%E5%AF%A6%E4%BD%9C-Hands-on-Linux-Kernel-bridge-veth/" target="_blank" rel="noopener noreffer ">[Linux] 內核虛擬Bridge, veth原理與實作 | Hands on Linux Kernel: bridge, veth | 黃大仙的雲端修行室</a><br>
+這邊我覺得裡面介紹名詞簡單到位。<a href="https://user-images.githubusercontent.com/6058558/256969402-ffa417a3-e21d-4f2b-9a19-c3ce5990629c.png" target="_blank" rel="noopener noreffer ">備份圖</a></li>
+</ul>
+<p>其實以前有就有看類似這種文章，但是就是有看沒有懂，難得這次看就比較有感覺，打鐵趁熱，就來實作看看。</p>
+<ul>
+<li>
+<p><a href="https://zhuanlan.zhihu.com/p/293659939" target="_blank" rel="noopener noreffer ">Linux veth pair 详解 - 知乎</a></p>
+</li>
+<li>
+<p><a href="https://ithelp.ithome.com.tw/articles/10306574" target="_blank" rel="noopener noreffer ">Day 24: 什麼是 veth pair? - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></p>
+</li>
+</ul>
+<p>上面會挑幾個簡單來實例。</p>
+<h2 id="前言">前言</h2>
+<p>先了解名詞。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">什麼是namespace
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">它是Linux內核的一項功能，能夠對內核資源進行分區，以使一組process看到指定一組資源，而另一組process看到另一組資源，所以namespace是linux用來進行資源的虛擬隔離方法
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">什麼是veth（virtual Ethernet）
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">是Linux 內核支援的一種虛擬網絡設備，是虛擬的網路裝置，veth 的兩端可以採用不同的網路namespace，所以可以用來做主機和容器之間的網路通信。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>名詞解釋來源:<a href="https://joehuang-pop.github.io/2020/04/26/Linux-%E5%85%A7%E6%A0%B8%E8%99%9B%E6%93%ACBridge-veth%E5%8E%9F%E7%90%86%E8%88%87%E5%AF%A6%E4%BD%9C-Hands-on-Linux-Kernel-bridge-veth/" target="_blank" rel="noopener noreffer ">[Linux] 內核虛擬Bridge, veth原理與實作 | Hands on Linux Kernel: bridge, veth | 黃大仙的雲端修行室</a></p>
+<p><code>namespace</code>和<code>cgroup</code>那時候在學 docker 知道主要都是靠 Linux 核心模擬出來，我們知道 docker 建立出來網路和系統是隔離的，本篇 <code>ip netns</code> 可以對<code> network namespace</code> 做一些操作，本篇會新增 <code>network namespace</code>網路做個簡單互通。</p>
+<p><code>veth pair</code> 顧名思義，veth-pair 就是一對的虛擬裝置介面，和 tap/tun 裝置不同的是，它都是成對出現的。一端連著協議棧，一端彼此相連著。如下圖所示：</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png, https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png 1.5x, https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png"
+        title="圖片" /><br>
+參考: <a href="https://www.cnblogs.com/bakari/p/10613710.html" target="_blank" rel="noopener noreffer ">Linux 虛擬網路裝置 veth-pair 詳解，看這一篇就夠了 - bakari - 部落格園</a></p>
+<p>簡單來說，之前我一直在思考 <code>GNS3</code>設備跟設備之間都會拉一條線，不知道是怎麼模擬的。<code>veth pair</code> 簡單就是那一條線，在控制 <code>veth</code> 可以放置 <code>namespace</code> 裡面，當作把孔放置到設備上面。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>這邊可能不知道 <code>Netowrk Protocaol Stack</code>是什麼?我這邊簡單爬了一下就是 OSI 七層跟電腦供通，例如我們打 <code>ping</code>指令電腦是下面跑的，參考如下。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png, https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png 1.5x, https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png"
+        title="圖片" /></p>
+<p>可參考:</p>
+<ul>
+<li><a href="https://zhidao.baidu.com/question/1836179785585305500.html" target="_blank" rel="noopener noreffer ">network stack是什么意思？_百度知道</a><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png, https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png 1.5x, https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png"
+        title="圖片" /></li>
+<li><a href="https://en.wikipedia.org/wiki/Protocol_stack" target="_blank" rel="noopener noreffer ">Protocol stack - Wikipedia</a></li>
+</ul>
+</div>
+        </div>
+    </div>
+<h2 id="簡單實作">簡單實作</h2>
+<p>因為電腦可能有裝 <code>docker</code> 或其他 VM。你的 interface 這邊可能會有很多種。你可以安裝<code>multipass</code> 工具。這是一個 multipass 快速建立 Ubuntu VM工具。這邊<code>multipass</code>有特別設定 kvm ，但理論上應該都差不多。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">multipass start
+</span></span><span class="line"><span class="cl">multipass shell 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ubuntu@primary:~$ ip a
+</span></span><span class="line"><span class="cl">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span></span><span class="line"><span class="cl">    inet 127.0.0.1/8 scope host lo
+</span></span><span class="line"><span class="cl">       valid_lft forever preferred_lft forever
+</span></span><span class="line"><span class="cl">    inet6 ::1/128 scope host
+</span></span><span class="line"><span class="cl">       valid_lft forever preferred_lft forever
+</span></span><span class="line"><span class="cl">2: ens3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span class="m">1500</span> qdisc fq_codel state UP group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether 52:54:00:70:a6:04 brd ff:ff:ff:ff:ff:ff
+</span></span><span class="line"><span class="cl">    altname enp0s3
+</span></span><span class="line"><span class="cl">    inet 192.168.122.100/24 metric <span class="m">100</span> brd 192.168.122.255 scope global dynamic ens3
+</span></span><span class="line"><span class="cl">       valid_lft 3552sec preferred_lft 3552sec
+</span></span><span class="line"><span class="cl">    inet6 fe80::5054:ff:fe70:a604/64 scope link
+</span></span><span class="line"><span class="cl">       valid_lft forever preferred_lft forever
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>介面卡很乾淨。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 先進去 root</span>
+</span></span><span class="line"><span class="cl">sudo -i
+</span></span><span class="line"><span class="cl"><span class="c1"># 建立兩個 network namespace</span>
+</span></span><span class="line"><span class="cl">ip netns add ns0
+</span></span><span class="line"><span class="cl">ip netns add ns1
+</span></span><span class="line"><span class="cl"><span class="c1"># 建立一對veth</span>
+</span></span><span class="line"><span class="cl">ip link add veth0 <span class="nb">type</span> veth peer name veth1
+</span></span><span class="line"><span class="cl"><span class="c1"># 將veth移動到netns中</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0 netns ns0
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1 netns ns1
+</span></span><span class="line"><span class="cl"><span class="c1"># 設定 IP 和 啟動</span>
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip addr add 172.18.0.2/24 dev veth0
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip link <span class="nb">set</span> veth0 up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip addr add 172.18.0.3/24 dev veth1
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip link <span class="nb">set</span> veth1 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之後使用 ns1 ping <code>172.18.0.2</code> 是 ping 的到的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">root@primary:~# ip netns exec ns1 ping 172.18.0.2
+</span></span><span class="line"><span class="cl">PING 172.18.0.2 (172.18.0.2) 56(84) bytes of data.
+</span></span><span class="line"><span class="cl">64 bytes from 172.18.0.2: icmp_seq=1 ttl=64 time=0.523 ms
+</span></span><span class="line"><span class="cl">64 bytes from 172.18.0.2: icmp_seq=2 ttl=64 time=0.085 ms
+</span></span><span class="line"><span class="cl">64 bytes from 172.18.0.2: icmp_seq=3 ttl=64 time=0.110 m
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>好了，其實 <code>veth pair</code>實作完成。就是這麼簡單，但是不熟網路或者第一次看到指令也不知道幹什麼事。這邊我整理一下。</p>
+<h3 id="指令解說">指令解說</h3>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man8/ip-netns.8.html" target="_blank" rel="noopener noreffer ">ip-netns(8) - Linux manual page</a></li>
+</ul>
+<p>↓查詢有哪些 network namespace<br>
+ip netns [ list ]</p>
+<p>↓新增一個 network namespace<br>
+ip netns add <code>NETNSNAME</code></p>
+<p>↓刪除 network namespace<br>
+ip [-all] netns del [ NETNSNAME ]</p>
+<p>在 <code>network namespace</code>下指令。<br>
+ip [-all] netns exec [ NETNSNAME ] command&hellip;</p>
+<p>上面用這個指令設定 <code>namespace</code> IP，可參考下方指令</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip addr add 172.18.0.2/24 dev veth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊很有趣，<code>ip [-all] netns exec [ NETNSNAME ] command...</code>，可以下<code>ip netns exec ns0 bash</code>進去 <code>network namespace</code>，注意這邊進去看起來是一個 vm，但也不要亂刪資料，雖然網路隔離，但資料跟實體是關聯的。我還以為那是一個虛擬空間。</div>
+        </div>
+    </div>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man8/ip-address.8.html" target="_blank" rel="noopener noreffer ">ip-address(8) - Linux manual page</a></li>
+</ul>
+<p>ip address { add | change | replace } IFADDR dev IFNAME [<br>
+LIFETIME ] [ CONFFLAG-LIST ]<br>
+指令可以用縮寫<code>ip addr</code>，再回來看這個指令。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip addr add 172.18.0.2/24 dev veth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>常常看到<code>ip addr</code> 指令，但使用不常。有時不小心打錯 IP，這邊也有特別找一下調整 IP 方法。</p>
+<blockquote>
+<p>ip addr replace/change 並不是針對網路卡進行更新的，而是將 網路卡+IP 同時作為判斷條件進行修改，即不能改 IP，但可以改其他參數。<br>
+如何要換 IP，則需要先刪除，再新增。<br>
+參考: * <a href="https://demonlee.tech/archives/2202002" target="_blank" rel="noopener noreffer ">【网络协议-7】IP 是怎么来的 | DemonLee&rsquo;s Time</a></p>
+</blockquote>
+<p>這個問AI也是得到類似答案，參考下文:</p>
+<blockquote>
+<p>如果你在 Linux 上使用 <code>ip addr add</code> 命令錯誤地添加了一個 IP 地址，你可以使用以下步驟來進行調整：</p>
+<ol>
+<li>
+<p>確認你要調整的網絡介面的名稱，你可以使用 <code>ip addr show</code> 命令來查看已配置的 IP 地址和網絡介面。</p>
+</li>
+<li>
+<p>使用 <code>ip addr delete</code> 命令刪除錯誤的 IP 地址。例如，假設你要刪除的錯誤 IP 地址是 <code>192.168.0.100/24</code>，網絡介面名稱是 <code>eth0</code>，則可以執行以下命令：</p>
+</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr delete 192.168.0.100/24 dev eth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這將從 <code>eth0</code> 網絡介面中刪除指定的 IP 地址。</p>
+<ol start="3">
+<li>確認 IP 地址已成功刪除。你可以再次運行 <code>ip addr show</code> 命令來檢查網絡介面上的 IP 地址。</li>
+</ol>
+<p>請注意，這些命令需要使用 root 或具有相應權限的使用者執行，你可能需要在命令前加上 <code>sudo</code> 來獲取足夠的權限。</p>
+<p>此外，如果你希望將正確的 IP 地址添加到網絡介面，你可以使用 <code>ip addr add</code> 命令進行配置。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr add 192.168.0.100/24 dev eth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這會將 IP 地址 <code>192.168.0.100/24</code> 添加到 <code>eth0</code> 網絡介面上。請確保提供的 IP 地址和網絡介面名稱是正確的。</p>
+</blockquote>
+</div>
+        </div>
+    </div>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man8/ip-link.8.html" target="_blank" rel="noopener noreffer ">ip-link(8) - Linux manual page</a></li>
+</ul>
+<blockquote>
+<p>ip link add - add virtual link</p>
+</blockquote>
+<p>看官方文章，這指令可以建立虛擬介面卡(veth)</p>
+<p>ip link add <code>&lt;veth2 name&gt;</code> type veth peer name <code>&lt;veth2 name&gt;</code></p>
+<blockquote>
+<p>ip link set &hellip;.</p>
+</blockquote>
+<p>看起來有很多東西可以設定，但其中把 device 放到 <code>netns</code> 裡面。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">       netns  { PID | NETNSNAME | NETNSFILE }
+</span></span><span class="line"><span class="cl">              move the device to the network namespace associated with
+</span></span><span class="line"><span class="cl">              process PID or the name NETNSNAME or the file NETNSFILE.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">              Some devices are not allowed to change network namespace:
+</span></span><span class="line"><span class="cl">              loopback, bridge, wireless. These are network namespace
+</span></span><span class="line"><span class="cl">              local devices. In such case ip tool will return &#34;Invalid
+</span></span><span class="line"><span class="cl">              argument&#34; error. It is possible to find out if device is
+</span></span><span class="line"><span class="cl">              local to a single network namespace by checking netns-
+</span></span><span class="line"><span class="cl">              local flag in the output of the ethtool:
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                      ethtool -k DEVICE
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">              To change network namespace for wireless devices the iw
+</span></span><span class="line"><span class="cl">              tool can be used. But it allows one to change network
+</span></span><span class="line"><span class="cl">              namespace only for physical devices and by process PID.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="指令流程觀察介面">指令流程觀察介面</h3>
+<p>我們回顧這之前指令，新增指令順便觀察一下<code>ip addr</code>相關資訊。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 建立兩個 network namespace</span>
+</span></span><span class="line"><span class="cl">ip netns add ns0
+</span></span><span class="line"><span class="cl">ip netns add ns1
+</span></span><span class="line"><span class="cl"><span class="c1"># 建立一對veth</span>
+</span></span><span class="line"><span class="cl">ip link add veth0 <span class="nb">type</span> veth peer name veth1
+</span></span><span class="line"><span class="cl"><span class="c1"># 將veth移動到netns中</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0 netns ns0
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1 netns ns1
+</span></span><span class="line"><span class="cl"><span class="c1"># 設定 IP 和 啟動</span>
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip addr add 172.18.0.2/24 dev veth0
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip link <span class="nb">set</span> veth0 up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip addr add 172.18.0.3/24 dev veth1
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip link <span class="nb">set</span> veth1 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol>
+<li>先看兩個 network namespace。</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip netns add ns0
+</span></span><span class="line"><span class="cl">ip netns add ns1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以用 <code>ip netns [list]</code>查看那些 network namespace。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">root@primary:~# ip netns
+</span></span><span class="line"><span class="cl">ns1 <span class="o">(</span>id: 1<span class="o">)</span>
+</span></span><span class="line"><span class="cl">ns0 <span class="o">(</span>id: 0<span class="o">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="2">
+<li>建立一對 veth-pair</li>
+</ol>
+<p><code>ip link add veth0 type veth peer name veth1</code></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png, https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png 1.5x, https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png"
+        title="圖片" /></p>
+<p>這邊很有趣可以看到新增兩個<code>veth0</code>和<code>veth1</code>。但這邊我們看到是<code>veth1@veth0</code>和<code>veth0@veth1</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">3: veth1@veth0: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu <span class="m">1500</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether 92:83:9e:54:a5:90 brd ff:ff:ff:ff:ff:ff
+</span></span><span class="line"><span class="cl">4: veth0@veth1: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu <span class="m">1500</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether ca:f3:02🇩🇪74:7e brd ff:ff:ff:ff:ff:ff
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>將 veth 移動到 netns 中</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0 netns ns0
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1 netns ns1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png, https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png 1.5x, https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png"
+        title="圖片" /></p>
+<p>我們外面 host 下面下<code>ip addr</code>找不到 <code>veth</code>。但 <code>network namespace</code>有看到移到 <code>ns0</code>和<code>ns1</code>裡面去。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">root@primary:~# ip netns <span class="nb">exec</span> ns0 ip a
+</span></span><span class="line"><span class="cl">1: lo: &lt;LOOPBACK&gt; mtu <span class="m">65536</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span></span><span class="line"><span class="cl">4: veth0@if3: &lt;BROADCAST,MULTICAST&gt; mtu <span class="m">1500</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether ca:f3:02🇩🇪74:7e brd ff:ff:ff:ff:ff:ff link-netns ns1
+</span></span><span class="line"><span class="cl">root@primary:~# ip netns <span class="nb">exec</span> ns1 ip a
+</span></span><span class="line"><span class="cl">1: lo: &lt;LOOPBACK&gt; mtu <span class="m">65536</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span></span><span class="line"><span class="cl">3: veth1@if4: &lt;BROADCAST,MULTICAST&gt; mtu <span class="m">1500</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether 92:83:9e:54:a5:90 brd ff:ff:ff:ff:ff:ff link-netns ns0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="4">
+<li>設定 IP 和 啟動 device。</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip addr add 172.18.0.2/24 dev veth0
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip link <span class="nb">set</span> veth0 up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip addr add 172.18.0.3/24 dev veth1
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip link <span class="nb">set</span> veth1 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>這邊能看到 interface 裡面<code>veth0@if3</code>的 <code>@if3</code>不需要打。這邊我有問 AI。</p>
+<blockquote>
+<p>我那個 ip a指令看到 veth0@if4 後面@if4是什麼？為什麼我設定名字不需要打veth0@if4，要打veth0。</p>
+</blockquote>
+<p><code>veth0@if4</code> 中的 <code>@if4</code> 表示該接口是一個虛擬介面（Virtual Interface）的連接接口。</p>
+<p>在這種情況下，<code>veth0</code> 是虛擬接口的名稱，而 <code>@if4</code> 表示該虛擬接口與物理介面 <code>if4</code> 相連接。虛擬接口通常是在 Linux 系統中使用的，用於連接不同的網絡命名空間（Network Namespace）或用於實現虛擬化網絡。</p>
+<p>當你配置虛擬接口時，你只需要指定虛擬接口的名稱，不需要包含 <code>@if4</code> 的部分。例如，如果你想創建一個名為 <code>veth0</code> 的虛擬介面，可以使用以下命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">ip link add veth0 type veth peer name veth1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這將在系統中創建一對連接的虛擬介面 <code>veth0</code> 和 <code>veth1</code>。而 <code>@if4</code> 部分是系統自動生成的用於表示虛擬介面與其他介面（如 <code>if4</code>）的連接。</p>
+<p>所以只需要使用 <code>veth0</code> 作為虛擬接口的名稱，而不需要包括 <code>@if4</code> 部分。其他類似的虛擬接口也遵循相同的模式，你只需要使用虛擬接口的名稱即可。</p>
+</div>
+        </div>
+    </div>
+<h3 id="圖示解釋">圖示解釋</h3>
+<p>因為我一開始也不是很熟指令，所以在看這些文章不太明白他們是在做什麼。這邊我整理指令對應圖片，應該也能讓菜鳥看懂在做什麼。<del>應該吧XD</del></p>
+<ol>
+<li>在我們還沒下指令，只有 host 主機。</li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png, https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png 1.5x, https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png"
+        title="圖片" /></p>
+<ol start="2">
+<li>建立兩個 network namespace</li>
+</ol>
+<p>2.1. <code>ip netns add ns0</code><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png, https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png 1.5x, https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png"
+        title="圖片" /></p>
+<p>2.2. <code>ip netns add ns1</code><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png, https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png 1.5x, https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png"
+        title="圖片" /></p>
+<ol start="3">
+<li>建立一對veth<br>
+<code>ip link add veth0 type veth peer name veth1</code></li>
+</ol>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png, https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png 1.5x, https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png"
+        title="圖片" /></p>
+<ol start="4">
+<li>將veth移動到netns中</li>
+</ol>
+<p>4.1. ip link set veth0 netns ns0</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png, https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png 1.5x, https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png"
+        title="圖片" /></p>
+<p>4.2. ip link set veth1 netns ns1</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png, https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png 1.5x, https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png"
+        title="圖片" /></p>
+<p>後面設定 ip 就不需要特別畫了，透過指令跟圖片大概就知道這是幹嘛。這邊主機 Host 連不到兩個 <code>network namespace</code> ，這就是 linux 網路隔離，本機 host 看不到 namespace 網路介面卡。</p>
+<h2 id="host-連上-namespace加碼">host 連上 namespace(加碼)</h2>
+<p>我突然想 讓host 應該能連 <code>ns0</code> 上面，只需要加上 <code>veth-pair</code>到 <code>ns0</code>去就可以了。這邊就動手實作。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link add veth2 <span class="nb">type</span> veth peer name veth3
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth2 netns ns0
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip addr add 172.19.0.2/24 dev veth2
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip link <span class="nb">set</span> veth2 up
+</span></span><span class="line"><span class="cl">ip addr add 172.19.0.4/24 dev veth3
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth3 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>還滿順利的。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png, https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png 1.5x, https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png"
+        title="圖片" /></p>
+<h2 id="總結">總結</h2>
+<p>這個步驟做很多，我們學會透過 <code>veth-pair</code> 可以讓兩個<code>namespace</code>連線。但這樣我們新增一個 VM 不是很麻煩，都需要建立<code>veth-pair</code>，然後網域不能重複，這邊就需要<code>bridge</code>。當然<code>ip addr</code>學到一些資訊也不錯。</p>
+<blockquote>
+<p>這樣我們新增一個 VM 不是很麻煩，都需要建立<code>veth-pair</code>。</p>
+</blockquote>
+<p>這邊我覺得很難解釋，但主要就是講<a href="https://zhuanlan.zhihu.com/p/293659939" target="_blank" rel="noopener noreffer ">Linux veth pair 详解 - 知乎</a>這段內容。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png, https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png 1.5x, https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png"
+        title="圖片" /></p>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://access.redhat.com/sites/default/files/attachments/rh_ip_command_cheatsheet_1214_jcs_print.pdf" target="_blank" rel="noopener noreffer ">rh_ip_command_cheatsheet_1214_jcs_print.pdf</a></li>
+</ul>
+<p>順便還被我挖到以前舊指令相對應新指令打法。<a href="https://malagege.github.io/blog/posts/%E6%9F%A5%E7%9C%8B-IP-%E6%8C%87%E4%BB%A4%E5%92%8C%E8%B7%AF%E7%94%B1%E7%AD%86%E8%A8%98/#%E8%A2%AB%E5%BB%A2%E6%A3%84%E6%8E%89%E7%9A%84%E6%8C%87%E4%BB%A4%E5%BD%A9%E8%9B%8B" target="_blank" rel="noopener noreffer ">查看 IP 指令和路由筆記/被廢棄掉的指令</a></p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png, https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png 1.5x, https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png"
+        title="圖片" /></p>
+<ul>
+<li>
+<p><a href="https://zhuanlan.zhihu.com/p/293667316" target="_blank" rel="noopener noreffer ">Linux Bridge 详解 - 知乎</a></p>
+</li>
+<li>
+<p><a href="https://hackmd.io/@0xff07/network/https%3A%2F%2Fhackmd.io%2F%400xff07%2FSJzOwViYF#%E4%BE%8B%E5%AD%90%E4%B8%80%EF%BC%9A%E5%85%A9%E5%80%8B-Network-Namespace-%E7%94%A8-veth-%E9%80%A3%E6%8E%A5" target="_blank" rel="noopener noreffer ">Network Namespaces - HackMD</a></p>
+</li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-09-11</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" data-title="網路新手虛擬網路設備 veth pair 實作筆記" data-hashtags="網路,veth,kvm,ip,bridge"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" data-hashtag="網路"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" data-title="網路新手虛擬網路設備 veth pair 實作筆記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" data-title="網路新手虛擬網路設備 veth pair 實作筆記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" data-title="網路新手虛擬網路設備 veth pair 實作筆記" data-image="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/%E7%B6%B2%E8%B7%AF/">網路</a>,&nbsp;<a href="/blog/tags/veth/">veth</a>,&nbsp;<a href="/blog/tags/kvm/">kvm</a>,&nbsp;<a href="/blog/tags/ip/">ip</a>,&nbsp;<a href="/blog/tags/bridge/">bridge</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E7%B6%B2%E5%9D%80%E5%87%BA%E7%8F%BE-Zero-width-space-%E5%95%8F%E9%A1%8C%E8%88%87%E8%A7%A3%E6%B1%BA%E6%96%B9%E5%BC%8F/" class="prev" rel="prev" title="網址出現 %E2%80%8B 問題與解決方式"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>網址出現 %E2%80%8B 問題與解決方式</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.118.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
