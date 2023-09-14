@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>網路 Bridge 和 NAT 差異 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="網路 Bridge 和 NAT 差異" />
+<meta property="og:description" content="之前架設 KVM 網路是用預設 NAT架構，在連線上外面是連不到 VM的。但我都需要在預設閘道路由表多設定 192.168.122.x/24指定到 VM 路由上面。這個做法感覺不是很方便，然後還要特別設定路由去連，前正子剛好在找 KVM 可以直接讓電腦網路方法，剛好看到用 Bridge 可以解決我這個問題。但是 Bridge 和 NAT 他們架構圖分不是很清楚，這邊就先做個簡單整理。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-14T22:39:44+08:00" />
+<meta property="article:modified_time" content="2023-09-14T22:39:44+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="網路 Bridge 和 NAT 差異"/>
+<meta name="twitter:description" content="之前架設 KVM 網路是用預設 NAT架構，在連線上外面是連不到 VM的。但我都需要在預設閘道路由表多設定 192.168.122.x/24指定到 VM 路由上面。這個做法感覺不是很方便，然後還要特別設定路由去連，前正子剛好在找 KVM 可以直接讓電腦網路方法，剛好看到用 Bridge 可以解決我這個問題。但是 Bridge 和 NAT 他們架構圖分不是很清楚，這邊就先做個簡單整理。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" /><link rel="prev" href="https://malagege.github.io/blog/posts/CSharp-CSV-%E5%88%86%E5%89%B2%E5%AD%97%E4%B8%B2-split-%E9%80%97%E8%99%9F-%E6%AF%94%E8%BC%83%E5%AE%89%E5%85%A8%E8%BD%89%E6%8F%9B%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "網路 Bridge 和 NAT 差異",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0\/"
+        },"genre": "posts","keywords": "網路, bridge, nat","wordcount":  754 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0\/","datePublished": "2023-09-14T22:39:44+08:00","dateModified": "2023-09-14T22:39:44+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e之前架設 KVM 網路是用預設 \u003ccode\u003eNAT\u003c/code\u003e架構，在連線上外面是連不到 VM的。但我都需要在\u003ccode\u003e預設閘道\u003c/code\u003e路由表多設定 \u003ccode\u003e192.168.122.x/24\u003c/code\u003e指定到 \u003ccode\u003eVM\u003c/code\u003e 路由上面。這個做法感覺不是很方便，然後還要特別設定路由去連，前正子剛好在找 KVM 可以直接讓電腦網路方法，剛好看到用 \u003ccode\u003eBridge\u003c/code\u003e 可以解決我這個問題。但是 \u003ccode\u003eBridge\u003c/code\u003e 和 \u003ccode\u003eNAT\u003c/code\u003e 他們架構圖分不是很清楚，這邊就先做個簡單整理。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">網路 Bridge 和 NAT 差異</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-14">2023-09-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;754 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png, https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png 1.5x, https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"
+        title="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#一般常見虛擬網路三種模式">一般常見虛擬網路三種模式</a>
+      <ul>
+        <li><a href="#三種模式差異">三種模式差異</a></li>
+      </ul>
+    </li>
+    <li><a href="#網路孔不是每個孔都能設定-ip">網路孔不是每個孔都能設定 IP</a></li>
+    <li><a href="#ai問答區">AI問答區</a></li>
+    <li><a href="#bridge-相關文章">Bridge 相關文章</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>之前架設 KVM 網路是用預設 <code>NAT</code>架構，在連線上外面是連不到 VM的。但我都需要在<code>預設閘道</code>路由表多設定 <code>192.168.122.x/24</code>指定到 <code>VM</code> 路由上面。這個做法感覺不是很方便，然後還要特別設定路由去連，前正子剛好在找 KVM 可以直接讓電腦網路方法，剛好看到用 <code>Bridge</code> 可以解決我這個問題。但是 <code>Bridge</code> 和 <code>NAT</code> 他們架構圖分不是很清楚，這邊就先做個簡單整理。</p>
+<h2 id="一般常見虛擬網路三種模式">一般常見虛擬網路三種模式</h2>
+<p>常見模式有三種:</p>
+<ol>
+<li>Bridge(橋接)<br>
+一般可以把它當作<code>Hub</code>，設備連接就能連線。</li>
+<li>NAT 網路地址轉換 (Network Address Translation)<br>
+出去流量都會做<code>SNAT</code>，出去IP 都會被做置換。外面 IP 是進不來的。通常會要有人做 DHCP 分配 IP，但大多 VM 都幫你做好了。<br>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">其實還是有方法可以進來的，VM Host 通常有轉發功能，只要在<code>路由表</code>設定 VM IP 路由區段導向 VM Host主機，簡單來說就是把安裝 VM 那台主機當作路由器，但通常不會這樣做，可能管理上也不好管理，我家一開始用這個方法，但被我懂網路朋友吐槽這個不是很優的方案。</div>
+        </div>
+    </div></li>
+<li>Host-only<br>
+主機跟 VM 相連，這個有點跟之前做 <code>veth pair</code>差不多原理。每建一台 VM 用這個模式，你電腦都會多一個網路卡。</li>
+</ol>
+<p>這邊不打算深入介紹，簡單說明我了解部分。建議可以看<a href="https://hackmd.io/@yzai/H1GmIiqV9" target="_blank" rel="noopener noreffer ">虛擬機的網路模式(Host-only,Bridged,NAT) - HackMD</a>。 <a href="https://user-images.githubusercontent.com/6058558/268013906-a57b1b13-7a00-4502-bbc5-bb18ec40c954.png" target="_blank" rel="noopener noreffer ">備份圖</a></p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">以前玩VM都不是很了解這三種模式，什麼方案可以讓 VM 吃到外面網路，一堆網路操作感覺都很複雜，不過最近了解<code>Bridge</code>和<code>NAT</code>就了解了是用什麼原理讓網路連線。<code>Host-only</code>每次建立完，怎麼控制台會多個介面卡??一直都不是很懂，現在都了解了。</div>
+        </div>
+    </div>
+<h3 id="三種模式差異">三種模式差異</h3>
+<p>其實之前介紹就能看出差異，從<a href="https://hackmd.io/@yzai/H1GmIiqV9" target="_blank" rel="noopener noreffer ">虛擬機的網路模式(Host-only,Bridged,NAT) - HackMD</a>這篇裡面可以看到簡單理解這三種模式差異。</p>
+<blockquote>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png, https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png 1.5x, https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png"
+        title="圖片" /></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Bridged</th>
+<th>NAT</th>
+<th>Host-only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>是否可以連到外網</strong></td>
+<td>可以</td>
+<td>可以</td>
+<td>不行</td>
+</tr>
+<tr>
+<td><strong>主機與虛擬機是否在同一網段</strong></td>
+<td>相同</td>
+<td>不同</td>
+<td>不同</td>
+</tr>
+<tr>
+<td><strong>IP設置</strong></td>
+<td>手動</td>
+<td>DHCP自動配發</td>
+<td>DHCP自動配發</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>我一開始看<a href="https://www.readfog.com/a/1646531917244370944" target="_blank" rel="noopener noreffer ">這篇</a> bridge 和 NAT 不知差異在哪邊。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">+----------------------------------------------------------------+
+</span></span><span class="line"><span class="cl">|                                                                |
+</span></span><span class="line"><span class="cl">|       +------------------------------------------------+       |
+</span></span><span class="line"><span class="cl">|       |             Newwork Protocol Stack             |       |
+</span></span><span class="line"><span class="cl">|       +------------------------------------------------+       |
+</span></span><span class="line"><span class="cl">|                         ↑                           ↑          |
+</span></span><span class="line"><span class="cl">|.........................|...........................|..........|
+</span></span><span class="line"><span class="cl">|                         ↓                           ↓          |
+</span></span><span class="line"><span class="cl">|        +------+     +--------+     +-------+    +-------+      |
+</span></span><span class="line"><span class="cl">|        |      |     | .3.101 |     |       |    | .3.102|      |
+</span></span><span class="line"><span class="cl">|        +------+     +--------+     +-------+    +-------+      |
+</span></span><span class="line"><span class="cl">|        | eth0 |&lt;---&gt;|   br0  |&lt;---&gt;| veth0 |    | veth1 |      |
+</span></span><span class="line"><span class="cl">|        +------+     +--------+     +-------+    +-------+      |
+</span></span><span class="line"><span class="cl">|            ↑                           ↑            ↑          |
+</span></span><span class="line"><span class="cl">|            |                           |            |          |
+</span></span><span class="line"><span class="cl">|            |                           +------------+          |
+</span></span><span class="line"><span class="cl">|            |                                                   |
+</span></span><span class="line"><span class="cl">+------------|---------------------------------------------------+
+</span></span><span class="line"><span class="cl">             ↓
+</span></span><span class="line"><span class="cl">     Physical Network
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面圖我跟你說這是<code>Bridge</code>圖。<br>
+本來我還覺得我可以在 <code>br0</code> 上面的 <code>eth0</code>加上IP，再設定 <code>iptable</code> 做 NAT <strong>大錯特錯</strong>想法。<code>NAT</code>圖是不是長這樣的</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png, https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png 1.5x, https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png"
+        title="我原本想到的圖" /></p>
+<p>下面有<strong>NAT 圖</strong>樣子</p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p><del>之前說 bridge 不能設定 IP，但是<code>br0</code>可以設定 IP，有點推翻之前說的。雖然我沒有爬到原因，但我猜測 host 看到的 <code>br0</code>是指 host 的孔，我原本以為還要自己建 veth去跟 br0 做連接，看來是不用的。</del></p>
+<p><del>我目前在想 <code>br0</code>能設定 IP，其實這算是 <code>bridge</code>的 wlan孔?假如是這個概念，那所有<code>bridge</code>設定 gateway到那邊去也是很合理，然後送出封包照 host 路由表做派送。</del></p>
+<p>我後來又仔細想想 <code>bridge</code> 孔，<code>br0</code>應該是指 Bridge 網卡，後來爬到一篇文章，說網路恐有設定 IP 的話，會跟<code>Newwork Protocol Stack</code>最連結。</p>
+</div>
+        </div>
+    </div>
+<p>當然<a href="https://www.readfog.com/a/1646531917244370944" target="_blank" rel="noopener noreffer ">這篇</a> 裡面也有 <code>NAT</code> 架構圖。這邊我們看 <code>br0</code> 設定一個 IP，<code>eth0</code>不是接到<code>br</code>上面，這邊看 VM 和 docker0 橋接器都是這樣做的。</p>
+<p><strong>下面這個就是 NAT 圖示。</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">+----------------------------------------------------------------+-----------------------------------------+-----------------------------------------+
+</span></span><span class="line"><span class="cl">|                          Host                                  |              Container 1                |              Container 2                |
+</span></span><span class="line"><span class="cl">|                                                                |                                         |                                         |
+</span></span><span class="line"><span class="cl">|       +------------------------------------------------+       |       +-------------------------+       |       +-------------------------+       |
+</span></span><span class="line"><span class="cl">|       |             Newwork Protocol Stack             |       |       |  Newwork Protocol Stack |       |       |  Newwork Protocol Stack |       |
+</span></span><span class="line"><span class="cl">|       +------------------------------------------------+       |       +-------------------------+       |       +-------------------------+       |
+</span></span><span class="line"><span class="cl">|            ↑             ↑                                     |                   ↑                     |                    ↑                    |
+</span></span><span class="line"><span class="cl">|............|.............|.....................................|...................|.....................|....................|....................|
+</span></span><span class="line"><span class="cl">|            ↓             ↓                                     |                   ↓                     |                    ↓                    |
+</span></span><span class="line"><span class="cl">|        +------+     +--------+                                 |               +-------+                 |                +-------+                |
+</span></span><span class="line"><span class="cl">|        |.3.101|     |  .9.1  |                                 |               |  .9.2 |                 |                |  .9.3 |                |
+</span></span><span class="line"><span class="cl">|        +------+     +--------+     +-------+                   |               +-------+                 |                +-------+                |
+</span></span><span class="line"><span class="cl">|        | eth0 |     |   br0  |&lt;---&gt;|  veth |                   |               | eth0  |                 |                | eth0  |                |
+</span></span><span class="line"><span class="cl">|        +------+     +--------+     +-------+                   |               +-------+                 |                +-------+                |
+</span></span><span class="line"><span class="cl">|            ↑             ↑             ↑                       |                   ↑                     |                    ↑                    |
+</span></span><span class="line"><span class="cl">|            |             |             +-------------------------------------------+                     |                    |                    |
+</span></span><span class="line"><span class="cl">|            |             ↓                                     |                                         |                    |                    |
+</span></span><span class="line"><span class="cl">|            |         +-------+                                 |                                         |                    |                    |
+</span></span><span class="line"><span class="cl">|            |         |  veth |                                 |                                         |                    |                    |
+</span></span><span class="line"><span class="cl">|            |         +-------+                                 |                                         |                    |                    |
+</span></span><span class="line"><span class="cl">|            |             ↑                                     |                                         |                    |                    |
+</span></span><span class="line"><span class="cl">|            |             +-------------------------------------------------------------------------------|--------------------+                    |
+</span></span><span class="line"><span class="cl">|            |                                                   |                                         |                                         |
+</span></span><span class="line"><span class="cl">|            |                                                   |                                         |                                         |
+</span></span><span class="line"><span class="cl">|            |                                                   |                                         |                                         |
+</span></span><span class="line"><span class="cl">+------------|---------------------------------------------------+-----------------------------------------+-----------------------------------------+
+</span></span><span class="line"><span class="cl">             ↓
+</span></span><span class="line"><span class="cl">     Physical Network  (192.168.3.0/24)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><a href="https://www.modb.pro/db/50733" target="_blank" rel="noopener noreffer ">Linux Network Namespace 与 Bridge 网桥 - 墨天轮</a></li>
+</ul>
+<h2 id="網路孔不是每個孔都能設定-ip">網路孔不是每個孔都能設定 IP</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png, https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png 1.5x, https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png"
+        title="圖片" /></p>
+<p>之前跟我朋友討論網路東西，有時會提醒網路設備不是每個孔都能設定 IP，都是 <code>bridge</code> 也是一樣道理，所以 <code>eth0</code> 放在 bridge 不能加上 IP。<code>WAN</code>孔才能加上 IP。<code>LAN</code>孔沒辦法設定 IP。</p>
+<h2 id="ai問答區">AI問答區</h2>
+<p>公司有買免費 ChatGPT，免費白不問?😆但能確定我思考是一致的。</p>
+<blockquote>
+<p>Linux bridge和 Nat差異？</p>
+</blockquote>
+<p>Linux bridge（Linux 橋接）和 NAT（Network Address Translation，網絡地址轉換）是在 Linux 系統中常見的兩種網絡技術，它們有以下主要差異：</p>
+<ol>
+<li>
+<p>功能：</p>
+<ul>
+<li>Linux bridge：Linux 橋接可以實現局域網（LAN）上的兩個或多個網絡介面卡（NIC）之間的互聯。它將它們視為一個虛擬的交換機，並轉發數據包在這些網絡介面之間。</li>
+<li>NAT：NAT 是一種網絡地址轉換技術，常用於連接兩個網絡，將源 IP 地址和/或端口號轉換為目標 IP 地址和/或端口號。這通常用於在私有網絡中共享一個公有 IP 地址，或在防火牆上實現基於 IP 地址的安全限制。</li>
+</ul>
+</li>
+<li>
+<p>網絡層：</p>
+<ul>
+<li>Linux bridge：Linux 橋接工作在 OSI 模型的第二層（數據鏈路層），基於 MAC 地址來轉發數據包。</li>
+<li>NAT：NAT 工作在 OSI 模型的第三層（網絡層），基於 IP 地址和端口號進行地址轉換。</li>
+</ul>
+</li>
+<li>
+<p>網絡拓撲：</p>
+<ul>
+<li>Linux bridge：Linux 橋接可以在同一個 LAN 上互聯多個網絡介面，形成一個擴展的局域網。它可以實現雙向通信，並允許數據包在 LAN 中進行轉發。</li>
+<li>NAT：NAT 主要用於連接兩個網絡，通常是在連接內部私有網絡和外部公有網絡之間進行轉換。它只在數據包從內部網絡進入外部網絡或相反方向時進行轉換。</li>
+</ul>
+</li>
+</ol>
+<p>總結來說，Linux bridge 是一種用於虛擬交換機的技術，可以在同一個 LAN 上互聯不同的網絡介面；而 NAT 是一種將 IP 地址和端口號進行轉換的技術，常用於連接兩個網絡，允許內部網絡共享一個公有 IP 地址。這些技術可以根據需要在 Linux 系統中彼此組合使用，以實現特定的網絡配置。</p>
+<blockquote>
+<p>所以是bridge上面的eth都不能設定IP?</p>
+</blockquote>
+<p>在 Linux 橋接上的網絡介面（如 eth0）通常不需要配置 IP 地址，因為橋接是運作在第二層（數據鏈路層），基於 MAC 地址轉發數據包，而不涉及 IP 層。</p>
+<p>對於 Linux 橋接，IP 地址通常是配置在橋接器（如 br0）上的。橋接器是一個虛擬網絡介面，用於管理和連接不同的網絡介面。你可以在橋接器上配置 IP 地址，作為它與其他網絡的入口。當數據包在橋接器和其他網絡介面之間轉發時，IP 層的訊息是根據目的地 MAC 地址來查找的，而不是根據 IP 地址。</p>
+<p>因此，通常情況下，在 Linux 橋接上的網絡介面不需要配置 IP 地址。只需要在橋接器上配置 IP 地址，以使它能夠作為網絡的連接點。需要注意的是，具體的設置可能因系統和網絡配置而有所不同，因此在進行設定時，最好參考相關的文檔或參考指南。</p>
+<blockquote>
+<p>可以在linux橋接器設定ip嗎？</p>
+</blockquote>
+<p>感謝你的指正，我之前的回答有一點錯誤。在 Linux 橋接器（如 br0）上是可以配置 IP 地址的。</p>
+<p>在 Linux 系統中，你可以在橋接器上配置 IP 地址，以便它可以作為網絡的連接點。這對於某些場景非常有用，例如當你希望橋接器本身可以通過網絡來訪問，或者需要在橋接器上運行一些具有 IP 依賴性的服務。</p>
+<p>要在 Linux 橋接器上配置 IP 地址，你可以通過以下步驟進行：</p>
+<ol>
+<li>
+<p>停止橋接器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link set dev br0 down
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>配置 IP 地址：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr add &lt;IP_address&gt;/&lt;subnet_mask&gt; dev br0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr add 192.168.1.10/24 dev br0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這將在橋接器上配置 IP 地址為 192.168.1.10，子網掩碼為 24（即 255.255.255.0）。</p>
+</li>
+<li>
+<p>啟動橋接器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link set dev br0 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ol>
+<p>現在，你已經在 Linux 橋接器上成功配置了 IP 地址。你可以使用 <code>ip addr show</code> 或 <code>ifconfig</code> 命令來檢查 IP 配置是否成功。</p>
+<p>請注意，在配置 IP 地址時，請確保 IP 地址在你的網絡環境中是唯一的，並遵循正確的子網掩碼。同時，確保橋接器正確地連接到相應的網絡介面，例如 eth0。</p>
+<p>希望這能幫助到你，如果你還有其他問題，請隨時提問。</p>
+<h2 id="bridge-相關文章">Bridge 相關文章</h2>
+<p>下次實作 Bridge 文章參考用。</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=DYpaX4BnNlg" target="_blank" rel="noopener noreffer ">(239) qemu/kvm bridge and NAT networking - YouTube</a></li>
+<li><a href="https://www.readfog.com/a/1646531917244370944" target="_blank" rel="noopener noreffer ">Linux 虛擬網絡設備之 bridge - 閱坊</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/293667316" target="_blank" rel="noopener noreffer ">Linux Bridge 详解 - 知乎</a></li>
+<li><a href="https://benjr.tw/20497" target="_blank" rel="noopener noreffer ">Linux – Bridge – Benjr.tw</a></li>
+<li><a href="https://www.thebyte.com.cn/content/chapter1/bridge.html#linux-bridge-%E6%93%8D%E4%BD%9C%E5%AE%9E%E8%B7%B5" target="_blank" rel="noopener noreffer ">Linux Bridge | 深入架构原理与落地实践</a></li>
+<li><a href="https://blog.51cto.com/u_14328839/4781491" target="_blank" rel="noopener noreffer ">聊聊 Linux 上软件实现的“交换机” - Bridge！_51CTO博客_Linux 交换机</a></li>
+<li><a href="https://ramesh-sahoo.medium.com/linux-network-namespace-and-five-use-cases-using-various-methods-f45b1ec5db8f" target="_blank" rel="noopener noreffer ">Linux Network Namespace and five of its use cases | by Ramesh Sahoo | Medium</a></li>
+</ul>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://joehuang-pop.github.io/2020/04/26/Linux-%E5%85%A7%E6%A0%B8%E8%99%9B%E6%93%ACBridge-veth%E5%8E%9F%E7%90%86%E8%88%87%E5%AF%A6%E4%BD%9C-Hands-on-Linux-Kernel-bridge-veth/" target="_blank" rel="noopener noreffer ">[Linux] 內核虛擬Bridge, veth原理與實作 | Hands on Linux Kernel: bridge, veth | 黃大仙的雲端修行室</a></li>
+<li><a href="https://developers.redhat.com/articles/2022/04/06/introduction-linux-bridging-commands-and-features#vlan_tunnel_mapping" target="_blank" rel="noopener noreffer ">An introduction to Linux bridging commands and features | Red Hat Developer</a></li>
+<li><a href="https://github.com/isno/theByteBook" target="_blank" rel="noopener noreffer ">isno/theByteBook: 深入讲解网络、应用网络、ServiceMesh、容器等云原生相关技术。别光Star，好多错误的，给我提PR啊</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-09-14</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" data-title="網路 Bridge 和 NAT 差異" data-hashtags="網路,bridge,nat"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" data-hashtag="網路"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" data-title="網路 Bridge 和 NAT 差異"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" data-title="網路 Bridge 和 NAT 差異"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" data-title="網路 Bridge 和 NAT 差異" data-image="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/%E7%B6%B2%E8%B7%AF/">網路</a>,&nbsp;<a href="/blog/tags/bridge/">bridge</a>,&nbsp;<a href="/blog/tags/nat/">nat</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/CSharp-CSV-%E5%88%86%E5%89%B2%E5%AD%97%E4%B8%B2-split-%E9%80%97%E8%99%9F-%E6%AF%94%E8%BC%83%E5%AE%89%E5%85%A8%E8%BD%89%E6%8F%9B%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="C# CSV 分割字串 Split 逗號 比較安全轉換方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>C# CSV 分割字串 Split 逗號 比較安全轉換方法</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.118.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
