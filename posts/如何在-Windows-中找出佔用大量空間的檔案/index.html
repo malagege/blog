@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>如何在 Windows 中找出佔用大量空間的檔案 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="如何在 Windows 中找出佔用大量空間的檔案" />
+<meta property="og:description" content="最近，我們公司的 Windows Server 測試環境 C 朝空間快滿了。這邊我幫主管找找有什麼方法可以找出吃滿空間原因，最後找到一個方法真的找到問題。
+其他找大檔案 Google 搜尋到這篇，順利解決問題。
+C槽空間不足？(感謝各位大大，肥大的Temp，已解決) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天 1 2 dir c:\ /s | find &#34;/&#34; | find /V &#34;&lt;DIR&gt;&#34; | sort /&#43;22 /R &gt; filelist.txt notepad filelist.txt Question Q:你說說這個是在說什麼事情?
+Github Copilot:
+這段程式碼是在 Windows 的命令提示字元 (Command Prompt) 中執行的，用來找出在 C 磁碟中佔用大量空間的檔案。
+dir c:\ /s：這個命令會列出 C 磁碟中的所有檔案和目錄，包括子目錄。
+| find &ldquo;/&quot;：這個命令會從上一個命令的輸出中找出包含 &ldquo;/&rdquo; 的行，這些行通常是檔案的詳細資訊。
+| find /V &ldquo;&lt;DIR&gt;&quot;：這個命令會從上一個命令的輸出中排除包含 &quot;&rdquo; 的行，這些行通常是目錄的詳細資訊。
+| sort /&#43;22 /R：這個命令會根據每行的第 22 個字元開始的部分進行排序，並且是反向排序，也就是從大到小。
+filelist.txt：這個命令會將上一個命令的輸出寫入到 filelist." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-12-03T20:35:28+08:00" />
+<meta property="article:modified_time" content="2023-12-03T20:35:28+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="如何在 Windows 中找出佔用大量空間的檔案"/>
+<meta name="twitter:description" content="最近，我們公司的 Windows Server 測試環境 C 朝空間快滿了。這邊我幫主管找找有什麼方法可以找出吃滿空間原因，最後找到一個方法真的找到問題。
+其他找大檔案 Google 搜尋到這篇，順利解決問題。
+C槽空間不足？(感謝各位大大，肥大的Temp，已解決) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天 1 2 dir c:\ /s | find &#34;/&#34; | find /V &#34;&lt;DIR&gt;&#34; | sort /&#43;22 /R &gt; filelist.txt notepad filelist.txt Question Q:你說說這個是在說什麼事情?
+Github Copilot:
+這段程式碼是在 Windows 的命令提示字元 (Command Prompt) 中執行的，用來找出在 C 磁碟中佔用大量空間的檔案。
+dir c:\ /s：這個命令會列出 C 磁碟中的所有檔案和目錄，包括子目錄。
+| find &ldquo;/&quot;：這個命令會從上一個命令的輸出中找出包含 &ldquo;/&rdquo; 的行，這些行通常是檔案的詳細資訊。
+| find /V &ldquo;&lt;DIR&gt;&quot;：這個命令會從上一個命令的輸出中排除包含 &quot;&rdquo; 的行，這些行通常是目錄的詳細資訊。
+| sort /&#43;22 /R：這個命令會根據每行的第 22 個字元開始的部分進行排序，並且是反向排序，也就是從大到小。
+filelist.txt：這個命令會將上一個命令的輸出寫入到 filelist."/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" /><link rel="prev" href="https://malagege.github.io/blog/posts/IIS-%E4%BD%88%E7%BD%B2-Net-Core-%E8%A8%AD%E5%AE%9A%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "如何在 Windows 中找出佔用大量空間的檔案",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88\/"
+        },"genre": "posts","keywords": "windows, file, large","wordcount":  1487 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88\/","datePublished": "2023-12-03T20:35:28+08:00","dateModified": "2023-12-03T20:35:28+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "最近，我們公司的 Windows Server 測試環境 C 朝空間快滿了。這邊我幫主管找找有什麼方法可以找出吃滿空間原因，最後找到一個方法真的找到問題。\n其他找大檔案 Google 搜尋到這篇，順利解決問題。\nC槽空間不足？(感謝各位大大，肥大的Temp，已解決) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天 1 2 dir c:\\ /s | find \u0026#34;/\u0026#34; | find /V \u0026#34;\u0026lt;DIR\u0026gt;\u0026#34; | sort /+22 /R \u0026gt; filelist.txt notepad filelist.txt Question Q:你說說這個是在說什麼事情?\nGithub Copilot:\n這段程式碼是在 Windows 的命令提示字元 (Command Prompt) 中執行的，用來找出在 C 磁碟中佔用大量空間的檔案。\ndir c:\\ /s：這個命令會列出 C 磁碟中的所有檔案和目錄，包括子目錄。\n| find \u0026ldquo;/\u0026quot;：這個命令會從上一個命令的輸出中找出包含 \u0026ldquo;/\u0026rdquo; 的行，這些行通常是檔案的詳細資訊。\n| find /V \u0026ldquo;\u0026lt;DIR\u0026gt;\u0026quot;：這個命令會從上一個命令的輸出中排除包含 \u0026quot;\u0026rdquo; 的行，這些行通常是目錄的詳細資訊。\n| sort /+22 /R：這個命令會根據每行的第 22 個字元開始的部分進行排序，並且是反向排序，也就是從大到小。\nfilelist.txt：這個命令會將上一個命令的輸出寫入到 filelist."
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">如何在 Windows 中找出佔用大量空間的檔案</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/windoows/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>windoows</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-12-03">2023-12-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1487 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55"
+        data-srcset="https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55, https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55 1.5x, https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55"
+        title="https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#其他找大檔案">其他找大檔案</a>
+      <ul>
+        <li><a href="#找到-evtx-日誌檔吃滿整個磁區">找到 evtx 日誌檔吃滿整個磁區</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他可能造成原因">其他可能造成原因</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近，我們公司的 Windows Server 測試環境 C 朝空間快滿了。這邊我幫主管找找有什麼方法可以找出吃滿空間原因，最後找到一個方法真的找到問題。</p>
+<h2 id="其他找大檔案">其他找大檔案</h2>
+<p>Google 搜尋到這篇，順利解決問題。</p>
+<ul>
+<li><a href="https://ithelp.ithome.com.tw/questions/10197978" target="_blank" rel="noopener noreffer ">C槽空間不足？(感謝各位大大，肥大的Temp，已解決) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">dir c:<span class="se">\ </span>/s <span class="p">|</span> find <span class="s2">&#34;/&#34;</span> <span class="p">|</span> find /V <span class="s2">&#34;&lt;DIR&gt;&#34;</span> <span class="p">|</span> sort /+22 /R &gt; filelist.txt
+</span></span><span class="line"><span class="cl">notepad filelist.txt
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition question open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-question-circle fa-fw" aria-hidden="true"></i>Question<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>Q:你說說這個是在說什麼事情?</p>
+<p>Github Copilot:<br>
+這段程式碼是在 Windows 的命令提示字元 (Command Prompt) 中執行的，用來找出在 C 磁碟中佔用大量空間的檔案。</p>
+<ul>
+<li>
+<p>dir c:\ /s：這個命令會列出 C 磁碟中的所有檔案和目錄，包括子目錄。</p>
+</li>
+<li>
+<p>| find &ldquo;/&quot;：這個命令會從上一個命令的輸出中找出包含 &ldquo;/&rdquo; 的行，這些行通常是檔案的詳細資訊。</p>
+</li>
+<li>
+<p>| find /V &ldquo;&lt;DIR&gt;&quot;：這個命令會從上一個命令的輸出中排除包含 &quot;&rdquo; 的行，這些行通常是目錄的詳細資訊。</p>
+</li>
+<li>
+<p>| sort /+22 /R：這個命令會根據每行的第 22 個字元開始的部分進行排序，並且是反向排序，也就是從大到小。</p>
+</li>
+<li>
+<p>filelist.txt：這個命令會將上一個命令的輸出寫入到 filelist.txt 這個檔案中。</p>
+</li>
+<li>
+<p>notepad filelist.txt：這個命令會用筆記本開啟 filelist.txt 這個檔案。</p>
+</li>
+</ul>
+<p>所以整體來說，這段程式碼的目的是找出 C 磁碟中佔用空間最大的檔案，並將這些檔案的詳細資訊寫入到一個檔案中，然後開啟這個檔案。</p>
+</div>
+        </div>
+    </div>
+<h3 id="找到-evtx-日誌檔吃滿整個磁區">找到 evtx 日誌檔吃滿整個磁區</h3>
+<p>從<code>filelist.txt</code>看到這些內容。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span><span class="lnt">182
+</span><span class="lnt">183
+</span><span class="lnt">184
+</span><span class="lnt">185
+</span><span class="lnt">186
+</span><span class="lnt">187
+</span><span class="lnt">188
+</span><span class="lnt">189
+</span><span class="lnt">190
+</span><span class="lnt">191
+</span><span class="lnt">192
+</span><span class="lnt">193
+</span><span class="lnt">194
+</span><span class="lnt">195
+</span><span class="lnt">196
+</span><span class="lnt">197
+</span><span class="lnt">198
+</span><span class="lnt">199
+</span><span class="lnt">200
+</span><span class="lnt">201
+</span><span class="lnt">202
+</span><span class="lnt">203
+</span><span class="lnt">204
+</span><span class="lnt">205
+</span><span class="lnt">206
+</span><span class="lnt">207
+</span><span class="lnt">208
+</span><span class="lnt">209
+</span><span class="lnt">210
+</span><span class="lnt">211
+</span><span class="lnt">212
+</span><span class="lnt">213
+</span><span class="lnt">214
+</span><span class="lnt">215
+</span><span class="lnt">216
+</span><span class="lnt">217
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">2021/10/05  下午 02:46    &lt;JUNCTION&gt;     javapath [C:\Program Files\Common Files\Oracle\Java\javapath_target_3022084093]
+</span></span><span class="line"><span class="cl">2021/09/03  上午 11:38    &lt;JUNCTION&gt;     javapath [C:\Program Files (x86)\Common Files\Oracle\Java\javapath_target_246134687]
+</span></span><span class="line"><span class="cl">2021/08/31  下午 04:25       383,350,399 d58716ddb4592d3b_blobs.bin
+</span></span><span class="line"><span class="cl">2023/04/25  下午 05:02       314,576,896 Archive-Security-2023-04-25-09-02-12-800.evtx
+</span></span><span class="line"><span class="cl">2023/04/22  下午 10:41       314,576,896 Archive-Security-2023-04-22-14-41-17-224.evtx
+</span></span><span class="line"><span class="cl">2023/04/21  下午 10:17       314,576,896 Archive-Security-2023-04-21-14-17-45-018.evtx
+</span></span><span class="line"><span class="cl">2023/04/20  下午 09:08       314,576,896 Archive-Security-2023-04-20-13-08-23-369.evtx
+</span></span><span class="line"><span class="cl">2023/04/19  下午 08:20       314,576,896 Archive-Security-2023-04-19-12-20-55-427.evtx
+</span></span><span class="line"><span class="cl">2023/04/18  下午 07:31       314,576,896 Archive-Security-2023-04-18-11-31-45-658.evtx
+</span></span><span class="line"><span class="cl">2023/04/17  下午 07:12       314,576,896 Archive-Security-2023-04-17-11-12-00-398.evtx
+</span></span><span class="line"><span class="cl">2023/04/16  下午 06:00       314,576,896 Archive-Security-2023-04-16-10-00-25-604.evtx
+</span></span><span class="line"><span class="cl">2023/04/15  下午 05:23       314,576,896 Archive-Security-2023-04-15-09-23-25-800.evtx
+</span></span><span class="line"><span class="cl">2023/04/14  下午 04:07       314,576,896 Archive-Security-2023-04-14-08-07-33-936.evtx
+</span></span><span class="line"><span class="cl">2023/04/13  下午 03:12       314,576,896 Archive-Security-2023-04-13-07-11-59-561.evtx
+</span></span><span class="line"><span class="cl">2023/04/12  下午 01:33       314,576,896 Archive-Security-2023-04-12-05-33-24-732.evtx
+</span></span><span class="line"><span class="cl">2023/04/11  下午 12:39       314,576,896 Archive-Security-2023-04-11-04-39-38-857.evtx
+</span></span><span class="line"><span class="cl">2023/04/10  上午 11:45       314,576,896 Archive-Security-2023-04-10-03-45-03-725.evtx
+</span></span><span class="line"><span class="cl">2023/04/09  上午 11:02       314,576,896 Archive-Security-2023-04-09-03-02-00-306.evtx
+</span></span><span class="line"><span class="cl">2023/04/08  上午 09:49       314,576,896 Archive-Security-2023-04-08-01-49-46-090.evtx
+</span></span><span class="line"><span class="cl">2023/04/07  上午 08:16       314,576,896 Archive-Security-2023-04-07-00-16-33-689.evtx
+</span></span><span class="line"><span class="cl">2023/04/06  上午 07:03       314,576,896 Archive-Security-2023-04-05-23-03-55-035.evtx
+</span></span><span class="line"><span class="cl">2023/04/05  上午 06:15       314,576,896 Archive-Security-2023-04-04-22-15-47-296.evtx
+</span></span><span class="line"><span class="cl">2023/04/04  上午 05:40       314,576,896 Archive-Security-2023-04-03-21-40-42-547.evtx
+</span></span><span class="line"><span class="cl">2023/04/03  上午 04:35       314,576,896 Archive-Security-2023-04-02-20-35-38-895.evtx
+</span></span><span class="line"><span class="cl">2023/04/02  上午 03:42       314,576,896 Archive-Security-2023-04-01-19-42-51-936.evtx
+</span></span><span class="line"><span class="cl">2023/04/01  上午 02:40       314,576,896 Archive-Security-2023-03-31-18-40-36-290.evtx
+</span></span><span class="line"><span class="cl">2023/03/31  上午 01:18       314,576,896 Archive-Security-2023-03-30-17-18-36-317.evtx
+</span></span><span class="line"><span class="cl">2023/03/30  上午 12:07       314,576,896 Archive-Security-2023-03-29-16-07-16-418.evtx
+</span></span><span class="line"><span class="cl">2023/03/28  下午 09:01       314,576,896 Archive-Security-2023-03-28-13-01-43-822.evtx
+</span></span><span class="line"><span class="cl">2023/03/27  下午 04:56       314,576,896 Archive-Security-2023-03-27-08-56-25-263.evtx
+</span></span><span class="line"><span class="cl">2023/03/26  下午 12:31       314,576,896 Archive-Security-2023-03-26-04-31-26-971.evtx
+</span></span><span class="line"><span class="cl">2023/03/25  上午 08:16       314,576,896 Archive-Security-2023-03-25-00-16-09-305.evtx
+</span></span><span class="line"><span class="cl">2023/03/24  上午 04:29       314,576,896 Archive-Security-2023-03-23-20-29-45-988.evtx
+</span></span><span class="line"><span class="cl">2023/03/23  上午 12:37       314,576,896 Archive-Security-2023-03-22-16-37-31-194.evtx
+</span></span><span class="line"><span class="cl">2023/03/21  下午 08:11       314,576,896 Archive-Security-2023-03-21-12-11-54-348.evtx
+</span></span><span class="line"><span class="cl">2023/03/20  下午 04:01       314,576,896 Archive-Security-2023-03-20-08-01-22-186.evtx
+</span></span><span class="line"><span class="cl">2023/03/19  上午 10:37       314,576,896 Archive-Security-2023-03-19-02-37-28-300.evtx
+</span></span><span class="line"><span class="cl">2023/03/18  上午 05:08       314,576,896 Archive-Security-2023-03-17-21-08-23-279.evtx
+</span></span><span class="line"><span class="cl">2023/03/17  上午 12:09       314,576,896 Archive-Security-2023-03-16-16-09-37-047.evtx
+</span></span><span class="line"><span class="cl">2023/03/15  下午 07:27       314,576,896 Archive-Security-2023-03-15-11-27-56-726.evtx
+</span></span><span class="line"><span class="cl">2023/03/14  下午 02:31       314,576,896 Archive-Security-2023-03-14-06-31-30-863.evtx
+</span></span><span class="line"><span class="cl">2023/03/13  上午 09:25       314,576,896 Archive-Security-2023-03-13-01-25-42-753.evtx
+</span></span><span class="line"><span class="cl">2023/03/12  上午 04:37       314,576,896 Archive-Security-2023-03-11-20-37-16-816.evtx
+</span></span><span class="line"><span class="cl">2023/03/10  下午 11:26       314,576,896 Archive-Security-2023-03-10-15-26-29-972.evtx
+</span></span><span class="line"><span class="cl">2023/03/09  下午 06:55       314,576,896 Archive-Security-2023-03-09-10-55-09-524.evtx
+</span></span><span class="line"><span class="cl">2023/03/08  下午 02:23       314,576,896 Archive-Security-2023-03-08-06-23-46-315.evtx
+</span></span><span class="line"><span class="cl">2023/03/07  上午 09:56       314,576,896 Archive-Security-2023-03-07-01-56-56-356.evtx
+</span></span><span class="line"><span class="cl">2023/03/06  上午 04:50       314,576,896 Archive-Security-2023-03-05-20-50-41-431.evtx
+</span></span><span class="line"><span class="cl">2023/03/04  下午 11:47       314,576,896 Archive-Security-2023-03-04-15-47-30-324.evtx
+</span></span><span class="line"><span class="cl">2023/03/03  下午 06:50       314,576,896 Archive-Security-2023-03-03-10-50-19-677.evtx
+</span></span><span class="line"><span class="cl">2023/03/02  下午 03:01       314,576,896 Archive-Security-2023-03-02-07-01-06-398.evtx
+</span></span><span class="line"><span class="cl">2023/03/01  上午 11:02       314,576,896 Archive-Security-2023-03-01-03-02-35-858.evtx
+</span></span><span class="line"><span class="cl">2023/02/28  上午 07:35       314,576,896 Archive-Security-2023-02-27-23-35-15-231.evtx
+</span></span><span class="line"><span class="cl">2023/02/27  上午 03:40       314,576,896 Archive-Security-2023-02-26-19-40-40-621.evtx
+</span></span><span class="line"><span class="cl">2023/02/25  下午 11:13       314,576,896 Archive-Security-2023-02-25-15-13-46-921.evtx
+</span></span><span class="line"><span class="cl">2023/02/24  下午 08:03       314,576,896 Archive-Security-2023-02-24-12-03-32-706.evtx
+</span></span><span class="line"><span class="cl">2023/02/23  下午 03:45       314,576,896 Archive-Security-2023-02-23-07-45-36-493.evtx
+</span></span><span class="line"><span class="cl">2023/02/22  上午 11:22       314,576,896 Archive-Security-2023-02-22-03-22-26-828.evtx
+</span></span><span class="line"><span class="cl">2023/02/21  上午 07:40       314,576,896 Archive-Security-2023-02-20-23-40-41-057.evtx
+</span></span><span class="line"><span class="cl">2023/02/20  上午 03:19       314,576,896 Archive-Security-2023-02-19-19-19-42-869.evtx
+</span></span><span class="line"><span class="cl">2023/02/18  下午 11:08       314,576,896 Archive-Security-2023-02-18-15-08-57-658.evtx
+</span></span><span class="line"><span class="cl">2023/02/17  下午 07:06       314,576,896 Archive-Security-2023-02-17-11-06-36-953.evtx
+</span></span><span class="line"><span class="cl">2023/02/16  下午 03:24       314,576,896 Archive-Security-2023-02-16-07-24-30-845.evtx
+</span></span><span class="line"><span class="cl">2023/02/15  上午 11:55       314,576,896 Archive-Security-2023-02-15-03-55-14-839.evtx
+</span></span><span class="line"><span class="cl">2023/02/14  上午 07:41       314,576,896 Archive-Security-2023-02-13-23-41-41-785.evtx
+</span></span><span class="line"><span class="cl">2023/02/13  上午 03:29       314,576,896 Archive-Security-2023-02-12-19-29-13-104.evtx
+</span></span><span class="line"><span class="cl">2023/02/11  下午 11:20       314,576,896 Archive-Security-2023-02-11-15-20-11-780.evtx
+</span></span><span class="line"><span class="cl">2023/02/10  下午 07:05       314,576,896 Archive-Security-2023-02-10-11-05-57-438.evtx
+</span></span><span class="line"><span class="cl">2023/02/09  下午 03:16       314,576,896 Archive-Security-2023-02-09-07-16-42-515.evtx
+</span></span><span class="line"><span class="cl">2023/02/08  上午 11:01       314,576,896 Archive-Security-2023-02-08-03-01-27-401.evtx
+</span></span><span class="line"><span class="cl">2023/02/07  上午 06:40       314,576,896 Archive-Security-2023-02-06-22-40-12-635.evtx
+</span></span><span class="line"><span class="cl">2023/02/06  上午 02:39       314,576,896 Archive-Security-2023-02-05-18-39-49-628.evtx
+</span></span><span class="line"><span class="cl">2023/02/04  下午 10:11       314,576,896 Archive-Security-2023-02-04-14-10-58-797.evtx
+</span></span><span class="line"><span class="cl">2023/02/03  下午 06:20       314,576,896 Archive-Security-2023-02-03-10-20-00-203.evtx
+</span></span><span class="line"><span class="cl">2023/02/02  下午 01:00       314,576,896 Archive-Security-2023-02-02-05-00-51-244.evtx
+</span></span><span class="line"><span class="cl">2023/02/01  上午 09:45       314,576,896 Archive-Security-2023-02-01-01-45-50-807.evtx
+</span></span><span class="line"><span class="cl">2023/01/31  上午 06:39       314,576,896 Archive-Security-2023-01-30-22-39-14-882.evtx
+</span></span><span class="line"><span class="cl">2023/01/30  上午 03:46       314,576,896 Archive-Security-2023-01-29-19-46-49-018.evtx
+</span></span><span class="line"><span class="cl">2023/01/29  上午 12:27       314,576,896 Archive-Security-2023-01-28-16-27-31-380.evtx
+</span></span><span class="line"><span class="cl">2023/01/27  下午 08:22       314,576,896 Archive-Security-2023-01-27-12-22-04-951.evtx
+</span></span><span class="line"><span class="cl">2023/01/26  下午 04:03       314,576,896 Archive-Security-2023-01-26-08-03-24-957.evtx
+</span></span><span class="line"><span class="cl">2023/01/25  上午 11:04       314,576,896 Archive-Security-2023-01-25-03-04-53-186.evtx
+</span></span><span class="line"><span class="cl">2023/01/24  上午 06:59       314,576,896 Archive-Security-2023-01-23-22-59-14-366.evtx
+</span></span><span class="line"><span class="cl">2023/01/23  上午 03:01       314,576,896 Archive-Security-2023-01-22-19-01-31-938.evtx
+</span></span><span class="line"><span class="cl">2023/01/22  上午 12:43       314,576,896 Archive-Security-2023-01-21-16-43-41-933.evtx
+</span></span><span class="line"><span class="cl">2023/01/20  下午 10:41       314,576,896 Archive-Security-2023-01-20-14-41-08-296.evtx
+</span></span><span class="line"><span class="cl">2023/01/19  下午 09:57       314,576,896 Archive-Security-2023-01-19-13-57-23-669.evtx
+</span></span><span class="line"><span class="cl">2023/01/18  下午 08:21       314,576,896 Archive-Security-2023-01-18-12-21-09-433.evtx
+</span></span><span class="line"><span class="cl">2023/01/17  下午 06:41       314,576,896 Archive-Security-2023-01-17-10-41-07-991.evtx
+</span></span><span class="line"><span class="cl">2023/01/16  下午 04:13       314,576,896 Archive-Security-2023-01-16-08-13-08-417.evtx
+</span></span><span class="line"><span class="cl">2023/01/15  下午 01:50       314,576,896 Archive-Security-2023-01-15-05-50-42-152.evtx
+</span></span><span class="line"><span class="cl">2023/01/14  下午 12:13       314,576,896 Archive-Security-2023-01-14-04-13-39-275.evtx
+</span></span><span class="line"><span class="cl">2023/01/13  上午 10:26       314,576,896 Archive-Security-2023-01-13-02-26-52-310.evtx
+</span></span><span class="line"><span class="cl">2023/01/12  上午 08:03       314,576,896 Archive-Security-2023-01-12-00-03-13-858.evtx
+</span></span><span class="line"><span class="cl">2023/01/11  上午 07:58       314,576,896 Archive-Security-2023-01-10-23-58-55-520.evtx
+</span></span><span class="line"><span class="cl">2023/01/10  上午 08:02       314,576,896 Archive-Security-2023-01-10-00-02-29-394.evtx
+</span></span><span class="line"><span class="cl">2023/01/09  上午 07:43       314,576,896 Archive-Security-2023-01-08-23-43-05-337.evtx
+</span></span><span class="line"><span class="cl">2023/01/08  上午 07:38       314,576,896 Archive-Security-2023-01-07-23-38-52-366.evtx
+</span></span><span class="line"><span class="cl">2023/01/07  上午 07:18       314,576,896 Archive-Security-2023-01-06-23-18-51-775.evtx
+</span></span><span class="line"><span class="cl">2023/01/06  上午 07:37       314,576,896 Archive-Security-2023-01-05-23-37-10-644.evtx
+</span></span><span class="line"><span class="cl">2023/01/05  上午 06:51       314,576,896 Archive-Security-2023-01-04-22-51-54-060.evtx
+</span></span><span class="line"><span class="cl">2023/01/04  上午 05:58       314,576,896 Archive-Security-2023-01-03-21-58-46-902.evtx
+</span></span><span class="line"><span class="cl">2023/01/03  上午 06:24       314,576,896 Archive-Security-2023-01-02-22-24-29-481.evtx
+</span></span><span class="line"><span class="cl">2023/01/02  上午 05:49       314,576,896 Archive-Security-2023-01-01-21-49-26-055.evtx
+</span></span><span class="line"><span class="cl">2023/01/01  上午 05:35       314,576,896 Archive-Security-2022-12-31-21-35-16-223.evtx
+</span></span><span class="line"><span class="cl">2022/12/31  上午 05:04       314,576,896 Archive-Security-2022-12-30-21-04-35-722.evtx
+</span></span><span class="line"><span class="cl">2022/12/30  上午 04:31       314,576,896 Archive-Security-2022-12-29-20-31-44-067.evtx
+</span></span><span class="line"><span class="cl">2022/12/29  上午 04:55       314,576,896 Archive-Security-2022-12-28-20-55-14-366.evtx
+</span></span><span class="line"><span class="cl">2022/12/28  上午 05:34       314,576,896 Archive-Security-2022-12-27-21-34-03-545.evtx
+</span></span><span class="line"><span class="cl">2022/12/27  上午 05:34       314,576,896 Archive-Security-2022-12-26-21-34-20-649.evtx
+</span></span><span class="line"><span class="cl">2022/12/26  上午 05:07       314,576,896 Archive-Security-2022-12-25-21-07-51-502.evtx
+</span></span><span class="line"><span class="cl">2022/12/25  上午 05:05       314,576,896 Archive-Security-2022-12-24-21-05-00-251.evtx
+</span></span><span class="line"><span class="cl">2022/12/24  上午 05:28       314,576,896 Archive-Security-2022-12-23-21-28-21-210.evtx
+</span></span><span class="line"><span class="cl">2022/12/23  上午 04:03       314,576,896 Archive-Security-2022-12-22-20-03-08-039.evtx
+</span></span><span class="line"><span class="cl">2022/12/22  上午 03:25       314,576,896 Archive-Security-2022-12-21-19-25-50-716.evtx
+</span></span><span class="line"><span class="cl">2022/12/21  上午 02:33       314,576,896 Archive-Security-2022-12-20-18-33-50-490.evtx
+</span></span><span class="line"><span class="cl">2022/12/20  上午 02:21       314,576,896 Archive-Security-2022-12-19-18-21-06-532.evtx
+</span></span><span class="line"><span class="cl">2022/12/19  上午 12:30       314,576,896 Archive-Security-2022-12-18-16-30-57-049.evtx
+</span></span><span class="line"><span class="cl">2022/12/18  上午 12:24       314,576,896 Archive-Security-2022-12-17-16-24-05-840.evtx
+</span></span><span class="line"><span class="cl">2022/12/17  上午 12:24       314,576,896 Archive-Security-2022-12-16-16-24-17-532.evtx
+</span></span><span class="line"><span class="cl">2022/12/15  下午 11:50       314,576,896 Archive-Security-2022-12-15-15-50-48-702.evtx
+</span></span><span class="line"><span class="cl">2022/12/14  下午 11:14       314,576,896 Archive-Security-2022-12-14-15-14-47-641.evtx
+</span></span><span class="line"><span class="cl">2022/12/13  下午 09:55       314,576,896 Archive-Security-2022-12-13-13-54-59-446.evtx
+</span></span><span class="line"><span class="cl">2022/12/12  下午 09:10       314,576,896 Archive-Security-2022-12-12-13-10-49-834.evtx
+</span></span><span class="line"><span class="cl">2022/12/11  下午 08:46       314,576,896 Archive-Security-2022-12-11-12-46-26-184.evtx
+</span></span><span class="line"><span class="cl">2022/12/10  下午 07:50       314,576,896 Archive-Security-2022-12-10-11-50-17-342.evtx
+</span></span><span class="line"><span class="cl">2022/12/09  下午 07:59       314,576,896 Archive-Security-2022-12-09-11-59-45-195.evtx
+</span></span><span class="line"><span class="cl">2022/12/08  下午 07:23       314,576,896 Archive-Security-2022-12-08-11-23-54-968.evtx
+</span></span><span class="line"><span class="cl">2022/12/07  下午 05:39       314,576,896 Archive-Security-2022-12-07-09-39-20-659.evtx
+</span></span><span class="line"><span class="cl">2022/12/06  下午 05:17       314,576,896 Archive-Security-2022-12-06-09-17-53-375.evtx
+</span></span><span class="line"><span class="cl">2022/12/05  下午 03:59       314,576,896 Archive-Security-2022-12-05-07-59-58-607.evtx
+</span></span><span class="line"><span class="cl">2022/12/04  下午 02:26       314,576,896 Archive-Security-2022-12-04-06-26-13-376.evtx
+</span></span><span class="line"><span class="cl">2022/12/03  下午 01:39       314,576,896 Archive-Security-2022-12-03-05-39-55-564.evtx
+</span></span><span class="line"><span class="cl">2022/12/02  下午 12:44       314,576,896 Archive-Security-2022-12-02-04-44-00-843.evtx
+</span></span><span class="line"><span class="cl">2022/12/01  下午 12:28       314,576,896 Archive-Security-2022-12-01-04-28-26-023.evtx
+</span></span><span class="line"><span class="cl">2022/11/30  上午 11:57       314,576,896 Archive-Security-2022-11-30-03-57-48-893.evtx
+</span></span><span class="line"><span class="cl">2022/11/29  下午 12:07       314,576,896 Archive-Security-2022-11-29-04-07-09-842.evtx
+</span></span><span class="line"><span class="cl">2022/11/28  上午 11:40       314,576,896 Archive-Security-2022-11-28-03-40-20-148.evtx
+</span></span><span class="line"><span class="cl">2022/11/27  上午 11:09       314,576,896 Archive-Security-2022-11-27-03-09-50-005.evtx
+</span></span><span class="line"><span class="cl">2022/11/26  上午 10:09       314,576,896 Archive-Security-2022-11-26-02-09-14-870.evtx
+</span></span><span class="line"><span class="cl">2022/11/25  上午 09:05       314,576,896 Archive-Security-2022-11-25-01-05-15-462.evtx
+</span></span><span class="line"><span class="cl">2022/11/24  上午 07:54       314,576,896 Archive-Security-2022-11-23-23-54-35-385.evtx
+</span></span><span class="line"><span class="cl">2022/11/23  上午 06:33       314,576,896 Archive-Security-2022-11-22-22-32-59-058.evtx
+</span></span><span class="line"><span class="cl">2022/11/22  上午 05:06       314,576,896 Archive-Security-2022-11-21-21-05-57-711.evtx
+</span></span><span class="line"><span class="cl">2022/11/21  上午 04:09       314,576,896 Archive-Security-2022-11-20-20-09-53-169.evtx
+</span></span><span class="line"><span class="cl">2022/11/20  上午 03:21       314,576,896 Archive-Security-2022-11-19-19-21-05-900.evtx
+</span></span><span class="line"><span class="cl">2022/11/19  上午 02:57       314,576,896 Archive-Security-2022-11-18-18-57-49-080.evtx
+</span></span><span class="line"><span class="cl">2022/11/18  上午 01:47       314,576,896 Archive-Security-2022-11-17-17-47-45-216.evtx
+</span></span><span class="line"><span class="cl">2022/11/17  上午 01:12       314,576,896 Archive-Security-2022-11-16-17-12-42-698.evtx
+</span></span><span class="line"><span class="cl">2022/11/16  上午 12:41       314,576,896 Archive-Security-2022-11-15-16-41-20-103.evtx
+</span></span><span class="line"><span class="cl">2022/11/14  下午 11:18       314,576,896 Archive-Security-2022-11-14-15-18-57-962.evtx
+</span></span><span class="line"><span class="cl">2022/11/13  下午 10:29       314,576,896 Archive-Security-2022-11-13-14-29-27-227.evtx
+</span></span><span class="line"><span class="cl">2022/11/12  下午 09:25       314,576,896 Archive-Security-2022-11-12-13-25-18-366.evtx
+</span></span><span class="line"><span class="cl">2022/11/11  下午 07:02       314,576,896 Archive-Security-2022-11-11-11-02-26-075.evtx
+</span></span><span class="line"><span class="cl">2022/11/10  下午 05:54       314,576,896 Archive-Security-2022-11-10-09-54-14-067.evtx
+</span></span><span class="line"><span class="cl">2022/11/09  下午 04:31       314,576,896 Archive-Security-2022-11-09-08-31-39-427.evtx
+</span></span><span class="line"><span class="cl">2022/11/08  下午 03:11       314,576,896 Archive-Security-2022-11-08-07-11-22-510.evtx
+</span></span><span class="line"><span class="cl">2022/11/07  下午 01:51       314,576,896 Archive-Security-2022-11-07-05-51-38-826.evtx
+</span></span><span class="line"><span class="cl">2022/11/06  下午 12:06       314,576,896 Archive-Security-2022-11-06-04-06-19-982.evtx
+</span></span><span class="line"><span class="cl">2022/11/05  上午 10:52       314,576,896 Archive-Security-2022-11-05-02-52-22-726.evtx
+</span></span><span class="line"><span class="cl">2022/11/04  上午 08:41       314,576,896 Archive-Security-2022-11-04-00-41-49-169.evtx
+</span></span><span class="line"><span class="cl">2022/11/03  上午 06:58       314,576,896 Archive-Security-2022-11-02-22-58-21-542.evtx
+</span></span><span class="line"><span class="cl">2022/11/02  上午 05:11       314,576,896 Archive-Security-2022-11-01-21-11-16-799.evtx
+</span></span><span class="line"><span class="cl">2022/11/01  上午 03:56       314,576,896 Archive-Security-2022-10-31-19-56-37-708.evtx
+</span></span><span class="line"><span class="cl">2022/10/31  上午 01:51       314,576,896 Archive-Security-2022-10-30-17-51-00-734.evtx
+</span></span><span class="line"><span class="cl">2022/10/29  下午 11:25       314,576,896 Archive-Security-2022-10-29-15-25-26-788.evtx
+</span></span><span class="line"><span class="cl">2022/10/28  下午 10:11       314,576,896 Archive-Security-2022-10-28-14-11-32-539.evtx
+</span></span><span class="line"><span class="cl">2022/10/27  下午 07:52       314,576,896 Archive-Security-2022-10-27-11-52-28-879.evtx
+</span></span><span class="line"><span class="cl">2022/10/26  下午 04:27       314,576,896 Archive-Security-2022-10-26-08-27-49-082.evtx
+</span></span><span class="line"><span class="cl">2022/10/25  下午 04:15       314,576,896 Archive-Security-2022-10-25-08-15-55-650.evtx
+</span></span><span class="line"><span class="cl">2022/10/24  下午 05:12       314,576,896 Archive-Security-2022-10-24-09-12-28-402.evtx
+</span></span><span class="line"><span class="cl">2022/10/23  下午 06:06       314,576,896 Archive-Security-2022-10-23-10-06-14-268.evtx
+</span></span><span class="line"><span class="cl">2022/10/22  下午 07:10       314,576,896 Archive-Security-2022-10-22-11-10-36-576.evtx
+</span></span><span class="line"><span class="cl">2022/10/21  下午 08:13       314,576,896 Archive-Security-2022-10-21-12-13-09-028.evtx
+</span></span><span class="line"><span class="cl">2022/10/20  下午 09:17       314,576,896 Archive-Security-2022-10-20-13-17-33-576.evtx
+</span></span><span class="line"><span class="cl">2022/10/19  下午 10:25       314,576,896 Archive-Security-2022-10-19-14-25-47-658.evtx
+</span></span><span class="line"><span class="cl">2022/10/18  下午 11:59       314,576,896 Archive-Security-2022-10-18-15-59-11-607.evtx
+</span></span><span class="line"><span class="cl">2022/10/18  上午 01:05       314,576,896 Archive-Security-2022-10-17-17-05-25-374.evtx
+</span></span><span class="line"><span class="cl">2022/10/16  下午 07:29       314,576,896 Archive-Security-2022-10-16-11-29-30-493.evtx
+</span></span><span class="line"><span class="cl">2022/10/15  下午 07:57       314,576,896 Archive-Security-2022-10-15-11-57-03-291.evtx
+</span></span><span class="line"><span class="cl">2022/10/14  下午 09:22       314,576,896 Archive-Security-2022-10-14-13-22-07-430.evtx
+</span></span><span class="line"><span class="cl">2022/10/13  下午 11:41       314,576,896 Archive-Security-2022-10-13-15-41-13-177.evtx
+</span></span><span class="line"><span class="cl">2022/10/13  上午 02:00       314,576,896 Archive-Security-2022-10-12-18-00-51-709.evtx
+</span></span><span class="line"><span class="cl">2022/10/12  上午 04:13       314,576,896 Archive-Security-2022-10-11-20-13-48-779.evtx
+</span></span><span class="line"><span class="cl">2022/10/11  上午 06:16       314,576,896 Archive-Security-2022-10-10-22-16-39-449.evtx
+</span></span><span class="line"><span class="cl">2022/10/10  上午 07:50       314,576,896 Archive-Security-2022-10-09-23-50-57-081.evtx
+</span></span><span class="line"><span class="cl">2022/10/09  上午 10:06       314,576,896 Archive-Security-2022-10-09-02-06-56-052.evtx
+</span></span><span class="line"><span class="cl">2022/10/08  上午 11:35       314,576,896 Archive-Security-2022-10-08-03-35-28-585.evtx
+</span></span><span class="line"><span class="cl">2022/10/07  下午 01:42       314,576,896 Archive-Security-2022-10-07-05-42-23-299.evtx
+</span></span><span class="line"><span class="cl">2022/10/06  下午 03:56       314,576,896 Archive-Security-2022-10-06-07-56-29-577.evtx
+</span></span><span class="line"><span class="cl">2022/10/05  下午 06:31       314,576,896 Archive-Security-2022-10-05-10-31-06-851.evtx
+</span></span><span class="line"><span class="cl">2022/10/04  下午 08:52       314,576,896 Archive-Security-2022-10-04-12-52-54-584.evtx
+</span></span><span class="line"><span class="cl">2022/10/03  下午 11:01       314,576,896 Archive-Security-2022-10-03-15-01-02-607.evtx
+</span></span><span class="line"><span class="cl">2022/10/03  上午 01:22       314,576,896 Archive-Security-2022-10-02-17-22-02-656.evtx
+</span></span><span class="line"><span class="cl">2022/10/02  上午 02:36       314,576,896 Archive-Security-2022-10-01-18-36-55-652.evtx
+</span></span><span class="line"><span class="cl">2022/10/01  上午 04:04       314,576,896 Archive-Security-2022-09-30-20-04-46-569.evtx
+</span></span><span class="line"><span class="cl">2022/09/30  上午 05:19       314,576,896 Archive-Security-2022-09-29-21-19-58-416.evtx
+</span></span><span class="line"><span class="cl">2022/09/29  上午 06:53       314,576,896 Archive-Security-2022-09-28-22-53-00-758.evtx
+</span></span><span class="line"><span class="cl">2022/09/28  上午 08:28       314,576,896 Archive-Security-2022-09-28-00-28-25-888.evtx
+</span></span><span class="line"><span class="cl">2022/09/27  上午 10:29       314,576,896 Archive-Security-2022-09-27-02-29-13-050.evtx
+</span></span><span class="line"><span class="cl">2022/09/26  下午 12:21       314,576,896 Archive-Security-2022-09-26-04-21-35-716.evtx
+</span></span><span class="line"><span class="cl">2022/09/25  下午 02:03       314,576,896 Archive-Security-2022-09-25-06-03-15-912.evtx
+</span></span><span class="line"><span class="cl">2022/09/24  下午 03:22       314,576,896 Archive-Security-2022-09-24-07-22-43-419.evtx
+</span></span><span class="line"><span class="cl">2022/09/23  下午 05:19       314,576,896 Archive-Security-2022-09-23-09-19-21-131.evtx
+</span></span><span class="line"><span class="cl">2022/09/22  下午 05:57       314,576,896 Archive-Security-2022-09-22-09-57-14-787.evtx
+</span></span><span class="line"><span class="cl">2022/09/21  下午 07:06       314,576,896 Archive-Security-2022-09-21-11-06-13-297.evtx
+</span></span><span class="line"><span class="cl">2022/09/20  下午 08:45       314,576,896 Archive-Security-2022-09-20-12-45-27-389.evtx
+</span></span><span class="line"><span class="cl">2022/08/26  下午 04:37       314,576,896 Archive-Security-2022-08-26-08-37-38-510.evtx
+</span></span><span class="line"><span class="cl">2022/07/06  下午 11:10       314,576,896 Archive-Security-2022-07-06-15-10-07-367.evtx
+</span></span><span class="line"><span class="cl">2022/05/14  上午 05:50       314,576,896 Archive-Security-2022-05-13-21-49-59-405.evtx
+</span></span><span class="line"><span class="cl">2022/03/21  下午 05:28       314,576,896 Archive-Security-2022-03-21-09-28-23-820.evtx
+</span></span><span class="line"><span class="cl">2022/01/29  下午 08:24       314,576,896 Archive-Security-2022-01-29-12-24-23-673.evtx
+</span></span><span class="line"><span class="cl">2021/12/09  下午 03:12       314,576,896 Archive-Security-2021-12-09-07-12-51-367.evtx
+</span></span><span class="line"><span class="cl">2021/10/26  下午 03:08       314,576,896 Archive-Security-2021-10-26-07-08-46-711.evtx
+</span></span><span class="line"><span class="cl">2021/09/04  上午 02:08       314,576,896 Archive-Security-2021-09-03-18-07-59-408.evtx
+</span></span><span class="line"><span class="cl">2020/12/14  下午 02:58       314,576,896 Archive-Security-2020-12-14-06-58-05-158.evtx
+</span></span><span class="line"><span class="cl">....
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>後來發現日系統日誌檔<code>evtx</code>暫大量空間。<code>C:\Windows\System32\Winevt\Logs\</code>這邊有些日誌有太多檔案，塞滿整個空間。後來確認這些檔案室可以刪除的。</p>
+<p>相關<code>evtx</code>檔案文章</p>
+<p><a href="https://kb.eventtracker.com/evtpass/evtPages/EventId_1105_Microsoft-Windows-Eventlog_61223.asp" target="_blank" rel="noopener noreffer ">EventTracker KB &ndash;Event Id: 1105 Source: Microsoft-Windows-Eventlog</a><br>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>Github Coplilot:</p>
+<p>evtx 是 Windows 事件日誌檔案的副檔名。這種檔案通常包含了 Windows 操作系統和其他軟體的運行日誌，可以用於故障排查和系統管理。您可以使用 Windows 的事件檢視器（Event Viewer）來查看和管理這些檔案。</p>
+</div>
+        </div>
+    </div></p>
+<p>有關刪除日誌文章:</p>
+<ul>
+<li><a href="https://social.technet.microsoft.com/Forums/Azure/en-US/675a0397-fbe0-458b-afb9-0dc79ddc701f/is-it-safe-to-delete-evtx-files-mannualy?forum=winservergen" target="_blank" rel="noopener noreffer ">Is it safe to delete .evtx files mannualy?</a><br>
+這邊說明需要刪除日誌需要停用Windows事件日誌服務。</li>
+</ul>
+<ul>
+<li>
+<p><a href="https://ithelp.ithome.com.tw/articles/10190711" target="_blank" rel="noopener noreffer ">檔案稽核(上) - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a><br>
+有關日誌相關刪除、壓縮動作，還有篩選事件Id的方法。</p>
+</li>
+<li>
+<p><a href="https://www.reddit.com/r/PowerShell/comments/g628ih/remote_delete_archive_evtx_files/" target="_blank" rel="noopener noreffer ">Remote delete archive .evtx files : r/PowerShell</a><br>
+遠端刪除多個日誌檔案。</p>
+</li>
+<li>
+<p><a href="https://3gstudent.github.io/Windows-XML-Event-Log-%28EVTX%29%E5%8D%95%E6%9D%A1%E6%97%A5%E5%BF%97%E6%B8%85%E9%99%A4-%E4%B8%80-%E5%88%A0%E9%99%A4%E6%80%9D%E8%B7%AF%E4%B8%8E%E5%AE%9E%E4%BE%8B" target="_blank" rel="noopener noreffer ">Windows XML Event Log (EVTX)单条日志清除（一）——删除思路与实例</a><br>
+分析日誌用，感覺沒什麼機會用到，先留。</p>
+</li>
+</ul>
+<h2 id="其他可能造成原因">其他可能造成原因</h2>
+<p>可以參考看看，說不定會命中找到問題。</p>
+<ul>
+<li><a href="https://www.nextofwindows.com/the-best-way-to-automatically-clean-up-the-temp-directory-on-windows-10" target="_blank" rel="noopener noreffer ">The Best Way to Automatically Clean Up the Temp Directory on Windows 10 - NEXTOFWINDOWS.COM</a></li>
+<li><a href="https://www.youtube.com/watch?v=7hG4JtSYmsw" target="_blank" rel="noopener noreffer ">(7) c槽磁碟空間不足 解壓縮的暫存空間在哪?(清除電腦垃圾) winrar​暫存區 - YouTube</a></li>
+</ul>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>Github Copilot:<br>
+在 Windows Server 上找到佔用大量空間的檔案，您可以使用內建的磁碟清理工具或者第三方的磁碟分析工具。以下是一個基本的步驟：</p>
+<p>使用 Windows 內建的磁碟清理工具：</p>
+<p>打開「檔案總管」，然後右鍵點擊您想要分析的磁碟，選擇「屬性」。<br>
+在「一般」標籤下，點擊「磁碟清理」。<br>
+磁碟清理工具將會計算可以釋放的空間，並列出各種檔案類型和它們佔用的空間。<br>
+您可以選擇要刪除的檔案類型，然後點擊「確定」。<br>
+使用第三方的磁碟分析工具，例如 WinDirStat 或 TreeSize Free：</p>
+<p>下載並安裝工具。<br>
+選擇您想要分析的磁碟或資料夾。<br>
+工具將會分析磁碟空間的使用情況，並以圖形化的方式顯示結果。<br>
+您可以根據結果找到佔用大量空間的檔案或資料夾。<br>
+請注意，刪除檔案時要小心，確保不要刪除系統或重要的檔案。如果您不確定某個檔案是否可以刪除，最好先做好備份或尋求專業的幫助。</p>
+</div>
+        </div>
+    </div>
+<div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-12-03</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" data-title="如何在 Windows 中找出佔用大量空間的檔案" data-hashtags="windows,file,large"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" data-hashtag="windows"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" data-title="如何在 Windows 中找出佔用大量空間的檔案"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" data-title="如何在 Windows 中找出佔用大量空間的檔案"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%A6%82%E4%BD%95%E5%9C%A8-Windows-%E4%B8%AD%E6%89%BE%E5%87%BA%E4%BD%94%E7%94%A8%E5%A4%A7%E9%87%8F%E7%A9%BA%E9%96%93%E7%9A%84%E6%AA%94%E6%A1%88/" data-title="如何在 Windows 中找出佔用大量空間的檔案" data-image="https://gist.github.com/assets/6058558/c6649634-d5ba-4414-a37c-71a72e377f55"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/windows/">windows</a>,&nbsp;<a href="/blog/tags/file/">file</a>,&nbsp;<a href="/blog/tags/large/">large</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/IIS-%E4%BD%88%E7%BD%B2-Net-Core-%E8%A8%AD%E5%AE%9A%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="IIS 佈署 .Net Core 設定環境變數方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>IIS 佈署 .Net Core 設定環境變數方法</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.120.4">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
