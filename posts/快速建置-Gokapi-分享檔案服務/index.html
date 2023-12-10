@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>快速建置 Gokapi 分享檔案服務 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="快速建置 Gokapi 分享檔案服務" />
+<meta property="og:description" content="Gokapi 是一個 Firefox Send 的替代品，唯一差別需要登入才能上傳，刪除檔案已小時為單位。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-12-10T23:09:33+08:00" />
+<meta property="article:modified_time" content="2023-12-10T23:09:33+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="快速建置 Gokapi 分享檔案服務"/>
+<meta name="twitter:description" content="Gokapi 是一個 Firefox Send 的替代品，唯一差別需要登入才能上傳，刪除檔案已小時為單位。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" /><link rel="prev" href="https://malagege.github.io/blog/posts/JavaScript-%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E9%95%B7%E6%95%B4%E6%95%B8-long-bigint-%E6%95%B8%E5%80%BC%E7%9A%84%E5%95%8F%E9%A1%8C/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "快速建置 Gokapi 分享檔案服務",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99\/"
+        },"genre": "posts","keywords": "fileshare, share, gokapi","wordcount":  170 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99\/","datePublished": "2023-12-10T23:09:33+08:00","dateModified": "2023-12-10T23:09:33+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003eGokapi 是一個 Firefox Send 的替代品，唯一差別需要登入才能上傳，刪除檔案已小時為單位。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">快速建置 Gokapi 分享檔案服務</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-12-10">2023-12-10</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;170 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c"
+        data-srcset="https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c, https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c 1.5x, https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c"
+        title="https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#安裝-gokapi-步驟">安裝 Gokapi 步驟</a>
+      <ul>
+        <li><a href="#docker-執行">Docker 執行</a></li>
+        <li><a href="#設定配置">設定配置</a></li>
+        <li><a href="#登入介面">登入介面</a></li>
+        <li><a href="#重設定設定">重設定設定</a></li>
+      </ul>
+    </li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>Gokapi 是一個 Firefox Send 的替代品，唯一差別需要登入才能上傳，刪除檔案已小時為單位。</p>
+<h2 id="安裝-gokapi-步驟">安裝 Gokapi 步驟</h2>
+<p>首先，我們需要透過 Docker 來安裝 Gokapi。以下是 Docker Compose 的設定：<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284468540-bbc932da-7010-44ce-895d-a8d3ff895c88.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284468540-bbc932da-7010-44ce-895d-a8d3ff895c88.png, https://user-images.githubusercontent.com/75846914/284468540-bbc932da-7010-44ce-895d-a8d3ff895c88.png 1.5x, https://user-images.githubusercontent.com/75846914/284468540-bbc932da-7010-44ce-895d-a8d3ff895c88.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284468540-bbc932da-7010-44ce-895d-a8d3ff895c88.png"
+        title="image" /></p>
+<h3 id="docker-執行">Docker 執行</h3>
+<p>官方文件教 <code>docker run -v gokapi-data:/app/data -v gokapi-config:/app/config -p 127.0.0.1:53842:53842 f0rc3/gokapi:latest</code>，這邊轉成 Docker Compose 參考如下。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;3&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">gokapi</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">f0rc3/gokapi:latest</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># build: .</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">gokapi-data:/app/data</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">gokapi-config:/app/config</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">expose</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="m">53842</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">labels</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;traefik.http.routers.gokapi.rule=Host(`filesend.twlife.duckdns.org`)&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;traefik.http.routers.gokapi.tls=true&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># - &#34;traefik.http.services.gokapi.loadbalancer.server.port=53842&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="c"># - &#34;traefik.http.routers.whoami.middlewares=authelia@docker&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">traefik_network</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">gokapi-data</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">gokapi-config</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">traefik_network</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">external</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="設定配置">設定配置</h3>
+<p>啟動完 Gokapi 後，我們需要進行一些設定。首先，打開 <a href="http://localhost:53842/setup" target="_blank" rel="noopener noreffer ">http://localhost:53842/setup</a> 進行設定。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284469967-2e3b5e51-839d-4a83-acb6-e401f18755d4.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284469967-2e3b5e51-839d-4a83-acb6-e401f18755d4.png, https://user-images.githubusercontent.com/75846914/284469967-2e3b5e51-839d-4a83-acb6-e401f18755d4.png 1.5x, https://user-images.githubusercontent.com/75846914/284469967-2e3b5e51-839d-4a83-acb6-e401f18755d4.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284469967-2e3b5e51-839d-4a83-acb6-e401f18755d4.png"
+        title="image" /></p>
+<p><strong>是否 TLS 開啟服務?</strong></p>
+<p>這邊依照環境做設定，我因為有反向代理關係，所以選 NO。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470018-e620ddf4-9674-4c00-a0f7-65e7dd8fa8db.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470018-e620ddf4-9674-4c00-a0f7-65e7dd8fa8db.png, https://user-images.githubusercontent.com/75846914/284470018-e620ddf4-9674-4c00-a0f7-65e7dd8fa8db.png 1.5x, https://user-images.githubusercontent.com/75846914/284470018-e620ddf4-9674-4c00-a0f7-65e7dd8fa8db.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470018-e620ddf4-9674-4c00-a0f7-65e7dd8fa8db.png"
+        title="image" /></p>
+<p>設定<code>對外公開網址</code>和<code>指向導頁/(URL)路徑</code>。因為沒有要顯示首頁，所以我顯示空白頁 (<code>about:blank</code>)。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470194-e2892ee0-90f5-43b8-bbe2-d45278e8b22f.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470194-e2892ee0-90f5-43b8-bbe2-d45278e8b22f.png, https://user-images.githubusercontent.com/75846914/284470194-e2892ee0-90f5-43b8-bbe2-d45278e8b22f.png 1.5x, https://user-images.githubusercontent.com/75846914/284470194-e2892ee0-90f5-43b8-bbe2-d45278e8b22f.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470194-e2892ee0-90f5-43b8-bbe2-d45278e8b22f.png"
+        title="image" /></p>
+<p><strong>驗證方式</strong></p>
+<p>可以選擇驗證，這邊選擇帳號密碼方式。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470275-158a41f7-1064-4c81-b267-841aeadeb251.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470275-158a41f7-1064-4c81-b267-841aeadeb251.png, https://user-images.githubusercontent.com/75846914/284470275-158a41f7-1064-4c81-b267-841aeadeb251.png 1.5x, https://user-images.githubusercontent.com/75846914/284470275-158a41f7-1064-4c81-b267-841aeadeb251.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470275-158a41f7-1064-4c81-b267-841aeadeb251.png"
+        title="image" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470348-c9895667-865e-4686-809a-0c587e60b64e.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470348-c9895667-865e-4686-809a-0c587e60b64e.png, https://user-images.githubusercontent.com/75846914/284470348-c9895667-865e-4686-809a-0c587e60b64e.png 1.5x, https://user-images.githubusercontent.com/75846914/284470348-c9895667-865e-4686-809a-0c587e60b64e.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470348-c9895667-865e-4686-809a-0c587e60b64e.png"
+        title="image" /></p>
+<p><strong>Storage 選擇</strong></p>
+<p>Storage 可以選擇雲端和本地，圖片的話可以選擇 hotlink 需不需要加密。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470381-fe897d9d-8e2e-4b90-bcf2-a6bf9dfa0aae.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470381-fe897d9d-8e2e-4b90-bcf2-a6bf9dfa0aae.png, https://user-images.githubusercontent.com/75846914/284470381-fe897d9d-8e2e-4b90-bcf2-a6bf9dfa0aae.png 1.5x, https://user-images.githubusercontent.com/75846914/284470381-fe897d9d-8e2e-4b90-bcf2-a6bf9dfa0aae.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470381-fe897d9d-8e2e-4b90-bcf2-a6bf9dfa0aae.png"
+        title="image" /></p>
+<p><strong>加密等級</strong></p>
+<p>有加密等級可以選擇，因為是自己使用，不加密也可以省 PI 機器效能，這邊選擇這個方式。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470401-736eedcf-120a-4c84-b903-a8c227f3a40d.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470401-736eedcf-120a-4c84-b903-a8c227f3a40d.png, https://user-images.githubusercontent.com/75846914/284470401-736eedcf-120a-4c84-b903-a8c227f3a40d.png 1.5x, https://user-images.githubusercontent.com/75846914/284470401-736eedcf-120a-4c84-b903-a8c227f3a40d.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470401-736eedcf-120a-4c84-b903-a8c227f3a40d.png"
+        title="image" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470443-c8b9b131-8f25-439e-9eaa-9fac6919e5cb.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470443-c8b9b131-8f25-439e-9eaa-9fac6919e5cb.png, https://user-images.githubusercontent.com/75846914/284470443-c8b9b131-8f25-439e-9eaa-9fac6919e5cb.png 1.5x, https://user-images.githubusercontent.com/75846914/284470443-c8b9b131-8f25-439e-9eaa-9fac6919e5cb.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470443-c8b9b131-8f25-439e-9eaa-9fac6919e5cb.png"
+        title="image" /><br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/284470486-98ec77c4-c634-4fd5-9a82-c3ecd2c90dc7.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/284470486-98ec77c4-c634-4fd5-9a82-c3ecd2c90dc7.png, https://user-images.githubusercontent.com/75846914/284470486-98ec77c4-c634-4fd5-9a82-c3ecd2c90dc7.png 1.5x, https://user-images.githubusercontent.com/75846914/284470486-98ec77c4-c634-4fd5-9a82-c3ecd2c90dc7.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/284470486-98ec77c4-c634-4fd5-9a82-c3ecd2c90dc7.png"
+        title="image" /></p>
+<p>設定完成。</p>
+<h3 id="登入介面">登入介面</h3>
+<p><code>http://127.0.0.1:53842/admin</code> 進行登入，可上傳檔案上去。</p>
+<h3 id="重設定設定">重設定設定</h3>
+<p>執行下面語法可以重新設定，如帳號密碼。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker run --rm -p 127.0.0.1:53842:53842 -v gokapi-data:/app/data -v gokapi-config:/app/config  f0rc3/gokapi:latest /app/gokapi --reconfigure
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>會給出帳號密碼，進去 <code>http://127.0.0.1:53842/setup</code> 就可以重新設定。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/75846914/c013570d-f78b-43d8-9f7c-818b0e5d4208"
+        data-srcset="https://gist.github.com/assets/75846914/c013570d-f78b-43d8-9f7c-818b0e5d4208, https://gist.github.com/assets/75846914/c013570d-f78b-43d8-9f7c-818b0e5d4208 1.5x, https://gist.github.com/assets/75846914/c013570d-f78b-43d8-9f7c-818b0e5d4208 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/75846914/c013570d-f78b-43d8-9f7c-818b0e5d4208"
+        title="image" /></p>
+<h2 id="彩蛋">彩蛋</h2>
+<p>ShareDrop</p>
+<ul>
+<li><a href="https://kkplay3c.net/sharedrop/" target="_blank" rel="noopener noreffer ">[免安裝] ShareDrop P2P 下載 打開瀏覽器就能分享檔案給別人！</a></li>
+</ul>
+<p>彩蛋</p>
+<ul>
+<li>
+<p><a href="https://hackmd.io/@jaLiO7A9SqybZ9P5UDDE3g/Syhw-gJ7h" target="_blank" rel="noopener noreffer ">樹莓派筆記 - Authelia: 開啟 OpenID Connect - HackMD</a><br>
+不過最後使用 OAuth 和 Header 驗證失敗。這邊就沒深入研究。</p>
+</li>
+<li>
+<p><a href="https://hackmd.io/@jaLiO7A9SqybZ9P5UDDE3g/HkTQZrkQh" target="_blank" rel="noopener noreffer ">樹莓派筆記 - CrowdSec - HackMD</a></p>
+</li>
+<li>
+<p><a href="https://ipvb.gitee.io/git/2018/07/15/GitLFSRethinking/" target="_blank" rel="noopener noreffer ">Git LFS 的反思</a></p>
+</li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-12-10</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" data-title="快速建置 Gokapi 分享檔案服務" data-hashtags="fileshare,share,gokapi"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" data-hashtag="fileshare"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" data-title="快速建置 Gokapi 分享檔案服務"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" data-title="快速建置 Gokapi 分享檔案服務"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E5%BB%BA%E7%BD%AE-Gokapi-%E5%88%86%E4%BA%AB%E6%AA%94%E6%A1%88%E6%9C%8D%E5%8B%99/" data-title="快速建置 Gokapi 分享檔案服務" data-image="https://gist.github.com/assets/6058558/fee6e022-578b-40cb-a832-33f497831f2c"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/fileshare/">fileshare</a>,&nbsp;<a href="/blog/tags/share/">share</a>,&nbsp;<a href="/blog/tags/gokapi/">gokapi</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/JavaScript-%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E9%95%B7%E6%95%B4%E6%95%B8-long-bigint-%E6%95%B8%E5%80%BC%E7%9A%84%E5%95%8F%E9%A1%8C/" class="prev" rel="prev" title="JavaScript 如何處理長整數 (long/bigint) 數值的問題"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>JavaScript 如何處理長整數 (long/bigint) 數值的問題</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.121.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
