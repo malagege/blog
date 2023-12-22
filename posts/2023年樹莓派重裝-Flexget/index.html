@@ -5,22 +5,28 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
         <title>2023年樹莓派重裝 Flexget - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="2023年樹莓派重裝 Flexget" />
-<meta property="og:description" content="最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。
+<meta property="og:description" content="最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。
 我要有幾個需求
-BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。
-切割磁區和掛載磁區 1 sudo fdisk -l 1 sudo mkfs -t ext4 /dev/sda1 掛載磁區
-1 2 3 4 5 6 7 8 9 sudo mkdir -p /media/extHDD sudo mount /dev/sda1 /media/extHDD sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration" />
+BT下載機 外接 USB 硬碟 自動抓取番劇 線上 Web 存取檔案 我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。
+切割磁區和掛載磁區 首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：
+1 sudo fdisk -l 執行上述命令後，你將看到類似以下的輸出：
+接著，我們將使用以下命令來格式化我們的磁區：
+1 sudo mkfs -t ext4 /dev/sda1 我們需要創建一個掛載磁區。
+1 2 3 4 5 6 7 8 9 10 11 12 # 我們需要創建一個掛載點 sudo mkdir -p /media/extHDD # 我們將磁區掛載到我們剛剛建立的掛載點 sudo mount /dev/sda1 /media/extHDD # 找出我們的磁區的UUID sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon 如果你需要更詳細的設定步驟，你可以參考以下的教學文章：" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2023-03-31T23:54:43+08:00" />
 <meta property="article:modified_time" content="2023-03-31T23:54:43+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="2023年樹莓派重裝 Flexget"/>
-<meta name="twitter:description" content="最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。
+<meta name="twitter:description" content="最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。
 我要有幾個需求
-BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。
-切割磁區和掛載磁區 1 sudo fdisk -l 1 sudo mkfs -t ext4 /dev/sda1 掛載磁區
-1 2 3 4 5 6 7 8 9 sudo mkdir -p /media/extHDD sudo mount /dev/sda1 /media/extHDD sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration"/>
+BT下載機 外接 USB 硬碟 自動抓取番劇 線上 Web 存取檔案 我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。
+切割磁區和掛載磁區 首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：
+1 sudo fdisk -l 執行上述命令後，你將看到類似以下的輸出：
+接著，我們將使用以下命令來格式化我們的磁區：
+1 sudo mkfs -t ext4 /dev/sda1 我們需要創建一個掛載磁區。
+1 2 3 4 5 6 7 8 9 10 11 12 # 我們需要創建一個掛載點 sudo mkdir -p /media/extHDD # 我們將磁區掛載到我們剛剛建立的掛載點 sudo mount /dev/sda1 /media/extHDD # 找出我們的磁區的UUID sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon 如果你需要更詳細的設定步驟，你可以參考以下的教學文章："/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -35,13 +41,13 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget\/"
-        },"genre": "posts","keywords": "linux, flexget, pi","wordcount":  809 ,
+        },"genre": "posts","keywords": "linux, flexget, pi","wordcount":  876 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget\/","datePublished": "2023-03-31T23:54:43+08:00","dateModified": "2023-03-31T23:54:43+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。\n我要有幾個需求\nBT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。\n切割磁區和掛載磁區 1 sudo fdisk -l 1 sudo mkfs -t ext4 /dev/sda1 掛載磁區\n1 2 3 4 5 6 7 8 9 sudo mkdir -p /media/extHDD sudo mount /dev/sda1 /media/extHDD sudo blkid #/dev/sda1: UUID=\u0026#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd\u0026#34; BLOCK_SIZE=\u0026#34;4096\u0026#34; TYPE=\u0026#34;ext4\u0026#34; PARTUUID=\u0026#34;42f5e0d3-01\u0026#34; 在/etc/fstab加下面設定 UUID=\u0026#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd\u0026#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration"
+            },"description": "最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。\n我要有幾個需求\nBT下載機 外接 USB 硬碟 自動抓取番劇 線上 Web 存取檔案 我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。\n切割磁區和掛載磁區 首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：\n1 sudo fdisk -l 執行上述命令後，你將看到類似以下的輸出：\n接著，我們將使用以下命令來格式化我們的磁區：\n1 sudo mkfs -t ext4 /dev/sda1 我們需要創建一個掛載磁區。\n1 2 3 4 5 6 7 8 9 10 11 12 # 我們需要創建一個掛載點 sudo mkdir -p /media/extHDD # 我們將磁區掛載到我們剛剛建立的掛載點 sudo mount /dev/sda1 /media/extHDD # 找出我們的磁區的UUID sudo blkid #/dev/sda1: UUID=\u0026#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd\u0026#34; BLOCK_SIZE=\u0026#34;4096\u0026#34; TYPE=\u0026#34;ext4\u0026#34; PARTUUID=\u0026#34;42f5e0d3-01\u0026#34; 在/etc/fstab加下面設定 UUID=\u0026#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd\u0026#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon 如果你需要更詳細的設定步驟，你可以參考以下的教學文章："
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -146,8 +152,8 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
   </div>
   <div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-03-31">2023-03-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;809 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-03-31">2023-03-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;876 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
         </div><div class="featured-image"><img
         class="lazyload"
         src="/blog/svg/loading.min.svg"
@@ -166,20 +172,21 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
     <li><a href="#安裝-tranmission">安裝 tranmission</a></li>
     <li><a href="#安裝-flexget">安裝 flexget</a></li>
     <li><a href="#安裝-docker">安裝 docker</a></li>
-    <li><a href="#caddy-server">caddy-server</a></li>
+    <li><a href="#caddy-server">Caddy Server</a></li>
     <li><a href="#反向代理設定調整">反向代理設定調整</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>最近動物機要重裝，每次寫很多次，但新官設定都會調整。這邊簡單做個紀錄。<br>
+            </div><div class="content" id="content"><p>最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。<br>
 我要有幾個需求</p>
 <ol>
 <li>BT下載機</li>
 <li>外接 USB 硬碟</li>
-<li>自動抓番劇</li>
+<li>自動抓取番劇</li>
 <li>線上 Web 存取檔案</li>
 </ol>
-<p>這邊使用 Raspberry Pi 1 做這些任務，裝完目前看起來 Pi 1 能順利做這些事，之後要準備放我朋友家網路掛機。</p>
+<p>我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。</p>
 <h2 id="切割磁區和掛載磁區">切割磁區和掛載磁區</h2>
+<p>首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -188,7 +195,8 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo fdisk -l
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img
+</div><p>執行上述命令後，你將看到類似以下的輸出：<br>
+<img
         class="lazyload"
         src="/blog/svg/loading.min.svg"
         data-src="https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png"
@@ -196,6 +204,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
         data-sizes="auto"
         alt="https://user-images.githubusercontent.com/6058558/226114044-4ee5992f-5d19-4ae5-b9b2-0241a73c3702.png"
         title="圖片" /></p>
+<p>接著，我們將使用以下命令來格式化我們的磁區：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -204,23 +213,29 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mkfs -t ext4 /dev/sda1
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>掛載磁區</p>
+</div><p>我們需要創建一個掛載磁區。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mkdir -p /media/extHDD
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 我們需要創建一個掛載點</span>
+</span></span><span class="line"><span class="cl">sudo mkdir -p /media/extHDD
+</span></span><span class="line"><span class="cl"><span class="c1"># 我們將磁區掛載到我們剛剛建立的掛載點</span>
 </span></span><span class="line"><span class="cl">sudo mount  /dev/sda1 /media/extHDD
-</span></span><span class="line"><span class="cl"> sudo blkid
+</span></span><span class="line"><span class="cl"><span class="c1"># 找出我們的磁區的UUID</span>
+</span></span><span class="line"><span class="cl">sudo blkid
 </span></span><span class="line"><span class="cl"><span class="c1">#/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34;</span>
 </span></span><span class="line"><span class="cl">在/etc/fstab加下面設定
 </span></span><span class="line"><span class="cl"><span class="nv">UUID</span><span class="o">=</span><span class="s2">&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34;</span> /media/extHDD ext4 rw,defaults,nofail <span class="m">0</span> <span class="m">0</span> 
@@ -240,9 +255,11 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span><span class="line"><span class="cl">sudo apt-get install transmission-daemon
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><a href="https://linuxconfig.org/how-to-set-up-transmission-daemon-on-a-raspberry-pi-and-control-it-via-web-interface" target="_blank" rel="noopener noreffer ">How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration</a></p>
+</div><p>如果你需要更詳細的設定步驟，你可以參考以下的教學文章：<br>
+<a href="https://linuxconfig.org/how-to-set-up-transmission-daemon-on-a-raspberry-pi-and-control-it-via-web-interface" target="_blank" rel="noopener noreffer ">How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration</a></p>
 <h2 id="安裝-flexget">安裝 flexget</h2>
-<p>已經寫很多次<a href="https://malagege.github.io/blog/posts/%E5%9C%A8%E6%A8%B9%E6%A2%85%E6%B4%BE%E5%AE%89%E8%A3%9D-flexget/" target="_blank" rel="noopener noreffer ">在樹莓派安裝 flexget - 程式狂想筆記</a>，但沒想到官方有出現教學，這次就照官方操作。</p>
+<p>我已經寫過很多次<a href="https://malagege.github.io/blog/posts/%E5%9C%A8%E6%A8%B9%E6%A2%85%E6%B4%BE%E5%AE%89%E8%A7%92-flexget/" target="_blank" rel="noopener noreffer ">在樹莓派安裝 Flexget 的教學</a>，無意間發現官方文件有更新，這次我決定按照官方的教學來操作。</p>
+<p>官方文件看到</p>
 <blockquote>
 <p>There may be better options for some of the steps, but this works (2022) well.</p>
 </blockquote>
@@ -261,7 +278,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span><span class="line"><span class="cl"><span class="c1"># sudo apt install distutils</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>下載 pip</p>
+</div><p>接著，我們需要下載並安裝 pip：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -274,7 +291,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span><span class="line"><span class="cl">sudo python3 get-pip.py
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>設定 pipx</p>
+</div><p>然後，我們需要設定 pipx：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -287,7 +304,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span><span class="line"><span class="cl"><span class="nb">source</span> ~/.bashrc
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>下載flexget</p>
+</div><p>接下來，我們可以下載並安裝 Flexget：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -296,7 +313,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">~/.local/bin/pipx install flexget
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>這邊注意下載<code>transmission-rpc</code>關聯要這樣做。</p>
+</div><p>注意，如果你需要使用 transmission-rpc，你需要執行以下的命令：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -305,8 +322,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> pipx inject flexget  <span class="s2">&#34;transmission-rpc&gt;=3.0.0,&lt;4.0.0&#34;</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>設定開機啟動<br>
-<a href="https://flexget.com/InstallWizard/Linux/Scheduling" target="_blank" rel="noopener noreffer ">Scheduling | FlexGet</a></p>
+</div><p>接著，我們需要設定 Flexget 在系統開機時自動啟動。你可以參考 <a href="https://flexget.com/InstallWizard/Linux/Scheduling" target="_blank" rel="noopener noreffer ">Flexget 的官方教學</a> 來進行設定。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -315,7 +331,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">@reboot /usr/local/bin/flexget daemon start -d
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>這邊要改成你的 flexget 路徑，不知道可以用 <code> which flexget</code>。</p>
+</div><p>注意，你需要將上述命令中的 <code>/usr/local/bin/flexget</code> 替換為你的 Flexget 的實際路徑。如果你不確定 Flexget 的路徑，你可以使用 <code>which flexget</code> 命令來查詢</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -324,7 +340,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/home/pi/.local/bin/flexget
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>設定密碼</p>
+</div><p>最後，我們需要設定 Flexget 的密碼：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -333,8 +349,8 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">flexget web passwd &lt;some_password&gt;
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><a href="http://pi1.local:5050" target="_blank" rel="noopener noreffer ">http://pi1.local:5050</a> 進去就可以登入進去。</p>
-<p>這邊再把以下設定貼到 Config裡面。</p>
+</div><p>設定完成後，你可以透過 <a href="http://pi1.local:5050" target="_blank" rel="noopener noreffer ">http://pi1.local:5050</a> 來登入 Flexget 的網頁介面。</p>
+<p>以下是我個人的 Flexget 設定檔範例，你可以參考並根據你的需求進行修改：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -437,7 +453,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">jitter</span><span class="p">:</span><span class="w"> </span><span class="m">60</span><span class="w">
 </span></span></span></code></pre></td></tr></table>
 </div>
-</div><p>還學會 crontab 系統開機啟動 flexget 方法。</p>
+</div><p>另外，我也學會了如何使用 crontab 來設定系統開機時自動啟動 Flexget。</p>
 <div class="details admonition info open">
         <div class="details-summary admonition-title">
             <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
@@ -473,15 +489,22 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
             <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
         </div>
         <div class="details-content">
-            <div class="admonition-content">warning<br>
-這邊我是為了用 Caddy Server，所以才安裝 Docker，如果你沒有要使用的話可以不用安裝。</div>
+            <div class="admonition-content">這邊我是為了用 Caddy Server，所以才安裝 Docker，如果你沒有要使用的話可以不用安裝。</div>
         </div>
     </div>
 <p><del><a href="https://docs.docker.com/engine/install/debian/" target="_blank" rel="noopener noreffer ">Install Docker Engine on Debian</a></del></p>
 <p><del>一代機裝完遇到問題，顯示錯誤<code>docker.service: Failed with result 'core-dump'.</code>。</del></p>
 <p><del><a href="https://raspberrypi.stackexchange.com/questions/93559/docker-core-dump-error-when-starting-service" target="_blank" rel="noopener noreffer ">arm - Docker &lsquo;core-dump&rsquo; error when starting service - Raspberry Pi Stack Exchange</a></del></p>
 <p><del>還遇到載不到deb套件。這邊更改DNS就能抓到package，這邊真的很奇怪。</del></p>
-<p>這邊使用官方用好的 shell ，輸入後正常安裝，參考如下。</p>
+<p>我們將使用官方提供的 shell 腳本來安裝 Docker。在安裝之前，我們需要先修改 DNS 設定：</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">假如你網路沒問題，可以跳過設定 DNS。</div>
+        </div>
+    </div>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -491,27 +514,43 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span><span class="lnt">5
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vi /etc/resolv.conf
-</span></span><span class="line"><span class="cl"># 第一個設定改成 8.8.8.8 ，後續再改回來
-</span></span><span class="line"><span class="cl"># Generated by resolvconf
-</span></span><span class="line"><span class="cl">nameserver 8.8.8.8 # 192.168.1.203 &lt;--這是我的舊的設定
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">vi /etc/resolv.conf
+</span></span><span class="line"><span class="cl"><span class="c1"># 第一個設定改成 8.8.8.8 ，後續再改回來</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Generated by resolvconf</span>
+</span></span><span class="line"><span class="cl">nameserver 8.8.8.8 <span class="c1"># 192.168.1.203 &lt;--這是我的舊的設定</span>
 </span></span><span class="line"><span class="cl">nameserver 192.168.1.1
 </span></span></code></pre></td></tr></table>
 </div>
-</div><div class="highlight"><div class="chroma">
+</div><p>接著，我們可以執行以下的命令來安裝 Docker：</p>
+<div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">curl https://get.docker.com | sh
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">sudo usermod -G docker -a _username_
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h2 id="caddy-server">caddy-server</h2>
-<p>方便用 web 瀏覽影片。不用 apache 是會有亂碼問題，而且用這個也比較方便。</p>
+</div><p>安裝完成後，我們需要將使用者加入 docker 群組，以便使用者可以直接執行 Docker 命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo usermod -G docker -a &lt;username&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>請將 <code>&lt;username&gt;</code> 替換為你的使用者名稱。</p>
+<h2 id="caddy-server">Caddy Server</h2>
+<p>Caddy Server 可以讓我們方便地透過網頁介面瀏覽影片。Caddy Server 不會有亂碼問題，而且使用起來也更為方便。</p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊我用 Docker 啟動 Apache 看檔案目錄會亂碼，所以我才使用 Caddy Server，測試使用發現不會亂馬。</div>
+        </div>
+    </div>
+<p>首先，我們需要創建一個新的目錄來存放 Caddy Server 的相關檔案：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -522,7 +561,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span><span class="line"><span class="cl"><span class="nb">cd</span> CaddyServer
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>Caddyfile</p>
+</div><p>接著，我們需要創建一個名為 Caddyfile 的設定檔，並填入以下的內容：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -541,8 +580,17 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><code>hashpassword</code> 可以用 <code>caddy hash-password --plaintext &lt;password&gt;</code> 產生。</p>
-<p>docker-compose.yml</p>
+</div><p>其中的 <code>_hashpassword_</code> 需要替換為你的密碼的雜湊值。你可以使用以下的命令來產生雜湊值：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">caddy hash-password --plaintext &lt;password&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>請將 <code>&lt;password&gt;</code> 替換為你的密碼。</p>
+<p>然後，我們需要創建一個名為 <code>docker-compose.yml</code> 的 Docker Compose 設定檔，並填入以下的內容：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -569,7 +617,8 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 </span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">$PWD/Caddyfile:/etc/caddy/Caddyfile</span><span class="w">
 </span></span></span></code></pre></td></tr></table>
 </div>
-</div><div class="highlight"><div class="chroma">
+</div><p>最後，我們可以使用以下的命令來啟動 Caddy Server：</p>
+<div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
@@ -577,7 +626,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker compose up -d
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>搞定。</p>
+</div><p>完成以上的步驟後，你就可以透過網頁介面來瀏覽你的影片了。</p>
 <h2 id="反向代理設定調整">反向代理設定調整</h2>
 <p>最後把 Caddyfile 做反向代理，這邊研究很久特別紀錄一下。方便用 80 port也能連 flexget。</p>
 <div class="details admonition danger open">
@@ -588,7 +637,7 @@ BT下載機 外接 USB 硬碟 自動抓番劇 線上 Web 存取檔案 這邊使�
             <div class="admonition-content">這邊為什麼我設定 80 port，正常對外網路應該要用 443 port。主要這個服務要用在我和我朋友家，我朋友因為從事網路工作，說正常 https 是防止周邊設備網路竊取，我這邊有提 ISP 外面路由可能會竊取封包問題，他說正常他們不太可能會做這些事情，因為進去設備他們都要送什麼簽核單之類的，正常不會有人做擷取動作，這邊就不使用 https。(反正也沒有很重要資料)</div>
         </div>
     </div>
-<p>flexget 設定 base_url。</p>
+<p>設定檔需要設定 base_url為 <code>flexget</code>，因為這邊反向代理<code>http://xxxx/flexget/</code>。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
