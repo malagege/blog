@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄" />
+<meta property="og:description" content="最近我需要讓 KVM 不透過設定路由，而是直接連接到現有網段。因此，我進一步研究網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇文章的主題。在這裡，我將簡單介紹如何操作 Linux Bridge，讓多種端口可以互相連接。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-02-29T22:45:27+08:00" />
+<meta property="article:modified_time" content="2024-04-02T21:29:01+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄"/>
+<meta name="twitter:description" content="最近我需要讓 KVM 不透過設定路由，而是直接連接到現有網段。因此，我進一步研究網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇文章的主題。在這裡，我將簡單介紹如何操作 Linux Bridge，讓多種端口可以互相連接。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" /><link rel="prev" href="https://malagege.github.io/blog/posts/quick-api-spec-tool/" /><link rel="next" href="https://malagege.github.io/blog/posts/exploring-console-progress-bar-implementation/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/connecting-virtual-network-with-various-devices-linux-bridge-implementation\/"
+        },"genre": "posts","keywords": "Virtual Network, Linux Bridge","wordcount":  1302 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/connecting-virtual-network-with-various-devices-linux-bridge-implementation\/","datePublished": "2024-02-29T22:45:27+08:00","dateModified": "2024-04-02T21:29:01+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近我需要讓 KVM 不透過設定路由，而是直接連接到現有網段。因此，我進一步研究\u003ca href=\"https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/\" target=\"_blank\" rel=\"noopener noreffer \"\u003e網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記\u003c/a\u003e這篇文章的主題。在這裡，我將簡單介紹如何操作 Linux Bridge，讓多種端口可以互相連接。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-02-29">2024-02-29</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1302 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5"
+        data-srcset="https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5, https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5 1.5x, https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5"
+        title="https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#指令解說">指令解說</a>
+      <ul>
+        <li><a href="#安裝路由工具">安裝路由工具</a></li>
+        <li><a href="#新增網橋">新增網橋</a></li>
+        <li><a href="#新增兩對veth">新增兩對veth</a></li>
+        <li><a href="#將veth的一端移動到netns中">將veth的一端移動到netns中</a></li>
+        <li><a href="#將netns中的本地環回和veth啟動並組態ip">將netns中的本地環回和veth啟動並組態IP</a></li>
+        <li><a href="#將veth的另一端啟動並掛載到網橋上">將veth的另一端啟動並掛載到網橋上</a></li>
+      </ul>
+    </li>
+    <li><a href="#加分題將主機連接到-br0">加分題：將主機連接到 br0</a>
+      <ul>
+        <li><a href="#設定-br0">設定 br0</a></li>
+      </ul>
+    </li>
+    <li><a href="#加分題將主機連接到-br0-1">加分題：將主機連接到 br0</a>
+      <ul>
+        <li><a href="#額外建立-veth-pair-相連">額外建立 veth pair 相連</a></li>
+      </ul>
+    </li>
+    <li><a href="#深入-bridge-其他議題">深入 Bridge 其他議題</a>
+      <ul>
+        <li><a href="#arp-運作">ARP 運作</a></li>
+        <li><a href="#br0-為什麼可以設定-ip">br0 為什麼可以設定 IP</a></li>
+        <li><a href="#筆記型電腦的-wifi-無法進行橋接">筆記型電腦的 WiFi 無法進行橋接</a></li>
+      </ul>
+    </li>
+    <li><a href="#相關連結">相關連結</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近我需要讓 KVM 不透過設定路由，而是直接連接到現有網段。因此，我進一步研究<a href="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" target="_blank" rel="noopener noreffer ">網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記</a>這篇文章的主題。在這裡，我將簡單介紹如何操作 Linux Bridge，讓多種端口可以互相連接。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">最後，我有在虛擬家設定橋接外面路由。詳細可以參考這篇:</div>
+        </div>
+    </div>
+<p>我參考了這篇文章 <a href="https://typesafe.cn/posts/linux-bridge/" target="_blank" rel="noopener noreffer ">Linux Bridge 详解 | 没有理想的人不伤心</a>，並在 Ubuntu 上成功實作。然而，我發現大多數的 Linux 系統並未預裝 <code>bridge-utils</code>。另外，<code>iproute2</code> 似乎也能用來設定 <code>Bridge</code>，我將嘗試使用不同的指令來進行設定。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 新增網橋</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 原方法: brctl addbr br0</span>
+</span></span><span class="line"><span class="cl">ip link add name br0 <span class="nb">type</span> bridge
+</span></span><span class="line"><span class="cl"><span class="c1"># 啟動網橋</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> br0 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 新增三個netns</span>
+</span></span><span class="line"><span class="cl">ip netns add ns0
+</span></span><span class="line"><span class="cl">ip netns add ns1
+</span></span><span class="line"><span class="cl">ip netns add ns2
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 新增兩對veth</span>
+</span></span><span class="line"><span class="cl">ip link add veth0-ns <span class="nb">type</span> veth peer name veth0-br
+</span></span><span class="line"><span class="cl">ip link add veth1-ns <span class="nb">type</span> veth peer name veth1-br
+</span></span><span class="line"><span class="cl">ip link add veth2-ns <span class="nb">type</span> veth peer name veth2-br
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 將veth的一端移動到netns中</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0-ns netns ns0
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1-ns netns ns1
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth2-ns netns ns2
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 將netns中的本地環回和veth啟動並組態IP</span>
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip link <span class="nb">set</span> lo up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip link <span class="nb">set</span> veth0-ns up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns0 ip addr add 10.0.0.1/24 dev veth0-ns
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip link <span class="nb">set</span> lo up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip link <span class="nb">set</span> veth1-ns up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns1 ip addr add 10.0.0.2/24 dev veth1-ns
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns2 ip link <span class="nb">set</span> lo up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns2 ip link <span class="nb">set</span> veth2-ns up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns2 ip addr add 10.0.0.3/24 dev veth2-ns
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 將veth的另一端啟動並掛載到網橋上</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0-br up
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1-br up
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth2-br up
+</span></span><span class="line"><span class="cl"><span class="c1"># brctl addif br0 veth0-br</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0-br master br0
+</span></span><span class="line"><span class="cl"><span class="c1"># brctl addif br0 veth1-br</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1-br master br0
+</span></span><span class="line"><span class="cl"><span class="c1"># brctl addif br0 veth2-br</span>
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth2-br master br0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在這裡，我不會詳細介紹 <code>bridge</code> 的概念。如果你想了解更多，可以參考我之前寫的<a href="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" target="_blank" rel="noopener noreffer ">文章</a>。閱讀完這篇文章後，你應該能理解 Bridge 的原理以及需要注意的問題。</p>
+<h2 id="指令解說">指令解說</h2>
+<h3 id="安裝路由工具">安裝路由工具</h3>
+<p>這裡將說明兩種工具的安裝方法。如果你選擇使用較新的 <code>iproute2</code>，通常 Ubuntu 不需要再額外安裝這套軟體。</p>
+<ul>
+<li>iproute2</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get update
+</span></span><span class="line"><span class="cl">sudo apt-get install -y iproute2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>以下是較舊的方法。</p>
+<ul>
+<li>bridge-utils</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get update
+</span></span><span class="line"><span class="cl">sudo apt-get install -y bridge-utils
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="新增網橋">新增網橋</h3>
+<p><code>bridge-utils</code> 提供了 <code>brctl</code> 來控制 <code>bridge</code> 的操作。在這裡，<code>br</code> 和 <code>ctl</code> 的組合可以被理解為 <code>bridge control</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># &lt;name&gt; 放 bridge 名稱</span>
+</span></span><span class="line"><span class="cl">brctl addbr &lt;name&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>新方法使用 <code>ip link help</code> 看相關指令。這些指令相當多，如果你不確定如何使用，建議可以參考範例。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">root@primary:~# ip link help
+</span></span><span class="line"><span class="cl">Usage: ip link add [link DEV | parentdev NAME] [ name ] NAME
+</span></span><span class="line"><span class="cl">                    [ txqueuelen PACKETS ]
+</span></span><span class="line"><span class="cl">                    [ address LLADDR ]
+</span></span><span class="line"><span class="cl">                    [ broadcast LLADDR ]
+</span></span><span class="line"><span class="cl">                    [ mtu MTU ] [index IDX ]
+</span></span><span class="line"><span class="cl">                    [ numtxqueues QUEUE_COUNT ]
+</span></span><span class="line"><span class="cl">                    [ numrxqueues QUEUE_COUNT ]
+</span></span><span class="line"><span class="cl">                    type TYPE [ ARGS ]
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># br_name 放 bridge 名稱</span>
+</span></span><span class="line"><span class="cl">ip link add name &lt;br_name&gt; <span class="nb">type</span> bridge
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>以下是一些 <code>brctl</code> 相關指令。如果你不小心設定錯誤，可以使用這些指令來還原設定。不過，重開機後設定也會被還原。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># show 顯示 bridge 資訊</span>
+</span></span><span class="line"><span class="cl">brctl show &lt;name&gt;
+</span></span><span class="line"><span class="cl"><span class="c1"># 刪除 bridge</span>
+</span></span><span class="line"><span class="cl">brctl delbr &lt;name&gt;
+</span></span><span class="line"><span class="cl"><span class="c1"># 顯示全部 bridge</span>
+</span></span><span class="line"><span class="cl">brctl show
+</span></span></code></pre></td></tr></table>
+</div>
+</div></div>
+        </div>
+    </div>
+<h3 id="新增兩對veth">新增兩對veth</h3>
+<ul>
+<li>ip link add <code>veth0-ns</code> type veth peer name <code>veth0-br</code></li>
+</ul>
+<p>這段指令可能看起來有些複雜。我們可以透過 <code>help</code> 來查看詳細的使用方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">root@primary:~# ip link <span class="nb">help</span>
+</span></span><span class="line"><span class="cl">Usage: ip link add <span class="o">[</span>link DEV <span class="p">|</span> parentdev NAME<span class="o">]</span> <span class="o">[</span> name <span class="o">]</span> NAME
+</span></span><span class="line"><span class="cl">                    <span class="o">[</span> txqueuelen PACKETS <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">[</span> address LLADDR <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">[</span> broadcast LLADDR <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">[</span> mtu MTU <span class="o">]</span> <span class="o">[</span>index IDX <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">[</span> numtxqueues QUEUE_COUNT <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">[</span> numrxqueues QUEUE_COUNT <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="nb">type</span> TYPE <span class="o">[</span> ARGS <span class="o">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">root@primary:~# ip link <span class="nb">help</span> veth
+</span></span><span class="line"><span class="cl">Usage: ip link &lt;options&gt; <span class="nb">type</span> veth <span class="o">[</span>peer &lt;options&gt;<span class="o">]</span>
+</span></span><span class="line"><span class="cl">To get &lt;options&gt; <span class="nb">type</span> <span class="s1">&#39;ip link add help&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊我們看<code>name</code>也可以省略，如果從<code>ip link &lt;options&gt; type veth [peer &lt;options&gt;]</code>來看，你會發現可以省略更多東西。最後指令可以下<code>ip link add type veth</code>，只是 veth 建立出來會是系統幫你命名。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ubuntu@primary:~$ sudo ip link add <span class="nb">type</span> veth
+</span></span><span class="line"><span class="cl">ubuntu@primary:~$ ip a
+</span></span><span class="line"><span class="cl">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span></span><span class="line"><span class="cl">    inet 127.0.0.1/8 scope host lo
+</span></span><span class="line"><span class="cl">       valid_lft forever preferred_lft forever
+</span></span><span class="line"><span class="cl">    inet6 ::1/128 scope host
+</span></span><span class="line"><span class="cl">       valid_lft forever preferred_lft forever
+</span></span><span class="line"><span class="cl">.....
+</span></span><span class="line"><span class="cl">3: veth0@veth1: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu <span class="m">1500</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether ca:f3:02:de:74:7e brd ff:ff:ff:ff:ff:ff
+</span></span><span class="line"><span class="cl">4: veth1@veth0: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu <span class="m">1500</span> qdisc noop state DOWN group default qlen <span class="m">1000</span>
+</span></span><span class="line"><span class="cl">    link/ether 92:83:9e:54:a5:90 brd ff:ff:ff:ff:ff:ff
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="將veth的一端移動到netns中">將veth的一端移動到netns中</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0-ns netns ns0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">root@primary:~# ip link <span class="nb">set</span> <span class="nb">help</span>
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> <span class="o">{</span> DEVICE <span class="p">|</span> dev DEVICE <span class="p">|</span> group DEVGROUP <span class="o">}</span>
+</span></span><span class="line"><span class="cl">                        <span class="o">[</span> <span class="o">{</span> up <span class="p">|</span> down <span class="o">}</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                        <span class="o">[</span> <span class="nb">type</span> TYPE ARGS <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                ....
+</span></span><span class="line"><span class="cl">                <span class="o">[</span> netns <span class="o">{</span> PID <span class="p">|</span> NAME <span class="o">}</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="將netns中的本地環回和veth啟動並組態ip">將netns中的本地環回和veth啟動並組態IP</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># ip netns exec ns2 ip addr add 10.0.0.3/24 dev veth2-ns</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 這邊就不寫出 netns 指令出來</span>
+</span></span><span class="line"><span class="cl">ip addr add 10.0.0.3/24 dev veth2-ns
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ubuntu@primary:~$ ip addr <span class="nb">help</span>
+</span></span><span class="line"><span class="cl">Usage: ip address <span class="o">{</span>add<span class="p">|</span>change<span class="p">|</span>replace<span class="o">}</span> IFADDR dev IFNAME <span class="o">[</span> LIFETIME <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                                                      <span class="o">[</span> CONFFLAG-LIST <span class="o">]</span>
+</span></span><span class="line"><span class="cl">       ip address del IFADDR dev IFNAME <span class="o">[</span>mngtmpaddr<span class="o">]</span>
+</span></span><span class="line"><span class="cl">       ip address <span class="o">{</span>save<span class="p">|</span>flush<span class="o">}</span> <span class="o">[</span> dev IFNAME <span class="o">]</span> <span class="o">[</span> scope SCOPE-ID <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                            <span class="o">[</span> to PREFIX <span class="o">]</span> <span class="o">[</span> FLAG-LIST <span class="o">]</span> <span class="o">[</span> label LABEL <span class="o">]</span> <span class="o">[</span>up<span class="o">]</span>
+</span></span><span class="line"><span class="cl">       ip address <span class="o">[</span> show <span class="o">[</span> dev IFNAME <span class="o">]</span> <span class="o">[</span> scope SCOPE-ID <span class="o">]</span> <span class="o">[</span> master DEVICE <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                         <span class="o">[</span> <span class="nb">type</span> TYPE <span class="o">]</span> <span class="o">[</span> to PREFIX <span class="o">]</span> <span class="o">[</span> FLAG-LIST <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                         <span class="o">[</span> label LABEL <span class="o">]</span> <span class="o">[</span>up<span class="o">]</span> <span class="o">[</span> vrf NAME <span class="o">]</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">       ip address <span class="o">{</span>showdump<span class="p">|</span>restore<span class="o">}</span>
+</span></span><span class="line"><span class="cl">IFADDR :<span class="o">=</span> PREFIX <span class="p">|</span> ADDR peer PREFIX
+</span></span><span class="line"><span class="cl">          <span class="o">[</span> broadcast ADDR <span class="o">]</span> <span class="o">[</span> anycast ADDR <span class="o">]</span>
+</span></span><span class="line"><span class="cl">          <span class="o">[</span> label IFNAME <span class="o">]</span> <span class="o">[</span> scope SCOPE-ID <span class="o">]</span> <span class="o">[</span> metric METRIC <span class="o">]</span>
+</span></span><span class="line"><span class="cl">SCOPE-ID :<span class="o">=</span> <span class="o">[</span> host <span class="p">|</span> link <span class="p">|</span> global <span class="p">|</span> NUMBER <span class="o">]</span>
+</span></span><span class="line"><span class="cl">FLAG-LIST :<span class="o">=</span> <span class="o">[</span> FLAG-LIST <span class="o">]</span> FLAG
+</span></span><span class="line"><span class="cl">FLAG  :<span class="o">=</span> <span class="o">[</span> permanent <span class="p">|</span> dynamic <span class="p">|</span> secondary <span class="p">|</span> primary <span class="p">|</span>
+</span></span><span class="line"><span class="cl">           <span class="o">[</span>-<span class="o">]</span>tentative <span class="p">|</span> <span class="o">[</span>-<span class="o">]</span>deprecated <span class="p">|</span> <span class="o">[</span>-<span class="o">]</span>dadfailed <span class="p">|</span> temporary <span class="p">|</span>
+</span></span><span class="line"><span class="cl">           CONFFLAG-LIST <span class="o">]</span>
+</span></span><span class="line"><span class="cl">CONFFLAG-LIST :<span class="o">=</span> <span class="o">[</span> CONFFLAG-LIST <span class="o">]</span> CONFFLAG
+</span></span><span class="line"><span class="cl">CONFFLAG  :<span class="o">=</span> <span class="o">[</span> home <span class="p">|</span> nodad <span class="p">|</span> mngtmpaddr <span class="p">|</span> noprefixroute <span class="p">|</span> autojoin <span class="o">]</span>
+</span></span><span class="line"><span class="cl">LIFETIME :<span class="o">=</span> <span class="o">[</span> valid_lft LFT <span class="o">]</span> <span class="o">[</span> preferred_lft LFT <span class="o">]</span>
+</span></span><span class="line"><span class="cl">LFT :<span class="o">=</span> forever <span class="p">|</span> SECONDS
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊可以看到 <code>add</code></p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">如果你需要刪除 Bridge，你需要先將所有的設備從 Bridge 中移除，然後再刪除 Bridge。你可以使用 brctl delif &lt;bridge&gt; &lt;device&gt; 或 ip link set &lt;device&gt; nomaster 來移除設備，然後使用 brctl delbr &lt;bridge&gt; 或 ip link delete &lt;bridge&gt; type bridge 來刪除 Bridge。</div>
+        </div>
+    </div>
+<h3 id="將veth的另一端啟動並掛載到網橋上">將veth的另一端啟動並掛載到網橋上</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link <span class="nb">set</span> veth0-br master br0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>從這指令看到中間用 <code>master</code> 字眼做串接</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">        ip link <span class="nb">set</span> <span class="o">{</span> DEVICE <span class="p">|</span> dev DEVICE <span class="p">|</span> group DEVGROUP <span class="o">}</span>
+</span></span><span class="line"><span class="cl">                        <span class="o">[</span> <span class="o">{</span> up <span class="p">|</span> down <span class="o">}</span> <span class="o">]</span>
+</span></span><span class="line"><span class="cl">                        <span class="o">[</span> <span class="nb">type</span> TYPE ARGS <span class="o">]</span>
+</span></span><span class="line"><span class="cl">.....
+</span></span><span class="line"><span class="cl">                <span class="o">[</span> master DEVICE <span class="o">][</span> vrf NAME <span class="o">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>後來有爬到這篇可以看相關範例指令。</p>
+<ul>
+<li><a href="https://hackmd.io/@0xff07/SJzOwViYF" target="_blank" rel="noopener noreffer ">計算機網路 - Network Namespace - HackMD</a></li>
+<li><a href="https://wiki.archlinuxcn.org/wiki/Network_bridge" target="_blank" rel="noopener noreffer ">Network bridge - Arch Linux 中文维基</a></li>
+</ul></div>
+        </div>
+    </div>
+<h2 id="加分題將主機連接到-br0">加分題：將主機連接到 br0</h2>
+<p>你做到這邊會發現你 host 主機沒辦法連這些 IP ，假如你都會操作設定<code>br0</code>了，你應該也能設定。這邊可以自己試試看。</p>
+<h3 id="設定-br0">設定 br0</h3>
+<h2 id="加分題將主機連接到-br0-1">加分題：將主機連接到 br0</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip addr add  10.0.0.4/24 dev br0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>完成這個步驟後，你應該就能進行連接了。</p>
+<h3 id="額外建立-veth-pair-相連">額外建立 veth pair 相連</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link add  name veth-3 <span class="nb">type</span> veth peer name veth-br3
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-br3 master br0
+</span></span><span class="line"><span class="cl">ip addr add 10.0.0.4/24 dev veth3
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-3 up
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-br3 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>完成這些設定後，你應該就能進行 ping 測試了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">root@primary:~# ping 10.0.0.3
+</span></span><span class="line"><span class="cl">PING 10.0.0.3 <span class="o">(</span>10.0.0.3<span class="o">)</span> 56<span class="o">(</span>84<span class="o">)</span> bytes of data.
+</span></span><span class="line"><span class="cl"><span class="m">64</span> bytes from 10.0.0.3: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">1</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span>0.298 ms
+</span></span><span class="line"><span class="cl"><span class="m">64</span> bytes from 10.0.0.3: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">2</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span>0.099 ms
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="深入-bridge-其他議題">深入 Bridge 其他議題</h2>
+<p>在整理這篇也有看很多東西，但是花很多時間在這邊實作演示。原本主要是讓我的 KVM Bridge</p>
+<h3 id="arp-運作">ARP 運作</h3>
+<p><a href="https://www.readfog.com/a/1646531917244370944" target="_blank" rel="noopener noreffer ">Linux 虛擬網絡設備之 bridge - 閱坊</a>裡面有提到 <code>ping</code>，裡面 arp 相關東西，這邊找了相關東西</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=o2LoG-83rp8" target="_blank" rel="noopener noreffer ">(51) When do you need the ARP protocol? -Wireshark - YouTube</a></li>
+</ul>
+<h3 id="br0-為什麼可以設定-ip">br0 為什麼可以設定 IP</h3>
+<blockquote>
+<p>bridge必須要組態IP嗎？</p>
+<p>在我們常見的物理交換機中，有可以配置IP和不能配置IP兩種，不能配置IP的交換機一般通過com口連上去做配置（更簡單的交換機連com口的沒有，不支持任何配置），而能配置IP的交換機可以在配置好IP之後，通過該IP遠程連接上去做配置，從而更方便。</p>
+<p>bridge就屬於後一種交換機，自帶虛擬網卡，可以配置IP，該虛擬網卡一端連在bridge上，另一端跟協議棧相連。和物理交換機一樣，bridge的工作不依賴於該虛擬網卡，但bridge工作不代表機器能連上網，要看組網方式。</p>
+</blockquote>
+<p>參考: <a href="https://segmentfault.com/a/1190000009491002" target="_blank" rel="noopener noreffer ">Linux虚拟网络设备之bridge(桥) - Linux程序员 - SegmentFault 思否</a></p>
+<p>推薦看裡面文章，其實後面很想針對一些 Case 做實作，但花的時間超出預期，所以就特別放在這邊。</p>
+<p>我之前聽朋友說到網路孔不能設定 IP，那就是 L2 設備，但從<code>不能配置IP的交換機一般通過com口連上去做配置（更簡單的交換機連com口的沒有，不支持任何配置）</code>這段話感覺還是能做到的。但這邊不確定是不是真的這樣，我也沒辦法實驗。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我原本 Google 搜尋 Linux Bridge 找到 <a href="https://www.readfog.com/a/1646531917244370944" target="_blank" rel="noopener noreffer ">Linux 虛擬網絡設備之 bridge - 閱坊</a><a href="https://user-images.githubusercontent.com/6058558/258121625-6f0d4507-efb3-401e-9659-997310874156.png" target="_blank" rel="noopener noreffer ">備份圖</a><br>
+，但後來發現這個好像是轉貼的。下面有原本連結，內容介紹更多。</div>
+        </div>
+    </div>
+<h3 id="筆記型電腦的-wifi-無法進行橋接">筆記型電腦的 WiFi 無法進行橋接</h3>
+<blockquote>
+<p>Linux kernel 不允許無線網路以 managed mode 進行橋接。但我們等下就會設定 hostapd 讓無線網路進入 master mode，因此這個錯誤暫時無視即可。</p>
+</blockquote>
+<ul>
+<li><a href="https://electronic.blue/blog/2012/07/02-bridge-wireless-network-on-linux/" target="_blank" rel="noopener noreffer ">在 Linux 上設置無線橋接器 | electronic_blue</a></li>
+</ul>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">Bing AI:<br>
+您可以使用以下命令來查看網路卡的模式： <code>iwconfig</code></div>
+        </div>
+    </div>
+<blockquote>
+<p>To add a wireless interface to a bridge, you first have to assign the wireless interface to an access point or start an access point with hostapd. Otherwise the wireless interface will not be added to the bridge.</p>
+</blockquote>
+<p><a href="https://wiki.archlinux.org/title/Network_bridge#Wireless_interface_on_a_bridge" target="_blank" rel="noopener noreffer ">Network bridge - ArchWiki</a></p>
+<ul>
+<li><a href="https://blog.csdn.net/wit_732/article/details/121038477" target="_blank" rel="noopener noreffer ">Linux系统将WiFi配置为AP模式 &mdash; hostapd 和 udhcpd的使用说明_浮云流响的博客-CSDN博客</a></li>
+</ul>
+<p>這裡的 WiFi 使用熱點模式並不符合我們的需求。因此，我最後選擇改用網路孔進行橋接。</p>
+<h2 id="相關連結">相關連結</h2>
+<ul>
+<li><a href="https://superuser.com/questions/764986/howto-setup-a-veth-virtual-network" target="_blank" rel="noopener noreffer ">linux - Howto setup a `veth` virtual network - Super User</a><br>
+<a href="https://fafucoder.github.io/2020/06/14/linux-veth-pair/" target="_blank" rel="noopener noreffer ">linux虚拟网络设备 | 好记忆不如烂笔头 | 问题记录，学习笔记</a></li>
+</ul>
+<p><a href="https://www.zhaohuabing.com/post/2020-03-12-linux-network-virtualization/" target="_blank" rel="noopener noreffer ">Linux network namespace， veth， birdge与路由-赵化冰的博客 | Zhaohuabing Blog</a></p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=96Z1_6rX5qU" target="_blank" rel="noopener noreffer ">(52) How to Bridge internet from wireless laptop to a wired device - YouTube</a></li>
+</ul>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://byvoid.com/zht/categories/%E8%AA%9E%E8%A8%80%E6%96%87%E5%AD%97/" target="_blank" rel="noopener noreffer ">語言文字</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-04-02</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" data-title="實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄" data-hashtags="Virtual Network,Linux Bridge"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" data-hashtag="Virtual Network"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" data-title="實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" data-title="實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/connecting-virtual-network-with-various-devices-linux-bridge-implementation/" data-title="實作指南：使用 Linux Bridge 連接虛擬網路與設備廢棄" data-image="https://gist.github.com/assets/6058558/ece7b7c4-edc2-468b-b15a-b6cf26387ed5"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/Virtual-Network/">Virtual Network</a>,&nbsp;<a href="/blog/tags/Linux-Bridge/">Linux Bridge</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/quick-api-spec-tool/" class="prev" rel="prev" title="API 規格文件：簡單快速設計工具"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>API 規格文件：簡單快速設計工具</a>
+            <a href="/blog/posts/exploring-console-progress-bar-implementation/" class="next" rel="next" title="探索 Console 進度條的實現方式">探索 Console 進度條的實現方式<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.124.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

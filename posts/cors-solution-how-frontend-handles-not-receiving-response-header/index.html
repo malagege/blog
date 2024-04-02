@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>CORS 解決方案：前端如何處理收不到 Response Header 的問題 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="CORS 解決方案：前端如何處理收不到 Response Header 的問題" />
+<meta property="og:description" content="最近我設計了一個 OAuth Token 驗證給前端串接，但發現前端無法抓取到我後端的 Response Header。經過一番研究，我發現問題出在 CORS 上。以前我對 CORS 都是簡單了解，沒想到 CORS 規範的內容如此豐富。這篇文章就是我對此進行深入研究的記錄。這篇還一點債了&hellip;
+心智圖 因為 mermaid 無法用-，所以用_置換。
+mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque origin file://.../xxx.html CORS 簡單請求 發送Request不會預檢 Request會送到Server Response 都會檢查 Access_Control_Allow_Origin 非簡單請求 發送Request會預檢 預檢沒過，Request不會送到Server Response 都會檢查 Access_Control_Allow_Origin CORS 容易忽略那些事 Request 不能隨意帶 Header JS不能隨意用 Response Header CORS 相關 Header Access_Control_Allow_Origin Access_Control_Allow_Methods Access_Control_Allow_Headers Access_Control_Max_Age Access_Control_Expose_Headers Access_Control_Allow_Credentials Origin Header Origin - HTTP | MDN 1 2 3 Origin: null Origin: &lt;scheme&gt;://&lt;hostname&gt; Origin: &lt;scheme&gt;://&lt;hostname&gt;:&lt;port&gt; 常見我們 AJAX 跨域會看到 HTTP 有 Origin Header 內容。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-04-01T23:13:07+08:00" />
+<meta property="article:modified_time" content="2024-04-02T22:14:42+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="CORS 解決方案：前端如何處理收不到 Response Header 的問題"/>
+<meta name="twitter:description" content="最近我設計了一個 OAuth Token 驗證給前端串接，但發現前端無法抓取到我後端的 Response Header。經過一番研究，我發現問題出在 CORS 上。以前我對 CORS 都是簡單了解，沒想到 CORS 規範的內容如此豐富。這篇文章就是我對此進行深入研究的記錄。這篇還一點債了&hellip;
+心智圖 因為 mermaid 無法用-，所以用_置換。
+mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque origin file://.../xxx.html CORS 簡單請求 發送Request不會預檢 Request會送到Server Response 都會檢查 Access_Control_Allow_Origin 非簡單請求 發送Request會預檢 預檢沒過，Request不會送到Server Response 都會檢查 Access_Control_Allow_Origin CORS 容易忽略那些事 Request 不能隨意帶 Header JS不能隨意用 Response Header CORS 相關 Header Access_Control_Allow_Origin Access_Control_Allow_Methods Access_Control_Allow_Headers Access_Control_Max_Age Access_Control_Expose_Headers Access_Control_Allow_Credentials Origin Header Origin - HTTP | MDN 1 2 3 Origin: null Origin: &lt;scheme&gt;://&lt;hostname&gt; Origin: &lt;scheme&gt;://&lt;hostname&gt;:&lt;port&gt; 常見我們 AJAX 跨域會看到 HTTP 有 Origin Header 內容。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" /><link rel="prev" href="https://malagege.github.io/blog/posts/exploring-console-progress-bar-implementation/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "CORS 解決方案：前端如何處理收不到 Response Header 的問題",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/cors-solution-how-frontend-handles-not-receiving-response-header\/"
+        },"genre": "posts","keywords": "cors, frontend, header, security","wordcount":  805 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/cors-solution-how-frontend-handles-not-receiving-response-header\/","datePublished": "2024-04-01T23:13:07+08:00","dateModified": "2024-04-02T22:14:42+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "最近我設計了一個 OAuth Token 驗證給前端串接，但發現前端無法抓取到我後端的 Response Header。經過一番研究，我發現問題出在 CORS 上。以前我對 CORS 都是簡單了解，沒想到 CORS 規範的內容如此豐富。這篇文章就是我對此進行深入研究的記錄。這篇還一點債了\u0026hellip;\n心智圖 因為 mermaid 無法用-，所以用_置換。\nmindmap Same_Origin Policy Origin Tuple origin schema+host+port opaque origin file://.../xxx.html CORS 簡單請求 發送Request不會預檢 Request會送到Server Response 都會檢查 Access_Control_Allow_Origin 非簡單請求 發送Request會預檢 預檢沒過，Request不會送到Server Response 都會檢查 Access_Control_Allow_Origin CORS 容易忽略那些事 Request 不能隨意帶 Header JS不能隨意用 Response Header CORS 相關 Header Access_Control_Allow_Origin Access_Control_Allow_Methods Access_Control_Allow_Headers Access_Control_Max_Age Access_Control_Expose_Headers Access_Control_Allow_Credentials Origin Header Origin - HTTP | MDN 1 2 3 Origin: null Origin: \u0026lt;scheme\u0026gt;://\u0026lt;hostname\u0026gt; Origin: \u0026lt;scheme\u0026gt;://\u0026lt;hostname\u0026gt;:\u0026lt;port\u0026gt; 常見我們 AJAX 跨域會看到 HTTP 有 Origin Header 內容。"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">CORS 解決方案：前端如何處理收不到 Response Header 的問題</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-04-01">2024-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;805 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"
+        data-srcset="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40, https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40 1.5x, https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"
+        title="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#origin-header">Origin Header</a>
+      <ul>
+        <li><a href="#opaque-origin">opaque origin</a></li>
+      </ul>
+    </li>
+    <li><a href="#請求預檢">請求預檢</a></li>
+    <li><a href="#cors-種類">CORS 種類</a></li>
+    <li><a href="#cors-簡單請求">CORS 簡單請求</a></li>
+    <li><a href="#cors-非簡單請求">CORS 非簡單請求</a></li>
+    <li><a href="#request-不能隨意帶-header">Request 不能隨意帶 Header</a></li>
+    <li><a href="#js-不能隨意用-response-header">JS 不能隨意用 Response Header</a></li>
+    <li><a href="#access-control-allow-credentials">Access-Control-Allow-Credentials</a></li>
+    <li><a href="#access-control-allow-methods">Access-Control-Allow-Methods</a></li>
+    <li><a href="#access-control-max-age">Access-Control-Max-Age</a></li>
+    <li><a href="#你真的會懂-cors">你真的會懂 CORS?</a></li>
+    <li><a href="#相關文章">相關文章</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近我設計了一個 OAuth Token 驗證給前端串接，但發現前端無法抓取到我後端的 Response Header。經過一番研究，我發現問題出在 CORS 上。以前我對 CORS 都是簡單了解，沒想到 CORS 規範的內容如此豐富。這篇文章就是我對此進行深入研究的記錄。這篇還一點債了&hellip;</p>
+<h2 id="心智圖">心智圖</h2>
+<p>因為 mermaid 無法用<code>-</code>，所以用<code>_</code>置換。</p>
+<div class="mermaid">mindmap
+  Same_Origin Policy
+    Origin
+        Tuple origin
+            schema+host+port
+        opaque origin
+            file://.../xxx.html
+    CORS
+        簡單請求
+            發送Request不會預檢
+            Request會送到Server
+            Response 都會檢查 Access_Control_Allow_Origin 
+        非簡單請求
+            發送Request會預檢
+            預檢沒過，Request不會送到Server
+            Response 都會檢查 Access_Control_Allow_Origin 
+    CORS 容易忽略那些事
+        Request 不能隨意帶 Header
+        JS不能隨意用 Response Header
+    CORS 相關 Header
+        Access_Control_Allow_Origin
+        Access_Control_Allow_Methods
+        Access_Control_Allow_Headers
+        Access_Control_Max_Age
+        Access_Control_Expose_Headers
+        Access_Control_Allow_Credentials
+</div><h2 id="origin-header">Origin Header</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Origin" target="_blank" rel="noopener noreffer ">Origin - HTTP | MDN</a></li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Origin: null
+</span></span><span class="line"><span class="cl">Origin: &lt;scheme&gt;://&lt;hostname&gt;
+</span></span><span class="line"><span class="cl">Origin: &lt;scheme&gt;://&lt;hostname&gt;:&lt;port&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>常見我們 AJAX 跨域會看到 HTTP 有 <code>Origin</code> Header 內容。</p>
+<p>從 MDN 我們看到:</p>
+<blockquote>
+<p>Origin 標頭與 Referer 標頭類似，但前者不會暴露 URL 的 path 部分，而且其可以為 null 值。其用於為源站的請求提供 “安全上下文”，除非源站的資訊敏感或不必要的。</p>
+</blockquote>
+<p>在深入研究之前，我們需要先了解 Origin 的規則。對這些規則有基本的理解，將有助於我們更好地理解後續的內容。我之前在 <a href="https://malagege.github.io/blog/posts/SameSite-Cookie-%E5%92%8C-Same-Origin-Policy-%E6%98%AF%E4%BB%80%E9%BA%BC/" target="_blank" rel="noopener noreffer ">程式狂想筆記</a> 中有寫過一篇關於 SameSite Cookie 和 Same Origin Policy 的文章，您可以參考。io/blog/posts/SameSite-Cookie-%E5%92%8C-Same-Origin-Policy-%E6%98%AF%E4%BB%80%E9%BA%BC/)有寫這篇筆記有記錄到。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>我們經常會看到 <code>Same-Origin Policy</code>，也就是所謂的 <code>同源政策</code>。雖然這個詞彙中包含了 <code>Origin</code>，但它與 CORS 的意義並不相同。MDN 上有一篇關於同源政策和 CORS 的文章，我們可以參考一下 <a href="https://developer.mozilla.org/en-US/docs/Web/Security#same-origin_policy_and_cors" target="_blank" rel="noopener noreffer ">same-origin_policy_and_cors</a>。</p>
+<p>簡單來說，<code>Same-Origin Policy</code> 是 Web 的一種基本安全機制，它限制了一個源 (origin) 的文件或腳本與來自另一個源的資源的交互方式。這種政策有助於隔離潛在的惡意文件，從而減少可能的攻擊。如果您想了解更多，可以參考 MDN 上的 <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy" target="_blank" rel="noopener noreffer ">Same-origin policy</a>。</p>
+<p>然而，在實際操作中，有些站點之間的交互是正常的，我們需要透過 CORS 來解除這種限制。</p>
+</div>
+        </div>
+    </div>
+<h3 id="opaque-origin">opaque origin</h3>
+<p>從這篇<a href="https://blog.huli.tw/2022/01/16/same-site-to-same-origin-document-domain/" target="_blank" rel="noopener noreffer ">忍術！把 same site 變 same origin 之術！ - Huli&rsquo;s blog</a> 看到裡面提到 <code>opaque origin</code>，在開啟 <code>file://xxx.html</code> 做跨域請求， <code>Origin</code> Header 會顯示 <code>null</code>。</p>
+<blockquote>
+<p>接著規範裡把 origin 分成兩種，一種是 An opaque origin，另一種是 A tuple origin。</p>
+<p>Opaque origin 可以想成是在特殊狀況下才會出現的 origin，例如說我在本機開啟一個網頁，網址會是 file:///&hellip;，這時候在網頁內發送 request，origin 就會是 opaque origin，也就是 null。</p>
+</blockquote>
+<blockquote>
+<p>Tuple origin 則是比較常見而且我們也比較關心的 origin</p>
+</blockquote>
+<p>我這邊就做個簡單實驗，隨便新增一個 <code>xxx.html</code> 用瀏覽器打開，Console 打個 <code>fetch('https://tw.yahoo.com')</code>。這時候就可以看到你的 header 有這個東西。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png, https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png 1.5x, https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png"
+        title="圖片" /></p>
+<p><a href="https://stackoverflow.com/questions/42239643/when-do-browsers-send-the-origin-header-when-do-browsers-set-the-origin-to-null/42242802" target="_blank" rel="noopener noreffer ">http - When do browsers send the Origin header? When do browsers set the origin to null? - Stack Overflow</a></p>
+<blockquote>
+<p>要嘛兩個是一樣的 opaque origin，否則的話要 scheme、host 跟 port 三者都相等，才是 same origin。除了 same origin 以外，你還會在 spec 裡面看到另外一個詞叫做「same origin-domain」，這個我們之後也會提到。</p>
+</blockquote>
+<p>我這邊有自己實驗 <code>file:///C:/Users/steve/Desktop/test.htm</code> 做 AJAX<code>file:///C:/Users/steve/Desktop/test2.htm</code>，沒版法取得資料，就如上訴原因。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊注意 CORS 非同源(Origin)的話疑慮都會觸發請求，但同源在某種情況也會觸發請求，我們繼續往下看。</div>
+        </div>
+    </div>
+<h2 id="請求預檢">請求預檢</h2>
+<p>我們在使用 Ajax 進行跨域操作時，常常會看到 <code>OPTIONS</code> 請求。這實際上是一種 <code>預檢</code> 的動作（我們稍後會進一步解釋這個概念）。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png"
+        data-srcset="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png, https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png 1.5x, https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png"
+        title="image" /></p>
+<p>過去，我們可能會誤以為只要網域不同就會進行跨域操作，但實際上規則更為細緻。**簡單請求不會進行預檢，而非簡單請求則會進行預檢。**接下來，我們將進一步了解什麼是簡單請求和非簡單請求。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl <span class="s2">&#34;https://#url#&#34;</span>    <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-X OPTIONS     <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-H <span class="s2">&#34;Access-Control-Request-Method: GET&#34;</span>    <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-H <span class="s2">&#34;Access-Control-Request-Headers: content-type&#34;</span>   
+</span></span><span class="line"><span class="cl">-H <span class="s2">&#34;Origin: #url#&#34;</span>  -v 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="cors-種類">CORS 種類</h2>
+<p>我們在進行跨域操作時，有時會看到 <code>OPTIONS</code> 請求，有時則不會。最近我讀到一篇文章，提到非簡單請求會進行 <code>請求預檢</code> (preflight request)。我才知道有這種詳細機制。</p>
+<h2 id="cors-簡單請求">CORS 簡單請求</h2>
+<p>一般為 <code>Get</code>,<code>Post</code>,<code>Head</code> 方法和 <code>Content-Type</code> 為傳統表單發送不會做預檢。<strong>但是還是會發送到 Server</strong>，而瀏覽器會判斷 Response <code>Access-Control-Allow-Origin</code> 有沒有這個 Header，沒有的話瀏覽器會阻擋程式成功這個請求，程式無法讀到 Response 內容，會報一個錯誤。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>這邊我說的傳統表單 <code>Content-Type</code> 為 <code>application/x-www-form-urlencoded</code>、<code>multipart/form-data</code> 或是 <code>text/plain</code>。這邊只列出一點規則，詳細可以看<a href="https://github.com/amandakelake/blog/issues/62#:~:text=%E8%AE%A4%E8%AF%81%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%EF%BC%89%E3%80%82-,%E7%AE%80%E5%8D%95%E8%AF%B7%E6%B1%82,-%E4%B8%8D%E4%BC%9A%E8%A7%A6%E5%8F%91CORS" target="_blank" rel="noopener noreffer ">這邊</a>。</p>
+<ul>
+<li>只使用了下面的安全首部字段，不得人為設定其他首部字段<br>
+Accept<br>
+Accept-Language<br>
+Content-Language<br>
+Content-Type僅限以下透明度<br>
+text/plain<br>
+multipart/form-data<br>
+application/x-www-form-urlencoded</li>
+<li>HTML頭部欄位欄位：DPR、Download、Save-Data、Viewport-Width、WIdth</li>
+<li>請求中的各個XMLHttpRequestUpload物件均沒有註冊任何事件監聽器；XMLHttpRequestUpload 物件可以使用 XMLHttpRequest.upload 屬性存取</li>
+<li>請求中沒有使用 ReadableStream 對象</li>
+</ul></div>
+        </div>
+    </div>
+<!-- raw HTML omitted -->
+<div class="details admonition inf open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-pencil-alt fa-fw" aria-hidden="true"></i><i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊我只寫簡單重點，詳細可以看 <a href="https://blog.huli.tw/2021/02/19/cors-guide-1/" target="_blank" rel="noopener noreffer ">CORS 完全手冊（一）：為什麼會發生 CORS 錯誤？ - Huli&rsquo;s blog</a>，從裡面可以看到一般傳統請求不會做預檢動作，瀏覽器送出請求都是會送出去。<strong>Server 是會收到請求做處理</strong>，但是瀏覽器會阻擋。裡面提到兩個問題也很有趣。</div>
+        </div>
+    </div>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">儘管一般的 CORS 解決方法都會建議加入 <code>Access-Control-Allow-Origin</code>，但有時候，僅僅加入這個標頭並不能完全解決 <code>CORS</code> 問題。在這種情況下，這邊需要繼續看下去。</div>
+        </div>
+    </div>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">講一下看到的冷知識，一般傳統 form 送出去，<code>POST</code> 送出跨域我們知道不會被瀏覽器阻擋。但其實他在 Header 也有加上 <code>Origin</code>，Form 表單送出 <code>GET</code> 方法就沒有這個東西。<br>
+可參考: <a href="https://blog.huli.tw/2021/02/19/cors-guide-4/" target="_blank" rel="noopener noreffer ">CORS 完全手冊（四）：一起看規範 - Huli&rsquo;s blog</a></div>
+        </div>
+    </div>
+<h2 id="cors-非簡單請求">CORS 非簡單請求</h2>
+<p>當我們使用 AJAX 進行 <code>POST</code> 請求，並且 <code>Content-Type</code> 設為 <code>Application/Json</code> 時，這種請求會被視為非簡單請求。如果請求中包含了非常見的Header），則該請求會被瀏覽器阻擋。（這裡我們先不詳細討論 Header）</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><blockquote>
+<p>一般 AJAX 做 <code>POST</code> 時候，Content-Type 都會帶 <code>Application/Json</code></p>
+</blockquote>
+<p>我在這裡並沒有詳細說明何時會被視為非簡單請求，因為這個主題相當廣泛，且初學者可能會覺得難以理解。實際上，只有當請求方法為 <code>GET</code>、<code>HEAD</code> 或 <code>POST</code>，且標頭符合 <code>CORS-safelisted request-header</code> 時，該請求才會被視為簡單請求。</p>
+<p>詳細可以看: <a href="https://blog.huli.tw/2021/02/19/cors-guide-4/#preflight-request" target="_blank" rel="noopener noreffer ">CORS 完全手冊（四）：一起看規範 - Huli&rsquo;s blog</a></p>
+</div>
+        </div>
+    </div>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png, https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png 1.5x, https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png"
+        title="preflight_correct" /></p>
+<p>在上述範例中，除了我們在簡單查詢中需要帶的標頭之外，我們還看到在進行 <code>請求預檢</code> 時，會多帶 <code>Access-Control-Request-Method</code> 和 <code>Access-Control-Request-Headers</code> 兩個標頭。這兩個標頭在預檢請求的回應中，會對應到 <code>Access-Control-Allow-Methods</code> 和 <code>Access-Control-Allow-Headers</code>。預檢請求完成後，瀏覽器會進行與簡單請求相同的步驟。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">不管是簡單請求還是非簡單請求，Request 一般都會帶有 Origin，而 Response 則需要加上 <code>Access-Control-Allow-Origin</code> 標頭。無論 Request 方法是 OPTIONS 還是 POST，這兩種請求都需要包含 <code>Access-Control-Allow-Origin</code> 標頭。</div>
+        </div>
+    </div>
+<h2 id="request-不能隨意帶-header">Request 不能隨意帶 Header</h2>
+<p>在上述情況中，我們的 Request 符合 <code>CORS-safelisted request-header</code>，因此不需要進行<code>請求預檢</code>。讓我們進行一個簡單的實驗來驗證這一點：首先，打開這個網頁 <code>https://web.cyut.edu.tw/</code>，然後在 Console 中輸入以下指令。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://web.cyut.edu.tw/&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span> <span class="s1">&#39;application/x-www-form-urlencoded;charset=UTF-8&#39;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png, https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png 1.5x, https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png"
+        title="圖片" /></p>
+<p>然而，如果我們在請求中加入任意的標頭，就會觸發<code>請求預檢</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://web.cyut.edu.tw/&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span> <span class="s1">&#39;application/x-www-form-urlencoded;charset=UTF-8&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;test&#39;</span><span class="o">:</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png, https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png 1.5x, https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png"
+        title="圖片" /></p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>上面簡單範例是自訂 header 會做<code>請求預檢</code>，但實際上不是自訂才會。是不符合 <code>CORS-safelisted request-header</code> 才會，API 常用帶 Token 在 Header 上，會觸發請求預檢。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://web.cyut.edu.tw/&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span> <span class="s1">&#39;application/x-www-form-urlencoded;charset=UTF-8&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;Authorization&#39;</span><span class="o">:</span> <span class="s1">&#39;Bearer test&#39;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png, https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png 1.5x, https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png"
+        title="圖片" /></p>
+<p>有哪些符合可以看 <a href="https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_request_header" target="_blank" rel="noopener noreffer ">CORS-safelisted request header - MDN Web Docs Glossary: Definitions of Web-related terms | MDN</a>。</p>
+</div>
+        </div>
+    </div>
+<p>如果你手動進行嘗試，你會發現 <code>請求預檢</code> 中多了 <code>Access-Control-Request-Headers</code>，其中包含了你的程式中帶的標頭。這些都是瀏覽器自動為你處理的。當後端回應 <code>Access-Control-Allow-Headers</code> 時，表示你可以發送 API 請求。此時，你會發現沒有任何錯誤，這表示問題已經被解決了。</p>
+<p>然而，如果你設計了讓前端抓取 Response Header，當後端回應 <code>Access-Control-Allow-Headers</code> 時，你可能會發現前端無法抓取到 Response Header，即使你已經設定了相關的 CORS 設定，且程式並未出現錯誤。<strong>這是因為瀏覽器並未將相關 Header 傳給前端</strong>。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><code>Access-Control-Request-Headers</code> 可以放多個值，他是用<code>,</code> 分開的。但其實你不需要管怎麼放，畢竟是瀏覽器幫你做到的。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png, https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png 1.5x, https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png"
+        title="圖片" /></div>
+        </div>
+    </div>
+<h2 id="js-不能隨意用-response-header">JS 不能隨意用 Response Header</h2>
+<p>上面章節有提到，AJAX 通了，假如你有設計 Response 給前端抓 Header，你會發現沒辦法抓到 Header 參數。解決方法就是在<strong>後端</strong> API Response 加上 <code>Access-Control-Expose-Headers</code> Header，就可以解決這個問題。</p>
+<p><code>Access-Control-Expose-Headers</code> 通常會帶完整參數，很多框架實作上沒有加上 <code>*</code>，都是會回傳多個值 (header1,header2)，但我測試用 <code>*</code>，Response 就能吃到 Header 值。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png, https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png 1.5x, https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png"
+        title="圖片" /></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kr">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="s2">&#34;http://localhost:5206/WeatherForecast&#34;</span><span class="p">,</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;headers&#34;</span><span class="o">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="s2">&#34;test&#34;</span><span class="o">:</span><span class="s2">&#34;test&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="s2">&#34;test2&#34;</span><span class="o">:</span><span class="s2">&#34;test2value&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;method&#34;</span><span class="o">:</span> <span class="s2">&#34;GET&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">}).</span><span class="nx">then</span><span class="p">(</span> <span class="nx">res</span><span class="p">=&gt;</span> <span class="nx">res</span><span class="p">.</span><span class="nx">headers</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>前端 Header 可以抓到值了。<br>
+<img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png, https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png 1.5x, https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png"
+        title="圖片" /></p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">實際上，本篇的問題就是由於缺少一個 Header，導致前端無法抓取到資料。然而，我建議在未來的開發中儘量避免在 Response Header 中添加資料。如果你需要使用它，請注意跨域的問題。</div>
+        </div>
+    </div>
+<h2 id="access-control-allow-credentials">Access-Control-Allow-Credentials</h2>
+<p>這個設定是用於跨域分享 Cookies。在使用 fetch 時可能會用到。理論上，現在的 API 通常不會使用 Cookies，所以通常不會設定這個值，除非你的服務有 Web 頁面使用到 Session 或 Cookies。</p>
+<h2 id="access-control-allow-methods">Access-Control-Allow-Methods</h2>
+<p>這個設定允許前端呼叫的請求方法。這部分相對直觀，不再詳細說明。</p>
+<h2 id="access-control-max-age">Access-Control-Max-Age</h2>
+<blockquote>
+<p>CORS-preflight request 也是 CORS request 的一種，所以上面所說的針對 CORS request 可以給的 response 也都可以給。</p>
+<p>而除此之外還定義了另外三個：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Access-Control-Allow-Methods：可以使用哪些 method
+</span></span><span class="line"><span class="cl">Access-Control-Allow-Headers：可以使用哪些 header
+</span></span><span class="line"><span class="cl">Access-Control-Max-Age：前兩個 header 可以快取多久
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊值得注意的是第三個，預設值是 5 秒，所以 5 秒內針對同一個資源的 CORS response header 是可以重用的。</p>
+</blockquote>
+<p>引用: <a href="https://blog.huli.tw/2021/02/19/cors-guide-4/" target="_blank" rel="noopener noreffer ">CORS 完全手冊（四）：一起看規範 - Huli&rsquo;s blog</a></p>
+<h2 id="你真的會懂-cors">你真的會懂 CORS?</h2>
+<p>我們通常在網路上學習如何進行跨域設定，你可能會這樣設定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="n">builder</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">AddCors</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">options</span><span class="p">.</span><span class="n">AddPolicy</span><span class="p">(</span><span class="s">&#34;CorsPolicy&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">builder</span> <span class="p">=&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">builder</span><span class="p">.</span><span class="n">WithOrigins</span><span class="p">(</span><span class="s">&#34;*&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="p">.</span><span class="n">AllowAnyHeader</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="p">.</span><span class="n">AllowAnyMethod</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="p">});</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在寫這篇文章時，我對後端程式框架設定 CORS 的理解並不深入，但讀了以下的資料後，我對 CORS 有了更深的理解：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="n">builder</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">AddCors</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">options</span><span class="p">.</span><span class="n">AddPolicy</span><span class="p">(</span><span class="s">&#34;CorsPolicy&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">builder</span> <span class="p">=&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">builder</span><span class="p">.</span><span class="n">WithOrigins</span><span class="p">(</span><span class="s">&#34;*&#34;</span><span class="p">)</span> <span class="c1">// --&gt; Access-Control-Allow-Origin: *</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// .WithHeaders(&#34;Device&#34;)   // --&gt; Access-Control-Allow-Headers: Device</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// .WithHeaders(&#34;HeaderValue&#34;) // --&gt; Access-Control-Allow-Headers: HeaderValue</span>
+</span></span><span class="line"><span class="cl">            <span class="p">.</span><span class="n">AllowAnyHeader</span><span class="p">()</span>  <span class="c1">// --&gt; 會組合前端帶的 Header (Access-Control-Allow-Headers: Device,HeaderValue)</span>
+</span></span><span class="line"><span class="cl">            <span class="p">.</span><span class="n">AllowAnyMethod</span><span class="p">()</span>    <span class="c1">//  --&gt; Access-Control-Allow-Methods: PUT, POST, GET, DELETE, OPTIONS  ==&gt;理論上後端框架都會綁你算好，不會傳多餘的給前端</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">//.AllowCredentials()   // Access-Control-Allow-Credentials: true</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// .SetPreflightMaxAge(TimeSpan.FromSeconds(10))  --&gt; Access-Control-Max-Age: 10 (預設3秒)</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// WithHeadesr,WithOrigins 使用上都非常相似</span>
+</span></span><span class="line"><span class="cl">            <span class="p">.</span><span class="n">WithExposedHeaders</span><span class="p">(</span><span class="s">&#34;Device&#34;</span><span class="p">,</span><span class="s">&#34;HeaderValue&#34;</span><span class="p">);</span>  <span class="c1">// --&gt; Access-Control-Expose-Headers: Device,HeaderValue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">});</span>
+</span></span><span class="line"><span class="cl"><span class="p">});</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我相信還有很多內容可以學習，以下是我推薦的閱讀資料：</p>
+<ul>
+<li><a href="https://blog.huli.tw/2021/02/19/cors-guide-1/" target="_blank" rel="noopener noreffer ">CORS 完全手冊（一）：為什麼會發生 CORS 錯誤？ - Huli&rsquo;s blog</a> <a href="http://webcache.googleusercontent.com/search?q=cache:https://blog.huli.tw/2021/02/19/cors-guide-1/%5c&amp;sca_esv=559344913%5c&amp;strip=1%5c&amp;vwsrc=0" target="_blank" rel="noopener noreffer ">Google Cache Page 備份</a><br>
+這篇文章中的兩個問題非常有趣，讓我對 CORS 有了新的認識。</li>
+<li><a href="https://www.ruanyifeng.com/blog/2016/04/cors.html" target="_blank" rel="noopener noreffer ">跨域资源共享 CORS 详解 - 阮一峰的网络日志</a></li>
+<li><a href="https://allen108108.github.io/blog/2023/04/27/%E5%90%8C%E6%BA%90%E6%94%BF%E7%AD%96%20%28Same%20Origin%20Policy,%20SOP%29%20%E3%80%81%E5%85%A7%E5%AE%B9%E5%AE%89%E5%85%A8%E6%94%BF%E7%AD%96%20%28Content%20Security%20Policy,%20CSP%29%20%E8%88%87%20%20%E8%B7%A8%E4%BE%86%E6%BA%90%E8%B3%87%E6%BA%90%E5%85%B1%E7%94%A8%20%28Cross-Origin%20Resource%20Sharing,%20CORS%29/" target="_blank" rel="noopener noreffer ">同源政策 (Same Origin Policy, SOP)、內容安全政策(Content Security Policy, CSP)與跨來源資源共用 (Cross-Origin Resource Sharing, CORS) | Math.py</a><br>
+如果你有一段時間沒有接觸前端相關名詞，這篇文章的介紹非常清楚。</li>
+</ul>
+<h2 id="相關文章">相關文章</h2>
+<ul>
+<li>
+<p><a href="https://www.cnblogs.com/javastack/p/14798041.html" target="_blank" rel="noopener noreffer ">关于 websocket 跨域的一个奇怪问题… - Java 技术栈 - 博客园</a><br>
+裡面提到 websocket 需要 CORS，看起來好像不用?</p>
+</li>
+<li>
+<p><a href="https://learn.microsoft.com/zh-tw/aspnet/core/signalr/security?view=aspnetcore-7.0" target="_blank" rel="noopener noreffer ">ASP.NET Core 的安全性考慮 SignalR | Microsoft Learn</a></p>
+</li>
+<li>
+<p><a href="https://www.gss.com.tw/blog/asp-net-core-cross-origin-resource-sharing-cors" target="_blank" rel="noopener noreffer ">ASP.NET Core Cross-Origin Resource Sharing (CORS)：叡揚部落格：叡揚資訊</a><br>
+IIS 設定 CORS 方法。</p>
+</li>
+<li>
+<p><a href="https://blog.darkthread.net/blog/iis-multi-cors-origin/" target="_blank" rel="noopener noreffer ">IIS 支援多 Access-Control-Allow-Origin - 黑暗執行緒</a></p>
+</li>
+<li>
+<p><a href="https://learn.microsoft.com/en-us/iis/extensions/cors-module/cors-module-configuration-reference?WT.mc_id=DOP-MVP-37580" target="_blank" rel="noopener noreffer ">CORS Module Configuration Reference | Microsoft Learn</a></p>
+</li>
+</ul>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://reqbin.com/curl" target="_blank" rel="noopener noreffer ">Run Curl Commands Online</a></li>
+</ul>
+<div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-04-02</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" data-title="CORS 解決方案：前端如何處理收不到 Response Header 的問題" data-hashtags="cors,frontend,header,security"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" data-hashtag="cors"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" data-title="CORS 解決方案：前端如何處理收不到 Response Header 的問題"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" data-title="CORS 解決方案：前端如何處理收不到 Response Header 的問題"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" data-title="CORS 解決方案：前端如何處理收不到 Response Header 的問題" data-image="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/cors/">Cors</a>,&nbsp;<a href="/blog/tags/frontend/">Frontend</a>,&nbsp;<a href="/blog/tags/header/">Header</a>,&nbsp;<a href="/blog/tags/security/">Security</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/exploring-console-progress-bar-implementation/" class="prev" rel="prev" title="探索 Console 進度條的實現方式"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>探索 Console 進度條的實現方式</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.124.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

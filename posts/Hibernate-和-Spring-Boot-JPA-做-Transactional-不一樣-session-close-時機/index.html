@@ -13,7 +13,6 @@
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Hibernate-%E5%92%8C-Spring-Boot-JPA-%E5%81%9A-Transactional-%E4%B8%8D%E4%B8%80%E6%A8%A3-session-close-%E6%99%82%E6%A9%9F/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-09-06T15:01:58+00:00" />
 <meta property="article:modified_time" content="2020-09-06T15:01:58+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
-
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Hibernate 和 Spring Boot JPA 做 @Transactional 不一樣 session.close 時機"/>
 <meta name="twitter:description" content="之前我有做過Spring 交易事務失效 | 程式狂想筆記
 我以為大概了解 Spring 交易事務原理
@@ -211,7 +210,7 @@ Detached狀態的物件可以使用update()方法使之與資料庫中的對應�
 2，在事務提交之後，即session.getTransaction().commit()之後，session自動關閉，所以你用getCurrentSession，只需要commit事務，不要去調用session.close()。</p>
 <p>3，你用的是ssh，spring為hibernate的current_session_context_class配置了一個SpringSessionContext來幫你管理getCurrentSession中的session，所以，你在OpenSessionInview的時候，spring就自動的幫你打開了session——&gt;你在執行用AOP包裝的事務的時候，事務就開啟了——&gt;執行你的業務方法——&gt;提交事務（注意，hibernate管理的getCurrentSession在提交事務的時候才會關閉ession，而spring提供的這個SpringSessionContext不會） ——&gt;opensessioninview關閉session。<br>
 從上面的執行流程可以看出，你在SSH集成的時候，如果用的是getCurrentSession的集成方式，就不能設置hibernate的current_session_context_class為thread，而應該空著，讓spring幫你。<br>
-參考:<a href="https://blog.csdn.net/qq_25843323/article/details/50286643" target="_blank" rel="noopener noreffer ">hibernate中创建session的两种方式方式，区别在哪里？_qq_25843323的博客-CSDN博客</a> <a href="web2.png" rel="">備份圖</a></p>
+參考:<a href="https://blog.csdn.net/qq_25843323/article/details/50286643" target="_blank" rel="noopener noreffer ">hibernate中创建session的两种方式方式，区别在哪里？_qq_25843323的博客-CSDN博客</a> <a href="/blog/posts/Hibernate-%E5%92%8C-Spring-Boot-JPA-%E5%81%9A-Transactional-%E4%B8%8D%E4%B8%80%E6%A8%A3-session-close-%E6%99%82%E6%A9%9F/web2.png" rel="">備份圖</a></p>
 </blockquote>
 <p>Hibernate daoImpl</p>
 <div class="highlight"><div class="chroma">
@@ -319,7 +318,7 @@ Hibernate 連線會自動關閉(session.close)<br>
 後來查了一下<br>
 應該是 Spring 事務傳播</p>
 <ul>
-<li><a href="https://segmentfault.com/a/1190000013341344" target="_blank" rel="noopener noreffer ">Spring事務傳播行為詳解 - 個人文章 - SegmentFault 思否</a>  <a href="web6.png" rel="">備份圖</a><br>
+<li><a href="https://segmentfault.com/a/1190000013341344" target="_blank" rel="noopener noreffer ">Spring事務傳播行為詳解 - 個人文章 - SegmentFault 思否</a>  <a href="/blog/posts/Hibernate-%E5%92%8C-Spring-Boot-JPA-%E5%81%9A-Transactional-%E4%B8%8D%E4%B8%80%E6%A8%A3-session-close-%E6%99%82%E6%A9%9F/web6.png" rel="">備份圖</a><br>
 這篇寫得很棒!!</li>
 <li><a href="https://www.jianshu.com/p/1533f0f5241a" target="_blank" rel="noopener noreffer ">Spring声明式事务管理之二：核心接口API - 簡書</a></li>
 <li><a href="https://stackoverflow.com/questions/19396563/does-hibernates-session-close-automatically-rollback-uncommitted-transactions" target="_blank" rel="noopener noreffer ">java - Does Hibernate&rsquo;s Session.close() automatically rollback uncommitted transactions? - Stack Overflow</a></li>
@@ -339,9 +338,9 @@ Hibernate 連線會自動關閉(session.close)<br>
 <li><a href="https://www.cnblogs.com/wenq001/p/9264861.html" target="_blank" rel="noopener noreffer ">springboot jpa 批量保存數據&ndash;EntityManager和 JpaRepository - WenQ001 - 博客園</a></li>
 <li><a href="https://stackoverflow.com/questions/161224/what-are-the-differences-between-the-different-saving-methods-in-hibernate" target="_blank" rel="noopener noreffer ">java - What are the differences between the different saving methods in Hibernate? - Stack Overflow</a></li>
 <li><a href="https://blog.csdn.net/u010739551/article/details/47253881" target="_blank" rel="noopener noreffer ">Hibernate save()与persist()区别_攻城狮Luke（刘健彬）-CSDN博客</a></li>
-<li><a href="http://www.blogjava.net/dreamstone/archive/2007/07/29/133071.html" target="_blank" rel="noopener noreffer ">hibernate的各种保存方式的区别 (save,persist,update,saveOrUpdte,merge,flush,lock)等 - DANCE WITH JAVA - BlogJava</a> <a href="web4.png" rel="">備份圖</a></li>
-<li><a href="https://sites.google.com/site/hzg139/home/orm-jihibernate/hibernate/hibernate" target="_blank" rel="noopener noreffer ">Hibernate各种保存方式的区别 - 不發光的螢火蟲</a> <a href="web3.png" rel="">備份圖</a></li>
-<li><a href="https://www.cnblogs.com/xiaoheike/p/5374613.html" target="_blank" rel="noopener noreffer ">Hibernate save, saveOrUpdate, persist, merge, update 区别 - xiaoheike - 博客园</a> <a href="web1.png" rel="">備份圖</a><br>
+<li><a href="http://www.blogjava.net/dreamstone/archive/2007/07/29/133071.html" target="_blank" rel="noopener noreffer ">hibernate的各种保存方式的区别 (save,persist,update,saveOrUpdte,merge,flush,lock)等 - DANCE WITH JAVA - BlogJava</a> <a href="/blog/posts/Hibernate-%E5%92%8C-Spring-Boot-JPA-%E5%81%9A-Transactional-%E4%B8%8D%E4%B8%80%E6%A8%A3-session-close-%E6%99%82%E6%A9%9F/web4.png" rel="">備份圖</a></li>
+<li><a href="https://sites.google.com/site/hzg139/home/orm-jihibernate/hibernate/hibernate" target="_blank" rel="noopener noreffer ">Hibernate各种保存方式的区别 - 不發光的螢火蟲</a> <a href="/blog/posts/Hibernate-%E5%92%8C-Spring-Boot-JPA-%E5%81%9A-Transactional-%E4%B8%8D%E4%B8%80%E6%A8%A3-session-close-%E6%99%82%E6%A9%9F/web3.png" rel="">備份圖</a></li>
+<li><a href="https://www.cnblogs.com/xiaoheike/p/5374613.html" target="_blank" rel="noopener noreffer ">Hibernate save, saveOrUpdate, persist, merge, update 区别 - xiaoheike - 博客园</a> <a href="/blog/posts/Hibernate-%E5%92%8C-Spring-Boot-JPA-%E5%81%9A-Transactional-%E4%B8%8D%E4%B8%80%E6%A8%A3-session-close-%E6%99%82%E6%A9%9F/web1.png" rel="">備份圖</a><br>
 <a href="https://github.com/xiaoheike/HibernateSavePersistUpdateMergeDiff" target="_blank" rel="noopener noreffer ">xiaoheike/HibernateSavePersistUpdateMergeDiff</a></li>
 </ol>
 <h2 id="try-catch-到底能不能抓到-transactional-public-method-">try catch 到底能不能抓到 @Transactional public method ?</h2>
@@ -428,7 +427,7 @@ orz</p><div align="center">
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/hibernate/">hibernate</a>,&nbsp;<a href="/blog/tags/transactional/">transactional</a>,&nbsp;<a href="/blog/tags/jpa/">jpa</a>,&nbsp;<a href="/blog/tags/spring/">spring</a></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/hibernate/">Hibernate</a>,&nbsp;<a href="/blog/tags/transactional/">Transactional</a>,&nbsp;<a href="/blog/tags/jpa/">Jpa</a>,&nbsp;<a href="/blog/tags/spring/">Spring</a></section>
         <section>
             <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
         </section>
@@ -441,7 +440,7 @@ orz</p><div align="center">
                 Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
             </noscript></div></article></div>
             </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.122.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.124.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
                 </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
         </div>
     </footer></div>
