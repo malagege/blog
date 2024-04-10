@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>如何在 .Net 中處理 JSON 轉換時的過濾特殊字串 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串" />
+<meta property="og:description" content="最近在專案中串接 OpenData 時，遇到了一個問題。某些資料中出現了一些奇怪的符號?，這在資料類型為 float 時會導致程式出錯。在這篇文章中，我將分享我找到的解決這個問題的方法。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-04-09T22:02:32+08:00" />
+<meta property="article:modified_time" content="2024-04-10T21:04:58+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串"/>
+<meta name="twitter:description" content="最近在專案中串接 OpenData 時，遇到了一個問題。某些資料中出現了一些奇怪的符號?，這在資料類型為 float 時會導致程式出錯。在這篇文章中，我將分享我找到的解決這個問題的方法。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" /><link rel="prev" href="https://malagege.github.io/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "如何在 .Net 中處理 JSON 轉換時的過濾特殊字串",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/how-to-handle-special-string-in-json-conversion-in-dotnet\/"
+        },"genre": "posts","keywords": ".net, json, string-handling, conversion, special-characters","wordcount":  866 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/how-to-handle-special-string-in-json-conversion-in-dotnet\/","datePublished": "2024-04-09T22:02:32+08:00","dateModified": "2024-04-10T21:04:58+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近在專案中串接 \u003ca href=\"https://data.gov.tw/\" target=\"_blank\" rel=\"noopener noreffer \"\u003eOpenData\u003c/a\u003e 時，遇到了一個問題。某些資料中出現了一些奇怪的符號\u003ccode\u003e?\u003c/code\u003e，這在資料類型為 float 時會導致程式出錯。在這篇文章中，我將分享我找到的解決這個問題的方法。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">如何在 .Net 中處理 JSON 轉換時的過濾特殊字串</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-04-09">2024-04-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;866 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"
+        data-srcset="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e, https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e 1.5x, https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"
+        title="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#一般-trim-方法過濾一些符號">一般 Trim 方法過濾一些符號</a></li>
+    <li><a href="#jsonnet-newtonsoft-屬性-trim-欄位">Json.NET (Newtonsoft) 屬性 Trim 欄位</a></li>
+    <li><a href="#systemtextjson-用屬性-trim-方法">System.Text.Json 用屬性 Trim 方法</a></li>
+    <li><a href="#我後來選擇-jsonnet-處理過濾特殊字元範例">我後來選擇 Json.Net 處理過濾特殊字元範例</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在專案中串接 <a href="https://data.gov.tw/" target="_blank" rel="noopener noreffer ">OpenData</a> 時，遇到了一個問題。某些資料中出現了一些奇怪的符號<code>?</code>，這在資料類型為 float 時會導致程式出錯。在這篇文章中，我將分享我找到的解決這個問題的方法。</p>
+<h2 id="一般-trim-方法過濾一些符號">一般 Trim 方法過濾一些符號</h2>
+<p>參考來源: <a href="https://www.c-sharpcorner.com/UploadFile/mahesh/trim-string-in-C-Sharp/" target="_blank" rel="noopener noreffer ">Trim String in C#</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="c1">// String with whitespaces</span>
+</span></span><span class="line"><span class="cl"><span class="kt">string</span> <span class="n">hello</span> <span class="p">=</span> <span class="s">&#34; hello C# Corner has white spaces &#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Remove whitespaces from both ends</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">hello</span><span class="p">.</span><span class="n">Trim</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// String with characters</span>
+</span></span><span class="line"><span class="cl"><span class="kt">string</span> <span class="n">someString</span> <span class="p">=</span> <span class="s">&#34;.....My name is Mahesh Chand****&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">char</span><span class="p">[]</span> <span class="n">charsToTrim</span> <span class="p">=</span> <span class="p">{</span> <span class="sc">&#39;*&#39;</span><span class="p">,</span> <span class="sc">&#39;.&#39;</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="kt">string</span> <span class="n">cleanString</span> <span class="p">=</span> <span class="n">someString</span><span class="p">.</span><span class="n">Trim</span><span class="p">(</span><span class="n">charsToTrim</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">cleanString</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>public string Trim (params char[]? trimChars);</code> 從官方文件中我們可以看到，<code>Trim</code> 方法可以接受多個參數。由於 <code>params</code> 的關係，我們可以直接將要過濾的字符作為參數傳入，如 <code>someString.Trim('*', '.');</code>。</p>
+<p><code>Trim</code> 方法會從字串的開頭和結尾過濾掉指定的字符。在上面的範例中，<code>Trim</code> 方法過濾掉了變數 <code>someString</code> 開頭的 &lsquo;.&rsquo; 字符和結尾的 &lsquo;*&rsquo; 字符，得到了乾淨的字串 <code>cleanString</code>。</p>
+<p>更多關於 Trim 方法的資訊，可以參考 <img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0"
+        data-srcset="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0, https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0 1.5x, https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0 2x"
+        data-sizes="auto"
+        alt="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0"
+        title="Microsoft 官方文件" />。</p>
+<h2 id="jsonnet-newtonsoft-屬性-trim-欄位">Json.NET (Newtonsoft) 屬性 Trim 欄位</h2>
+<p>在處理 JSON 字串的反序列化時，我們可能會遇到一些字串前後有多餘空白的情況。這時，我們可以使用 Json.NET (Newtonsoft) 的 <code>TrimmingConverter</code> 來自動修剪這些空白。以下是一個 <code>TrimmingConverter</code> 的範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kd">public</span> <span class="k">class</span> <span class="nc">TrimmingConverter</span> <span class="p">:</span> <span class="n">JsonConverter</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="kt">bool</span> <span class="n">CanRead</span> <span class="p">=&gt;</span> <span class="kc">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="kt">bool</span> <span class="n">CanWrite</span> <span class="p">=&gt;</span> <span class="kc">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="kt">bool</span> <span class="n">CanConvert</span><span class="p">(</span><span class="n">Type</span> <span class="n">objectType</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">objectType</span> <span class="p">==</span> <span class="k">typeof</span><span class="p">(</span><span class="kt">string</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="kt">object</span> <span class="n">ReadJson</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> <span class="n">Type</span> <span class="n">objectType</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                    <span class="kt">object</span> <span class="n">existingValue</span><span class="p">,</span> <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="p">((</span><span class="kt">string</span><span class="p">)</span><span class="n">reader</span><span class="p">.</span><span class="n">Value</span><span class="p">)?.</span><span class="n">Trim</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="k">void</span> <span class="n">WriteJson</span><span class="p">(</span><span class="n">JsonWriter</span> <span class="n">writer</span><span class="p">,</span> <span class="kt">object</span> <span class="k">value</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">                                   <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="k">new</span> <span class="n">NotImplementedException</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在反序列化過程中，<code>TrimmingConverter</code> 會自動修剪字串的前後空白。以下是一個使用 <code>TrimmingConverter</code> 的範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">json</span> <span class="p">=</span> <span class="s">@&#34;{ name:&#34;&#34; John &#34;&#34; }&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">Person</span><span class="p">&gt;(</span><span class="n">json</span><span class="p">,</span> <span class="k">new</span> <span class="n">TrimmingConverter</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;Name is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//Name is: &#34;John&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我們也可以在類別的屬性上使用 <code>JsonConverter</code> 屬性來指定 <code>TrimmingConverter</code>，如下所示：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kd">public</span> <span class="k">class</span> <span class="nc">Person</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="na">    [JsonProperty(&#34;name&#34;)]</span>
+</span></span><span class="line"><span class="cl"><span class="na">    [JsonConverter(typeof(TrimmingConverter))]</span> <span class="c1">// &lt;-- that&#39;s the important line</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="na">    [JsonProperty(&#34;other&#34;)]</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">string</span> <span class="n">Other</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">json</span> <span class="p">=</span> <span class="s">@&#34;{ name:&#34;&#34; John &#34;&#34;, other:&#34;&#34; blah blah blah &#34;&#34; }&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">Person</span><span class="p">&gt;(</span><span class="n">json</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;Name is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;Other is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Other</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//Name is: &#34;John&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//Other is: &#34; blah blah blah &#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://share.linqpad.net/5xgde6ik.linq" target="_blank" rel="noopener noreffer ">LinqPad範例</a></p>
+<p>更多關於 Json.NET 的 JsonConverter 類別的資訊，可以參考:</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/19271470/deserialize-json-with-auto-trimming-strings" target="_blank" rel="noopener noreffer ">c# - Deserialize json with auto-trimming strings - Stack Overflow</a></li>
+<li><a href="https://justsimplycode.com/2020/03/01/auto-trimming-all-values-when-deserialising-json-string/" target="_blank" rel="noopener noreffer ">Auto trimming all values when deserialising Json string | Just Simply Code</a></li>
+<li><a href="https://www.newtonsoft.com/json/help/html/T_Newtonsoft_Json_JsonConverter.htm" target="_blank" rel="noopener noreffer ">JsonConverter Class</a></li>
+</ul>
+<h2 id="systemtextjson-用屬性-trim-方法">System.Text.Json 用屬性 Trim 方法</h2>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我進行的實驗發現，使用 Json.NET 可以正常解析浮點數字串 <code>&quot;122.456&quot;</code> 為 <code>float</code>，但是使用 <code>System.Text.Json</code> 則會發生錯誤。這顯示 <code>System.Text.Json</code> 在處理數據時會比較嚴謹。在程式上改寫時，我們需要特別注意這一點。ChatGPT 提供了一種解決方案，即使用 <code>JsonConvert</code> 來解決這個問題。<br>
+參考: <a href="http://gist.githack.com/malagege/b4e7dac355ee716fd8003d8f0b36cdbd/raw/792b84e9648512012d4987e7375612b99832714b/SystemTextJson.html" target="_blank" rel="noopener noreffer ">ChatGPT 問答</a></div>
+        </div>
+    </div>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這邊我使用了 Json.Net 進行轉換。目前台灣的 OpenData 大部分都是從 csv 轉出的 json，因此大部分的數字都會帶有 <code>&quot;</code> 符號。在這種情況下，使用 Json.Net 進行轉換可能會比較方便。<br>
+詳細可以看: <a href="https://data.gov.tw/en/datasets/137767" target="_blank" rel="noopener noreffer ">週三、週日廚餘專用限時收受點 | Opendata platform</a><br>
+有時候資料中會包含一些<code>?</code> 之類的字元，處理起來可能會比較麻煩。</div>
+        </div>
+    </div>
+<p>在 Stack Overflow 上也有一篇相關的討論：<a href="https://stackoverflow.com/questions/19271470/deserialize-json-with-auto-trimming-strings" target="_blank" rel="noopener noreffer ">c# - Deserialize json with auto-trimming strings - Stack Overflow</a></p>
+<p>以下是一個使用 <code>TrimmingConverter</code> 的程式碼範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">json</span> <span class="p">=</span> <span class="s">@&#34;{ &#34;&#34;Name&#34;&#34;:&#34;&#34; John &#34;&#34;, &#34;&#34;Other&#34;&#34;:&#34;&#34; blah blah blah &#34;&#34; }&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">JsonSerializer</span><span class="p">.</span><span class="n">Deserialize</span><span class="p">&lt;</span><span class="n">Person</span><span class="p">&gt;(</span><span class="n">json</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;name is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;Other is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Other</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="k">class</span> <span class="nc">Person</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="na">	[JsonConverter(typeof(TrimmingConverter))]</span> <span class="c1">// &lt;-- that&#39;s the important line</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">string</span> <span class="n">Other</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="k">class</span> <span class="nc">TrimmingConverter</span> <span class="p">:</span> <span class="n">JsonConverter</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;summary&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// Trim the input string</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;/summary&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;param name=&#34;reader&#34;&gt;reader&lt;/param&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;param name=&#34;typeToConvert&#34;&gt;Object type&lt;/param&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;param name=&#34;options&#34;&gt;Existing Value&lt;/param&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;returns&gt;&lt;/returns&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kd">override</span> <span class="kt">string</span> <span class="n">Read</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">		<span class="k">ref</span> <span class="n">Utf8JsonReader</span> <span class="n">reader</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">Type</span> <span class="n">typeToConvert</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">JsonSerializerOptions</span> <span class="n">options</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">reader</span><span class="p">.</span><span class="n">GetString</span><span class="p">()?.</span><span class="n">Trim</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;summary&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// Trim the output string</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;/summary&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;param name=&#34;writer&#34;&gt;Writer&lt;/param&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;param name=&#34;value&#34;&gt;value&lt;/param&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="cs">/// &lt;param name=&#34;options&#34;&gt;serializer&lt;/param&gt;</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kd">override</span> <span class="k">void</span> <span class="n">Write</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">		<span class="n">Utf8JsonWriter</span> <span class="n">writer</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="kt">string</span> <span class="k">value</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">JsonSerializerOptions</span> <span class="n">options</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">writer</span><span class="p">.</span><span class="n">WriteStringValue</span><span class="p">(</span><span class="k">value</span><span class="p">?.</span><span class="n">Trim</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://share.linqpad.net/47eofano.linq" target="_blank" rel="noopener noreffer ">LinqPad範例</a><br>
+在這個程式碼範例中，<code>TrimmingConverter</code> 會在反序列化過程中自動修剪字串的前後空白。這對於處理帶有前後空白的 JSON 字串非常有用。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>System.Text.Json 針對 Json 所有屬性做 JsonConverter 也是有的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">options</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JsonSerializerOptions</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">options</span><span class="p">.</span><span class="n">Converters</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">TrimmingConverter</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">json</span> <span class="p">=</span> <span class="s">@&#34;{ &#34;&#34;Name&#34;&#34;:&#34;&#34; John &#34;&#34;, &#34;&#34;Other&#34;&#34;:&#34;&#34; blah blah blah &#34;&#34; }&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">JsonSerializer</span><span class="p">.</span><span class="n">Deserialize</span><span class="p">&lt;</span><span class="n">Person</span><span class="p">&gt;(</span><span class="n">json</span><span class="p">,</span> <span class="n">options</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;name is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;Other is: \&#34;{0}\&#34;&#34;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">Other</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://share.linqpad.net/rp2kftn2.linq" target="_blank" rel="noopener noreffer ">LinqPad範例</a></p>
+</div>
+        </div>
+    </div>
+<h2 id="我後來選擇-jsonnet-處理過濾特殊字元範例">我後來選擇 Json.Net 處理過濾特殊字元範例</h2>
+<p>在處理浮點數字串的轉換時，Json.Net 和 System.Text.Json 的行為有所不同。具體來說，Json.Net 可以<strong>自動</strong>轉換浮點數字串，而 System.Text.Json 則會報錯。這是由於 System.Text.Json 在處理數字時，對於數字格式的要求比 Json.Net 更嚴格。因此，在這個專案中，我選擇使用 Json.Net 套件。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">    <span class="kd">public</span> <span class="k">class</span> <span class="nc">TrimmingFloatConverter</span> <span class="p">:</span> <span class="n">JsonConverter</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">public</span> <span class="kd">override</span> <span class="kt">bool</span> <span class="n">CanRead</span> <span class="p">=&gt;</span> <span class="kc">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">public</span> <span class="kd">override</span> <span class="kt">bool</span> <span class="n">CanWrite</span> <span class="p">=&gt;</span> <span class="kc">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kd">public</span> <span class="kd">override</span> <span class="kt">bool</span> <span class="n">CanConvert</span><span class="p">(</span><span class="n">Type</span> <span class="n">objectType</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">objectType</span> <span class="p">==</span> <span class="k">typeof</span><span class="p">(</span><span class="kt">string</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kd">public</span> <span class="kd">override</span> <span class="kt">object</span> <span class="n">ReadJson</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> <span class="n">Type</span> <span class="n">objectType</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                        <span class="kt">object</span> <span class="n">existingValue</span><span class="p">,</span> <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="p">((</span><span class="kt">string</span><span class="p">)</span><span class="n">reader</span><span class="p">.</span><span class="n">Value</span><span class="p">)?.</span><span class="n">Trim</span><span class="p">(</span><span class="sc">&#39;?&#39;</span><span class="p">,</span> <span class="sc">&#39;*&#39;</span><span class="p">,</span> <span class="sc">&#39;.&#39;</span><span class="p">,</span> <span class="sc">&#39; &#39;</span><span class="p">).</span><span class="n">ToFloat</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kd">public</span> <span class="kd">override</span> <span class="k">void</span> <span class="n">WriteJson</span><span class="p">(</span><span class="n">JsonWriter</span> <span class="n">writer</span><span class="p">,</span> <span class="kt">object</span> <span class="k">value</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                       <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">throw</span> <span class="k">new</span> <span class="n">NotImplementedException</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在上面的程式碼範例中，<code>TrimmingFloatConverter</code> 會在反序列化過程中過濾掉字串中的 &lsquo;?&rsquo;, &lsquo;*&rsquo;, &lsquo;.&rsquo;, &rsquo; &rsquo; 字符，並將過濾後的字串轉換成浮點數。這對於處理帶有特定字符的 JSON 字串非常有用。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我發現 Json.Net 和原生的 System.Text.Json 在處理 JSON 數據時有一些不同，例如在轉換 DateTime 字串格式和將數字字串轉換成數字型別的嚴謹度上。這是我們在選擇使用哪種 JSON 處理庫時需要考慮的因素。</div>
+        </div>
+    </div>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">由於 System.Text.Json 的嚴謹度較高，我們無法像在 Json.Net 中那樣直接使用 <code>TrimmingFloatConverter</code> 來過濾和轉換字串。這是我們在使用 System.Text.Json 時需要注意的一點。</div>
+        </div>
+    </div>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>當然 System.Text.Json 也是有對應處理方法，可以參考下面的範例。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">options</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JsonSerializerOptions</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">options</span><span class="p">.</span><span class="n">Converters</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">FloatStringConverter</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">person</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Person</span> <span class="p">{</span> <span class="n">Name</span> <span class="p">=</span> <span class="s">&#34;John&#34;</span><span class="p">,</span> <span class="n">Height</span> <span class="p">=</span> <span class="m">1.8f</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">json</span> <span class="p">=</span> <span class="s">@&#34;{&#34;&#34;Name&#34;&#34;:&#34;&#34;John  &#34;&#34;,&#34;&#34;Height&#34;&#34;:&#34;&#34;  1.8   &#34;&#34;}&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">json</span><span class="p">.</span><span class="n">Dump</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="kt">var</span> <span class="n">deserializedPerson</span> <span class="p">=</span> <span class="n">JsonSerializer</span><span class="p">.</span><span class="n">Deserialize</span><span class="p">&lt;</span><span class="n">Person</span><span class="p">&gt;(</span><span class="n">json</span><span class="p">,</span> <span class="n">options</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">deserializedPerson</span><span class="p">.</span><span class="n">Dump</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="k">class</span> <span class="nc">FloatStringConverter</span> <span class="p">:</span> <span class="n">JsonConverter</span><span class="p">&lt;</span><span class="kt">float</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="kt">float</span> <span class="n">Read</span><span class="p">(</span><span class="k">ref</span> <span class="n">Utf8JsonReader</span> <span class="n">reader</span><span class="p">,</span> <span class="n">Type</span> <span class="n">typeToConvert</span><span class="p">,</span> <span class="n">JsonSerializerOptions</span> <span class="n">options</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">var</span> <span class="k">value</span> <span class="p">=</span> <span class="n">reader</span><span class="p">.</span><span class="n">GetString</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kt">float</span><span class="p">.</span><span class="n">Parse</span><span class="p">(</span><span class="k">value</span><span class="p">,</span> <span class="n">CultureInfo</span><span class="p">.</span><span class="n">InvariantCulture</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kd">override</span> <span class="k">void</span> <span class="n">Write</span><span class="p">(</span><span class="n">Utf8JsonWriter</span> <span class="n">writer</span><span class="p">,</span> <span class="kt">float</span> <span class="k">value</span><span class="p">,</span> <span class="n">JsonSerializerOptions</span> <span class="n">options</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">writer</span><span class="p">.</span><span class="n">WriteStringValue</span><span class="p">(</span><span class="k">value</span><span class="p">.</span><span class="n">ToString</span><span class="p">(</span><span class="n">CultureInfo</span><span class="p">.</span><span class="n">InvariantCulture</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="k">class</span> <span class="nc">Person</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">float</span> <span class="n">Height</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://share.linqpad.net/xilg2req.linq" target="_blank" rel="noopener noreffer ">LinqPad範例</a></p>
+</div>
+        </div>
+    </div>
+<h2 id="彩蛋">彩蛋</h2>
+<p><a href="https://gist.github.com/goeh/b542c7c02462ff4a7a8c" target="_blank" rel="noopener noreffer ">Trim strings in JSON paylod</a></p>
+<p><a href="https://dotblogs.com.tw/supershowwei/2019/09/23/225851" target="_blank" rel="noopener noreffer ">[小菜一碟] Trim () 不只能修剪空白字元而已 | 軟體主廚的程式料理廚房 - 點部落</a></p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-04-10</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" data-title="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串" data-hashtags=".net,json,string-handling,conversion,special-characters"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" data-hashtag=".net"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" data-title="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" data-title="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" data-title="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串" data-image="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/.net/">.Net</a>,&nbsp;<a href="/blog/tags/json/">Json</a>,&nbsp;<a href="/blog/tags/string-handling/">String-Handling</a>,&nbsp;<a href="/blog/tags/conversion/">Conversion</a>,&nbsp;<a href="/blog/tags/special-characters/">Special-Characters</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/cors-solution-how-frontend-handles-not-receiving-response-header/" class="prev" rel="prev" title="CORS 解決方案：前端如何處理收不到 Response Header 的問題"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>CORS 解決方案：前端如何處理收不到 Response Header 的問題</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.124.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
