@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-tw">
     <head>
-	<meta name="generator" content="Hugo 0.124.1">
+	<meta name="generator" content="Hugo 0.125.4">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="程式狂想筆記" />
-<meta property="og:description" content="記錄著我接觸程式藝文" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://malagege.github.io/blog/" /><meta property="og:site_name" content="程式狂想筆記" />
-<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="程式狂想筆記"/>
-<meta name="twitter:description" content="記錄著我接觸程式藝文"/>
+        <title>程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:url" content="https://malagege.github.io/blog/">
+  <meta property="og:site_name" content="程式狂想筆記">
+  <meta property="og:title" content="程式狂想筆記">
+  <meta property="og:description" content="記錄著我接觸程式藝文">
+  <meta property="og:locale" content="zh-tw">
+  <meta property="og:type" content="website">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="程式狂想筆記">
+<meta name="twitter:description" content="記錄著我接觸程式藝文">
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -96,6 +98,90 @@
         alt="https://avatars.githubusercontent.com/u/6058558"
         title="https://avatars.githubusercontent.com/u/6058558" /></a></div><h1 class="home-title">程式狂想筆記</h1><div class="home-subtitle"><div id="id-1" class="typeit"></div></div><div class="links"></div></div>
 <article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
+        <a href="/blog/posts/%E6%9C%89%E9%97%9C%E7%A8%8B%E5%BC%8F-N-1-%E5%95%8F%E9%A1%8C/">有關程式 N+1 問題</a>
+    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2019-05-21">2019-05-21</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div><div class="content">
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <p>最近在做複雜的 API<br>
+由於 PM 覺得某一個 JSON 屬性調整<br>
+結果需要改好幾隻程式 API<br>
+不過有查到可以使用<a href="https://graphql.cn/" target="_blank" rel="noopener noreffer ">GraphQL | 一种为你的 API 而生的查询语言</a><br>
+但這篇不是重點在 GraphQL<br>
+而是我探索某一篇 <a href="https://jerryzou.com/posts/10-questions-about-graphql/" target="_blank" rel="noopener noreffer ">阻碍你使用 GraphQL 的十个问题 | 咀嚼之味</a></p>
+<blockquote>
+<p>它就像是一顆無限向下延伸的樹。所以在我看來，GraphQL 更應該叫 TreeQL，當然在圖論裡，Tree 就是 Graph 也沒毛病啦。需要注意的是，這也會引出 「N + 1 problem」 的話題——naive 的 GraphQL 服務端實現會讓這段 query 變得異常慢！</p>
+</blockquote>
+<p>看了一下內容，N+1 問題就有像一個查詢每一行執行 SQL<br>
+如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">song</span><span class="o">`</span><span class="w"> </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">singer</span><span class="o">`</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">singer</span><span class="o">`</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="o">`</span><span class="n">singer</span><span class="o">`</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">...</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>奇怪，這個怎麼讓我想到 ORM 也是這樣<br>
+所以我查了一下 ORM 真的也有這個問題<br>
+由於最近也想開使用 ORM ，所以進入前想了解之後使用上會遇到什麼問題<br>
+這邊只會先整理</p></div><div class="post-footer">
+        <a href="/blog/posts/%E6%9C%89%E9%97%9C%E7%A8%8B%E5%BC%8F-N-1-%E5%95%8F%E9%A1%8C/">Read More</a><div class="post-tags">
+                <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/sql/">Sql</a>,&nbsp;<a href="/blog/tags/orm/">Orm</a></div></div>
+</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
+        <a href="/blog/posts/SQL-union-%E6%8E%92%E5%BA%8F%E7%9A%84%E5%95%8F%E9%A1%8C/">SQL union 排序的問題</a>
+    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2019-05-20">2019-05-20</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/SQL/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>SQL</a></span></div><div class="content">
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  union 要做排序要放在最下面
+select seq from ooo
+union
+select null as seq from xxx
+seq 全部都會變成 null
+最近太忙了
+先記錄到這邊
+有空在研究
+UNION 中 ORDER By 的使用 - 不要依赖这里 因为你有大脑 - ITeye 博客</div><div class="post-footer">
+        <a href="/blog/posts/SQL-union-%E6%8E%92%E5%BA%8F%E7%9A%84%E5%95%8F%E9%A1%8C/">Read More</a><div class="post-tags">
+                <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/sql/">Sql</a>,&nbsp;<a href="/blog/tags/union/">Union</a></div></div>
+</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
         <a href="/blog/posts/%E5%8F%A6%E9%A1%9E%E5%BF%AB%E9%80%9F%E6%89%93%E5%8C%85commmit%E7%A8%8B%E5%BC%8F%E6%96%B9%E6%B3%95/">另類快速打包commmit程式方法</a>
     </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2019-05-20">2019-05-20</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/shell/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Shell</a></span></div><div class="content">
         <div align="center">
@@ -304,61 +390,6 @@ Sublime,vscode 都不適合開大檔案<br>
 要怎麼解決呢?</p></div><div class="post-footer">
         <a href="/blog/posts/Git%E5%88%AA%E9%99%A4Rmote-Branch%E6%96%B9%E6%B3%95/">Read More</a><div class="post-tags">
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/git/">Git</a></div></div>
-</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
-        <a href="/blog/posts/MySQL%E8%BD%89%E5%87%BADB%E8%A8%AD%E8%A8%88%E6%96%87%E4%BB%B6%E6%96%B9%E6%B3%95/">MySQL轉出DB設計文件方法</a>
-    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2019-05-09">2019-05-09</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div><div class="content">
-        <div align="center">
-    <script
-      async
-      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
-    ></script>
-    <ins
-      class="adsbygoogle"
-      style="display:block; text-align:center;"
-      data-ad-layout="in-article"
-      data-ad-format="fluid"
-      data-ad-client="ca-pub-1439458814178865"
-      data-ad-slot="4661282975"
-    ></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  </div>
-  <p>最近專案很趕<br>
-今天收到要把目前所有建立的 table 用成設計書<br>
-雖然之前有寫過<a href="https://malagege.github.io/blog/posts/%E8%AE%80%E5%8F%96%E5%87%BA%E6%96%87%E4%BB%B6%E8%A8%AD%E8%A8%88%E6%9B%B8%E8%A1%A8%E6%A0%BC%E6%A0%BC%E5%BC%8F/" target="_blank" rel="noopener noreffer ">從 MySQL 裡面直接(select)讀取出文件設計書表格格式 | 程式狂想筆記</a><br>
-但還是查一下有沒有現成，又好看的工具:P</p></div><div class="post-footer">
-        <a href="/blog/posts/MySQL%E8%BD%89%E5%87%BADB%E8%A8%AD%E8%A8%88%E6%96%87%E4%BB%B6%E6%96%B9%E6%B3%95/">Read More</a><div class="post-tags">
-                <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/mysql/">Mysql</a>,&nbsp;<a href="/blog/tags/doc/">Doc</a>,&nbsp;<a href="/blog/tags/php/">Php</a></div></div>
-</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
-        <a href="/blog/posts/Strict-Standards-Only-variables-should-be-passed-by-reference/">Strict Standards: Only variables should be passed by reference</a>
-    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2019-05-09">2019-05-09</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/PHP/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>PHP</a></span></div><div class="content">
-        <div align="center">
-    <script
-      async
-      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
-    ></script>
-    <ins
-      class="adsbygoogle"
-      style="display:block; text-align:center;"
-      data-ad-layout="in-article"
-      data-ad-format="fluid"
-      data-ad-client="ca-pub-1439458814178865"
-      data-ad-slot="4661282975"
-    ></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  </div>
-  最近 php 預設設個錯誤
-但我程式沒有寫錯&hellip;
-後來找了一下，參照不能代入 function 裡面
-如這個$price = array_shift(get_product_price($product_key));
-因為忘了第二次，所以獨立寫一篇
-1 2 $product_price = get_product_price($product_key); $price = array_shift($product_price); 臨時筆記: ［PHP］Error: Only variables should be passed by reference
-PHP 有關參照(Reference)的那些事 | 程式狂想筆記其實我以前就有提到 orz</div><div class="post-footer">
-        <a href="/blog/posts/Strict-Standards-Only-variables-should-be-passed-by-reference/">Read More</a><div class="post-tags">
-                <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/php/">Php</a></div></div>
 </article><ul class="pagination"><li class="page-item ">
                     <span class="page-link">
                         <a href="/blog/">1</a>
@@ -393,7 +424,7 @@ PHP 有關參照(Reference)的那些事 | 程式狂想筆記其實我以前就�
                     </span>
                 </li></ul></div></div>
             </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.124.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.125.4">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
                 </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
         </div>
     </footer></div>
