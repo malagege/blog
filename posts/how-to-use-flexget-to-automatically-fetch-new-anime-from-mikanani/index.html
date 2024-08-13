@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>用 Flexget 抓取蜜柑計畫新番動畫的簡單方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:url" content="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/">
+  <meta property="og:site_name" content="程式狂想筆記">
+  <meta property="og:title" content="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法">
+  <meta property="og:description" content="最近發現了一個比動漫花園更好用的網站 mikanani.me，這裡分享一個方便設定 Flexget 的腳本，讓你可以自動下載新番。">
+  <meta property="og:locale" content="zh_tw">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-08-13T22:46:37+08:00">
+    <meta property="article:modified_time" content="2024-08-13T23:02:04+08:00">
+    <meta property="article:tag" content="Flexget">
+    <meta property="article:tag" content="蜜柑計畫">
+    <meta property="article:tag" content="Mikanani">
+    <meta property="article:tag" content="自動化">
+    <meta property="article:tag" content="新番動畫">
+    <meta property="article:tag" content="Rss">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法">
+  <meta name="twitter:description" content="最近發現了一個比動漫花園更好用的網站 mikanani.me，這裡分享一個方便設定 Flexget 的腳本，讓你可以自動下載新番。">
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" /><link rel="prev" href="https://malagege.github.io/blog/posts/gmk-g3-mini-pc-unboxing-and-review/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "用 Flexget 抓取蜜柑計畫新番動畫的簡單方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani\/"
+        },"genre": "posts","keywords": "flexget, 蜜柑計畫, mikanani, 自動化, 新番動畫, rss, 下載工具","wordcount":  619 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani\/","datePublished": "2024-08-13T22:46:37+08:00","dateModified": "2024-08-13T23:02:04+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近發現了一個比動漫花園更好用的網站 mikanani.me，這裡分享一個方便設定 Flexget 的腳本，讓你可以自動下載新番。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">用 Flexget 抓取蜜柑計畫新番動畫的簡單方法</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-08-13">2024-08-13</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;619 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d"
+        data-srcset="https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d, https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d 1.5x, https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d"
+        title="https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#flexget-安裝">Flexget 安裝</a></li>
+    <li><a href="#userscript-腳本">UserScript 腳本</a></li>
+    <li><a href="#rss-組出-flexget-設定">RSS 組出 flexget 設定</a></li>
+    <li><a href="#其他可用的-autobangumi-工具介紹">其他可用的 AutoBangumi 工具介紹</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近發現了一個比動漫花園更好用的網站 mikanani.me，這裡分享一個方便設定 Flexget 的腳本，讓你可以自動下載新番。</p>
+<h2 id="flexget-安裝">Flexget 安裝</h2>
+<p>可參考我過去<a href="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" target="_blank" rel="noopener noreffer ">這篇</a>文章，安裝好 Flexget；或者直接參考<a href="https://flexget.com/Install" target="_blank" rel="noopener noreffer ">官方文件</a>。</p>
+<h2 id="userscript-腳本">UserScript 腳本</h2>
+<p>安裝暴力猴或 Tampermonkey，然後新增以下腳本：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="c1">// ==UserScript==
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @name        mikanani.me 新番組出 flexget 設定
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @namespace   Violentmonkey Scripts
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @match       https://mikanani.me/Home/Bangumi/*
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @grant       none
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @version     1.0
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @author      -
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @grant    GM_xmlhttpRequest
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @grant    GM_setClipboard
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @description 2024/1/16 下午11:50:50
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ==/UserScript==
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Processed by 繁化姬
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 這邊可以依序喜歡字幕組排順序
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">url</span> <span class="o">=</span> <span class="sb">`https://</span><span class="si">${</span><span class="nx">location</span><span class="p">.</span><span class="nx">host</span><span class="si">}${</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.mikan-rss[href*=583]&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span> <span class="o">??</span>  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.mikan-rss[href*=382]&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span>  <span class="o">??</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.mikan-rss:nth(1)&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span><span class="si">}</span><span class="sb">`</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 選擇元素並獲取日期
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">date</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="sb">`.bangumi-info:contains(&#39;放送开始&#39;)`</span><span class="p">).</span><span class="nx">text</span><span class="p">().</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;：&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 將字串轉換成 Date 物件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">dateObj</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">date</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 獲取年份和月份
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">year</span> <span class="o">=</span> <span class="nx">dateObj</span><span class="p">.</span><span class="nx">getFullYear</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">month</span> <span class="o">=</span> <span class="nx">dateObj</span><span class="p">.</span><span class="nx">getMonth</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>  <span class="c1">// getMonth() 從 0 開始計數，所以需要加 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 根據月份決定季度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">quarter</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nx">month</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="nx">month</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;01&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">month</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="nx">month</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;04&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">month</span> <span class="o">&gt;=</span> <span class="mi">7</span> <span class="o">&amp;&amp;</span> <span class="nx">month</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;07&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;10&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 組合成 &#34;YYYYMM&#34; 格式的字串
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">formattedDate</span> <span class="o">=</span> <span class="nx">year</span> <span class="o">+</span> <span class="nx">quarter</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 你的原始標題
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">title</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.bangumi-title&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">().</span><span class="nx">trim</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 在線的繁簡轉換 API
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">api</span> <span class="o">=</span> <span class="s1">&#39;https://api.zhconvert.org/convert?converter=Traditional&amp;text=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">title</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 使用 GM_xmlhttpRequest 來請求 API
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">GM_xmlhttpRequest</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">method</span><span class="o">:</span> <span class="s2">&#34;GET&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">url</span><span class="o">:</span> <span class="nx">api</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">onload</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// 解析回應並獲取轉換後的文字
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kd">let</span> <span class="nx">convertedText</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">responseText</span><span class="p">).</span><span class="nx">data</span><span class="p">.</span><span class="nx">text</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 使用轉換後的文字
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">title</span> <span class="o">=</span> <span class="nx">convertedText</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kd">let</span> <span class="nx">result</span> <span class="o">=</span> <span class="sb">`  &#34;TV-</span><span class="si">${</span><span class="nx">title</span><span class="si">}</span><span class="sb">&#34;:
+</span></span></span><span class="line"><span class="cl"><span class="sb">    rss:
+</span></span></span><span class="line"><span class="cl"><span class="sb">      url: </span><span class="si">${</span><span class="nx">url</span><span class="si">}</span><span class="sb">
+</span></span></span><span class="line"><span class="cl"><span class="sb">      other_fields: [category]
+</span></span></span><span class="line"><span class="cl"><span class="sb">    accept_all: yes
+</span></span></span><span class="line"><span class="cl"><span class="sb">    template: default
+</span></span></span><span class="line"><span class="cl"><span class="sb">    transmission:
+</span></span></span><span class="line"><span class="cl"><span class="sb">      path: /media/extHDD/Download/TV/</span><span class="si">${</span><span class="nx">formattedDate</span><span class="si">}</span><span class="sb">/{{task[3:]}}
+</span></span></span><span class="line"><span class="cl"><span class="sb">    regexp:
+</span></span></span><span class="line"><span class="cl"><span class="sb">      reject:
+</span></span></span><span class="line"><span class="cl"><span class="sb">        - 720p
+</span></span></span><span class="line"><span class="cl"><span class="sb">        - 简(?!繁)
+</span></span></span><span class="line"><span class="cl"><span class="sb">        - \[01-1
+</span></span></span><span class="line"><span class="cl"><span class="sb">
+</span></span></span><span class="line"><span class="cl"><span class="sb">        console.log(result);
+</span></span></span><span class="line"><span class="cl"><span class="sb">        GM_setClipboard (result);
+</span></span></span><span class="line"><span class="cl"><span class="sb">
+</span></span></span><span class="line"><span class="cl"><span class="sb">    }
+</span></span></span><span class="line"><span class="cl"><span class="sb">});
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>進去 <code>https://mikanani.me/Home/Bangumi/3354</code> 這個頁面，你的剪貼簿就會有一段 flexget 設定，你可以直接貼到你的 <code>config.yml</code> 裡面。</p>
+<p>最後組出來的設定檔大概長這樣：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="w">  </span><span class="s2">&#34;TV-多數欠&#34;</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">rss</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l">https://mikanani.me/RSS/Bangumi?bangumiId=3361&amp;subgroupid=639</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">other_fields</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="l">category]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">accept_all</span><span class="p">:</span><span class="w"> </span><span class="kc">yes</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l">default</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">transmission</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">/media/extHDD/Download/TV/202407/{{task[3:]}}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">regexp</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">reject</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="l">720p</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="l">简(?!繁)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span>- <span class="l">\[01-1</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊腳本也有做抓取字幕組的優先順序，可以自己調整。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="err">#</span> <span class="nx">這邊可以依序喜歡字幕組排順序</span>
+</span></span><span class="line"><span class="cl"><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.mikan-rss[href*=583]&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span> <span class="o">??</span>  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.mikan-rss[href*=382]&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span>  <span class="o">??</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.mikan-rss:nth(1)&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="err">#</span> <span class="nx">href</span><span class="o">*=</span><span class="mi">583</span> <span class="nx">是字幕組的編號</span><span class="err">，</span><span class="nx">可以自己調整</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="rss-組出-flexget-設定">RSS 組出 flexget 設定</h2>
+<p>有時候只想設定某一個字幕組的 RSS，可以用這個腳本：</p>
+<p>新進去 RSS 網址，開啟 Console 可複製出 flexget 設定</p>
+<p>腳本如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="c1">// ==UserScript==
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @name        New script mikanani.me RSS
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @namespace   Violentmonkey Scripts
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @match       https://mikanani.me/RS/Bangumi?bangumiId=*&amp;subgroupid=*
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @grant       none
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @version     1.0
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @author      -
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @grant    GM_xmlhttpRequest
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @grant    GM_setClipboard
+</span></span></span><span class="line"><span class="cl"><span class="c1">// @description 2024/1/16 下午11:50:50
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ==/UserScript==
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Processed by 繁化姬
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">let</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">dateObj</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">year</span> <span class="o">=</span> <span class="nx">dateObj</span><span class="p">.</span><span class="nx">getFullYear</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">month</span> <span class="o">=</span> <span class="nx">dateObj</span><span class="p">.</span><span class="nx">getMonth</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">quarter</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nx">month</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="nx">month</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;01&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">month</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="nx">month</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;04&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">month</span> <span class="o">&gt;=</span> <span class="mi">7</span> <span class="o">&amp;&amp;</span> <span class="nx">month</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;07&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">quarter</span> <span class="o">=</span> <span class="s1">&#39;10&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">formattedDate</span> <span class="o">=</span> <span class="nx">year</span> <span class="o">+</span> <span class="nx">quarter</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">title</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;rss channel title&#39;</span><span class="p">).</span><span class="nx">textContent</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kd">let</span> <span class="nx">api</span> <span class="o">=</span> <span class="s1">&#39;https://api.zhconvert.org/convert?converter=Traditional&amp;text=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">title</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">GM_xmlhttpRequest</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">method</span><span class="o">:</span> <span class="s2">&#34;GET&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">url</span><span class="o">:</span> <span class="nx">api</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">onload</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">let</span> <span class="nx">convertedText</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">responseText</span><span class="p">).</span><span class="nx">data</span><span class="p">.</span><span class="nx">text</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">title</span> <span class="o">=</span> <span class="nx">convertedText</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">let</span> <span class="nx">result</span> <span class="o">=</span> <span class="sb">`  &#34;TV-</span><span class="si">${</span><span class="nx">title</span><span class="si">}</span><span class="sb">&#34;:
+</span></span></span><span class="line"><span class="cl"><span class="sb">    rss:
+</span></span></span><span class="line"><span class="cl"><span class="sb">      url: </span><span class="si">${</span><span class="nx">url</span><span class="si">}</span><span class="sb">
+</span></span></span><span class="line"><span class="cl"><span class="sb">      other_fields: [category]
+</span></span></span><span class="line"><span class="cl"><span class="sb">    accept_all: yes
+</span></span></span><span class="line"><span class="cl"><span class="sb">    template: default
+</span></span></span><span class="line"><span class="cl"><span class="sb">    transmission:
+</span></span></span><span class="line"><span class="cl"><span class="sb">      path: /media/extHDD/Download/TV/</span><span class="si">${</span><span class="nx">formattedDate</span><span class="si">}</span><span class="sb">/{{task[3:]}}
+</span></span></span><span class="line"><span class="cl"><span class="sb">    regexp:
+</span></span></span><span class="line"><span class="cl"><span class="sb">      reject:
+</span></span></span><span class="line"><span class="cl"><span class="sb">        - 720p
+</span></span></span><span class="line"><span class="cl"><span class="sb">        - 简(?!繁)
+</span></span></span><span class="line"><span class="cl"><span class="sb">        - \[01-1
+</span></span></span><span class="line"><span class="cl"><span class="sb">        console.log(result);
+</span></span></span><span class="line"><span class="cl"><span class="sb">        GM_setClipboard (result);
+</span></span></span><span class="line"><span class="cl"><span class="sb">    }
+</span></span></span><span class="line"><span class="cl"><span class="sb">});
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這個因為是用 RSS(XML) 無法呼叫<code>GM_setClipboard</code>，但可以去打開開發者工具去 console 複製資料。</div>
+        </div>
+    </div>
+<h2 id="其他可用的-autobangumi-工具介紹">其他可用的 AutoBangumi 工具介紹</h2>
+<p>如果你還沒有使用過 flexget，可以考慮試試看這個 <code>AutoBangumi</code> 工具。不過，由於我已經架設好了其他工具，所以不打算折騰自己了，這裡提供一些參考連結。</p>
+<p>相關連結：</p>
+<ul>
+<li><a href="https://blog.misakaae.com/2023/07/09/article_004/" target="_blank" rel="noopener noreffer ">Windows本地部署全自动追番AutoBangumi无需Docker容器WSL解决国内无法访问蜜柑CloudFlare反向代理 | MisakaAEのBlog</a></li>
+<li><a href="https://www.autobangumi.org/" target="_blank" rel="noopener noreffer ">AutoBangumi | 自动追番，解放双手！</a></li>
+<li><a href="https://www.himiku.com/archives/auto-bangumi.html" target="_blank" rel="noopener noreffer ">AutoBangumi：自动追番，解放双手 - 初之音</a></li>
+<li><a href="https://blog.csdn.net/weixin_44086494/article/details/125930946" target="_blank" rel="noopener noreffer ">树莓派搭建自动追番服务器详细教程｜树莓派｜Jellyfin｜AutoBangumi｜qBittorrent-CSDN博客</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-08-13</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" data-title="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法" data-hashtags="flexget,蜜柑計畫,mikanani,自動化,新番動畫,rss,下載工具"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" data-hashtag="flexget"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" data-title="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" data-title="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" data-title="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法" data-image="https://gist.github.com/user-attachments/assets/f2a7816b-ce1e-45f0-928f-a8f4c0ae209d"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/flexget/">Flexget</a>,&nbsp;<a href="/blog/tags/%E8%9C%9C%E6%9F%91%E8%A8%88%E7%95%AB/">蜜柑計畫</a>,&nbsp;<a href="/blog/tags/mikanani/">Mikanani</a>,&nbsp;<a href="/blog/tags/%E8%87%AA%E5%8B%95%E5%8C%96/">自動化</a>,&nbsp;<a href="/blog/tags/%E6%96%B0%E7%95%AA%E5%8B%95%E7%95%AB/">新番動畫</a>,&nbsp;<a href="/blog/tags/rss/">Rss</a>,&nbsp;<a href="/blog/tags/%E4%B8%8B%E8%BC%89%E5%B7%A5%E5%85%B7/">下載工具</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/gmk-g3-mini-pc-unboxing-and-review/" class="prev" rel="prev" title="GMK G3 Mini PC 開箱與使用心得：高性價比的 X86 主機"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>GMK G3 Mini PC 開箱與使用心得：高性價比的 X86 主機</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.132.1">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
