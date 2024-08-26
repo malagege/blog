@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:url" content="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/">
+  <meta property="og:site_name" content="程式狂想筆記">
+  <meta property="og:title" content="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本">
+  <meta property="og:description" content=" 最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 mtail，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 openITCOCKPIT，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供安裝教學。">
+  <meta property="og:locale" content="zh_tw">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-08-26T21:17:14+08:00">
+    <meta property="article:modified_time" content="2024-08-26T21:29:14+08:00">
+    <meta property="article:tag" content="Ubuntu">
+    <meta property="article:tag" content="Bash">
+    <meta property="article:tag" content="Script">
+    <meta property="article:tag" content="Log Monitoring">
+    <meta property="article:tag" content="Discord">
+    <meta property="article:tag" content="Notifications">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本">
+  <meta name="twitter:description" content=" 最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 mtail，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 openITCOCKPIT，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供安裝教學。">
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" /><link rel="prev" href="https://malagege.github.io/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/monitor-ubuntu-error-logs-and-send-discord-notifications\/"
+        },"genre": "posts","keywords": "ubuntu, bash, script, log monitoring, discord, notifications, 系統錯誤, 日誌監控","wordcount":  765 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/monitor-ubuntu-error-logs-and-send-discord-notifications\/","datePublished": "2024-08-26T21:17:14+08:00","dateModified": "2024-08-26T21:29:14+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003ch1 id=\"heading\"\u003e\u003c/h1\u003e\n\u003cp\u003e最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 \u003ccode\u003emtail\u003c/code\u003e，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 \u003ccode\u003eopenITCOCKPIT\u003c/code\u003e，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供\u003ca href=\"https://docs.openitcockpit.io/en/installation/#arm64-raspberry-pi\" target=\"_blank\" rel=\"noopener noreffer \"\u003e安裝教學\u003c/a\u003e。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-08-26">2024-08-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;765 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"
+        data-srcset="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616, https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616 1.5x, https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"
+        title="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#為何我需要系統錯誤通知">為何我需要系統錯誤通知？</a></li>
+    <li><a href="#準備工作">準備工作</a></li>
+    <li><a href="#監聽-log-並發送通知">監聽 Log 並發送通知</a>
+      <ul>
+        <li><a href="#使用-discord-webhook-進行通知">使用 Discord Webhook 進行通知</a></li>
+      </ul>
+    </li>
+    <li><a href="#使用-line-notify-進行通知">使用 Line Notify 進行通知</a></li>
+    <li><a href="#使用-prometheus-alertmanager-進行通知">使用 Prometheus AlertManager 進行通知</a></li>
+    <li><a href="#排程設定">排程設定</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="heading"></h1>
+<p>最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 <code>mtail</code>，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 <code>openITCOCKPIT</code>，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供<a href="https://docs.openitcockpit.io/en/installation/#arm64-raspberry-pi" target="_blank" rel="noopener noreffer ">安裝教學</a>。</p>
+<h2 id="為何我需要系統錯誤通知">為何我需要系統錯誤通知？</h2>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a"
+        data-srcset="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a, https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a 1.5x, https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a"
+        title="image" /></p>
+<p>我曾在 Facebook 社群中看到有人在收到 SELinux 系統入侵的通知後，能夠立即採取行動。這篇留言提到他們是使用 <code>Cockpit</code>，但我發現這個工具並沒有我需要的功能。我知道 Zabbix 也是一個選擇，但我這次不打算使用它。</p>
+<p>我注意到 <code>Cockpit</code> 是使用 <code>journalctl</code> 來查看系統 log。由於沒有現成的工具可以滿足我的需求，我決定自己開發一個😆。</p>
+<h2 id="準備工作">準備工作</h2>
+<p>首先，我們需要安裝 <code>jq</code>。你可以使用以下的命令來安裝：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt update 
+</span></span><span class="line"><span class="cl">sudo apt install jq
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="監聽-log-並發送通知">監聽 Log 並發送通知</h2>
+<p>我將介紹如何使用 <code>Discord</code>、<code>Line Notify</code> 和 <code>Prometheus Alertmanager</code> 來監聽 Log 並發送通知。你可以根據自己的需求選擇使用哪一種方法。</p>
+<h3 id="使用-discord-webhook-進行通知">使用 Discord Webhook 進行通知</h3>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">請確保你已經調整了對應的 Webhook Url</div>
+        </div>
+    </div>
+<p>以下是一個 Bash 腳本，它會監聽系統的 Log，並在出現錯誤時通過 Discord Webhook 發送通知。你需要將 <code>WEBHOOK_URL</code> 變數設定為你的 Discord Webhook Url。此腳本會每小時檢查一次 Log，並在出現錯誤時發送通知。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Discord webhook URL</span>
+</span></span><span class="line"><span class="cl"><span class="nv">WEBHOOK_URL</span><span class="o">=</span><span class="s2">&#34;https://discord.com/api/webhooks/....&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Show Log Line Count</span>
+</span></span><span class="line"><span class="cl"><span class="nv">SHOW_LOG_CNT</span><span class="o">=</span><span class="m">10</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Set the priority level (0-7)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PRIORITY</span><span class="o">=</span><span class="m">3</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Get the hostname and IP address</span>
+</span></span><span class="line"><span class="cl"><span class="nv">HOSTNAME</span><span class="o">=</span><span class="k">$(</span>hostname<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">IP_ADDRESS</span><span class="o">=</span><span class="k">$(</span>hostname -I <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Run the journalctl command with the specified priority</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ALL_OUTPUT</span><span class="o">=</span><span class="k">$(</span>journalctl --since<span class="o">=</span>-1hours --priority<span class="o">=</span><span class="nv">$PRIORITY</span> --no-pager <span class="p">|</span>  grep -v -- <span class="s2">&#34;-- No entries --&#34;</span> <span class="p">|</span> grep -v -- <span class="s2">&#34;-- Logs begin at&#34;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Count the number of error messages</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ERROR_COUNT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$ALL_OUTPUT</span><span class="s2">&#34;</span> <span class="p">|</span> wc -l<span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Extract the first SHOW_LOG_CNT lines of output</span>
+</span></span><span class="line"><span class="cl"><span class="nv">OUTPUT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$ALL_OUTPUT</span><span class="s2">&#34;</span> <span class="p">|</span> head -n <span class="nv">$SHOW_LOG_CNT</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Set the color based on the priority level</span>
+</span></span><span class="line"><span class="cl"><span class="nv">COLOR</span><span class="o">=</span><span class="s2">&#34;&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nv">$PRIORITY</span> in
+</span></span><span class="line"><span class="cl">  0<span class="p">|</span>1<span class="p">|</span>2<span class="p">|</span>3<span class="o">)</span> <span class="nv">COLOR</span><span class="o">=</span><span class="s2">&#34;16711680&#34;</span> <span class="p">;;</span> <span class="c1"># Red for emerg, alert, crit, err</span>
+</span></span><span class="line"><span class="cl">  4<span class="o">)</span> <span class="nv">COLOR</span><span class="o">=</span><span class="s2">&#34;16776960&#34;</span> <span class="p">;;</span> <span class="c1"># Yellow for warning</span>
+</span></span><span class="line"><span class="cl">  5<span class="p">|</span>6<span class="o">)</span> <span class="nv">COLOR</span><span class="o">=</span><span class="s2">&#34;65280&#34;</span> <span class="p">;;</span> <span class="c1"># Green for notice, info</span>
+</span></span><span class="line"><span class="cl">  7<span class="o">)</span> <span class="nv">COLOR</span><span class="o">=</span><span class="s2">&#34;255&#34;</span> <span class="p">;;</span> <span class="c1"># Blue for debug</span>
+</span></span><span class="line"><span class="cl"><span class="k">esac</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Check if there are any error messages</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="o">[</span> -n <span class="s2">&#34;</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+</span></span><span class="line"><span class="cl">  <span class="c1"># Format the message as a JSON payload with embeds</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">JSON_PAYLOAD</span><span class="o">=</span><span class="k">$(</span>jq -n --arg msg <span class="s2">&#34;</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span> --arg hn <span class="s2">&#34;</span><span class="nv">$HOSTNAME</span><span class="s2">&#34;</span> --arg ip <span class="s2">&#34;</span><span class="nv">$IP_ADDRESS</span><span class="s2">&#34;</span> --argjson ec <span class="s2">&#34;</span><span class="nv">$ERROR_COUNT</span><span class="s2">&#34;</span> --argjson color <span class="s2">&#34;</span><span class="nv">$COLOR</span><span class="s2">&#34;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    <span class="s1">&#39;{content: $msg, embeds: [{title: &#34;Error Report&#34;, color: $color, fields: [{name: &#34;Hostname&#34;, value: $hn, inline: true}, {name: &#34;IP Address&#34;, value: $ip, inline: true}, {name: &#34;Number of Errors&#34;, value: $ec, inline: true}]}]}&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1"># Send the message to the Discord webhook</span>
+</span></span><span class="line"><span class="cl">  curl -X POST -H <span class="s2">&#34;Content-Type: application/json&#34;</span> -d <span class="s2">&#34;</span><span class="nv">$JSON_PAYLOAD</span><span class="s2">&#34;</span> <span class="nv">$WEBHOOK_URL</span>
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="使用-line-notify-進行通知">使用 Line Notify 進行通知</h2>
+<p>如果你想使用 Line Notify 進行通知，你需要設定 <code>LINE_TOKEN</code>。你可以參考我之前寫的<a href="https://malagege.github.io/blog/posts/%E6%96%B0%E6%89%8B%E5%BF%AB%E9%80%9F-Prometheus-%E4%BD%BF%E7%94%A8-Docker-%E5%BF%AB%E9%80%9F-10-%E5%88%86%E9%90%98%E5%BB%BA%E7%BD%AE%E7%92%B0%E5%A2%83/#line-%E9%80%9A%E7%9F%A5" target="_blank" rel="noopener noreffer ">這篇 Line Notify 教學設定</a>。</p>
+<p>以下是一個 Bash 腳本，它會監聽系統的 Log，並在出現錯誤時通過 Line Notify 發送通知。你需要將 <code>LINE_TOKEN</code> 變數設定為你的 Line Notify Token。此腳本會每小時檢查一次 Log，並在出現錯誤時發送通知。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Line Notify token</span>
+</span></span><span class="line"><span class="cl"><span class="nv">LINE_TOKEN</span><span class="o">=</span><span class="s2">&#34;YOUR_LINE_NOTIFY_TOKEN&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Show Log Line Count</span>
+</span></span><span class="line"><span class="cl"><span class="nv">SHOW_LOG_CNT</span><span class="o">=</span><span class="m">10</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Set the priority level (0-7)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PRIORITY</span><span class="o">=</span><span class="m">3</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Get the hostname and IP address</span>
+</span></span><span class="line"><span class="cl"><span class="nv">HOSTNAME</span><span class="o">=</span><span class="k">$(</span>hostname<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">IP_ADDRESS</span><span class="o">=</span><span class="k">$(</span>hostname -I <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Run the journalctl command with the specified priority</span>
+</span></span><span class="line"><span class="cl"><span class="nv">OUTPUT</span><span class="o">=</span><span class="k">$(</span>journalctl --since<span class="o">=</span>-1hours --priority<span class="o">=</span><span class="nv">$PRIORITY</span> --no-pager -n <span class="nv">$SHOW_LOG_CNT</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Count the number of error messages</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ERROR_COUNT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span> <span class="p">|</span> wc -l<span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Check if there are any error messages</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="o">[</span> -n <span class="s2">&#34;</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+</span></span><span class="line"><span class="cl">  <span class="c1"># Format the message</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">MESSAGE</span><span class="o">=</span><span class="s2">&#34;Hostname: </span><span class="nv">$HOSTNAME</span><span class="s2">\nIP Address: </span><span class="nv">$IP_ADDRESS</span><span class="s2">\nNumber of Errors: </span><span class="nv">$ERROR_COUNT</span><span class="s2">\n</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1"># Send the message to the Line Notify API</span>
+</span></span><span class="line"><span class="cl">  curl -X POST -H <span class="s2">&#34;Authorization: Bearer </span><span class="nv">$LINE_TOKEN</span><span class="s2">&#34;</span> -F <span class="s2">&#34;message=</span><span class="nv">$MESSAGE</span><span class="s2">&#34;</span> https://notify-api.line.me/api/notify
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="使用-prometheus-alertmanager-進行通知">使用 Prometheus AlertManager 進行通知</h2>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">請確保你已經設定了 Prometheus AlertManager 的網址。</div>
+        </div>
+    </div>
+<p>以下是一個 Bash 腳本，它會監聽系統的 Log，並在出現錯誤時通過 Prometheus AlertManager 發送通知。你需要將 <code>ALERTMANAGER_API</code> 變數設定為你的 Prometheus AlertManager API 網址。此腳本會每小時檢查一次 Log，並在出現錯誤時發送通知。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="c1"># AlertManager API URL</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ALERTMANAGER_API</span><span class="o">=</span><span class="s2">&#34;http://192.168.xx.xx:9093/api/v1/alerts&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Set the priority level (0-7)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">PRIORITY</span><span class="o">=</span><span class="m">3</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Get the hostname and IP address</span>
+</span></span><span class="line"><span class="cl"><span class="nv">HOSTNAME</span><span class="o">=</span><span class="k">$(</span>hostname<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">IP_ADDRESS</span><span class="o">=</span><span class="k">$(</span>hostname -I <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nv">INSTANCE</span><span class="o">=</span><span class="s2">&#34;</span><span class="nv">$HOSTNAME</span><span class="s2">(</span><span class="nv">$IP_ADDRESS</span><span class="s2">)&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Run the journalctl command with the specified priority</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ALL_OUTPUT</span><span class="o">=</span><span class="k">$(</span>journalctl --since<span class="o">=</span>-1hours --priority<span class="o">=</span><span class="nv">$PRIORITY</span> --no-pager <span class="p">|</span>  grep -v -- <span class="s2">&#34;-- No entries --&#34;</span> <span class="p">|</span> grep -v -- <span class="s2">&#34;-- Logs begin at&#34;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Count the number of error messages</span>
+</span></span><span class="line"><span class="cl"><span class="nv">ERROR_COUNT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$ALL_OUTPUT</span><span class="s2">&#34;</span> <span class="p">|</span> wc -l<span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Extract the first SHOW_LOG_CNT lines of output</span>
+</span></span><span class="line"><span class="cl"><span class="nv">OUTPUT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$ALL_OUTPUT</span><span class="s2">&#34;</span> <span class="p">|</span> head -n <span class="nv">$SHOW_LOG_CNT</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Format the summary message</span>
+</span></span><span class="line"><span class="cl"><span class="nv">SUMMARY</span><span class="o">=</span><span class="s2">&#34;總共 </span><span class="nv">$ERROR_COUNT</span><span class="s2"> 個錯誤訊息&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Check if there are any error messages</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="o">[</span> -n <span class="s2">&#34;</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+</span></span><span class="line"><span class="cl">  <span class="c1"># Format the alert as a JSON payload</span>
+</span></span><span class="line"><span class="cl">  <span class="nv">JSON_PAYLOAD</span><span class="o">=</span><span class="k">$(</span>jq -n --arg inst <span class="s2">&#34;</span><span class="nv">$INSTANCE</span><span class="s2">&#34;</span> --arg sum <span class="s2">&#34;</span><span class="nv">$SUMMARY</span><span class="s2">&#34;</span> --arg msg <span class="s2">&#34;</span><span class="nv">$OUTPUT</span><span class="s2">&#34;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>          <span class="s1">&#39;[{labels: {alertname: &#34;JournalctlError&#34;, instance: $inst }, annotations: {  description: $msg, summary: $sum}}]&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1"># Send the alert to the AlertManager API</span>
+</span></span><span class="line"><span class="cl">  curl -X POST -H <span class="s2">&#34;Content-Type: application/json&#34;</span> -d <span class="s2">&#34;</span><span class="nv">$JSON_PAYLOAD</span><span class="s2">&#34;</span> <span class="nv">$ALERTMANAGER_API</span>
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="排程設定">排程設定</h2>
+<p>在 Linux 系統中，我們可以使用 <code>crontab</code> 來設定定時任務。以下是如何設定每小時執行一次腳本的步驟：</p>
+<ol>
+<li>
+<p>首先，打開終端機並輸入 <code>crontab -e</code> 來編輯你的 crontab 文件。</p>
+</li>
+<li>
+<p>在文件中，你可以添加或修改任務。每一行都代表一個任務，並且由六個字段組成：分、時、日、月、週和命令。例如，<code>0 * * * * /home/username/scripts/hourly_error_report.sh &gt; /dev/null 2&gt;&amp;1</code> 這行命令的意思是每小時的第 0 分鐘執行 <code>/home/username/scripts/hourly_error_report.sh</code> 這個腳本。</p>
+</li>
+</ol>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p><code>bash ... &gt; /dev/null 2&gt;&amp;1</code> 這段程式碼的作用是將指令的輸出和錯誤輸出都重定向到/dev/null，這樣就可以將它們丟棄，不會在終端上顯示或存儲。這在某些情況下很有用，例如當你只關心指令是否成功執行，而不關心輸出或錯誤訊息時。</p>
+<p>這段程式碼的每個部分：</p>
+<ul>
+<li><code>&gt;</code>：這是一個重定向運算符，用於將指令的輸出重定向到指定的位置。</li>
+<li><code>/dev/null</code>：這是一個特殊的設備文件，它可以被視為一個黑洞。將輸出重定向到/dev/null意味著將輸出丟棄，不會在終端上顯示或存儲。</li>
+<li><code>2&gt;&amp;1</code>：這是一個錯誤輸出重定向的語法。數字2代表錯誤輸出，而&amp;1代表標準輸出。這個語法的意思是將錯誤輸出重定向到與標準輸出相同的位置，也就是/dev/null。</li>
+</ul>
+</div>
+        </div>
+    </div>
+<ol start="3">
+<li>最後，儲存並關閉文件。你的任務將會在設定的時間自動執行。</li>
+</ol>
+<p>以下是具體的命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">crontab -e
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 每小時執行</span>
+</span></span><span class="line"><span class="cl"><span class="m">0</span> * * * * /home/username/scripts/hourly_error_report.sh &gt; /dev/null 2&gt;<span class="p">&amp;</span><span class="m">1</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="彩蛋">彩蛋</h2>
+<p>monit</p><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-08-26</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" data-title="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本" data-hashtags="ubuntu,bash,script,log monitoring,discord,notifications,系統錯誤,日誌監控"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" data-hashtag="ubuntu"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" data-title="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" data-title="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" data-title="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本" data-image="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/ubuntu/">Ubuntu</a>,&nbsp;<a href="/blog/tags/bash/">Bash</a>,&nbsp;<a href="/blog/tags/script/">Script</a>,&nbsp;<a href="/blog/tags/log-monitoring/">Log Monitoring</a>,&nbsp;<a href="/blog/tags/discord/">Discord</a>,&nbsp;<a href="/blog/tags/notifications/">Notifications</a>,&nbsp;<a href="/blog/tags/%E7%B3%BB%E7%B5%B1%E9%8C%AF%E8%AA%A4/">系統錯誤</a>,&nbsp;<a href="/blog/tags/%E6%97%A5%E8%AA%8C%E7%9B%A3%E6%8E%A7/">日誌監控</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/how-to-use-flexget-to-automatically-fetch-new-anime-from-mikanani/" class="prev" rel="prev" title="用 Flexget 抓取蜜柑計畫新番動畫的簡單方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>用 Flexget 抓取蜜柑計畫新番動畫的簡單方法</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.133.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
