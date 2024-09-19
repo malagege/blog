@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:url" content="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/">
+  <meta property="og:site_name" content="程式狂想筆記">
+  <meta property="og:title" content="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢">
+  <meta property="og:description" content="這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 storage account、Container 和 blob，如下圖所示。
+詳細資訊可以參考Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn。
+由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。">
+  <meta property="og:locale" content="zh_tw">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-09-04T20:58:45+08:00">
+    <meta property="article:modified_time" content="2024-09-19T22:27:22+08:00">
+    <meta property="article:tag" content="Azure">
+    <meta property="article:tag" content="Azure Storage">
+    <meta property="article:tag" content="Sas">
+    <meta property="article:tag" content=".Net">
+    <meta property="article:tag" content="Blob Storage">
+    <meta property="article:tag" content="File Upload">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢">
+  <meta name="twitter:description" content="這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 storage account、Container 和 blob，如下圖所示。
+詳細資訊可以參考Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn。
+由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。">
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" /><link rel="prev" href="https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" /><link rel="next" href="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/implementing-azure-storage-sas-upload-with-dotnet\/"
+        },"genre": "posts","keywords": "azure, azure storage, sas, .net, blob storage, file upload, cloud storage, csharp, tutorial, example","wordcount":  844 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/implementing-azure-storage-sas-upload-with-dotnet\/","datePublished": "2024-09-04T20:58:45+08:00","dateModified": "2024-09-19T22:27:22+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 \u003ccode\u003estorage account\u003c/code\u003e、\u003ccode\u003eContainer\u003c/code\u003e 和 \u003ccode\u003eblob\u003c/code\u003e，如下圖所示。\u003c/p\u003e\n\u003cp\u003e\u003cimg\n        class=\"lazyload\"\n        src=\"/blog/svg/loading.min.svg\"\n        data-src=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\n        data-srcset=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 1.5x, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 2x\"\n        data-sizes=\"auto\"\n        alt=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\n        title=\"圖片\" /\u003e\u003c/p\u003e\n\u003cp\u003e詳細資訊可以參考\u003ca href=\"https://learn.microsoft.com/zh-tw/azure/storage/blobs/storage-blobs-introduction\" target=\"_blank\" rel=\"noopener noreffer \"\u003eBlob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn\u003c/a\u003e。\u003c/p\u003e\n\u003cp\u003e由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-09-04">2024-09-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;844 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"
+        data-srcset="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d, https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d 1.5x, https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"
+        title="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#專案需求">專案需求</a>
+      <ul>
+        <li><a href="#大致流程">大致流程</a></li>
+        <li><a href="#使用-net-實作-azure-storage-sas-上傳檔案">使用 .NET 實作 Azure Storage SAS 上傳檔案</a></li>
+      </ul>
+    </li>
+    <li><a href="#sas-上傳檔案方法">SAS 上傳檔案方法</a>
+      <ul>
+        <li><a href="#container-產生-sas-網址不推薦使用">Container 產生 SAS 網址(不推薦使用)</a></li>
+        <li><a href="#單純透過程式做-sas-上傳動作">單純透過程式做 SAS 上傳動作</a></li>
+        <li><a href="#產生-sasurl-api範例">產生 SASURL API範例</a></li>
+      </ul>
+    </li>
+    <li><a href="#blob-sas-上傳推薦使用">Blob SAS 上傳(推薦使用)</a></li>
+    <li><a href="#postman-上傳檔案">PostMan 上傳檔案</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 <code>storage account</code>、<code>Container</code> 和 <code>blob</code>，如下圖所示。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png"
+        data-srcset="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 1.5x, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 2x"
+        data-sizes="auto"
+        alt="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png"
+        title="圖片" /></p>
+<p>詳細資訊可以參考<a href="https://learn.microsoft.com/zh-tw/azure/storage/blobs/storage-blobs-introduction" target="_blank" rel="noopener noreffer ">Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn</a>。</p>
+<p>由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。</p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+  root(Azure Storage SASUrl)
+    Container 單位上傳
+    Blob單位上傳
+    SAS上傳檔案
+        x-ms-blob-type: BlockBlob
+</div><h2 id="專案需求">專案需求</h2>
+<p>透過前端可以上傳檔案到 Azure Storage，這樣減少Server 負擔，剛好上傳東西後端也不需要做關聯，這邊這個功能符合我的需求。</p>
+<h3 id="大致流程">大致流程</h3>
+<h3 id="使用-net-實作-azure-storage-sas-上傳檔案">使用 .NET 實作 Azure Storage SAS 上傳檔案</h3>
+<ol>
+<li>
+<p><strong>建立 Storage Account</strong>：</p>
+<ul>
+<li>登入 <a href="https://portal.azure.com/" target="_blank" rel="noopener noreffer ">Azure 入口網站</a>。</li>
+<li>建立一個新的 Storage Account，並記下其 ConnectionString。</li>
+</ul>
+</li>
+<li>
+<p><strong>安裝 Azure.Storage.Blobs 套件</strong>：<br>
+在你的 .NET 專案中，安裝 <code>Azure.Storage.Blobs</code> 套件：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">dotnet add package Azure.Storage.Blobs
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>生成 SAS Token</p>
+</li>
+<li>
+<p>使用生成的 SAS URI 上傳檔案</p>
+</li>
+</ol>
+<h2 id="sas-上傳檔案方法">SAS 上傳檔案方法</h2>
+<p>上面介紹了如何透過前端上傳檔案，使用 SAS 讓前端取得憑證（會是一個網址）。透過這個網址，使用者就可以進行上傳操作。</p>
+<p>詳細的教學可以參考這篇文章：<a href="https://xenby.com/b/239-%E6%95%99%E5%AD%B8-azure-blob-storage-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97-%E9%87%91%E9%91%B0%E8%88%87%E5%AD%98%E5%8F%96%E7%B0%BD%E7%AB%A0%E7%AF%87" target="_blank" rel="noopener noreffer ">Azure Blob Storage 使用指南 – 金鑰與存取簽章篇 | 辛比誌</a>。我參考了這篇文章後，對 SAS 的使用有了更深入的了解。</p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><ol>
+<li>
+<p><strong>什麼是 SAS</strong>：<br>
+SAS（Shared Access Signature）是一種安全的 URL，允許你授予對 Azure Storage 資源的有限存取權限，而不需要暴露你的帳戶金鑰。</p>
+</li>
+<li>
+<p><strong>生成 SAS Token 的步驟</strong>：</p>
+<ul>
+<li>使用 Azure Portal 或程式碼生成 SAS Token。</li>
+<li>設定 SAS Token 的有效期限和權限。</li>
+</ul>
+</li>
+<li>
+<p><strong>使用 SAS Token 上傳檔案</strong>：</p>
+<ul>
+<li>使用生成的 SAS URL 進行檔案上傳。</li>
+<li>確保上傳過程中的安全性和有效性。</li>
+</ul>
+</li>
+</ol>
+</div>
+        </div>
+    </div>
+<h3 id="container-產生-sas-網址不推薦使用">Container 產生 SAS 網址(不推薦使用)</h3>
+<p>這邊發現 Container SAS ，不太適合用在前端上傳，上傳權限會太大。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">BlobContainerClient</span> <span class="n">container</span> <span class="p">=</span> <span class="k">new</span><span class="p">(</span><span class="s">&#34;connectioningString&#34;</span><span class="p">,</span> <span class="s">&#34;containerName&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(!</span><span class="n">container</span><span class="p">.</span><span class="n">CanGenerateSasUri</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">throw</span> <span class="k">new</span> <span class="n">Exception</span><span class="p">(</span><span class="s">&#34;The container can&#39;t generate SAS URI&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">var</span> <span class="n">sasBuilder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">BlobSasBuilder</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">BlobContainerName</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Resource</span> <span class="p">=</span> <span class="s">&#34;c&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">ExpiresOn</span> <span class="p">=</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">.</span><span class="n">AddMinutes</span><span class="p">(</span><span class="m">20</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">sasBuilder</span><span class="p">.</span><span class="n">SetPermissions</span><span class="p">(</span><span class="n">BlobContainerSasPermissions</span><span class="p">.</span><span class="n">All</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">var</span> <span class="n">sasUri</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">GenerateSasUri</span><span class="p">(</span><span class="n">sasBuilder</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>產生 SAS Url 可以給 Client 做上傳動作。</p>
+<h3 id="單純透過程式做-sas-上傳動作">單純透過程式做 SAS 上傳動作</h3>
+<p>下面是單純透過程式做SAS上傳動作。但通常有 <code>ConnectionString</code>，不太需要這樣做。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="kd">async</span> <span class="kd">static</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">Uri</span><span class="p">&gt;</span> <span class="n">GetUserDelegationSasBlob</span><span class="p">(</span><span class="n">BlobClient</span> <span class="n">blobClient</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">BlobServiceClient</span> <span class="n">blobServiceClient</span> <span class="p">=</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">GetParentBlobContainerClient</span><span class="p">().</span><span class="n">GetParentBlobServiceClient</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Get a user delegation key for the Blob service that&#39;s valid for 7 days.</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// You can use the key to generate any number of shared access signatures over the lifetime of the key.</span>
+</span></span><span class="line"><span class="cl">    <span class="n">UserDelegationKey</span> <span class="n">userDelegationKey</span> <span class="p">=</span> <span class="k">await</span> <span class="n">blobServiceClient</span><span class="p">.</span><span class="n">GetUserDelegationKeyAsync</span><span class="p">(</span><span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">,</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">.</span><span class="n">AddDays</span><span class="p">(</span><span class="m">7</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Create a SAS token that&#39;s valid for 7 days.</span>
+</span></span><span class="line"><span class="cl">    <span class="n">BlobSasBuilder</span> <span class="n">sasBuilder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">BlobSasBuilder</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">BlobContainerName</span> <span class="p">=</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">BlobContainerName</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">BlobName</span> <span class="p">=</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Resource</span> <span class="p">=</span> <span class="s">&#34;b&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">StartsOn</span> <span class="p">=</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ExpiresOn</span> <span class="p">=</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">.</span><span class="n">AddDays</span><span class="p">(</span><span class="m">7</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Specify read permissions for the SAS.</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sasBuilder</span><span class="p">.</span><span class="n">SetPermissions</span><span class="p">(</span><span class="n">BlobSasPermissions</span><span class="p">.</span><span class="n">Read</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Use the key to get the SAS token.</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">string</span> <span class="n">sasToken</span> <span class="p">=</span> <span class="n">sasBuilder</span><span class="p">.</span><span class="n">ToSasQueryParameters</span><span class="p">(</span><span class="n">userDelegationKey</span><span class="p">,</span> <span class="n">blobServiceClient</span><span class="p">.</span><span class="n">AccountName</span><span class="p">).</span><span class="n">ToString</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Construct the full URI, including the SAS token.</span>
+</span></span><span class="line"><span class="cl">    <span class="n">UriBuilder</span> <span class="n">fullUri</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UriBuilder</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Scheme</span> <span class="p">=</span> <span class="s">&#34;https&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Host</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&#34;{0}.blob.core.windows.net&#34;</span><span class="p">,</span> <span class="n">blobServiceClient</span><span class="p">.</span><span class="n">AccountName</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Path</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&#34;{0}/{1}&#34;</span><span class="p">,</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">BlobContainerName</span><span class="p">,</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">Name</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Query</span> <span class="p">=</span> <span class="n">sasToken</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Create a BlobClient object that can be used to upload a file with the SAS token</span>
+</span></span><span class="line"><span class="cl">    <span class="n">BlobClient</span> <span class="n">sasBlobClient</span> <span class="p">=</span> <span class="k">new</span> <span class="n">BlobClient</span><span class="p">(</span><span class="n">fullUri</span><span class="p">.</span><span class="n">Uri</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Upload a file</span>
+</span></span><span class="line"><span class="cl">    <span class="k">using</span> <span class="p">(</span><span class="n">FileStream</span> <span class="n">stream</span> <span class="p">=</span> <span class="n">File</span><span class="p">.</span><span class="n">OpenRead</span><span class="p">(</span><span class="n">localFilePath</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">await</span> <span class="n">sasBlobClient</span><span class="p">.</span><span class="n">UploadAsync</span><span class="p">(</span><span class="n">stream</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">fullUri</span><span class="p">.</span><span class="n">Uri</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>網址結構如下：<br>
+https://{azure storage ccount}.blob.core.windows.net/{blob container name}/test23.png?sv=2022-11-02&amp;se=2023-04-24T06%3A45%3A33Z&amp;sr=c&amp;sp=racwdxltfi&amp;sig=30%2By6%2F%2BGfT%2BIA2fzZKCsDTzqlArt0Fkn44rXOZ%2Baboo%3D</p>
+<p>https://{azure storage ccount}.blob.core.windows.net/{blob container name}/test23.png</p>
+<p>?sv=2022-11-02&amp;se=2023-04-24T06%3A45%3A33Z&amp;sr=c&amp;sp=racwdxltfi&amp;sig=30%2By6%2F%2BGfT%2BIA2fzZKCsDTzqlArt0Fkn44rXOZ%2Baboo%3D:</p>
+<p>sv=2022-11-02: Storage 服務版本號。<br>
+se=2023-04-24T06%3A45%3A33Z: SAS Token 的到期時間（UTC 時間）。<br>
+sr=c: 資源類型，c 表示容器（container）。<br>
+sp=racwdxltfi: 許可權限，包含讀取（r）、添加（a）、建立（c）、寫入（w）、刪除（d）、列表（l）。<br>
+sig=30%2By6%2F%2BGfT%2BIA2fzZKCsDTzqlArt0Fkn44rXOZ%2Baboo%3D: SAS Token 的簽名，用於驗證 URL 的有效性和完整性。</p>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/rest/api/storageservices/create-account-sas" target="_blank" rel="noopener noreffer ">Create an account SAS - Azure Storage | Microsoft Learn</a></li>
+</ul>
+</div>
+        </div>
+    </div>
+<h3 id="產生-sasurl-api範例">產生 SASURL API範例</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl"><span class="na">[ApiController]</span>
+</span></span><span class="line"><span class="cl"><span class="na">[Route(&#34;[controller]</span><span class="s">&#34;)]
+</span></span></span><span class="line"><span class="cl"><span class="s"></span><span class="kd">public</span> <span class="k">class</span> <span class="nc">AttachmentController</span> <span class="p">:</span> <span class="n">ControllerBase</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">private</span> <span class="k">readonly</span> <span class="n">IConfiguration</span> <span class="n">_configuration</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="n">AttachmentController</span><span class="p">(</span><span class="n">IConfiguration</span> <span class="n">configuration</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">_configuration</span> <span class="p">=</span> <span class="n">configuration</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="na">
+</span></span></span><span class="line"><span class="cl"><span class="na">    [HttpGet(&#34;token&#34;)]</span>
+</span></span><span class="line"><span class="cl"><span class="na">    [ProducesResponseType(StatusCodes.Status409Conflict)]</span>
+</span></span><span class="line"><span class="cl"><span class="na">    [ProducesResponseType(typeof(AzureStorageSASResult), StatusCodes.Status200OK)]</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="n">IActionResult</span> <span class="n">SASToken</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">var</span> <span class="n">azureStorageConfig</span> <span class="p">=</span> <span class="n">_configuration</span><span class="p">.</span><span class="n">GetSection</span><span class="p">(</span><span class="s">&#34;AppSettings:AzureStorage&#34;</span><span class="p">).</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">AzureStorageConfig</span><span class="p">&gt;();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">BlobContainerClient</span> <span class="n">container</span> <span class="p">=</span> <span class="k">new</span><span class="p">(</span><span class="n">azureStorageConfig</span><span class="p">.</span><span class="n">ConnectionString</span><span class="p">,</span> <span class="n">azureStorageConfig</span><span class="p">.</span><span class="n">ContainerName</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(!</span><span class="n">container</span><span class="p">.</span><span class="n">CanGenerateSasUri</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="n">Conflict</span><span class="p">(</span><span class="s">&#34;The container can&#39;t generate SAS URI&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kt">var</span> <span class="n">sasBuilder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">BlobSasBuilder</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">BlobContainerName</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Resource</span> <span class="p">=</span> <span class="s">&#34;c&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">ExpiresOn</span> <span class="p">=</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">.</span><span class="n">AddMinutes</span><span class="p">(</span><span class="n">azureStorageConfig</span><span class="p">.</span><span class="n">TokenExpirationMinutes</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">sasBuilder</span><span class="p">.</span><span class="n">SetPermissions</span><span class="p">(</span><span class="n">BlobContainerSasPermissions</span><span class="p">.</span><span class="n">All</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">var</span> <span class="n">sasUri</span> <span class="p">=</span> <span class="n">container</span><span class="p">.</span><span class="n">GenerateSasUri</span><span class="p">(</span><span class="n">sasBuilder</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">Ok</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="s2">&#34;AppSettings&#34;</span><span class="err">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;AzureStorage&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;ConnectionString&#34;</span><span class="p">:</span> <span class="s2">&#34;&lt;connection string&gt;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;ContainerName&#34;</span><span class="p">:</span> <span class="s2">&#34;attachments&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;TokenExpirationMinutes&#34;</span><span class="p">:</span> <span class="mi">20</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="blob-sas-上傳推薦使用">Blob SAS 上傳(推薦使用)</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-csharp" data-lang="csharp"><span class="line"><span class="cl">        <span class="n">BlobContainerClient</span> <span class="n">container</span> <span class="p">=</span> <span class="k">new</span><span class="p">(</span><span class="s">&#34;connectionstring&#34;</span><span class="p">,</span> <span class="s">&#34;containerName&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">BlobServiceClient</span> <span class="n">blobServiceClient</span> <span class="p">=</span> <span class="k">new</span> <span class="n">BlobServiceClient</span><span class="p">(</span><span class="s">&#34;connectionstring&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">BlobContainerClient</span> <span class="n">blobContainerClient</span> <span class="p">=</span> <span class="n">blobServiceClient</span><span class="p">.</span><span class="n">GetBlobContainerClient</span><span class="p">(</span><span class="s">&#34;containerName&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">BlobClient</span> <span class="n">blobClient</span> <span class="p">=</span> <span class="n">blobContainerClient</span><span class="p">.</span><span class="n">GetBlobClient</span><span class="p">(</span><span class="s">&#34;test.png&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">Uri</span> <span class="n">sasUri</span> <span class="p">=</span> <span class="n">GetServiceSasUriForBlob</span><span class="p">(</span><span class="n">blobClient</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		 
+</span></span><span class="line"><span class="cl">		 <span class="n">GetServiceSasUriForBlob</span><span class="p">(</span><span class="n">blobClient</span><span class="p">).</span><span class="n">Dump</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">static</span> <span class="n">Uri</span> <span class="n">GetServiceSasUriForBlob</span><span class="p">(</span><span class="n">BlobClient</span> <span class="n">blobClient</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">string</span> <span class="n">storedPolicyName</span> <span class="p">=</span> <span class="kc">null</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Check whether this BlobClient object has been authorized with Shared Key.</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">blobClient</span><span class="p">.</span><span class="n">CanGenerateSasUri</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Create a SAS token that&#39;s valid for one hour.</span>
+</span></span><span class="line"><span class="cl">        <span class="n">BlobSasBuilder</span> <span class="n">sasBuilder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">BlobSasBuilder</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">BlobContainerName</span> <span class="p">=</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">GetParentBlobContainerClient</span><span class="p">().</span><span class="n">Name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="n">BlobName</span> <span class="p">=</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="n">Resource</span> <span class="p">=</span> <span class="s">&#34;b&#34;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="p">(</span><span class="n">storedPolicyName</span> <span class="p">==</span> <span class="kc">null</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="n">sasBuilder</span><span class="p">.</span><span class="n">ExpiresOn</span> <span class="p">=</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">.</span><span class="n">AddHours</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">			<span class="n">sasBuilder</span><span class="p">.</span><span class="n">SetPermissions</span><span class="p">(</span><span class="n">BlobSasPermissions</span><span class="p">.</span><span class="n">Read</span> <span class="p">|</span>
+</span></span><span class="line"><span class="cl">				<span class="n">BlobSasPermissions</span><span class="p">.</span><span class="n">Write</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="k">else</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="n">sasBuilder</span><span class="p">.</span><span class="n">Identifier</span> <span class="p">=</span> <span class="n">storedPolicyName</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">Uri</span> <span class="n">sasUri</span> <span class="p">=</span> <span class="n">blobClient</span><span class="p">.</span><span class="n">GenerateSasUri</span><span class="p">(</span><span class="n">sasBuilder</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;SAS URI for blob is: {0}&#34;</span><span class="p">,</span> <span class="n">sasUri</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="n">sasUri</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">else</span>
+</span></span><span class="line"><span class="cl">	<span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">@&#34;BlobClient must be authorized with Shared Key 
+</span></span></span><span class="line"><span class="cl"><span class="s">                          credentials to create a service SAS.&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="postman-上傳檔案">PostMan 上傳檔案</h2>
+<p>需要在Header 加上 <code>x-ms-blob-type</code>，這邊就可以上傳檔案。前端Web需要加上跨域設定，這邊我前台是APP，所以不需要做這件事情。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl --location --request PUT <span class="s1">&#39;https://xxxxx.blob.core.windows.net/.......&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--header <span class="s1">&#39;x-ms-blob-type: BlockBlob&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--header <span class="s1">&#39;Content-Type: image/png&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--data <span class="s1">&#39;@/C:/Users/steve/OneDrive/圖片/螢幕擷取畫面/螢幕擷取畫面_20230222_100659.png&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li>
+<p><a href="https://www.cnblogs.com/redmoon/p/5130618.html" target="_blank" rel="noopener noreffer ">直传文件到Azure Storage的Blob服务中 - 朱永光 - 博客园</a></p>
+</li>
+<li>
+<p><a href="https://www.qiniu.com/qfans/qnso-45198864#comments" target="_blank" rel="noopener noreffer ">在javascript中通过xhr请求上传至azure blob是否安全？</a></p>
+</li>
+<li>
+<p><a href="https://microsoft.github.io/AzureTipsAndTricks/blog/tip305.html" target="_blank" rel="noopener noreffer ">Tip 305 - How to automatically manage Azure Blob Storage lifecycle | Azure Tips and Tricks</a></p>
+</li>
+<li>
+<p><a href="https://www.modb.pro/db/214280" target="_blank" rel="noopener noreffer ">带进度条上传文件到 Azure Blob Storage - 墨天轮</a></p>
+</li>
+<li>
+<p><a href="https://sandippatilprogrammer.wordpress.com/2022/09/29/azure-private-container-blob-access/" target="_blank" rel="noopener noreffer ">azure private container blob access – Microsoft Technologies PROGRAMMING EXPERIENCE</a></p>
+</li>
+<li>
+<p><a href="https://www.youtube.com/watch?v=-3k0hhngt7o&amp;ab_channel=MicrosoftAzure" target="_blank" rel="noopener noreffer ">How to automatically manage Azure Blobs lifecycles | Azure Tips and Tricks - YouTube</a></p>
+</li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-09-19</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" data-title="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢" data-hashtags="azure,azure storage,sas,.net,blob storage,file upload,cloud storage,csharp,tutorial,example"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" data-hashtag="azure"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" data-title="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" data-title="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" data-title="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢" data-image="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/azure/">Azure</a>,&nbsp;<a href="/blog/tags/azure-storage/">Azure Storage</a>,&nbsp;<a href="/blog/tags/sas/">Sas</a>,&nbsp;<a href="/blog/tags/.net/">.Net</a>,&nbsp;<a href="/blog/tags/blob-storage/">Blob Storage</a>,&nbsp;<a href="/blog/tags/file-upload/">File Upload</a>,&nbsp;<a href="/blog/tags/cloud-storage/">Cloud Storage</a>,&nbsp;<a href="/blog/tags/csharp/">Csharp</a>,&nbsp;<a href="/blog/tags/tutorial/">Tutorial</a>,&nbsp;<a href="/blog/tags/example/">Example</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/" class="prev" rel="prev" title="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本</a>
+            <a href="/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" class="next" rel="next" title="如何尋找 TLS 中繼憑證和驗證憑證">如何尋找 TLS 中繼憑證和驗證憑證<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.134.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

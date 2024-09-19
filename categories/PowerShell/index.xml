@@ -11,10 +11,61 @@
     <guid>https://malagege.github.io/blog/posts/PowerShell-%E9%98%B2%E6%AD%A2%E5%90%8C%E6%99%82%E5%9F%B7%E8%A1%8C%E7%A8%8B%E5%BC%8F-%E4%BD%BF%E7%94%A8Mutex/</guid>
     <description><![CDATA[<div class="featured-image">
                 <img src="https://user-images.githubusercontent.com/6058558/209658289-1893ba6c-265c-45f0-b314-481ec072b8c3.png" referrerpolicy="no-referrer">
-            </div>平常我們很常寫程式都會設主程式，會有同時執行 Issue。這邊最近找到用 PowerShell 防止同時執行方法，但後來還是遇到一些問題，所以就不使用了。
-第一次用的人需要開權限 請參考: PowerShell 更改執行原則，解決無法執行 ps1 指令稿問題 - Office 指南
-1 Set-ExecutionPolicy RemoteSigned 使用 Mutex 參考:讓powershell同時只能運行一個腳本（進程互斥例子） - PowerShell免費軟件 - 博客園
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 # PowerShell 進程（腳本）互斥的例子 $互斥名字 = &#39;Global\我代號為天王蓋地虎&#39; $建立互斥成功否 = $flase $互斥對象 = New-Object System.Threading.Mutex ($true,$互斥名字,[ref]$建立互斥成功否) if ($建立互斥成功否) { write-host &#39;互斥成功，開始幹活!&#39; start-sleep -Seconds 60 #你的任務 $互斥對象.ReleaseMutex() | Out-Null $互斥對象.Dispose() | Out-Null write-host &#39;活幹完了，釋放&#39; } else { # 每個互斥腳本必須單獨佔用一個進程！powershell傳教士 win7 ,win10, powershell core v6.]]></description>
+            </div><p>平常我們很常寫程式都會設主程式，會有同時執行 Issue。這邊最近找到用 PowerShell 防止同時執行方法，但後來還是遇到一些問題，所以就不使用了。</p>
+<h2 id="第一次用的人需要開權限">第一次用的人需要開權限</h2>
+<p>請參考: <a href="https://officeguide.cc/powershell-set-execution-policy-remote-signed/" target="_blank" rel="noopener noreffer ">PowerShell 更改執行原則，解決無法執行 ps1 指令稿問題 - Office 指南</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ps1" data-lang="ps1"><span class="line"><span class="cl"><span class="nb">Set-ExecutionPolicy</span> <span class="n">RemoteSigned</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="使用-mutex">使用 Mutex</h2>
+<p>參考:<a href="https://www.cnblogs.com/piapia/p/5647205.html" target="_blank" rel="noopener noreffer ">讓powershell同時只能運行一個腳本（進程互斥例子） - PowerShell免費軟件 - 博客園</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ps1" data-lang="ps1"><span class="line"><span class="cl"><span class="c"># PowerShell 進程（腳本）互斥的例子</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$互斥名字</span> <span class="p">=</span> <span class="s1">&#39;Global\我代號為天王蓋地虎&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$建立互斥成功否</span> <span class="p">=</span> <span class="nv">$flase</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$互斥對象</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="py">Threading</span><span class="p">.</span><span class="py">Mutex</span> <span class="p">(</span><span class="vm">$true</span><span class="p">,</span><span class="nv">$互斥名字</span><span class="p">,[</span><span class="no">ref</span><span class="p">]</span><span class="nv">$建立互斥成功否</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nv">$建立互斥成功否</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">write-host</span> <span class="s1">&#39;互斥成功，開始幹活!&#39;</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">start-sleep</span>  <span class="n">-Seconds</span> <span class="mf">60</span> <span class="c">#你的任務</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$互斥對象</span><span class="p">.</span><span class="py">ReleaseMutex</span><span class="p">()</span> <span class="p">|</span> <span class="nb">Out-Null</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$互斥對象</span><span class="p">.</span><span class="py">Dispose</span><span class="p">()</span> <span class="p">|</span> <span class="nb">Out-Null</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">write-host</span> <span class="s1">&#39;活幹完了，釋放&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="c"># 每個互斥腳本必須單獨佔用一個進程！powershell傳教士 win7 ,win10, powershell core v6.0 beta8 on linux測試通過</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">write-host</span> <span class="s1">&#39;互斥失敗 !&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="後續我沒有使用這個方法">後續我沒有使用這個方法</h3>
+<p>我發現我寫在我動態排程啟動器，發現執行第一次後，後續不一定次數後 Mutex 功能會失效，得到資訊都會是 false。這邊就不使用這個方法。至於發生什麼問題我還沒找到原因，但我猜是鎖壞掉了，可能沒解鎖到。</p>]]></description>
 </item>
 </channel>
 </rss>

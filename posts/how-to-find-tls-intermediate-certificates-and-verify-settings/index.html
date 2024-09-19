@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>如何尋找 TLS 中繼憑證和驗證憑證 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:url" content="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/">
+  <meta property="og:site_name" content="程式狂想筆記">
+  <meta property="og:title" content="如何尋找 TLS 中繼憑證和驗證憑證">
+  <meta property="og:description" content="最近在專案進行中，我發現 Ubuntu 上的 Flutter 嵌入式網頁中，發現空白頁面。經過檢查，發現是 nginx 沒有設定中繼憑證的問題。由於明天要進行 DEMO，而 MIS 可能無法聯繫到，我需要快速找到中繼憑證。我該怎麼做呢？第一次找到這個問題後，發現有好用的網站可以快速產生中繼憑證，這裡紀錄一下。">
+  <meta property="og:locale" content="zh_tw">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-09-19T21:57:32+08:00">
+    <meta property="article:modified_time" content="2024-09-19T22:27:22+08:00">
+    <meta property="article:tag" content="Tls">
+    <meta property="article:tag" content="中繼憑證">
+    <meta property="article:tag" content="Nginx">
+    <meta property="article:tag" content="Flutter">
+    <meta property="article:tag" content="Ubuntu">
+    <meta property="article:tag" content="憑證驗證">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="如何尋找 TLS 中繼憑證和驗證憑證">
+  <meta name="twitter:description" content="最近在專案進行中，我發現 Ubuntu 上的 Flutter 嵌入式網頁中，發現空白頁面。經過檢查，發現是 nginx 沒有設定中繼憑證的問題。由於明天要進行 DEMO，而 MIS 可能無法聯繫到，我需要快速找到中繼憑證。我該怎麼做呢？第一次找到這個問題後，發現有好用的網站可以快速產生中繼憑證，這裡紀錄一下。">
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" /><link rel="prev" href="https://malagege.github.io/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "如何尋找 TLS 中繼憑證和驗證憑證",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/how-to-find-tls-intermediate-certificates-and-verify-settings\/"
+        },"genre": "posts","keywords": "tls, 中繼憑證, nginx, flutter, ubuntu, 憑證驗證","wordcount":  126 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/how-to-find-tls-intermediate-certificates-and-verify-settings\/","datePublished": "2024-09-19T21:57:32+08:00","dateModified": "2024-09-19T22:27:22+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近在專案進行中，我發現 Ubuntu 上的 Flutter 嵌入式網頁中，發現空白頁面。經過檢查，發現是 nginx 沒有設定中繼憑證的問題。由於明天要進行 DEMO，而 MIS 可能無法聯繫到，我需要快速找到中繼憑證。我該怎麼做呢？第一次找到這個問題後，發現有好用的網站可以快速產生中繼憑證，這裡紀錄一下。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">如何尋找 TLS 中繼憑證和驗證憑證</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%A5%BD%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>好用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-09-19">2024-09-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;126 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e"
+        data-srcset="https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e, https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e 1.5x, https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e"
+        title="https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#驗證憑證是否正確設定">驗證憑證是否正確設定</a></li>
+    <li><a href="#產生中繼憑證">產生中繼憑證</a>
+      <ul>
+        <li><a href="#方法1-whats-my-chain-cert-服務">方法1: What&rsquo;s My Chain Cert 服務</a></li>
+        <li><a href="#方法2-尋找官方提供">方法2: 尋找官方提供</a></li>
+      </ul>
+    </li>
+    <li><a href="#憑證合併到中繼憑證">憑證合併到中繼憑證</a></li>
+    <li><a href="#憑證檢查工具">憑證檢查工具</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在專案進行中，我發現 Ubuntu 上的 Flutter 嵌入式網頁中，發現空白頁面。經過檢查，發現是 nginx 沒有設定中繼憑證的問題。由於明天要進行 DEMO，而 MIS 可能無法聯繫到，我需要快速找到中繼憑證。我該怎麼做呢？第一次找到這個問題後，發現有好用的網站可以快速產生中繼憑證，這裡紀錄一下。</p>
+<p>參考網路上的<a href="https://blog.cptsai.com/2021/05/04/cert-chain-missing" target="_blank" rel="noopener noreffer ">中繼憑證設定遺失問題 | Goofy blog</a>解決方式，可以使用<a href="https://whatsmychaincert.com/?twlife.duckdns.org" target="_blank" rel="noopener noreffer ">What&rsquo;s My Chain Cert?</a>網站快速產生憑證。</p>
+<h2 id="驗證憑證是否正確設定">驗證憑證是否正確設定</h2>
+<p>可進<a href="https://whatsmychaincert.com/?incomplete-chain.badssl.com" target="_blank" rel="noopener noreffer ">What&rsquo;s My Chain Cert?</a>網站，輸入網址可以知道是否有正常設定。</p>
+<p><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/257d4d6d-0327-4811-bd21-54731f4e95cb"
+        data-srcset="https://gist.github.com/user-attachments/assets/257d4d6d-0327-4811-bd21-54731f4e95cb, https://gist.github.com/user-attachments/assets/257d4d6d-0327-4811-bd21-54731f4e95cb 1.5x, https://gist.github.com/user-attachments/assets/257d4d6d-0327-4811-bd21-54731f4e95cb 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/257d4d6d-0327-4811-bd21-54731f4e95cb"
+        title="中繼憑證判斷結果示意圖" /></p>
+<p>其實用一般 openssl 指令也可以測試。可參考<a href="https://malagege.github.io/blog/posts/Linux-%E6%8C%87%E4%BB%A4%E7%A2%BA%E8%AA%8DSSL%E6%86%91%E8%AD%89/" target="_blank" rel="noopener noreffer ">Linux 指令確認SSL憑證 - 程式狂想筆記</a>這篇文章。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 使用 OpenSSL 測試 SSL/TLS 憑證命令</span>
+</span></span><span class="line"><span class="cl">openssl s_client -connect server.yourwebhoster.eu:443
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">請注意用瀏覽器判斷憑證是否設定正確，這不是最好的方式。因為中繼憑證設錯，有可能瀏覽器/系統會自動幫你串好憑證，頁面還是會正常顯示。但有些系統會是有問題，就像這個 Case 只發生在 Ubuntu 上面。</div>
+        </div>
+    </div>
+<h2 id="產生中繼憑證">產生中繼憑證</h2>
+<p>在設定 SSL/TLS 憑證時，有時候會遇到中繼憑證缺失的問題。這裡通常有兩地方拿到中繼憑證。</p>
+<h3 id="方法1-whats-my-chain-cert-服務">方法1: What&rsquo;s My Chain Cert 服務</h3>
+<p><a href="https://whatsmychaincert.com/?twlife.duckdns.org" target="_blank" rel="noopener noreffer ">What&rsquo;s My Chain Cert?</a>提供兩個方法可以產生中繼憑證，但其實正解要去官網才能找才是正確答案。</p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">注意：雖然 What&rsquo;s My Chain Cert? 可以快速生成中繼憑證，但最佳的方法是從官方網站獲取。</div>
+        </div>
+    </div>
+<h3 id="方法2-尋找官方提供">方法2: 尋找官方提供</h3>
+<p>官方網站通常會提供最新的中繼憑證，這是最可靠的來源。</p>
+<ul>
+<li><a href="https://letsencrypt.org/zh-tw/certificates/" target="_blank" rel="noopener noreffer ">Let&rsquo;s Encrypt 官方網站提供的中繼憑證</a></li>
+<li><a href="https://www.twca.com.tw/picture/file/20080612-095525549.pdf" target="_blank" rel="noopener noreffer ">TWCA中繼憑證 </a></li>
+</ul>
+<h2 id="憑證合併到中繼憑證">憑證合併到中繼憑證</h2>
+<p>合併完成後，重啟 <code>nginx</code> 服務以應用新的憑證設定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo systemctl restart nginx
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>接著，重新檢查憑證是否正確配置，可以使用以下指令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">openssl s_client -connect yourdomain.com:443
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果一切正常，憑證應該會顯示完整的信任鏈。</p>
+<h2 id="憑證檢查工具">憑證檢查工具</h2>
+<p>除了手動檢查外，還可以使用一些線上工具來驗證憑證配置是否正確：</p>
+<ul>
+<li><a href="https://www.ssllabs.com/ssltest/" target="_blank" rel="noopener noreffer ">SSL Labs</a>: 提供詳細的 SSL 憑證檢查報告，幫助你找出配置中的問題。</li>
+<li><a href="https://whatsmychaincert.com/" target="_blank" rel="noopener noreffer ">What&rsquo;s My Chain Cert?</a>: 快速檢查憑證鏈是否完整。</li>
+</ul>
+<p>網路還很多其他的工具，可以根據自己的需求選擇適合的工具來檢查憑證配置。</p>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://badssl.com/" target="_blank" rel="noopener noreffer ">badssl.com</a><br>
+這個網站提供各種 SSL/TLS 配置的測試案例，幫助你了解不同配置的影響。</li>
+</ul>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>為什麼需要中繼憑證？<br>
+中繼憑證是用來建立完整的憑證信任鏈，確保瀏覽器和其他客戶端能夠信任你的網站憑證。如果缺少中繼憑證，可能會導致瀏覽器顯示不安全的警告。</p>
+<p>如何獲取中繼憑證？<br>
+可以從憑證頒發機構 (CA) 的官方網站下載中繼憑證。例如，Let&rsquo;s Encrypt 和 TWCA 都提供中繼憑證的下載。</p>
+<p>如何確認憑證配置正確？<br>
+可以使用 openssl 指令或線上工具來檢查憑證配置是否正確。確保憑證鏈完整，沒有缺失的中繼憑證。</p>
+<p>這些步驟和工具可以幫助你確保網站的 SSL/TLS 憑證配置正確，提供安全的連接給使用者。</p>
+</div>
+        </div>
+    </div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2024-09-19</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" data-title="如何尋找 TLS 中繼憑證和驗證憑證" data-hashtags="tls,中繼憑證,nginx,flutter,ubuntu,憑證驗證"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" data-hashtag="tls"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" data-title="如何尋找 TLS 中繼憑證和驗證憑證"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" data-title="如何尋找 TLS 中繼憑證和驗證憑證"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/" data-title="如何尋找 TLS 中繼憑證和驗證憑證" data-image="https://gist.github.com/user-attachments/assets/c03cdc35-8b26-4623-b0d1-e0da8e57503e"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/tls/">Tls</a>,&nbsp;<a href="/blog/tags/%E4%B8%AD%E7%B9%BC%E6%86%91%E8%AD%89/">中繼憑證</a>,&nbsp;<a href="/blog/tags/nginx/">Nginx</a>,&nbsp;<a href="/blog/tags/flutter/">Flutter</a>,&nbsp;<a href="/blog/tags/ubuntu/">Ubuntu</a>,&nbsp;<a href="/blog/tags/%E6%86%91%E8%AD%89%E9%A9%97%E8%AD%89/">憑證驗證</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/implementing-azure-storage-sas-upload-with-dotnet/" class="prev" rel="prev" title="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.134.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>

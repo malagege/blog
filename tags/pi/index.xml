@@ -21,14 +21,80 @@
     <guid>https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/</guid>
     <description><![CDATA[<div class="featured-image">
                 <img src="https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png" referrerpolicy="no-referrer">
-            </div>最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。
-我要有幾個需求
-BT下載機 外接 USB 硬碟 自動抓取番劇 線上 Web 存取檔案 我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。
-切割磁區和掛載磁區 首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：
-1 sudo fdisk -l 執行上述命令後，你將看到類似以下的輸出：
-接著，我們將使用以下命令來格式化我們的磁區：
-1 sudo mkfs -t ext4 /dev/sda1 我們需要創建一個掛載磁區。
-1 2 3 4 5 6 7 8 9 10 11 12 # 我們需要創建一個掛載點 sudo mkdir -p /media/extHDD # 我們將磁區掛載到我們剛剛建立的掛載點 sudo mount /dev/sda1 /media/extHDD # 找出我們的磁區的UUID sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon 如果你需要更詳細的設定步驟，你可以參考以下的教學文章：]]></description>
+            </div><p>最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。<br>
+我要有幾個需求</p>
+<ol>
+<li>BT下載機</li>
+<li>外接 USB 硬碟</li>
+<li>自動抓取番劇</li>
+<li>線上 Web 存取檔案</li>
+</ol>
+<p>我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。</p>
+<h2 id="切割磁區和掛載磁區">切割磁區和掛載磁區</h2>
+<p>首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo fdisk -l
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>執行上述命令後，你將看到類似以下的輸出：<br>
+</p>
+<p>接著，我們將使用以下命令來格式化我們的磁區：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mkfs -t ext4 /dev/sda1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我們需要創建一個掛載磁區。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 我們需要創建一個掛載點</span>
+</span></span><span class="line"><span class="cl">sudo mkdir -p /media/extHDD
+</span></span><span class="line"><span class="cl"><span class="c1"># 我們將磁區掛載到我們剛剛建立的掛載點</span>
+</span></span><span class="line"><span class="cl">sudo mount  /dev/sda1 /media/extHDD
+</span></span><span class="line"><span class="cl"><span class="c1"># 找出我們的磁區的UUID</span>
+</span></span><span class="line"><span class="cl">sudo blkid
+</span></span><span class="line"><span class="cl"><span class="c1">#/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34;</span>
+</span></span><span class="line"><span class="cl">在/etc/fstab加下面設定
+</span></span><span class="line"><span class="cl"><span class="nv">UUID</span><span class="o">=</span><span class="s2">&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34;</span> /media/extHDD ext4 rw,defaults,nofail <span class="m">0</span> <span class="m">0</span> 
+</span></span><span class="line"><span class="cl"><span class="c1"># 確認/etc/fstab 設定無錯誤</span>
+</span></span><span class="line"><span class="cl">mount -a
+</span></span><span class="line"><span class="cl"><span class="c1">#可用 df -mh 確認裝置是否有掛載</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="安裝-tranmission">安裝 tranmission</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt-get install transmission-daemon
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果你需要更詳細的設定步驟，你可以參考以下的教學文章：<br>
+<a href="https://linuxconfig.org/how-to-set-up-transmission-daemon-on-a-raspberry-pi-and-control-it-via-web-interface" target="_blank" rel="noopener noreffer ">How to set up transmission-daemon on a Raspberry Pi and control it via web interface - Linux Tutorials - Learn Linux Configuration</a></p>]]></description>
 </item>
 <item>
     <title>Raspberry PI 攝影機計畫之新手簡單架設 HLS 和 RTSP Server</title>
