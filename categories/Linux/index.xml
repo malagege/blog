@@ -3,7 +3,68 @@
         <title>Linux - Category - 程式狂想筆記</title>
         <link>https://malagege.github.io/blog/categories/Linux/</link>
         <description>Linux - Category - 程式狂想筆記</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-tw</language><lastBuildDate>Mon, 26 Aug 2024 21:17:14 &#43;0800</lastBuildDate><atom:link href="https://malagege.github.io/blog/categories/Linux/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-tw</language><lastBuildDate>Tue, 24 Sep 2024 22:52:50 &#43;0800</lastBuildDate><atom:link href="https://malagege.github.io/blog/categories/Linux/" rel="self" type="application/rss+xml" /><item>
+    <title>解決 Read-only file system 問題與系統掛載錯誤</title>
+    <link>https://malagege.github.io/blog/posts/resolve-read-only-file-system-issues-and-mount-errors/</link>
+    <pubDate>Tue, 24 Sep 2024 22:52:50 &#43;0800</pubDate>
+    <author>malagege</author>
+    <guid>https://malagege.github.io/blog/posts/resolve-read-only-file-system-issues-and-mount-errors/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c" referrerpolicy="no-referrer">
+            </div><p>最近遇到了一些系統問題。當我嘗試掛載 <code>/dev/sdc1</code> (100GB) 到根目錄時，發生了一些問題，系統顯示為只讀文件系統。</p>
+<!-- raw HTML omitted -->
+<h2 id="read-only-file-system-發生連串問題">Read-only file system 發生連串問題</h2>
+<h3 id="read-only-file-system-問題">Read-only file system 問題</h3>
+<p>當嘗試創建文件時，系統顯示為只讀文件系統：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">user:~$ touch <span class="nb">test</span>
+</span></span><span class="line"><span class="cl">touch: cannot touch <span class="s1">&#39;test&#39;</span>: Read-only file system
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="解決方法">解決方法</h3>
+<p>在網路上找到解決方法，可以使用以下指令重新掛載根目錄為可讀寫模式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mount -o remount,rw /
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="dns-問題">DNS 問題</h3>
+<p>在嘗試 ping Google 或進行 git pull 操作時，出現 DNS 錯誤：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ping google.com 
+</span></span><span class="line"><span class="cl"><span class="c1"># ping: google.com: Temporary failure in name resolution</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">git pull 
+</span></span><span class="line"><span class="cl"><span class="c1"># ssh: Could not resolve hostname github.com: Temporary failure in name resolution</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fatal: Could not read from remote repository.</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Please make sure you have the correct access rights</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># and the repository exists.</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個問題是由於 DNS 無效造成的。</p>]]></description>
+</item>
+<item>
     <title>在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本</title>
     <link>https://malagege.github.io/blog/posts/monitor-ubuntu-error-logs-and-send-discord-notifications/</link>
     <pubDate>Mon, 26 Aug 2024 21:17:14 &#43;0800</pubDate>
@@ -222,16 +283,6 @@
     <description><![CDATA[<div class="featured-image">
                 <img src="https://i.imgur.com/X4mM76Q.png" referrerpolicy="no-referrer">
             </div><p>最近在架 KVM 使用 WebVirtCloud 做網頁遠端控制 VM，之前研究 Ubuntu 啟用 VNC 是為了能控制 VM GUI 介面，但是在公司沒法連線使用，這邊有找到 WebVirtCloud 可以解決這個問題，透過這個服務可能用 Traefik 轉服務出去，透過 Authelia 做 2FA 驗證可以相當方便，但我發現我不會轉 host 服務出去，這邊就特別研究怎麼用。</p>]]></description>
-</item>
-<item>
-    <title>整理 Linux 排程方法</title>
-    <link>https://malagege.github.io/blog/posts/%E6%95%B4%E7%90%86-Linux-%E6%8E%92%E7%A8%8B%E6%96%B9%E6%B3%95/</link>
-    <pubDate>Fri, 30 Dec 2022 00:01:25 &#43;0800</pubDate>
-    <author>malagege</author>
-    <guid>https://malagege.github.io/blog/posts/%E6%95%B4%E7%90%86-Linux-%E6%8E%92%E7%A8%8B%E6%96%B9%E6%B3%95/</guid>
-    <description><![CDATA[<div class="featured-image">
-                <img src="https://user-images.githubusercontent.com/6058558/209978656-0c45a5d2-ee18-4cc4-b662-399590f99352.png" referrerpolicy="no-referrer">
-            </div><p>之前我有寫過幾篇排程啟動文章，最近要去接觸 Windows 環境，工作上可能就不會碰到，這邊做一下簡單整理。<del>怕哪天回來忘了</del></p>]]></description>
 </item>
 </channel>
 </rss>

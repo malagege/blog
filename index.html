@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-tw">
     <head>
-	<meta name="generator" content="Hugo 0.134.2">
+	<meta name="generator" content="Hugo 0.135.0">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
@@ -100,6 +100,89 @@
         alt="https://avatars.githubusercontent.com/u/6058558"
         title="https://avatars.githubusercontent.com/u/6058558" /></a></div><h1 class="home-title">程式狂想筆記</h1><div class="home-subtitle"><div id="id-1" class="typeit"></div></div><div class="links"></div></div>
 <article class="single summary" itemscope itemtype="http://schema.org/Article"><div class="featured-image-preview">
+            <a href="/blog/posts/resolve-read-only-file-system-issues-and-mount-errors/"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c"
+        data-srcset="https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c, https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c 1.5x, https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c"
+        title="https://gist.github.com/user-attachments/assets/482a2ee4-7e60-4596-af4a-16ec0df2b62c" /></a>
+        </div><h1 class="single-title" itemprop="name headline">
+        <a href="/blog/posts/resolve-read-only-file-system-issues-and-mount-errors/">解決 Read-only file system 問題與系統掛載錯誤</a>
+    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2024-09-24">2024-09-24</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div><div class="content">
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <p>最近遇到了一些系統問題。當我嘗試掛載 <code>/dev/sdc1</code> (100GB) 到根目錄時，發生了一些問題，系統顯示為只讀文件系統。</p>
+<!-- raw HTML omitted -->
+<h2 id="read-only-file-system-發生連串問題">Read-only file system 發生連串問題</h2>
+<h3 id="read-only-file-system-問題">Read-only file system 問題</h3>
+<p>當嘗試創建文件時，系統顯示為只讀文件系統：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">user:~$ touch <span class="nb">test</span>
+</span></span><span class="line"><span class="cl">touch: cannot touch <span class="s1">&#39;test&#39;</span>: Read-only file system
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="解決方法">解決方法</h3>
+<p>在網路上找到解決方法，可以使用以下指令重新掛載根目錄為可讀寫模式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mount -o remount,rw /
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="dns-問題">DNS 問題</h3>
+<p>在嘗試 ping Google 或進行 git pull 操作時，出現 DNS 錯誤：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ping google.com 
+</span></span><span class="line"><span class="cl"><span class="c1"># ping: google.com: Temporary failure in name resolution</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">git pull 
+</span></span><span class="line"><span class="cl"><span class="c1"># ssh: Could not resolve hostname github.com: Temporary failure in name resolution</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># fatal: Could not read from remote repository.</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Please make sure you have the correct access rights</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># and the repository exists.</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個問題是由於 DNS 無效造成的。</p></div><div class="post-footer">
+        <a href="/blog/posts/resolve-read-only-file-system-issues-and-mount-errors/">Read More</a><div class="post-tags">
+                <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/read-only-file-system/">Read-Only File System</a>,&nbsp;<a href="/blog/tags/%E7%B3%BB%E7%B5%B1%E6%8E%9B%E8%BC%89/">系統掛載</a>,&nbsp;<a href="/blog/tags/docker/">Docker</a>,&nbsp;<a href="/blog/tags/%E7%B3%BB%E7%B5%B1%E9%8C%AF%E8%AA%A4/">系統錯誤</a>,&nbsp;<a href="/blog/tags/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%B5%B1/">文件系統</a>,&nbsp;<a href="/blog/tags/troubleshooting/">Troubleshooting</a></div></div>
+</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><div class="featured-image-preview">
             <a href="/blog/posts/how-to-find-tls-intermediate-certificates-and-verify-settings/"><img
         class="lazyload"
         src="/blog/svg/loading.min.svg"
@@ -442,38 +525,6 @@
   <p>在處理數據加密時，我們經常需要考慮到加密後的數據長度。這對於設計資料表和確保資料安全都是非常重要的。在這篇文章中，我將解釋 AES 加密和 Base64 編碼的長度如何計算。</p></div><div class="post-footer">
         <a href="/blog/posts/aes-encryption-length/">Read More</a><div class="post-tags">
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/aes/">Aes</a>,&nbsp;<a href="/blog/tags/encryption/">Encryption</a>,&nbsp;<a href="/blog/tags/base64/">Base64</a>,&nbsp;<a href="/blog/tags/data-security/">Data-Security</a>,&nbsp;<a href="/blog/tags/%E5%8A%A0%E5%AF%86/">加密</a></div></div>
-</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><div class="featured-image-preview">
-            <a href="/blog/posts/how-to-allow-https-api-calls-in-http-webpages/"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://gist.github.com/assets/6058558/4a1a01a1-47be-4114-88e3-a5619840016f"
-        data-srcset="https://gist.github.com/assets/6058558/4a1a01a1-47be-4114-88e3-a5619840016f, https://gist.github.com/assets/6058558/4a1a01a1-47be-4114-88e3-a5619840016f 1.5x, https://gist.github.com/assets/6058558/4a1a01a1-47be-4114-88e3-a5619840016f 2x"
-        data-sizes="auto"
-        alt="https://gist.github.com/assets/6058558/4a1a01a1-47be-4114-88e3-a5619840016f"
-        title="https://gist.github.com/assets/6058558/4a1a01a1-47be-4114-88e3-a5619840016f" /></a>
-        </div><h1 class="single-title" itemprop="name headline">
-        <a href="/blog/posts/how-to-allow-https-api-calls-in-http-webpages/">如何在 HTTP 網頁中允許 HTTPS API 呼叫</a>
-    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-publish">published on <time datetime="2024-04-28">2024-04-28</time></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%AB%E7%A8%8B%E5%BC%8F%E4%B8%80%E4%BA%9B%E4%BA%8B/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>寫程式一些事</a></span></div><div class="content">
-        <div align="center">
-    <script
-      async
-      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
-    ></script>
-    <ins
-      class="adsbygoogle"
-      style="display:block; text-align:center;"
-      data-ad-layout="in-article"
-      data-ad-format="fluid"
-      data-ad-client="ca-pub-1439458814178865"
-      data-ad-slot="4661282975"
-    ></ins>
-    <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  </div>
-  <p>在開發測試過程中，我們經常會遇到一些內部環境不是 HTTPS 的情況。雖然我們可以通過掛載證書來解決這個問題，但有時候現實的情況並不是我們能完全控制的。因此，我們需要進行一些設定，以便在這些環境下進行開發測試。</p></div><div class="post-footer">
-        <a href="/blog/posts/how-to-allow-https-api-calls-in-http-webpages/">Read More</a><div class="post-tags">
-                <i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/http/">Http</a>,&nbsp;<a href="/blog/tags/https/">Https</a>,&nbsp;<a href="/blog/tags/api/">Api</a>,&nbsp;<a href="/blog/tags/%E7%B6%B2%E9%A0%81%E9%96%8B%E7%99%BC/">網頁開發</a>,&nbsp;<a href="/blog/tags/%E5%AE%89%E5%85%A8%E6%80%A7/">安全性</a></div></div>
 </article><ul class="pagination"><li class="page-item active">
                     <span class="page-link">
                         <a href="/blog/">1</a>
@@ -494,7 +545,7 @@
                     </span>
                 </li></ul></div></div>
             </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.134.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.135.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
                 </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
         </div>
     </footer></div>
