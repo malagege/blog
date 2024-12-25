@@ -4,23 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:url" content="https://malagege.github.io/blog/posts/%E8%AE%93%E8%99%9B%E6%93%AC%E7%B6%B2%E8%B7%AF%E5%AD%94%E5%92%8C%E5%90%84%E7%A8%AE%E8%A8%AD%E5%82%99%E9%80%A3%E6%8E%A5%E8%B5%B7%E4%BE%86-Linux-Bridge-%E5%AF%A6%E4%BD%9C/">
-  <meta property="og:site_name" content="程式狂想筆記">
-  <meta property="og:title" content="讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作">
-  <meta property="og:description" content="最近要讓 KVM 不透過設定路由，想直接連接到現有網段，這邊繼網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇研究，我們這邊簡單操作 Linux Bridge 讓多種孔可以互相連線。">
-  <meta property="og:locale" content="zh_tw">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2023-09-17T22:28:34+08:00">
-    <meta property="article:modified_time" content="2023-09-17T22:28:34+08:00">
-    <meta property="article:tag" content="網路">
-    <meta property="article:tag" content="Bridge">
-    <meta property="article:tag" content="Linux">
-    <meta property="article:tag" content="Netns">
+        <title>讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作" />
+<meta property="og:description" content="最近要讓 KVM 不透過設定路由，想直接連接到現有網段，這邊繼網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇研究，我們這邊簡單操作 Linux Bridge 讓多種孔可以互相連線。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E8%AE%93%E8%99%9B%E6%93%AC%E7%B6%B2%E8%B7%AF%E5%AD%94%E5%92%8C%E5%90%84%E7%A8%AE%E8%A8%AD%E5%82%99%E9%80%A3%E6%8E%A5%E8%B5%B7%E4%BE%86-Linux-Bridge-%E5%AF%A6%E4%BD%9C/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-09-17T22:28:34+08:00" />
+<meta property="article:modified_time" content="2023-09-17T22:28:34+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作">
-  <meta name="twitter:description" content="最近要讓 KVM 不透過設定路由，想直接連接到現有網段，這邊繼網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇研究，我們這邊簡單操作 Linux Bridge 讓多種孔可以互相連線。">
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作"/>
+<meta name="twitter:description" content="最近要讓 KVM 不透過設定路由，想直接連接到現有網段，這邊繼網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇研究，我們這邊簡單操作 Linux Bridge 讓多種孔可以互相連線。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -656,12 +648,9 @@
 <ul>
 <li><a href="https://www.youtube.com/watch?v=o2LoG-83rp8" target="_blank" rel="noopener noreffer ">(51) When do you need the ARP protocol? -Wireshark - YouTube</a><br>
 
-
-    
-    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/o2LoG-83rp8?autoplay=0&controls=1&end=0&loop=0&mute=0&start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video"
-      ></iframe>
-    </div>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+  <iframe src="https://www.youtube.com/embed/o2LoG-83rp8" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen title="YouTube Video"></iframe>
+</div>
 </li>
 </ul>
 <p>我覺得介紹還滿簡單易懂，推薦看這個影片</p>
@@ -760,7 +749,7 @@ WIFI對有線網路橋接動作，有空來記錄。</li>
                 Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
             </noscript></div></article></div>
             </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.135.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
                 </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2024</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
         </div>
     </footer></div>
