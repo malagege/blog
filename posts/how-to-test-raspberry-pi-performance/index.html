@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>樹梅派怎麼簡單測試效能 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="樹梅派怎麼簡單測試效能" />
+<meta property="og:description" content="最近我買到了二手的 Raspberry Pi 4 8GB，這裡分享一些簡單的效能測試方法。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-03-24T21:04:21+08:00" />
+<meta property="article:modified_time" content="2025-03-24T21:10:50+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="樹梅派怎麼簡單測試效能"/>
+<meta name="twitter:description" content="最近我買到了二手的 Raspberry Pi 4 8GB，這裡分享一些簡單的效能測試方法。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Playwright_code_running_out_of_memory_error/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "樹梅派怎麼簡單測試效能",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/how-to-test-raspberry-pi-performance\/"
+        },"genre": "posts","keywords": "raspberry-pi, performance, benchmark, 7zip, rpi-benchmark, ubuntu","wordcount":  912 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/how-to-test-raspberry-pi-performance\/","datePublished": "2025-03-24T21:04:21+08:00","dateModified": "2025-03-24T21:10:50+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近我買到了二手的 Raspberry Pi 4 8GB，這裡分享一些簡單的效能測試方法。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">樹梅派怎麼簡單測試效能</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-03-24">2025-03-24</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;912 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0"
+        data-srcset="https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0, https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0 1.5x, https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0"
+        title="https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#7z-b推薦">7z b(推薦)</a></li>
+    <li><a href="#rpi-benchmark">rpi-benchmark</a></li>
+    <li><a href="#其他方法">其他方法</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近我買到了二手的 Raspberry Pi 4 8GB，這裡分享一些簡單的效能測試方法。</p>
+<h2 id="7z-b推薦">7z b(推薦)</h2>
+<p>7zip 提供了一個指令可以用來測試效能。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">:~$ 7z b
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">7-Zip <span class="o">[</span>64<span class="o">]</span> 16.02 : Copyright <span class="o">(</span>c<span class="o">)</span> 1999-2016 Igor Pavlov : 2016-05-21
+</span></span><span class="line"><span class="cl">p7zip Version 16.02 <span class="o">(</span><span class="nv">locale</span><span class="o">=</span>C.UTF-8,Utf16<span class="o">=</span>on,HugeFiles<span class="o">=</span>on,64 bits,4 CPUs LE<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">LE
+</span></span><span class="line"><span class="cl">CPU Freq: <span class="m">64000000</span> - - - - - - - -
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">RAM size:    <span class="m">7811</span> MB,  <span class="c1"># CPU hardware threads:   4</span>
+</span></span><span class="line"><span class="cl">RAM usage:    <span class="m">882</span> MB,  <span class="c1"># Benchmark threads:      4</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                       Compressing  <span class="p">|</span>                  Decompressing
+</span></span><span class="line"><span class="cl">Dict     Speed Usage    R/U Rating  <span class="p">|</span>      Speed Usage    R/U Rating
+</span></span><span class="line"><span class="cl">         KiB/s     %   MIPS   MIPS  <span class="p">|</span>      KiB/s     %   MIPS   MIPS
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">22:       <span class="m">3893</span>   <span class="m">341</span>   <span class="m">1110</span>   <span class="m">3787</span>  <span class="p">|</span>      <span class="m">74504</span>   <span class="m">398</span>   <span class="m">1597</span>   <span class="m">6356</span>
+</span></span><span class="line"><span class="cl">23:       <span class="m">3733</span>   <span class="m">349</span>   <span class="m">1089</span>   <span class="m">3804</span>  <span class="p">|</span>      <span class="m">73285</span>   <span class="m">398</span>   <span class="m">1593</span>   <span class="m">6341</span>
+</span></span><span class="line"><span class="cl">24:       <span class="m">3657</span>   <span class="m">361</span>   <span class="m">1091</span>   <span class="m">3933</span>  <span class="p">|</span>      <span class="m">72108</span>   <span class="m">398</span>   <span class="m">1589</span>   <span class="m">6330</span>
+</span></span><span class="line"><span class="cl">25:       <span class="m">3534</span>   <span class="m">368</span>   <span class="m">1097</span>   <span class="m">4035</span>  <span class="p">|</span>      <span class="m">70803</span>   <span class="m">399</span>   <span class="m">1579</span>   <span class="m">6301</span>
+</span></span><span class="line"><span class="cl">----------------------------------  <span class="p">|</span> ------------------------------
+</span></span><span class="line"><span class="cl">Avr:             <span class="m">355</span>   <span class="m">1097</span>   <span class="m">3890</span>  <span class="p">|</span>              <span class="m">398</span>   <span class="m">1589</span>   <span class="m">6332</span>
+</span></span><span class="line"><span class="cl">Tot:             <span class="m">377</span>   <span class="m">1343</span>   <span class="m">5111</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考:<a href="https://gist.github.com/devopswise/f6e80c1fc84dc6faa45c687d855eee04" target="_blank" rel="noopener noreffer ">7z benchmark for Raspberry Pi 4</a></p>
+<p>以下是我在 Raspberry Pi 4 上的測試結果：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">pi@PI204:~ $ pi@PI204:~ $ 7z b
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">7-Zip <span class="o">[</span>64<span class="o">]</span> 16.02 : Copyright <span class="o">(</span>c<span class="o">)</span> 1999-2016 Igor Pavlov : 2016-05-21
+</span></span><span class="line"><span class="cl">p7zip Version 16.02 <span class="o">(</span><span class="nv">locale</span><span class="o">=</span>en_GB.UTF-8,Utf16<span class="o">=</span>on,HugeFiles<span class="o">=</span>on,64 bits,4 CPUs LE<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">LE
+</span></span><span class="line"><span class="cl">CPU Freq: - - - - - - - - -
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">RAM size:    <span class="m">7809</span> MB,  <span class="c1"># CPU hardware threads:   4</span>
+</span></span><span class="line"><span class="cl">RAM usage:    <span class="m">882</span> MB,  <span class="c1"># Benchmark threads:      4</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                       Compressing  <span class="p">|</span>                  Decompressing
+</span></span><span class="line"><span class="cl">Dict     Speed Usage    R/U Rating  <span class="p">|</span>      Speed Usage    R/U Rating
+</span></span><span class="line"><span class="cl">         KiB/s     %   MIPS   MIPS  <span class="p">|</span>      KiB/s     %   MIPS   MIPS
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">22:       <span class="m">4316</span>   <span class="m">342</span>   <span class="m">1229</span>   <span class="m">4199</span>  <span class="p">|</span>      <span class="m">89104</span>   <span class="m">400</span>   <span class="m">1903</span>   <span class="m">7602</span>
+</span></span><span class="line"><span class="cl">23:       <span class="m">4172</span>   <span class="m">355</span>   <span class="m">1199</span>   <span class="m">4252</span>  <span class="p">|</span>      <span class="m">87453</span>   <span class="m">399</span>   <span class="m">1894</span>   <span class="m">7567</span>
+</span></span><span class="line"><span class="cl">24:       <span class="m">4006</span>   <span class="m">362</span>   <span class="m">1189</span>   <span class="m">4308</span>  <span class="p">|</span>      <span class="m">85778</span>   <span class="m">400</span>   <span class="m">1884</span>   <span class="m">7530</span>
+</span></span><span class="line"><span class="cl">25:       <span class="m">3543</span>   <span class="m">322</span>   <span class="m">1255</span>   <span class="m">4046</span>  <span class="p">|</span>      <span class="m">83766</span>   <span class="m">399</span>   <span class="m">1866</span>   <span class="m">7455</span>
+</span></span><span class="line"><span class="cl">----------------------------------  <span class="p">|</span> ------------------------------
+</span></span><span class="line"><span class="cl">Avr:             <span class="m">345</span>   <span class="m">1218</span>   <span class="m">4201</span>  <span class="p">|</span>              <span class="m">400</span>   <span class="m">1887</span>   <span class="m">7539</span>
+</span></span><span class="line"><span class="cl">Tot:             <span class="m">372</span>   <span class="m">1552</span>   <span class="m">5870</span>
+</span></span><span class="line"><span class="cl">pi@PI204:~ $
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我也在 Raspberry Pi 3 上進行了測試，但由於運行了 Loki 和 Grafana，測試過程中卡住了，所以中斷了測試。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">pi@PI203:~ $ 7z b
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">7-Zip <span class="o">[</span>64<span class="o">]</span> 16.02 : Copyright <span class="o">(</span>c<span class="o">)</span> 1999-2016 Igor Pavlov : 2016-05-21
+</span></span><span class="line"><span class="cl">p7zip Version 16.02 <span class="o">(</span><span class="nv">locale</span><span class="o">=</span>en_GB.UTF-8,Utf16<span class="o">=</span>on,HugeFiles<span class="o">=</span>on,64 bits,4 CPUs LE<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">LE
+</span></span><span class="line"><span class="cl">CPU Freq: - - - - - - - - -
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">RAM size:     <span class="m">907</span> MB,  <span class="c1"># CPU hardware threads:   4</span>
+</span></span><span class="line"><span class="cl">RAM usage:    <span class="m">882</span> MB,  <span class="c1"># Benchmark threads:      4</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                       Compressing  <span class="p">|</span>                  Decompressing
+</span></span><span class="line"><span class="cl">Dict     Speed Usage    R/U Rating  <span class="p">|</span>      Speed Usage    R/U Rating
+</span></span><span class="line"><span class="cl">         KiB/s     %   MIPS   MIPS  <span class="p">|</span>      KiB/s     %   MIPS   MIPS
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">22:       <span class="m">1944</span>   <span class="m">299</span>    <span class="m">633</span>   <span class="m">1892</span>  <span class="p">|</span>      <span class="m">46232</span>   <span class="m">361</span>   <span class="m">1091</span>   <span class="m">3944</span>
+</span></span><span class="line"><span class="cl">23:       <span class="m">1820</span>   <span class="m">302</span>    <span class="m">615</span>   <span class="m">1855</span>  <span class="p">|</span>      <span class="m">45204</span>   <span class="m">360</span>   <span class="m">1086</span>   <span class="m">3911</span>
+</span></span><span class="line"><span class="cl">24:       <span class="m">1683</span>   <span class="m">297</span>    <span class="m">609</span>   <span class="m">1811</span>  <span class="p">|</span>      <span class="m">43703</span>   <span class="m">357</span>   <span class="m">1074</span>   <span class="m">3837</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>以下是我在 Ubuntu 桌機上的測試結果：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">malagege@malagege-ubuntu:~$ 7z b
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">7-Zip [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
+</span></span><span class="line"><span class="cl">p7zip Version 16.02 (locale=zh_TW.UTF-8,Utf16=on,HugeFiles=on,64 bits,8 CPUs Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz (306C3),ASM,AES-NI)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz (306C3)
+</span></span><span class="line"><span class="cl">CPU Freq: - 64000000 - - - - - - -
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">RAM size:   23951 MB,  # CPU hardware threads:   8
+</span></span><span class="line"><span class="cl">RAM usage:   1765 MB,  # Benchmark threads:      8
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                       Compressing  |                  Decompressing
+</span></span><span class="line"><span class="cl">Dict     Speed Usage    R/U Rating  |      Speed Usage    R/U Rating
+</span></span><span class="line"><span class="cl">         KiB/s     %   MIPS   MIPS  |      KiB/s     %   MIPS   MIPS
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">22:      24049   659   3552  23395  |     280380   784   3049  23915
+</span></span><span class="line"><span class="cl">23:      24803   718   3521  25272  |     275331   780   3054  23826
+</span></span><span class="line"><span class="cl">24:      23076   716   3464  24812  |     272103   781   3057  23882
+</span></span><span class="line"><span class="cl">25:      22489   741   3464  25678  |     269085   786   3048  23947
+</span></span><span class="line"><span class="cl">----------------------------------  | ------------------------------
+</span></span><span class="line"><span class="cl">Avr:             709   3500  24789  |              783   3052  23893
+</span></span><span class="line"><span class="cl">Tot:             746   3276  24341
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="rpi-benchmark">rpi-benchmark</h2>
+<ul>
+<li><a href="https://github.com/aikoncwd/rpi-benchmark" target="_blank" rel="noopener noreffer ">aikoncwd/rpi-benchmark: Script to run some benchmark test for Raspberry Pi</a></li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> curl -L https://raw.githubusercontent.com/aikoncwd/rpi-benchmark/master/rpi-benchmark.sh <span class="p">|</span> sudo bash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">Raspberry</span> <span class="n">Pi</span> <span class="n">Benchmark</span> <span class="n">Test</span>
+</span></span><span class="line"><span class="cl"><span class="n">Author</span><span class="p">:</span> <span class="n">AikonCWD</span>
+</span></span><span class="line"><span class="cl"><span class="n">Version</span><span class="p">:</span> <span class="mf">3.0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">42.3</span><span class="s1">&#39;C                                                                                                                                                                                                                                 arm_freq=1800</span>
+</span></span><span class="line"><span class="cl"><span class="n">core_freq</span><span class="o">=</span><span class="mi">500</span>
+</span></span><span class="line"><span class="cl"><span class="n">core_freq_min</span><span class="o">=</span><span class="mi">200</span>
+</span></span><span class="line"><span class="cl"><span class="n">gpu_freq</span><span class="o">=</span><span class="mi">500</span>
+</span></span><span class="line"><span class="cl"><span class="n">gpu_freq_min</span><span class="o">=</span><span class="mi">250</span>
+</span></span><span class="line"><span class="cl"><span class="n">sd_clock</span><span class="o">=</span><span class="mf">50.000</span> <span class="n">MHz</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">InternetSpeed</span> <span class="n">test</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="n">Ping</span><span class="p">:</span> <span class="mf">5.446</span> <span class="n">ms</span>                                                                                                                                                                                                                              <span class="n">Download</span><span class="p">:</span> <span class="mf">61.56</span> <span class="n">Mbit</span><span class="o">/</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl"><span class="n">Upload</span><span class="p">:</span> <span class="mf">15.01</span> <span class="n">Mbit</span><span class="o">/</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">CPU</span> <span class="n">test</span><span class="o">...</span>                                                                                                                                                                                                                         <span class="n">WARNING</span><span class="p">:</span> <span class="n">the</span> <span class="o">--</span><span class="n">test</span> <span class="n">option</span> <span class="n">is</span> <span class="n">deprecated</span><span class="o">.</span> <span class="n">You</span> <span class="n">can</span> <span class="k">pass</span> <span class="n">a</span> <span class="n">script</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">path</span> <span class="n">on</span> <span class="n">the</span> <span class="n">command</span> <span class="n">line</span> <span class="n">without</span> <span class="n">any</span> <span class="n">options</span><span class="o">.</span>
+</span></span><span class="line"><span class="cl"> <span class="n">total</span> <span class="n">time</span><span class="p">:</span> <span class="mf">10.0002</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl"> <span class="nb">min</span><span class="p">:</span> <span class="mf">0.22</span>
+</span></span><span class="line"><span class="cl"> <span class="n">avg</span><span class="p">:</span> <span class="mf">0.23</span>
+</span></span><span class="line"><span class="cl"> <span class="nb">max</span><span class="p">:</span> <span class="mf">4.24</span>
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">50.6</span><span class="s1">&#39;C</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">THREADS</span> <span class="n">test</span><span class="o">...</span>                                                                                                                                                                                                                     <span class="n">WARNING</span><span class="p">:</span> <span class="n">the</span> <span class="o">--</span><span class="n">test</span> <span class="n">option</span> <span class="n">is</span> <span class="n">deprecated</span><span class="o">.</span> <span class="n">You</span> <span class="n">can</span> <span class="k">pass</span> <span class="n">a</span> <span class="n">script</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">path</span> <span class="n">on</span> <span class="n">the</span> <span class="n">command</span> <span class="n">line</span> <span class="n">without</span> <span class="n">any</span> <span class="n">options</span><span class="o">.</span>
+</span></span><span class="line"><span class="cl"> <span class="n">total</span> <span class="n">time</span><span class="p">:</span> <span class="mf">10.0018</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl"> <span class="nb">min</span><span class="p">:</span> <span class="mf">4.27</span>                                                                                                                                                                                                                                   <span class="n">avg</span><span class="p">:</span> <span class="mf">4.44</span>                                                                                                                                                                                                                                   <span class="nb">max</span><span class="p">:</span> <span class="mf">15.42</span>
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">51.1</span><span class="s1">&#39;C</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">MEMORY</span> <span class="n">test</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="n">WARNING</span><span class="p">:</span> <span class="n">the</span> <span class="o">--</span><span class="n">test</span> <span class="n">option</span> <span class="n">is</span> <span class="n">deprecated</span><span class="o">.</span> <span class="n">You</span> <span class="n">can</span> <span class="k">pass</span> <span class="n">a</span> <span class="n">script</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">path</span> <span class="n">on</span> <span class="n">the</span> <span class="n">command</span> <span class="n">line</span> <span class="n">without</span> <span class="n">any</span> <span class="n">options</span><span class="o">.</span>
+</span></span><span class="line"><span class="cl"><span class="mf">3072.00</span> <span class="n">MiB</span> <span class="n">transferred</span> <span class="p">(</span><span class="mf">8517.61</span> <span class="n">MiB</span><span class="o">/</span><span class="n">sec</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"> <span class="n">total</span> <span class="n">time</span><span class="p">:</span> <span class="mf">0.3572</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl"> <span class="nb">min</span><span class="p">:</span> <span class="mf">0.00</span>
+</span></span><span class="line"><span class="cl"> <span class="n">avg</span><span class="p">:</span> <span class="mf">0.00</span>
+</span></span><span class="line"><span class="cl"> <span class="nb">max</span><span class="p">:</span> <span class="mf">8.01</span>
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">53.0</span><span class="s1">&#39;C</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">HDPARM</span> <span class="n">test</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"> <span class="n">Timing</span> <span class="n">buffered</span> <span class="n">disk</span> <span class="n">reads</span><span class="p">:</span> <span class="mi">136</span> <span class="n">MB</span> <span class="ow">in</span>  <span class="mf">3.04</span> <span class="n">seconds</span> <span class="o">=</span>  <span class="mf">44.75</span> <span class="n">MB</span><span class="o">/</span><span class="n">sec</span>
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">44.8</span><span class="s1">&#39;C</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">DD</span> <span class="n">WRITE</span> <span class="n">test</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">^</span><span class="p">[[</span><span class="n">B536870912</span> <span class="n">bytes</span> <span class="p">(</span><span class="mi">537</span> <span class="n">MB</span><span class="p">,</span> <span class="mi">512</span> <span class="n">MiB</span><span class="p">)</span> <span class="n">copied</span><span class="p">,</span> <span class="mf">19.377</span> <span class="n">s</span><span class="p">,</span> <span class="mf">27.7</span> <span class="n">MB</span><span class="o">/</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">42.8</span><span class="s1">&#39;C</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Running</span> <span class="n">DD</span> <span class="n">READ</span> <span class="n">test</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="mi">536870912</span> <span class="n">bytes</span> <span class="p">(</span><span class="mi">537</span> <span class="n">MB</span><span class="p">,</span> <span class="mi">512</span> <span class="n">MiB</span><span class="p">)</span> <span class="n">copied</span><span class="p">,</span> <span class="mf">11.5297</span> <span class="n">s</span><span class="p">,</span> <span class="mf">46.6</span> <span class="n">MB</span><span class="o">/</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl"><span class="n">temp</span><span class="o">=</span><span class="mf">42.8</span><span class="s1">&#39;C</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">AikonCWD</span><span class="s1">&#39;s rpi-benchmark completed!</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="其他方法">其他方法</h2>
+<ul>
+<li><a href="https://github.com/TheRemote/PiBenchmarks?tab=readme-ov-file" target="_blank" rel="noopener noreffer ">TheRemote/PiBenchmarks: Raspberry Pi benchmarking scripts featuring a storage benchmark with score</a></li>
+<li><a href="https://www.fs-pcba.com/raspberry-pi-stress-test/" target="_blank" rel="noopener noreffer ">How to stress test your Raspberry Pi?</a></li>
+<li><a href="https://elinux.org/R-Pi_Troubleshooting#Troubleshooting_power_problems" target="_blank" rel="noopener noreffer ">R-Pi Troubleshooting - eLinux.org</a></li>
+</ul>
+<h2 id="彩蛋">彩蛋</h2>
+<p>最近研究了如何更改 sourcelist 為台灣鏡像，這裡記錄一下。</p>
+<ul>
+<li><a href="https://hackmd.io/@Ll2OEd-fR9-D-AOQZ2-XAw/SyLy1eAnb?type=view" target="_blank" rel="noopener noreffer ">[IoT-Intro] Raspberry Pi 作業系統安裝與設定 - HackMD</a></li>
+<li><a href="http://note.drx.tw/2012/01/mirror.html" target="_blank" rel="noopener noreffer ">請改用國網中心的 apt 鏡像站 (mirror)</a></li>
+<li><a href="https://free.nchc.org.tw/pmwiki/index.php?n=FSLab.MirrorLists" target="_blank" rel="noopener noreffer ">NCHC | FSLab / MirrorLists</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-03-24</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" data-title="樹梅派怎麼簡單測試效能" data-hashtags="raspberry-pi,performance,benchmark,7zip,rpi-benchmark,ubuntu"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" data-hashtag="raspberry-pi"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" data-title="樹梅派怎麼簡單測試效能"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" data-title="樹梅派怎麼簡單測試效能"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" data-title="樹梅派怎麼簡單測試效能" data-image="https://gist.github.com/user-attachments/assets/1f1b919b-3867-44a6-9472-59572384a1e0"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/raspberry-pi/">Raspberry PI</a>,&nbsp;<a href="/blog/tags/performance/">Performance</a>,&nbsp;<a href="/blog/tags/benchmark/">Benchmark</a>,&nbsp;<a href="/blog/tags/7zip/">7zip</a>,&nbsp;<a href="/blog/tags/rpi-benchmark/">Rpi-Benchmark</a>,&nbsp;<a href="/blog/tags/ubuntu/">Ubuntu</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Playwright_code_running_out_of_memory_error/" class="prev" rel="prev" title="Playwright 程式碼執行時發生記憶體不足錯誤"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Playwright 程式碼執行時發生記憶體不足錯誤</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
