@@ -3,7 +3,22 @@
         <title>Linux - Category - 程式狂想筆記</title>
         <link>https://malagege.github.io/blog/categories/Linux/</link>
         <description>Linux - Category - 程式狂想筆記</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-tw</language><lastBuildDate>Mon, 24 Mar 2025 21:04:21 &#43;0800</lastBuildDate><atom:link href="https://malagege.github.io/blog/categories/Linux/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-tw</language><lastBuildDate>Sun, 27 Apr 2025 01:21:13 &#43;0800</lastBuildDate><atom:link href="https://malagege.github.io/blog/categories/Linux/" rel="self" type="application/rss+xml" /><item>
+    <title>一分鐘使用 Docker 架設 Samba 區網檔案分享</title>
+    <link>https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/</link>
+    <pubDate>Sun, 27 Apr 2025 01:21:13 &#43;0800</pubDate>
+    <author>malagege</author>
+    <guid>https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5" referrerpolicy="no-referrer">
+            </div>簡介 Samba 讓 Linux 與 Windows 系統之間能夠輕鬆共享檔案與印表機。透過 Docker 容器化方式部署 Samba，我們可以在短短一分鐘內完成設定，無需複雜的配置步驟。
+快速安裝 Warning 您組織的安全性原則封鎖了未經驗證的訪客存取，所以您無法存取此共用資料夾。
+在 Windows 10 或 11 遇到可以參考的這篇文章。
+(23) windows10透過網路分享的共用資料夾常因安全性的問題會有沒辦法連線的問題，無法連線到公司內的共用資料夾，顯示的錯誤時 - YouTube 沒有騙人，一分鐘設定完成。以下是設定公開資料夾（不需要帳號密碼）的指令：
+1 2 3 4 5 6 7 docker run -it --name samba \ -p 139:139 \ -p 445:445 \ -v /home/pi/samba:/mount \ -d dperson/samba -p \ -u &#34;publicUser;password&#34; \ # 因為 Windows 安全性關係，建議設定一組共用帳號 -s &#34;public;/mount;yes;no;yes&#34; 參數說明 Docker Samba 容器的主要參數：
+-p 139:139 -p 445:445：開放 Samba 服務所需的標準連接埠 -v /home/pi/samba:/mount：將主機上的 /home/pi/samba 資料夾掛載到容器的 /mount 目錄 -p：設定 Samba 使用密碼功能 -s：指定共享資料夾設定，格式為 -s &quot;&lt;名稱;路徑;可瀏覽;唯讀;訪客許可;使用者;管理員;寫入清單;註解&gt;&quot; 設定公開與私人資料夾 如果要同時設定公開和私人資料夾，可以使用以下指令：]]></description>
+</item>
+<item>
     <title>樹梅派怎麼簡單測試效能</title>
     <link>https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/</link>
     <pubDate>Mon, 24 Mar 2025 21:04:21 &#43;0800</pubDate>
@@ -105,23 +120,6 @@ faketime 指令包起來 我們可以使用 faketime 來改變指令的執行時
     <description><![CDATA[<div class="featured-image">
                 <img src="https://user-images.githubusercontent.com/6058558/229172750-7fa6feaf-2de1-410c-8945-348fd4465cee.png" referrerpolicy="no-referrer">
             </div><p>最近安裝 Raspberry Pi 發現網站又變了。以前我們都是下載映像檔，下載完成直接用 win32diskimager 燒到 SD卡。前幾年我安裝發現映像檔沒有啟用 ssh，這邊發現 config.txt 設定調整可以解決，最近重裝 Raspberry Pi 發現又變了，還要抓他們官方程式，但我覺得用他們提供工具方便調整一些設定。</p>]]></description>
-</item>
-<item>
-    <title>2023年樹莓派重裝 Flexget</title>
-    <link>https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/</link>
-    <pubDate>Fri, 31 Mar 2023 23:54:43 &#43;0800</pubDate>
-    <author>malagege</author>
-    <guid>https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/</guid>
-    <description><![CDATA[<div class="featured-image">
-                <img src="https://user-images.githubusercontent.com/6058558/229170668-e3362f85-75a6-4ba1-8478-73a2004c7226.png" referrerpolicy="no-referrer">
-            </div>最近動物機需要重裝，每次都需要重新設定，而且新的官方設定也會有所變動。因此，我在這裡做了一個簡單的紀錄。
-我要有幾個需求
-BT下載機 外接 USB 硬碟 自動抓取番劇 線上 Web 存取檔案 我使用 Raspberry Pi 1 來完成這些任務。目前看來，Pi 1 能夠順利完成這些任務。之後我計劃將它放在朋友家，用於網路掛機。
-切割磁區和掛載磁區 首先，我們需要查看當前的磁區狀態。這可以通過執行以下命令來完成：
-1 sudo fdisk -l 執行上述命令後，你將看到類似以下的輸出：
-接著，我們將使用以下命令來格式化我們的磁區：
-1 sudo mkfs -t ext4 /dev/sda1 我們需要創建一個掛載磁區。
-1 2 3 4 5 6 7 8 9 10 11 12 # 我們需要創建一個掛載點 sudo mkdir -p /media/extHDD # 我們將磁區掛載到我們剛剛建立的掛載點 sudo mount /dev/sda1 /media/extHDD # 找出我們的磁區的UUID sudo blkid #/dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34; 在/etc/fstab加下面設定 UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; /media/extHDD ext4 rw,defaults,nofail 0 0 # 確認/etc/fstab 設定無錯誤 mount -a #可用 df -mh 確認裝置是否有掛載 安裝 tranmission 1 2 sudo apt update sudo apt-get install transmission-daemon 如果你需要更詳細的設定步驟，你可以參考以下的教學文章：]]></description>
 </item>
 </channel>
 </rss>

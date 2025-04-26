@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>一分鐘使用 Docker 架設 Samba 區網檔案分享 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="一分鐘使用 Docker 架設 Samba 區網檔案分享" />
+<meta property="og:description" content="簡介 Samba 讓 Linux 與 Windows 系統之間能夠輕鬆共享檔案與印表機。透過 Docker 容器化方式部署 Samba，我們可以在短短一分鐘內完成設定，無需複雜的配置步驟。
+快速安裝 Warning 您組織的安全性原則封鎖了未經驗證的訪客存取，所以您無法存取此共用資料夾。
+在 Windows 10 或 11 遇到可以參考的這篇文章。
+(23) windows10透過網路分享的共用資料夾常因安全性的問題會有沒辦法連線的問題，無法連線到公司內的共用資料夾，顯示的錯誤時 - YouTube 沒有騙人，一分鐘設定完成。以下是設定公開資料夾（不需要帳號密碼）的指令：
+1 2 3 4 5 6 7 docker run -it --name samba \ -p 139:139 \ -p 445:445 \ -v /home/pi/samba:/mount \ -d dperson/samba -p \ -u &#34;publicUser;password&#34; \ # 因為 Windows 安全性關係，建議設定一組共用帳號 -s &#34;public;/mount;yes;no;yes&#34; 參數說明 Docker Samba 容器的主要參數：
+-p 139:139 -p 445:445：開放 Samba 服務所需的標準連接埠 -v /home/pi/samba:/mount：將主機上的 /home/pi/samba 資料夾掛載到容器的 /mount 目錄 -p：設定 Samba 使用密碼功能 -s：指定共享資料夾設定，格式為 -s &quot;&lt;名稱;路徑;可瀏覽;唯讀;訪客許可;使用者;管理員;寫入清單;註解&gt;&quot; 設定公開與私人資料夾 如果要同時設定公開和私人資料夾，可以使用以下指令：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-04-27T01:21:13+08:00" />
+<meta property="article:modified_time" content="2025-04-27T01:36:50+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="一分鐘使用 Docker 架設 Samba 區網檔案分享"/>
+<meta name="twitter:description" content="簡介 Samba 讓 Linux 與 Windows 系統之間能夠輕鬆共享檔案與印表機。透過 Docker 容器化方式部署 Samba，我們可以在短短一分鐘內完成設定，無需複雜的配置步驟。
+快速安裝 Warning 您組織的安全性原則封鎖了未經驗證的訪客存取，所以您無法存取此共用資料夾。
+在 Windows 10 或 11 遇到可以參考的這篇文章。
+(23) windows10透過網路分享的共用資料夾常因安全性的問題會有沒辦法連線的問題，無法連線到公司內的共用資料夾，顯示的錯誤時 - YouTube 沒有騙人，一分鐘設定完成。以下是設定公開資料夾（不需要帳號密碼）的指令：
+1 2 3 4 5 6 7 docker run -it --name samba \ -p 139:139 \ -p 445:445 \ -v /home/pi/samba:/mount \ -d dperson/samba -p \ -u &#34;publicUser;password&#34; \ # 因為 Windows 安全性關係，建議設定一組共用帳號 -s &#34;public;/mount;yes;no;yes&#34; 參數說明 Docker Samba 容器的主要參數：
+-p 139:139 -p 445:445：開放 Samba 服務所需的標準連接埠 -v /home/pi/samba:/mount：將主機上的 /home/pi/samba 資料夾掛載到容器的 /mount 目錄 -p：設定 Samba 使用密碼功能 -s：指定共享資料夾設定，格式為 -s &quot;&lt;名稱;路徑;可瀏覽;唯讀;訪客許可;使用者;管理員;寫入清單;註解&gt;&quot; 設定公開與私人資料夾 如果要同時設定公開和私人資料夾，可以使用以下指令："/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" /><link rel="prev" href="https://malagege.github.io/blog/posts/how-to-test-raspberry-pi-performance/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "一分鐘使用 Docker 架設 Samba 區網檔案分享",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/one-minute-setup-docker-samba\/"
+        },"genre": "posts","keywords": "docker, samba, file-sharing, windows, linux, network","wordcount":  326 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/one-minute-setup-docker-samba\/","datePublished": "2025-04-27T01:21:13+08:00","dateModified": "2025-04-27T01:36:50+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "簡介 Samba 讓 Linux 與 Windows 系統之間能夠輕鬆共享檔案與印表機。透過 Docker 容器化方式部署 Samba，我們可以在短短一分鐘內完成設定，無需複雜的配置步驟。\n快速安裝 Warning 您組織的安全性原則封鎖了未經驗證的訪客存取，所以您無法存取此共用資料夾。\n在 Windows 10 或 11 遇到可以參考的這篇文章。\n(23) windows10透過網路分享的共用資料夾常因安全性的問題會有沒辦法連線的問題，無法連線到公司內的共用資料夾，顯示的錯誤時 - YouTube 沒有騙人，一分鐘設定完成。以下是設定公開資料夾（不需要帳號密碼）的指令：\n1 2 3 4 5 6 7 docker run -it --name samba \\ -p 139:139 \\ -p 445:445 \\ -v /home/pi/samba:/mount \\ -d dperson/samba -p \\ -u \u0026#34;publicUser;password\u0026#34; \\ # 因為 Windows 安全性關係，建議設定一組共用帳號 -s \u0026#34;public;/mount;yes;no;yes\u0026#34; 參數說明 Docker Samba 容器的主要參數：\n-p 139:139 -p 445:445：開放 Samba 服務所需的標準連接埠 -v /home/pi/samba:/mount：將主機上的 /home/pi/samba 資料夾掛載到容器的 /mount 目錄 -p：設定 Samba 使用密碼功能 -s：指定共享資料夾設定，格式為 -s \u0026quot;\u0026lt;名稱;路徑;可瀏覽;唯讀;訪客許可;使用者;管理員;寫入清單;註解\u0026gt;\u0026quot; 設定公開與私人資料夾 如果要同時設定公開和私人資料夾，可以使用以下指令："
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">一分鐘使用 Docker 架設 Samba 區網檔案分享</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-04-27">2025-04-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;326 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5"
+        data-srcset="https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5, https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5 1.5x, https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5 2x"
+        data-sizes="auto"
+        alt="https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5"
+        title="https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#簡介">簡介</a></li>
+    <li><a href="#快速安裝">快速安裝</a></li>
+    <li><a href="#參數說明">參數說明</a></li>
+    <li><a href="#設定公開與私人資料夾">設定公開與私人資料夾</a>
+      <ul>
+        <li><a href="#參數解析">參數解析</a></li>
+      </ul>
+    </li>
+    <li><a href="#深入了解-samba-訪客設定">深入了解 Samba 訪客設定</a>
+      <ul>
+        <li><a href="#訪客存取類型">訪客存取類型</a></li>
+      </ul>
+    </li>
+    <li><a href="#連線方式">連線方式</a></li>
+    <li><a href="#常見問題排解">常見問題排解</a>
+      <ul>
+        <li><a href="#無法連線">無法連線</a></li>
+      </ul>
+    </li>
+    <li><a href="#進階-samba-設定範例">進階 Samba 設定範例</a></li>
+    <li><a href="#相關文章">相關文章</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="簡介">簡介</h2>
+<p>Samba 讓 Linux 與 Windows 系統之間能夠輕鬆共享檔案與印表機。透過 Docker 容器化方式部署 Samba，我們可以在短短一分鐘內完成設定，無需複雜的配置步驟。</p>
+<h2 id="快速安裝">快速安裝</h2>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>您組織的安全性原則封鎖了未經驗證的訪客存取，所以您無法存取此共用資料夾。<br>
+在 Windows 10 或 11 遇到可以參考的<a href="https://learn.microsoft.com/zh-tw/troubleshoot/windows-client/networking/cannot-access-shared-folder-file-explorer#you-cant-access-this-shared-folder-because-your-organizations-security-policies-block-unauthenticated-guest-access" target="_blank" rel="noopener noreffer ">這篇文章</a>。</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=sozbGz1MTuc" target="_blank" rel="noopener noreffer ">(23) windows10透過網路分享的共用資料夾常因安全性的問題會有沒辦法連線的問題，無法連線到公司內的共用資料夾，顯示的錯誤時 - YouTube</a></li>
+</ul></div>
+        </div>
+    </div>
+<p>沒有騙人，一分鐘設定完成。以下是設定公開資料夾（不需要帳號密碼）的指令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -it --name samba <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-p 139:139 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-p 445:445 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-v /home/pi/samba:/mount <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-d dperson/samba -p <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-u <span class="s2">&#34;publicUser;password&#34;</span> <span class="se">\ </span><span class="c1"># 因為 Windows 安全性關係，建議設定一組共用帳號</span>
+</span></span><span class="line"><span class="cl">-s <span class="s2">&#34;public;/mount;yes;no;yes&#34;</span>  
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="參數說明">參數說明</h2>
+<p>Docker Samba 容器的主要參數：</p>
+<ul>
+<li><code>-p 139:139 -p 445:445</code>：開放 Samba 服務所需的標準連接埠</li>
+<li><code>-v /home/pi/samba:/mount</code>：將主機上的 <code>/home/pi/samba</code> 資料夾掛載到容器的 <code>/mount</code> 目錄</li>
+<li><code>-p</code>：設定 Samba 使用密碼功能</li>
+<li><code>-s</code>：指定共享資料夾設定，格式為 <code>-s &quot;&lt;名稱;路徑;可瀏覽;唯讀;訪客許可;使用者;管理員;寫入清單;註解&gt;&quot;</code></li>
+</ul>
+<h2 id="設定公開與私人資料夾">設定公開與私人資料夾</h2>
+<p>如果要同時設定公開和私人資料夾，可以使用以下指令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -it --name samba <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-p 139:139 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-p 445:445 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-v /home/pi/samba:/mnt/samba <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-v /tmp:/tmp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-d dperson/samba -p <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-u <span class="s2">&#34;jeffery;password&#34;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-s <span class="s2">&#34;public;/tmp;yes;no;yes&#34;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-s <span class="s2">&#34;private;/mnt/samba;yes;no;no;jeffery;;;個人檔案&#34;</span>  
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="參數解析">參數解析</h3>
+<p><code>-s</code> 參數的完整格式：<br>
+<code>-s &quot;&lt;name;/path&gt;[;browse;readonly;guest;users;admins;writelist;comment]&quot;</code></p>
+<p>各參數說明：</p>
+<ul>
+<li><code>name</code>：共享資料夾名稱</li>
+<li><code>/path</code>：容器內的路徑</li>
+<li><code>browse</code>：是否允許瀏覽 (yes/no)</li>
+<li><code>readonly</code>：是否唯讀 (yes/no)</li>
+<li><code>guest</code>：是否允許訪客存取 (yes/no)</li>
+<li><code>users</code>：允許存取的使用者清單</li>
+<li><code>admins</code>：管理員使用者清單</li>
+<li><code>writelist</code>：允許寫入的使用者清單</li>
+<li><code>comment</code>：共享資料夾說明</li>
+</ul>
+<h2 id="深入了解-samba-訪客設定">深入了解 Samba 訪客設定</h2>
+<p>在 Samba 中，訪客存取有不同的安全等級控制。透過 Docker 容器，我們可以檢視其設定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker <span class="nb">exec</span> -it samba bash
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> /etc/samba/
+</span></span><span class="line"><span class="cl">less smb.conf
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="訪客存取類型">訪客存取類型</h3>
+<p>Samba 的 <code>map to guest</code> 參數是控制非驗證使用者如何處理的關鍵：</p>
+<ul>
+<li><code>Never</code>：不自動將登入失敗的使用者變成訪客</li>
+<li><code>Bad User</code>：使用者名稱正確但密碼錯誤時，才自動轉為訪客</li>
+<li><code>Bad Password</code>：任何密碼錯誤都自動轉為訪客</li>
+</ul>
+<p>較新版本的 Samba 建議使用 <code>map to guest = Bad User</code> 設定，這樣可以增加安全性。惡意程式嘗試測試帳號時，都會被導向訪客帳號，難以判斷嘗試是否成功。</p>
+<h2 id="連線方式">連線方式</h2>
+<p>設定完成後，可以在 Windows 檔案總管地址列輸入以下格式連線：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">\\你的伺服器IP\public
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>例如：<code>\\192.168.1.203\public</code></p>
+<h2 id="常見問題排解">常見問題排解</h2>
+<h3 id="無法連線">無法連線</h3>
+<p>如果遇到無法連線的問題，可能是 Windows 已經儲存了舊的連線資訊，可以嘗試以下方法：</p>
+<ol>
+<li>登出目前使用者並重新登入</li>
+<li>或使用命令提示字元輸入下列指令清除現有連線：</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">net use * /delete
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>確認防火牆設定是否允許 139 及 445 連接埠通訊</li>
+</ol>
+<h2 id="進階-samba-設定範例">進階 Samba 設定範例</h2>
+<p>以下是一個密碼保護資料夾的設定範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">[Password Protected]
+</span></span><span class="line"><span class="cl">        comment = 需要使用者名稱和密碼才能存取
+</span></span><span class="line"><span class="cl">        path = /samba/password_protected_directory
+</span></span><span class="line"><span class="cl">        valid users = @sambausergroup
+</span></span><span class="line"><span class="cl">        guest ok = no
+</span></span><span class="line"><span class="cl">        writable = yes
+</span></span><span class="line"><span class="cl">        browsable = yes
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>只要在 Docker 容器設定中加入類似設定，即可建立更多樣化的檔案共享環境。</p>
+<hr>
+<p>有了 Docker Samba，檔案共享變得更加簡單快速。無論是家庭網路還是小型辦公環境，都能輕鬆實現跨平台檔案存取！</p>
+<h2 id="相關文章">相關文章</h2>
+<ul>
+<li><a href="https://kawsing.gitbook.io/opensystem/docker-cong-an-zhuang-dao-ying-yong-ru-men-pian/docekr-pureftp-fu-wu" target="_blank" rel="noopener noreffer ">docker快速建立FTP+SAMBA | 自由軟體系統應用</a></li>
+<li><a href="http://ottoshare.blogspot.com/2012/03/samba-linux-windows.html" target="_blank" rel="noopener noreffer ">簡簡單單設定SAMBA 伺服器(Linux 與 Windows 之間的檔案橋梁) | 記錄工作大小事</a></li>
+<li><a href="https://www.liquidweb.com/blog/how-to-install-samba-on-linux-windows/" target="_blank" rel="noopener noreffer ">How to Install Samba on Linux and Windows | Liquid Web</a></li>
+</ul>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://www.v2ex.com/t/898646" target="_blank" rel="noopener noreffer ">V2EX真的是一个神奇的网站</a></li>
+<li><a href="https://www.haiyun.me/archives/1439.html" target="_blank" rel="noopener noreffer ">OpenWrt/PandoraBox多网段中继转发mDNS Reflector</a></li>
+<li><a href="https://blog.csdn.net/qq_38026359/article/details/121320404" target="_blank" rel="noopener noreffer ">OpenWrt 安装 mDNS，并设置 mDNS 映射_openwrt mdns-CSDN博客</a></li>
+<li><a href="https://ithelp.ithome.com.tw/questions/10016617" target="_blank" rel="noopener noreffer ">iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></li>
+<li><a href="https://tlcheng.wordpress.com/2014/07/31/win8-1-%e7%b6%b2%e8%b7%af%e8%8a%b3%e9%84%b0%e8%b7%a8%e7%b6%b2%e6%ae%b5%e7%9a%84%e8%a8%ad%e5%ae%9a/" target="_blank" rel="noopener noreffer ">[Win8.1] 網路芳鄰跨網段的設定 | 鄭子璉</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/521569267" target="_blank" rel="noopener noreffer ">Portainer环境5分钟快速部署samba - 知乎</a></li>
+<li><a href="https://ld246.com/article/1569228613055" target="_blank" rel="noopener noreffer ">Docker Samba 文件共享踩坑记录</a></li>
+<li><a href="https://github.com/dperson/samba/issues/356#issuecomment-762330214" target="_blank" rel="noopener noreffer ">Access denied · Issue #356 · dperson/samba - GitHub</a></li>
+<li><a href="https://stackoverflow.com/questions/59623820/how-to-log-off-from-samba-server-on-windows-10" target="_blank" rel="noopener noreffer ">how to log off from samba server on windows 10 - Stack Overflow</a></li>
+<li><a href="https://shazi.info/windows-net-use%E7%AD%86%E8%A8%98/" target="_blank" rel="noopener noreffer ">[Windows] net use筆記 – Mr. 沙先生</a></li>
+<li><a href="https://ithelp.ithome.com.tw/questions/10001931" target="_blank" rel="noopener noreffer ">Windows XP有沒有什麼方式可以快速連線網路磁碟機? - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天</a></li>
+</ul><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-04-27</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" data-title="一分鐘使用 Docker 架設 Samba 區網檔案分享" data-hashtags="docker,samba,file-sharing,windows,linux,network"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" data-title="一分鐘使用 Docker 架設 Samba 區網檔案分享"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" data-title="一分鐘使用 Docker 架設 Samba 區網檔案分享"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/one-minute-setup-docker-samba/" data-title="一分鐘使用 Docker 架設 Samba 區網檔案分享" data-image="https://gist.github.com/user-attachments/assets/8817c543-bf8c-4014-9c46-c4dca2b29ba5"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/docker/">Docker</a>,&nbsp;<a href="/blog/tags/samba/">Samba</a>,&nbsp;<a href="/blog/tags/file-sharing/">File-Sharing</a>,&nbsp;<a href="/blog/tags/windows/">Windows</a>,&nbsp;<a href="/blog/tags/Linux/">Linux</a>,&nbsp;<a href="/blog/tags/network/">Network</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/how-to-test-raspberry-pi-performance/" class="prev" rel="prev" title="樹梅派怎麼簡單測試效能"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>樹梅派怎麼簡單測試效能</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
