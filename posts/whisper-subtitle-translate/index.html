@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>用 Whisper 翻譯影片字幕，打造無國界視聽享受 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="用 Whisper 翻譯影片字幕，打造無國界視聽享受" />
+<meta property="og:description" content="隨著 AI 技術的進步，現在我們可以輕鬆利用 Whisper 這類工具，將外語影片自動產生字幕，甚至直接翻譯成中文，讓語言不再是追劇、學習的障礙。這篇文章會以親身經驗，帶你從 Windows 與 Ubuntu 的安裝、字幕產生到翻譯全流程，並分享過程中遇到的問題與解決方法，讓你也能打造屬於自己的無國界視聽體驗。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-08-04T00:00:00+08:00" />
+<meta property="article:modified_time" content="2025-08-05T21:14:51+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="用 Whisper 翻譯影片字幕，打造無國界視聽享受"/>
+<meta name="twitter:description" content="隨著 AI 技術的進步，現在我們可以輕鬆利用 Whisper 這類工具，將外語影片自動產生字幕，甚至直接翻譯成中文，讓語言不再是追劇、學習的障礙。這篇文章會以親身經驗，帶你從 Windows 與 Ubuntu 的安裝、字幕產生到翻譯全流程，並分享過程中遇到的問題與解決方法，讓你也能打造屬於自己的無國界視聽體驗。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" /><link rel="prev" href="https://malagege.github.io/blog/posts/javascript-get-url-query-string-hash/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "用 Whisper 翻譯影片字幕，打造無國界視聽享受",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/whisper-subtitle-translate\/"
+        },"genre": "posts","keywords": "whisper, subtitle, llm, ollama, ubuntu, windows, ai","wordcount":  342 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/whisper-subtitle-translate\/","datePublished": "2025-08-04T00:00:00+08:00","dateModified": "2025-08-05T21:14:51+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e隨著 AI 技術的進步，現在我們可以輕鬆利用 Whisper 這類工具，將外語影片自動產生字幕，甚至直接翻譯成中文，讓語言不再是追劇、學習的障礙。這篇文章會以親身經驗，帶你從 Windows 與 Ubuntu 的安裝、字幕產生到翻譯全流程，並分享過程中遇到的問題與解決方法，讓你也能打造屬於自己的無國界視聽體驗。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+            <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="4661282975"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">用 Whisper 翻譯影片字幕，打造無國界視聽享受</h1>
+
+        <div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  <div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-08-04">2025-08-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;342 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="/blog/svg/loading.min.svg"
+        data-src="https://imgpoi.com/i/ANR60B.png"
+        data-srcset="https://imgpoi.com/i/ANR60B.png, https://imgpoi.com/i/ANR60B.png 1.5x, https://imgpoi.com/i/ANR60B.png 2x"
+        data-sizes="auto"
+        alt="https://imgpoi.com/i/ANR60B.png"
+        title="https://imgpoi.com/i/ANR60B.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前置作業">前置作業</a></li>
+    <li><a href="#安裝-whisper">安裝 whisper</a></li>
+    <li><a href="#使用-whisper-產生字幕">使用 whisper 產生字幕</a></li>
+    <li><a href="#翻譯字幕">翻譯字幕</a>
+      <ul>
+        <li><a href="#前置作業-1">前置作業</a></li>
+      </ul>
+    </li>
+    <li><a href="#字幕翻譯">字幕翻譯</a></li>
+    <li><a href="#其他參考">其他參考</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>隨著 AI 技術的進步，現在我們可以輕鬆利用 Whisper 這類工具，將外語影片自動產生字幕，甚至直接翻譯成中文，讓語言不再是追劇、學習的障礙。這篇文章會以親身經驗，帶你從 Windows 與 Ubuntu 的安裝、字幕產生到翻譯全流程，並分享過程中遇到的問題與解決方法，讓你也能打造屬於自己的無國界視聽體驗。</p>
+<h2 id="前置作業">前置作業</h2>
+<ol>
+<li>安裝 uv</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">powershell -ExecutionPolicy ByPass -c <span class="s2">&#34;irm https://astral.sh/uv/install.ps1 | iex&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition warning">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>小提醒<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">如果你是 Ubuntu (Linux) 環境，uv 安裝完就可以直接跳到「安裝 whisper」。</div>
+        </div>
+    </div>
+<ol start="2">
+<li>建立虛擬環境</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">uv venv .whisper
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li>切換到剛建立環境</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># windows </span>
+</span></span><span class="line"><span class="cl">.venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+</span></span><span class="line"><span class="cl"><span class="c1"># ubuntu (linux)</span>
+</span></span><span class="line"><span class="cl"><span class="nb">source</span> .venv/bin/activate
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition info">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>小提示<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">要離開虛擬環境時，直接輸入 <code>deactivate</code> 即可。</div>
+        </div>
+    </div>
+<ol start="4">
+<li>安裝 ffmpeg</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># winget 安裝 ffmpeg</span>
+</span></span><span class="line"><span class="cl">winget install -e --id Gyan.FFmpeg
+</span></span><span class="line"><span class="cl"><span class="c1"># scoop 安裝 ffmpeg</span>
+</span></span><span class="line"><span class="cl">scoop install main/ffmpeg
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="安裝-whisper">安裝 whisper</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 安裝 whisper</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#uv pip install -U openai-whisper</span>
+</span></span><span class="line"><span class="cl">uv tool install openai-whisper
+</span></span><span class="line"><span class="cl"><span class="c1"># 如果你在 Windows 上遇到安裝失敗，可以改用下方指令（Ubuntu 實測可用）：</span>
+</span></span><span class="line"><span class="cl">uv pip install git+https://github.com/openai/whisper.git
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="使用-whisper-產生字幕">使用 whisper 產生字幕</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 產生日文影片字幕</span>
+</span></span><span class="line"><span class="cl">whisper japanese.mp4 --language Japanese
+</span></span><span class="line"><span class="cl"><span class="c1"># 指定模型（如 large）</span>
+</span></span><span class="line"><span class="cl">whisper japanese.mp4 --language Japanese --model large
+</span></span><span class="line"><span class="cl"><span class="c1"># 一般推薦用 large-v2。我自己的 2060 顯卡無法跑 large，但 medium 效果也不錯。如果你有 4070 TI，跑 large 沒問題。</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>到這裡，日文字幕就已經產生完成。</p>
+<h2 id="翻譯字幕">翻譯字幕</h2>
+<h3 id="前置作業-1">前置作業</h3>
+<p>我自己是用 4070 TI 跑 Local LLM，字幕翻譯工具選擇 <a href="https://github.com/tutumomo/srt-subtitle-translator" target="_blank" rel="noopener noreffer ">tutumomo/srt-subtitle-translator</a>。</p>
+<p>相關建置細節這邊不贅述，推薦參考：</p>
+<ul>
+<li>
+<p><strong>ollama</strong>：<br>
+<a href="https://github.com/datawhalechina/handy-ollama/blob/main/docs/C2/2.%20Ollama%20%E5%9C%A8%20Windows%20%E4%B8%8B%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE.md" target="_blank" rel="noopener noreffer ">Ollama 在 Windows 下的安装与配置.md</a></p>
+<p>如果要讓 Ubuntu 也能連線，記得設定環境變數 <code>OLLAMA_HOST=0.0.0.0</code>。<br>
+另外，模型通常很大，建議設定 <code>OLLAMA_MODELS</code> 指定到其他磁碟目錄，避免塞爆系統槽。</p>
+</li>
+<li>
+<p><strong>open-webui</strong>（選用）：<br>
+<a href="https://ithelp.ithome.com.tw/articles/10343826" target="_blank" rel="noopener noreffer ">【Day 03】Ollama UI 本機建置</a><br>
+我因為電腦沒裝 Docker，改用 uv 直接安裝，但它需要 node(npm) 和微軟 C++ 開發 SDK（6GB），所以沒事還是建議用 Docker。open-webui 除錯測試很方便，但帳號信箱請不要亂填，登入會用到。</p>
+</li>
+<li>
+<p><strong>Sakura-14B-Qwen2.5-v1.0</strong>：<br>
+<a href="https://ollama.com/Q78KG/Sakura-14B-Qwen2.5-v1.0" target="_blank" rel="noopener noreffer ">Q78KG/Sakura-14B-Qwen2.5-v1.0</a><br>
+目前用這個模型翻譯效果很滿意，但官方沒提供 ollama 版本，hugging face 下載 GGUF 不能直接用，好像要額外加工。不過後來發現有人已經上傳到 ollama 上了。</p>
+</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ollama run Q78KG/Sakura-14B-Qwen2.5-v1.0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="字幕翻譯">字幕翻譯</h2>
+<div class="details admonition warning">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>小提醒<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我這邊是在 Ubuntu 環境操作，不過 Windows 理論上也能執行。</div>
+        </div>
+    </div>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">git clone https://github.com/tutumomo/srt-subtitle-translator.git
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> srt-subtitle-translator
+</span></span><span class="line"><span class="cl"><span class="c1"># 如果你的 ollama 不是跑在 localhost，需要修改 main.py 裡的設定。若是同一台電腦可略過。</span>
+</span></span><span class="line"><span class="cl">uv venv
+</span></span><span class="line"><span class="cl"><span class="nb">source</span> .venv/bin/activate
+</span></span><span class="line"><span class="cl"><span class="c1"># 啟動介面</span>
+</span></span><span class="line"><span class="cl">python main.py
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="details admonition warning">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>踩雷心得<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我在 Ubuntu 執行時遇到失敗，後來發現是 tk 依賴沒安裝，記得補裝 tk。</div>
+        </div>
+    </div>
+<p>啟動後，選取 srt 檔案就能直接進行字幕翻譯。</p>
+<h2 id="其他參考">其他參考</h2>
+<ul>
+<li>
+<p><a href="https://sspai.com/post/83644" target="_blank" rel="noopener noreffer ">精准转写：利用 Whisper 处理音视频转文字不完全指南 - 少数派</a><br>
+裡面提到很多特別內容，推薦點進去看。</p>
+</li>
+<li>
+<p><a href="https://github.com/gnehs/subtitle-translator-electron" target="_blank" rel="noopener noreffer ">gnehs/subtitle-translator-electron: ↔️ Translate subtitle using ChatGPT</a><br>
+Local LLM 測試時無法使用，所以就放棄。不過網路上還是有很多人用這個資源。</p>
+</li>
+<li>
+<p><a href="https://blog.williamgates.net/2024/04/use-whisper-to-generate-subtitles/" target="_blank" rel="noopener noreffer ">使用whisper生成字幕的经验备忘 | WilliamGates&rsquo; Blog</a></p>
+</li>
+<li>
+<p><a href="https://github.com/yxc0915/srt_translator" target="_blank" rel="noopener noreffer ">yxc0915/srt_translator: srt字幕的批量AI翻译工具</a><br>
+後來找到，UI感覺比較好。</p>
+</li>
+<li>
+<p><a href="https://wulu.zone/posts/whisper-cn" target="_blank" rel="noopener noreffer ">指定 Whisper 输出为简体中文 - Wulu&rsquo;s Blog</a></p>
+</li>
+<li>
+<p><a href="https://sspai.com/post/76899" target="_blank" rel="noopener noreffer ">找不到现成的字幕？Whisper 让不懂外语的你也能看懂日剧 - 少数派</a></p>
+</li>
+<li>
+<p><a href="https://github.com/jhj0517/Whisper-WebUI" target="_blank" rel="noopener noreffer ">jhj0517/Whisper-WebUI: A Web UI for easy subtitle using whisper model.</a></p>
+</li>
+<li>
+<p><a href="https://github.com/SYSTRAN/faster-whisper?tab=readme-ov-file" target="_blank" rel="noopener noreffer ">SYSTRAN/faster-whisper: Faster Whisper transcription with CTranslate2</a></p>
+</li>
+</ul>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://github.com/YaoFANGUK/video-subtitle-extractor" target="_blank" rel="noopener noreffer ">YaoFANGUK/video-subtitle-extractor: 视频硬字幕提取，生成srt文件。无需申请第三方API，本地实现文本识别。基于深度学习的视频字幕提取框架，包含字幕区域检测、字幕内容提取。A GUI tool for extracting hard-coded subtitle (hardsub) from videos and generating srt files.</a><br>
+有空再來研究。</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># cuda 12</span>
+</span></span><span class="line"><span class="cl">pip install paddlepaddle-gpu<span class="o">==</span>3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu123/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><a href="https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/support-matrix.html" target="_blank" rel="noopener noreffer ">Support Matrix — NVIDIA cuDNN Backend</a></li>
+</ul>
+<div class="details admonition tip">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>總結<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">Whisper 讓字幕產生與翻譯變得前所未有的簡單，搭配本地 LLM，真的能打造屬於自己的無國界視聽體驗。過程中雖然遇到不少小問題，但只要善用社群資源與工具，幾乎都能找到解法。歡迎大家留言分享你的字幕翻譯經驗！</div>
+        </div>
+    </div>
+<div class="mermaid">mindmap
+  root((Whisper 字幕翻譯全攻略))
+    前置作業
+      uv安裝
+      虛擬環境
+      ffmpeg安裝
+    產生字幕
+      whisper指令
+      模型選擇
+    字幕翻譯
+      LLM模型
+      srt-subtitle-translator
+      open-webui
+    踩雷心得
+      依賴問題
+      執行環境
+    參考資源
+      相關專案
+      技術文章
+    彩蛋
+      硬字幕提取
+      CUDA支援
+</div><div align="center">
+    <script
+      async
+      src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1439458814178865" crossorigin="anonymous"
+    ></script>
+    <ins
+      class="adsbygoogle"
+      style="display:block; text-align:center;"
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client="ca-pub-1439458814178865"
+      data-ad-slot="2236653478"
+    ></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+  
+        </div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-08-05</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" data-title="用 Whisper 翻譯影片字幕，打造無國界視聽享受" data-hashtags="whisper,subtitle,llm,ollama,ubuntu,windows,ai"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" data-hashtag="whisper"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" data-title="用 Whisper 翻譯影片字幕，打造無國界視聽享受"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" data-title="用 Whisper 翻譯影片字幕，打造無國界視聽享受"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/whisper-subtitle-translate/" data-title="用 Whisper 翻譯影片字幕，打造無國界視聽享受" data-image="https://imgpoi.com/i/ANR60B.png"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/whisper/">Whisper</a>,&nbsp;<a href="/blog/tags/subtitle/">Subtitle</a>,&nbsp;<a href="/blog/tags/llm/">Llm</a>,&nbsp;<a href="/blog/tags/ollama/">Ollama</a>,&nbsp;<a href="/blog/tags/ubuntu/">Ubuntu</a>,&nbsp;<a href="/blog/tags/windows/">Windows</a>,&nbsp;<a href="/blog/tags/ai/">Ai</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/javascript-get-url-query-string-hash/" class="prev" rel="prev" title="JavaScript 取得 URL Query String 與 Hash 實用技巧"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>JavaScript 取得 URL Query String 與 Hash 實用技巧</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
