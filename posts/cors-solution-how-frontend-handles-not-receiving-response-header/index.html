@@ -4,7 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>CORS 解決方案：前端如何處理收不到 Response Header 的問題 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="CORS 解決方案：前端如何處理收不到 Response Header 的問題" />
+        <title>CORS 解決方案：前端如何處理收不到 Response Header 的問題 - 程式狂想筆記</title><meta name="Description" content="最近我設計了一個 OAuth Token 驗證給前端串接，但發現前端無法抓取到我後端的 Response Header。經過一番研究，我發現問題出在 CORS 上。以前我對 CORS 都是簡單了解，沒想到 CORS 規範的內容如此豐富。這篇文章就是我對此進行深入研究的記錄。這篇還一點債了&hellip;
+心智圖 因為 mermaid 無法用-，所以用_置換。
+mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque origin file://.../xxx.html CORS 簡單請求 發送Request不會預檢 Request會送到Server Response 都會檢查 Access_Control_Allow_Origin 非簡單請求 發送Request會預檢 預檢沒過，Request不會送到Server Response 都會檢查 Access_Control_Allow_Origin CORS 容易忽略那些事 Request 不能隨意帶 Header JS不能隨意用 Response Header CORS 相關 Header Access_Control_Allow_Origin Access_Control_Allow_Methods Access_Control_Allow_Headers Access_Control_Max_Age Access_Control_Expose_Headers Access_Control_Allow_Credentials Origin Header Origin - HTTP | MDN 1 2 3 Origin: null Origin: &lt;scheme&gt;://&lt;hostname&gt; Origin: &lt;scheme&gt;://&lt;hostname&gt;:&lt;port&gt; 常見我們 AJAX 跨域會看到 HTTP 有 Origin Header 內容。"><meta property="og:title" content="CORS 解決方案：前端如何處理收不到 Response Header 的問題" />
 <meta property="og:description" content="最近我設計了一個 OAuth Token 驗證給前端串接，但發現前端無法抓取到我後端的 Response Header。經過一番研究，我發現問題出在 CORS 上。以前我對 CORS 都是簡單了解，沒想到 CORS 規範的內容如此豐富。這篇文章就是我對此進行深入研究的記錄。這篇還一點債了&hellip;
 心智圖 因為 mermaid 無法用-，所以用_置換。
 mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque origin file://.../xxx.html CORS 簡單請求 發送Request不會預檢 Request會送到Server Response 都會檢查 Access_Control_Allow_Origin 非簡單請求 發送Request會預檢 預檢沒過，Request不會送到Server Response 都會檢查 Access_Control_Allow_Origin CORS 容易忽略那些事 Request 不能隨意帶 Header JS不能隨意用 Response Header CORS 相關 Header Access_Control_Allow_Origin Access_Control_Allow_Methods Access_Control_Allow_Headers Access_Control_Max_Age Access_Control_Expose_Headers Access_Control_Allow_Credentials Origin Header Origin - HTTP | MDN 1 2 3 Origin: null Origin: &lt;scheme&gt;://&lt;hostname&gt; Origin: &lt;scheme&gt;://&lt;hostname&gt;:&lt;port&gt; 常見我們 AJAX 跨域會看到 HTTP 有 Origin Header 內容。" />
@@ -144,14 +146,16 @@ mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque o
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-04-01">2024-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;805 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"
-        data-srcset="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40, https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40 1.5x, https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40 2x"
-        data-sizes="auto"
-        alt="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"
-        title="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40" title="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40" data-thumbnail="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"
+            data-srcset="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40, https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40 1.5x, https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40"
+            title="https://gist.github.com/assets/6058558/dd62c69d-e398-4c2f-a78b-3b6e90dafe40" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -207,7 +211,8 @@ mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque o
         Access_Control_Max_Age
         Access_Control_Expose_Headers
         Access_Control_Allow_Credentials
-</div><h2 id="origin-header">Origin Header</h2>
+</div>
+<h2 id="origin-header">Origin Header</h2>
 <ul>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Origin" target="_blank" rel="noopener noreffer ">Origin - HTTP | MDN</a></li>
 </ul>
@@ -250,14 +255,16 @@ mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque o
 <p>Tuple origin 則是比較常見而且我們也比較關心的 origin</p>
 </blockquote>
 <p>我這邊就做個簡單實驗，隨便新增一個 <code>xxx.html</code> 用瀏覽器打開，Console 打個 <code>fetch('https://tw.yahoo.com')</code>。這時候就可以看到你的 header 有這個東西。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png, https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png 1.5x, https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png, https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png 1.5x, https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262520509-a126493e-03e4-4f59-8a92-3997ae3ddbc6.png"
+            title="圖片" />
+    </a></p>
 <p><a href="https://stackoverflow.com/questions/42239643/when-do-browsers-send-the-origin-header-when-do-browsers-set-the-origin-to-null/42242802" target="_blank" rel="noopener noreffer ">http - When do browsers send the Origin header? When do browsers set the origin to null? - Stack Overflow</a></p>
 <blockquote>
 <p>要嘛兩個是一樣的 opaque origin，否則的話要 scheme、host 跟 port 三者都相等，才是 same origin。除了 same origin 以外，你還會在 spec 裡面看到另外一個詞叫做「same origin-domain」，這個我們之後也會提到。</p>
@@ -273,14 +280,16 @@ mindmap Same_Origin Policy Origin Tuple origin schema&#43;host&#43;port opaque o
     </div>
 <h2 id="請求預檢">請求預檢</h2>
 <p>我們在使用 Ajax 進行跨域操作時，常常會看到 <code>OPTIONS</code> 請求。這實際上是一種 <code>預檢</code> 的動作（我們稍後會進一步解釋這個概念）。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png, https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png 1.5x, https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png"
-        title="image" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png" title="image" data-thumbnail="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png, https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png 1.5x, https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/262224916-eb4763ca-d7a8-4dca-bc65-868f48fdaab7.png"
+            title="image" />
+    </a></p>
 <p>過去，我們可能會誤以為只要網域不同就會進行跨域操作，但實際上規則更為細緻。**簡單請求不會進行預檢，而非簡單請求則會進行預檢。**接下來，我們將進一步了解什麼是簡單請求和非簡單請求。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -364,14 +373,16 @@ application/x-www-form-urlencoded</li>
 </div>
         </div>
     </div>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png, https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png 1.5x, https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png"
-        title="preflight_correct" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png" title="preflight_correct" data-thumbnail="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png, https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png 1.5x, https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262536186-4c4c0795-9821-43e8-a9c8-22d4c242d295.png"
+            title="preflight_correct" />
+    </a></p>
 <p>在上述範例中，除了我們在簡單查詢中需要帶的標頭之外，我們還看到在進行 <code>請求預檢</code> 時，會多帶 <code>Access-Control-Request-Method</code> 和 <code>Access-Control-Request-Headers</code> 兩個標頭。這兩個標頭在預檢請求的回應中，會對應到 <code>Access-Control-Allow-Methods</code> 和 <code>Access-Control-Allow-Headers</code>。預檢請求完成後，瀏覽器會進行與簡單請求相同的步驟。</p>
 <div class="details admonition info open">
         <div class="details-summary admonition-title">
@@ -401,14 +412,16 @@ application/x-www-form-urlencoded</li>
 </span></span><span class="line"><span class="cl"><span class="p">})</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png, https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png 1.5x, https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png"
-        title="圖片" /></p>
+</div><p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png, https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png 1.5x, https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262574405-a16c46e9-6f0f-490c-a92b-616548a085e6.png"
+            title="圖片" />
+    </a></p>
 <p>然而，如果我們在請求中加入任意的標頭，就會觸發<code>請求預檢</code>。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -430,14 +443,16 @@ application/x-www-form-urlencoded</li>
 </span></span><span class="line"><span class="cl"><span class="p">})</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png, https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png 1.5x, https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png"
-        title="圖片" /></p>
+</div><p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png, https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png 1.5x, https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262575037-5c465ee4-f748-4822-9a69-a34d551e1eff.png"
+            title="圖片" />
+    </a></p>
 <div class="details admonition info open">
         <div class="details-summary admonition-title">
             <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
@@ -464,14 +479,16 @@ application/x-www-form-urlencoded</li>
 </span></span><span class="line"><span class="cl"><span class="p">})</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png, https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png 1.5x, https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png"
-        title="圖片" /></p>
+</div><p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png, https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png 1.5x, https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262575545-6750112b-246d-40af-839d-981e0a1f8457.png"
+            title="圖片" />
+    </a></p>
 <p>有哪些符合可以看 <a href="https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_request_header" target="_blank" rel="noopener noreffer ">CORS-safelisted request header - MDN Web Docs Glossary: Definitions of Web-related terms | MDN</a>。</p>
 </div>
         </div>
@@ -484,27 +501,31 @@ application/x-www-form-urlencoded</li>
         </div>
         <div class="details-content">
             <div class="admonition-content"><code>Access-Control-Request-Headers</code> 可以放多個值，他是用<code>,</code> 分開的。但其實你不需要管怎麼放，畢竟是瀏覽器幫你做到的。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png, https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png 1.5x, https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png"
-        title="圖片" /></div>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png, https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png 1.5x, https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262591123-cb343d6c-e8d1-4133-bc4f-fbb7d112c3bb.png"
+            title="圖片" />
+    </a></div>
         </div>
     </div>
 <h2 id="js-不能隨意用-response-header">JS 不能隨意用 Response Header</h2>
 <p>上面章節有提到，AJAX 通了，假如你有設計 Response 給前端抓 Header，你會發現沒辦法抓到 Header 參數。解決方法就是在<strong>後端</strong> API Response 加上 <code>Access-Control-Expose-Headers</code> Header，就可以解決這個問題。</p>
 <p><code>Access-Control-Expose-Headers</code> 通常會帶完整參數，很多框架實作上沒有加上 <code>*</code>，都是會回傳多個值 (header1,header2)，但我測試用 <code>*</code>，Response 就能吃到 Header 值。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png, https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png 1.5x, https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png, https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png 1.5x, https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262593389-28b35165-c1c1-4010-9661-f9fa04fa1e1b.png"
+            title="圖片" />
+    </a></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -526,14 +547,16 @@ application/x-www-form-urlencoded</li>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>前端 Header 可以抓到值了。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png, https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png 1.5x, https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png, https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png 1.5x, https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/262594265-34655996-5874-4f66-b65f-675d60857e4e.png"
+            title="圖片" />
+    </a></p>
 <div class="details admonition warning open">
         <div class="details-summary admonition-title">
             <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>

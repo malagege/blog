@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>網路 Bridge 和 NAT 差異 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="網路 Bridge 和 NAT 差異" />
+        <title>網路 Bridge 和 NAT 差異 - 程式狂想筆記</title><meta name="Description" content="之前架設 KVM 網路是用預設 NAT架構，在連線上外面是連不到 VM的。但我都需要在預設閘道路由表多設定 192.168.122.x/24指定到 VM 路由上面。這個做法感覺不是很方便，然後還要特別設定路由去連，前正子剛好在找 KVM 可以直接讓電腦網路方法，剛好看到用 Bridge 可以解決我這個問題。但是 Bridge 和 NAT 他們架構圖分不是很清楚，這邊就先做個簡單整理。"><meta property="og:title" content="網路 Bridge 和 NAT 差異" />
 <meta property="og:description" content="之前架設 KVM 網路是用預設 NAT架構，在連線上外面是連不到 VM的。但我都需要在預設閘道路由表多設定 192.168.122.x/24指定到 VM 路由上面。這個做法感覺不是很方便，然後還要特別設定路由去連，前正子剛好在找 KVM 可以直接讓電腦網路方法，剛好看到用 Bridge 可以解決我這個問題。但是 Bridge 和 NAT 他們架構圖分不是很清楚，這邊就先做個簡單整理。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF-Bridge-%E5%92%8C-NAT-%E5%B7%AE%E7%95%B0/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-14">2023-09-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;754 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png, https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png 1.5x, https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"
-        title="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png" title="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png, https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png 1.5x, https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png"
+            title="https://user-images.githubusercontent.com/6058558/268019374-dda27442-5567-40b0-b289-66255a6c9df8.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -196,14 +198,16 @@
 <h3 id="三種模式差異">三種模式差異</h3>
 <p>其實之前介紹就能看出差異，從<a href="https://hackmd.io/@yzai/H1GmIiqV9" target="_blank" rel="noopener noreffer ">虛擬機的網路模式(Host-only,Bridged,NAT) - HackMD</a>這篇裡面可以看到簡單理解這三種模式差異。</p>
 <blockquote>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png, https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png 1.5x, https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png, https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png 1.5x, https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/257046945-34ffe666-0fbe-4577-845d-a0e07d4b9536.png"
+            title="圖片" />
+    </a></p>
 <table>
 <thead>
 <tr>
@@ -284,14 +288,16 @@
 </div>
 </div><p>上面圖我跟你說這是<code>Bridge</code>圖。<br>
 本來我還覺得我可以在 <code>br0</code> 上面的 <code>eth0</code>加上IP，再設定 <code>iptable</code> 做 NAT <strong>大錯特錯</strong>想法。<code>NAT</code>圖是不是長這樣的</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png, https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png 1.5x, https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png"
-        title="我原本想到的圖" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png" title="我原本想到的圖" data-thumbnail="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png, https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png 1.5x, https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/257049013-358096d3-a8d4-4c69-bdc0-4f9c1b2270c5.png"
+            title="我原本想到的圖" />
+    </a></p>
 <p>下面有<strong>NAT 圖</strong>樣子</p>
 <div class="details admonition tip open">
         <div class="details-summary admonition-title">
@@ -372,14 +378,16 @@
 <li><a href="https://www.modb.pro/db/50733" target="_blank" rel="noopener noreffer ">Linux Network Namespace 与 Bridge 网桥 - 墨天轮</a></li>
 </ul>
 <h2 id="網路孔不是每個孔都能設定-ip">網路孔不是每個孔都能設定 IP</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png, https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png 1.5x, https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png, https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png 1.5x, https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/257056480-4f8acd70-f8f8-4d86-8753-400498b084a6.png"
+            title="圖片" />
+    </a></p>
 <p>之前跟我朋友討論網路東西，有時會提醒網路設備不是每個孔都能設定 IP，都是 <code>bridge</code> 也是一樣道理，所以 <code>eth0</code> 放在 bridge 不能加上 IP。<code>WAN</code>孔才能加上 IP。<code>LAN</code>孔沒辦法設定 IP。</p>
 <h2 id="ai問答區">AI問答區</h2>
 <p>公司有買免費 ChatGPT，免費白不問?😆但能確定我思考是一致的。</p>

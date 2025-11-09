@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Ubuntu 使用 Bridge 讓外面網路可以連 KVM 虛擬主機 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Ubuntu 使用 Bridge 讓外面網路可以連 KVM 虛擬主機" />
+        <title>Ubuntu 使用 Bridge 讓外面網路可以連 KVM 虛擬主機 - 程式狂想筆記</title><meta name="Description" content="之前研究 Linux 怎麼用橋接器是為了讓我別台電腦可以直接連到 VM，之前都要 Fortgate 防火牆設置路由表(route)，後來覺得應該可以用橋接器來做連接，這邊用 Ubuntu 實作怎麼在 KVM 設定 VM 網路 橋接連至實體區網。"><meta property="og:title" content="Ubuntu 使用 Bridge 讓外面網路可以連 KVM 虛擬主機" />
 <meta property="og:description" content="之前研究 Linux 怎麼用橋接器是為了讓我別台電腦可以直接連到 VM，之前都要 Fortgate 防火牆設置路由表(route)，後來覺得應該可以用橋接器來做連接，這邊用 Ubuntu 實作怎麼在 KVM 設定 VM 網路 橋接連至實體區網。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Ubuntu-%E4%BD%BF%E7%94%A8-Bridge-%E8%AE%93%E5%A4%96%E9%9D%A2%E7%B6%B2%E8%B7%AF%E5%8F%AF%E4%BB%A5%E9%80%A3-KVM-%E8%99%9B%E6%93%AC%E4%B8%BB%E6%A9%9F/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-24">2023-09-24</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;301 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png, https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png 1.5x, https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png"
-        title="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png" title="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png, https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png 1.5x, https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png"
+            title="https://user-images.githubusercontent.com/6058558/270165472-0e1bd334-e997-49af-b16e-18afc1f6b2da.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -247,14 +249,16 @@
 </ul>
 <h2 id="我理想預設-bridge-理想">我理想預設 bridge 理想</h2>
 <p>可以控制用 NAT 或者 Bridge到外面網路，這樣比較彈性。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png, https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png 1.5x, https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png, https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png 1.5x, https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258461029-933190bb-ebc7-4e95-ba27-abff7da12d02.png"
+            title="圖片" />
+    </a></p>
 <p>原本想用無線網卡，但是無線網卡做橋接需要把網路改成熱點方式，這不是我想要的，所以就放棄這個方案。</p>
 <h2 id="使用-netplan">使用 netplan</h2>
 <p>這邊 bridge 想用自動取得 IP 也是能做到的，但之前那個 IP 設定在 DHCP Server ，覽的調整可以先設定固定在主機上面。</p>
@@ -320,96 +324,116 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>點選<code>+</code>新增相關網路。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png, https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png 1.5x, https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png, https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png 1.5x, https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258567831-75ff4cb7-2035-4d72-8ce2-66dbb4ba6726.png"
+            title="圖片" />
+    </a></p>
 <p>選擇<code>橋接</code>做建立動作。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png, https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png 1.5x, https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png, https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png 1.5x, https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258567922-d0f477f7-b661-4081-a0d1-86c0416a43ab.png"
+            title="圖片" />
+    </a></p>
 <p>這邊我已經用netplan設定好了，我選擇編輯看設定。但跟新增介面一樣，可以設定路由名稱。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png, https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png 1.5x, https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png, https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png 1.5x, https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258567996-2efb01fd-6d9a-4b25-9575-2e85f41e8882.png"
+            title="圖片" />
+    </a></p>
 <p>我們要把實體網卡做橋接連接動作，參考下圖設定動作。先點選<code>新增</code>，選擇<code>有線網路</code>。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png, https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png 1.5x, https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png, https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png 1.5x, https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258568055-221a6995-c191-4fc3-95ac-c78623470582.png"
+            title="圖片" />
+    </a></p>
 <p>選擇實體網卡裝置。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png, https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png 1.5x, https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png, https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png 1.5x, https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258568154-710db0a7-94de-46ce-995e-da186803e2e1.png"
+            title="圖片" />
+    </a></p>
 <p>設定相關網路設定。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png, https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png 1.5x, https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png, https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png 1.5x, https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258568354-c339f861-17e0-4d21-8837-859094b1e0b6.png"
+            title="圖片" />
+    </a></p>
 <p>因為我Ubuntu網路怪怪的，~~這邊重開機就可以看有沒有生效。~~理論上會直接生效。可以用<code>ip a</code>看看，我後來上面 Ubuntu 網路問題解決就沒這個問題。</p>
 <h2 id="kvm-設定橋接器">KVM 設定橋接器</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png, https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png 1.5x, https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png, https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png 1.5x, https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258568995-33e2513c-4818-43da-8611-cfdc5725aba0.png"
+            title="圖片" />
+    </a></p>
 <p>有用 WebVirtCloud的話請刪除再新增，不知道為什麼修改沒什麼用。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png, https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png 1.5x, https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png, https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png 1.5x, https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258569079-fbcf50a0-a888-4236-9011-d37decd64a17.png"
+            title="圖片" />
+    </a></p>
 <p>網路要設定 <code>e1000</code> 才能連線。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png, https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png 1.5x, https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png, https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png 1.5x, https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258569357-8ca241d9-8247-42aa-9a81-8a881e87eb5a.png"
+            title="圖片" />
+    </a></p>
 <p>發現無法改的話到這邊改。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png, https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png 1.5x, https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png, https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png 1.5x, https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/258569571-355d9f39-1024-4592-b0fd-7f7f656d0180.png"
+            title="圖片" />
+    </a></p>
 <h2 id="彩蛋">彩蛋</h2>
 <p>最後發現 netplan 好像還滿多可以設定的，有興趣可以玩玩。</p>
 <ul>

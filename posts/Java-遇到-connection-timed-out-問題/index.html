@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Java 遇到 connection timed out 問題 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Java 遇到 connection timed out 問題" />
+        <title>Java 遇到 connection timed out 問題 - 程式狂想筆記</title><meta name="Description" content="遇到問題
+最近公司發現發 LINE 推播時候發現 log 會有失敗 Exception，仔細看了一下訊息寫connection timed out，到底為什麼發生這個問題，是系統？是網路？是路由器？由於不是100%會發生，最好狀況沒發生，最高一天發生6次失敗，一天的量最多大概200多，所以失敗機率雖低，但這個遇到的情況還滿高的。這邊我蒐集一些方法，順便紀錄一下。"><meta property="og:title" content="Java 遇到 connection timed out 問題" />
 <meta property="og:description" content="遇到問題
 最近公司發現發 LINE 推播時候發現 log 會有失敗 Exception，仔細看了一下訊息寫connection timed out，到底為什麼發生這個問題，是系統？是網路？是路由器？由於不是100%會發生，最好狀況沒發生，最高一天發生6次失敗，一天的量最多大概200多，所以失敗機率雖低，但這個遇到的情況還滿高的。這邊我蒐集一些方法，順便紀錄一下。" />
 <meta property="og:type" content="article" />
@@ -170,14 +171,16 @@
 程式建立TCP連線時候，沒有收到ACK回應，導致connection timed out。<br>
 我們程式使用Line 開發Java 推播函示庫，裡面原始碼就有設定 timeout 10秒鐘(程式連結)，因為連線超過10秒鐘沒有回應，所以就發生 connection timed out。<br>
 我們測試連線大概有4%機率會發生超過10秒鐘或連線失敗。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/CT3uhEK.png"
-        data-srcset="https://i.imgur.com/CT3uhEK.png, https://i.imgur.com/CT3uhEK.png 1.5x, https://i.imgur.com/CT3uhEK.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/CT3uhEK.png"
-        title="https://i.imgur.com/CT3uhEK.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/CT3uhEK.png" title="https://i.imgur.com/CT3uhEK.png" data-thumbnail="https://i.imgur.com/CT3uhEK.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/CT3uhEK.png"
+            data-srcset="https://i.imgur.com/CT3uhEK.png, https://i.imgur.com/CT3uhEK.png 1.5x, https://i.imgur.com/CT3uhEK.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/CT3uhEK.png"
+            title="https://i.imgur.com/CT3uhEK.png" />
+    </a></p>
 <p>TODO:</p>
 <ul>
 <li><a href="https://hoswey.github.io/2019/07/23/%E6%B5%85%E8%B0%88Java%E4%B8%AD%E7%9A%84TCP%E8%B6%85%E6%97%B6/" target="_blank" rel="noopener noreffer ">淺談Java中的TCP超時 | 程序員，川流不息</a></li>
@@ -225,41 +228,49 @@
 </div>
 </div><h3 id="mtr-測試">MTR 測試</h3>
 <p>因為最近剛好問我朋友 vLan 問題，剛好順便問我朋友也是做網路相關工作，他有先試著叫我做<code>ping</code>主機動作，不過我有問我大量<code>ping</code>情況會發生，有什麼方法看網路這一塊哪邊問題，我朋友跟我講一個工具，<code>MTR</code>工具，他們通常會請客戶端測試用。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/zwM7eQD.png"
-        data-srcset="https://i.imgur.com/zwM7eQD.png, https://i.imgur.com/zwM7eQD.png 1.5x, https://i.imgur.com/zwM7eQD.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/zwM7eQD.png"
-        title="https://i.imgur.com/zwM7eQD.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/zwM7eQD.png" title="https://i.imgur.com/zwM7eQD.png" data-thumbnail="https://i.imgur.com/zwM7eQD.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/zwM7eQD.png"
+            data-srcset="https://i.imgur.com/zwM7eQD.png, https://i.imgur.com/zwM7eQD.png 1.5x, https://i.imgur.com/zwM7eQD.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/zwM7eQD.png"
+            title="https://i.imgur.com/zwM7eQD.png" />
+    </a></p>
 <p>上圖，倒數第二跳好像滿高的!!不過我朋友說，不一定有問題，因為正常中間 loss 很多的話最後應該也會滿多，推測<strong>我們公司的 ISP 選的路線可能非最佳路線</strong>，像他幫我測試用中華電信 ISP 線路 <code>PING</code> 沒有這麼高(如下圖)，所以問題應該是出在ISP和 LINE 雲端服務商機率比較大。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/G4pXPUX.png"
-        data-srcset="https://i.imgur.com/G4pXPUX.png, https://i.imgur.com/G4pXPUX.png 1.5x, https://i.imgur.com/G4pXPUX.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/G4pXPUX.png"
-        title="https://i.imgur.com/G4pXPUX.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/G4pXPUX.png" title="https://i.imgur.com/G4pXPUX.png" data-thumbnail="https://i.imgur.com/G4pXPUX.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/G4pXPUX.png"
+            data-srcset="https://i.imgur.com/G4pXPUX.png, https://i.imgur.com/G4pXPUX.png 1.5x, https://i.imgur.com/G4pXPUX.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/G4pXPUX.png"
+            title="https://i.imgur.com/G4pXPUX.png" />
+    </a></p>
 <p>我朋友提供一些方案，因為我們 ISP 公司不一樣，所以解析出來 DNS 的 IP 也不一樣，所以有建議我改 host 檔案指定中華 DNS 出來 IP，可以先看打API會有掉包問題，不過目前我應該沒有這個權限，我有先請我們公司同仁先看，後續有消息會再補上。不過我有先MTR到中華解析出來 IP ，ping還滿好的。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/ZCMJnHy.png"
-        data-srcset="https://i.imgur.com/ZCMJnHy.png, https://i.imgur.com/ZCMJnHy.png 1.5x, https://i.imgur.com/ZCMJnHy.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/ZCMJnHy.png"
-        title="https://i.imgur.com/ZCMJnHy.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/ZCMJnHy.png" title="https://i.imgur.com/ZCMJnHy.png" data-thumbnail="https://i.imgur.com/ZCMJnHy.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/ZCMJnHy.png"
+            data-srcset="https://i.imgur.com/ZCMJnHy.png, https://i.imgur.com/ZCMJnHy.png 1.5x, https://i.imgur.com/ZCMJnHy.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/ZCMJnHy.png"
+            title="https://i.imgur.com/ZCMJnHy.png" />
+    </a></p>
 <p>經典聊天紀錄留一下。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/0eZk9nQ.png"
-        data-srcset="https://i.imgur.com/0eZk9nQ.png, https://i.imgur.com/0eZk9nQ.png 1.5x, https://i.imgur.com/0eZk9nQ.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/0eZk9nQ.png"
-        title="https://i.imgur.com/0eZk9nQ.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/0eZk9nQ.png" title="https://i.imgur.com/0eZk9nQ.png" data-thumbnail="https://i.imgur.com/0eZk9nQ.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/0eZk9nQ.png"
+            data-srcset="https://i.imgur.com/0eZk9nQ.png, https://i.imgur.com/0eZk9nQ.png 1.5x, https://i.imgur.com/0eZk9nQ.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/0eZk9nQ.png"
+            title="https://i.imgur.com/0eZk9nQ.png" />
+    </a></p>
 <p>網路這一塊滿深奧XD。</p>
 <h2 id="line-主要找到-timeout-設定地方">Line 主要找到 timeout 設定地方</h2>
 <p>預設 10 秒會 timeout。</p>

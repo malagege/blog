@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作" />
+        <title>讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作 - 程式狂想筆記</title><meta name="Description" content="最近要讓 KVM 不透過設定路由，想直接連接到現有網段，這邊繼網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇研究，我們這邊簡單操作 Linux Bridge 讓多種孔可以互相連線。"><meta property="og:title" content="讓虛擬網路孔和各種設備連接起來 - Linux Bridge 實作" />
 <meta property="og:description" content="最近要讓 KVM 不透過設定路由，想直接連接到現有網段，這邊繼網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記這篇研究，我們這邊簡單操作 Linux Bridge 讓多種孔可以互相連線。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E8%AE%93%E8%99%9B%E6%93%AC%E7%B6%B2%E8%B7%AF%E5%AD%94%E5%92%8C%E5%90%84%E7%A8%AE%E8%A8%AD%E5%82%99%E9%80%A3%E6%8E%A5%E8%B5%B7%E4%BE%86-Linux-Bridge-%E5%AF%A6%E4%BD%9C/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-17">2023-09-17</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1263 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;6 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png, https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png 1.5x, https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png"
-        title="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png" title="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png, https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png 1.5x, https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png"
+            title="https://user-images.githubusercontent.com/6058558/268508745-c9ac584e-33dc-4111-9fa9-8f156127c1ed.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -587,14 +589,16 @@
         </div>
     </div>
 <h2 id="簡單繪圖">簡單繪圖</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png, https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png 1.5x, https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png"
-        title="簡單架構" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png" title="簡單架構" data-thumbnail="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png, https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png 1.5x, https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/268509638-35b3c5fd-ccb4-4681-a606-df5971df5267.png"
+            title="簡單架構" />
+    </a></p>
 <p>原本想說跟上篇一樣一個一個畫，不過後來覺得不需要。照著做也能可以了解。</p>
 <h2 id="加分題-host-連接到-br0">加分題 host 連接到 br0</h2>
 <p>你做到這邊會發現你 host 主機沒辦法連相關 IP ，假如你都會操作設定<code>br0</code>了，你應該也能設定。這邊可以自己試試看。</p>

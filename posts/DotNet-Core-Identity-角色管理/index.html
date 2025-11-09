@@ -4,7 +4,21 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>.Net Core Identity 角色管理 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content=".Net Core Identity 角色管理" />
+        <title>.Net Core Identity 角色管理 - 程式狂想筆記</title><meta name="Description" content="我們常常開發程式帳號登入，通常還會做權限功能，這邊很常開發會用角色(Role)這個東西，去做權限劃分，有時候我們需要更細，但系統不一定會做到這樣，但有沒有常見規劃權限方法。
+常見權限方法 之前看到 RBAC這個名詞是在 Kubernetes 那邊看到，那時候還沒有深入了解設計理念，最近在看 .Net Core Identity 文章，看到這個框架有做這個非常方便東西，可以瞭解這個是什麼用途。
+RBAC 以角色為基礎的存取控制[1][2]（英語：Role-based access control，RBAC），是資訊安全領域中，一種較新且廣為使用的存取控制機制，其不同於強制存取控制以及自由選定存取控制[3]直接賦予使用者權限，而是將權限賦予角色。
+以角色為基礎的存取控制模型是一套較強制存取控制以及自由選定存取控制更為中性且更具靈活性的存取控制技術。
+參考: 以角色為基礎的存取控制 - 維基百科，自由的百科全書
+更多可以看Role-Based Access Control (RBAC). 作者：銀伶 | by I.S. BLOG | Medium。
+CBAC Claim 動詞則有宣稱,聲稱, 主張, 自稱, 指控, 認領,索賠等意思
+名詞則有權利 , 要求權和聲明等
+Claims-based 則是一個專有詞，代表基於聲明的認證(Claims-based identity)
+用於Google，Facebook，Microsoft等都有此機制的概念導入
+參考: ASP.NET MVC第014天_ASP.NET Identity使用筆記_使用者登入_Claims-based identity理解
+網路上比較少介紹 CBAC，簡單它可以分更細權限，這邊帳號可以設定特定角色，但是有時候有例外，像是帳號想把它加上權限上去，透過CBAC就可以設定。但注意 Claim不是只有套用在帳號上面，也可以套用帳號上面。
+建立角色 GIT: 建立角色 · malagege/NetCoreAuthSample@578bdd6
+RoleManager 可以簡單對 Role 做 CRUD。會新增到 AspNetRoles 資料表。
+Controller 注入 RoleManager 建立ModelView Controller 建立Role View 設定 簡單步驟跟之前差不多"><meta property="og:title" content=".Net Core Identity 角色管理" />
 <meta property="og:description" content="我們常常開發程式帳號登入，通常還會做權限功能，這邊很常開發會用角色(Role)這個東西，去做權限劃分，有時候我們需要更細，但系統不一定會做到這樣，但有沒有常見規劃權限方法。
 常見權限方法 之前看到 RBAC這個名詞是在 Kubernetes 那邊看到，那時候還沒有深入了解設計理念，最近在看 .Net Core Identity 文章，看到這個框架有做這個非常方便東西，可以瞭解這個是什麼用途。
 RBAC 以角色為基礎的存取控制[1][2]（英語：Role-based access control，RBAC），是資訊安全領域中，一種較新且廣為使用的存取控制機制，其不同於強制存取控制以及自由選定存取控制[3]直接賦予使用者權限，而是將權限賦予角色。
@@ -168,14 +182,16 @@ Controller 注入 RoleManager 建立ModelView Controller 建立Role View 設定 
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-16">2023-01-16</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;307 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png, https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png 1.5x, https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png"
-        title="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png" title="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png, https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png 1.5x, https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png"
+            title="https://user-images.githubusercontent.com/6058558/212697469-7fb3b705-2dde-4a7d-a409-efa75c0e4f66.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -313,7 +329,8 @@ Controller 注入 RoleManager 建立ModelView Controller 建立Role View 設定 
 <p>我們操作這個範例，可以看到我們用<code>_userManager.AddToRoleAsync</code>和<code>_userManager.AddToRoleAsync</code>控制這些表資料。.Net Core Identity 不只下面這些表，後續整理相關筆記會特別畫 ERD 關聯。</p>
 <div class="mermaid">erDiagram
           AspNetUsers }|..|{ AspNetRoles : has
-</div><p>多對多關係是用三張表去做關聯</p>
+</div>
+<p>多對多關係是用三張表去做關聯</p>
 <div class="mermaid">erDiagram
           AspNetUsers ||..|{ AspNetUserRoles : has
           AspNetUserRoles }|..|| AspNetRoles : own
@@ -331,7 +348,8 @@ Controller 注入 RoleManager 建立ModelView Controller 建立Role View 設定 
               string Name
               string NormalizeName
           }
-</div><h2 id="思考問題">思考問題</h2>
+</div>
+<h2 id="思考問題">思考問題</h2>
 <ol>
 <li>
 <p>效能問題(n+1)<br>

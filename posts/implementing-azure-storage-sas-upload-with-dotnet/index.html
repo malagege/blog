@@ -4,9 +4,16 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢" />
+        <title>使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢 - 程式狂想筆記</title><meta name="Description" content="這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 storage account、Container 和 blob，如下圖所示。
+
+        
+    
+詳細資訊可以參考Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn。
+由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。"><meta property="og:title" content="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢" />
 <meta property="og:description" content="這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 storage account、Container 和 blob，如下圖所示。
 
+        
+    
 詳細資訊可以參考Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn。
 由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。" />
 <meta property="og:type" content="article" />
@@ -17,6 +24,8 @@
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 .NET 實作 Azure Storage SAS 上傳檔案起手勢"/>
 <meta name="twitter:description" content="這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 storage account、Container 和 blob，如下圖所示。
 
+        
+    
 詳細資訊可以參考Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn。
 由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。"/>
 <meta name="application-name" content="程式狂想筆記">
@@ -39,7 +48,7 @@
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 \u003ccode\u003estorage account\u003c/code\u003e、\u003ccode\u003eContainer\u003c/code\u003e 和 \u003ccode\u003eblob\u003c/code\u003e，如下圖所示。\u003c/p\u003e\n\u003cp\u003e\u003cimg\n        class=\"lazyload\"\n        src=\"/blog/svg/loading.min.svg\"\n        data-src=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\n        data-srcset=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 1.5x, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 2x\"\n        data-sizes=\"auto\"\n        alt=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\n        title=\"圖片\" /\u003e\u003c/p\u003e\n\u003cp\u003e詳細資訊可以參考\u003ca href=\"https://learn.microsoft.com/zh-tw/azure/storage/blobs/storage-blobs-introduction\" target=\"_blank\" rel=\"noopener noreffer \"\u003eBlob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn\u003c/a\u003e。\u003c/p\u003e\n\u003cp\u003e由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。\u003c/p\u003e"
+            },"description": "\u003cp\u003e這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 \u003ccode\u003estorage account\u003c/code\u003e、\u003ccode\u003eContainer\u003c/code\u003e 和 \u003ccode\u003eblob\u003c/code\u003e，如下圖所示。\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"lightgallery\" href=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\" title=\"圖片\" data-thumbnail=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\u003e\n        \u003cimg\n            class=\"lazyload\"\n            src=\"/blog/svg/loading.min.svg\"\n            data-src=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\n            data-srcset=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 1.5x, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 2x\"\n            data-sizes=\"auto\"\n            alt=\"https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png\"\n            title=\"圖片\" /\u003e\n    \u003c/a\u003e\u003c/p\u003e\n\u003cp\u003e詳細資訊可以參考\u003ca href=\"https://learn.microsoft.com/zh-tw/azure/storage/blobs/storage-blobs-introduction\" target=\"_blank\" rel=\"noopener noreffer \"\u003eBlob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn\u003c/a\u003e。\u003c/p\u003e\n\u003cp\u003e由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -146,14 +155,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-09-04">2024-09-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;844 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"
-        data-srcset="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d, https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d 1.5x, https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d 2x"
-        data-sizes="auto"
-        alt="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"
-        title="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d" title="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d" data-thumbnail="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"
+            data-srcset="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d, https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d 1.5x, https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d"
+            title="https://gist.github.com/user-attachments/assets/747df0a4-1ed8-4316-b122-f5fd8e8fa08d" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -180,14 +191,16 @@
   </ul>
 </nav></div>
             </div><div class="content" id="content"><p>這邊不詳細介紹什麼是 Azure Storage，這裡簡單介紹一下其組成部分，包括 <code>storage account</code>、<code>Container</code> 和 <code>blob</code>，如下圖所示。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 1.5x, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 1.5x, https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/234599213-21ae8221-bd83-4287-806e-ed464fa61fba.png"
+            title="圖片" />
+    </a></p>
 <p>詳細資訊可以參考<a href="https://learn.microsoft.com/zh-tw/azure/storage/blobs/storage-blobs-introduction" target="_blank" rel="noopener noreffer ">Blob (物件) 儲存體簡介 - Azure Storage | Microsoft Learn</a>。</p>
 <p>由於專案時間緊迫，我只拿到了 Azure Storage 的 ConnectionString，需要在短時間內完成上傳功能。以下是使用 .NET 實作 Azure Storage SAS 上傳檔案的步驟。</p>
 <h2 id="心智圖">心智圖</h2>
@@ -197,7 +210,8 @@
     Blob單位上傳
     SAS上傳檔案
         x-ms-blob-type: BlockBlob
-</div><h2 id="專案需求">專案需求</h2>
+</div>
+<h2 id="專案需求">專案需求</h2>
 <p>透過前端可以上傳檔案到 Azure Storage，這樣減少Server 負擔，剛好上傳東西後端也不需要做關聯，這邊這個功能符合我的需求。</p>
 <h3 id="大致流程">大致流程</h3>
 <h3 id="使用-net-實作-azure-storage-sas-上傳檔案">使用 .NET 實作 Azure Storage SAS 上傳檔案</h3>

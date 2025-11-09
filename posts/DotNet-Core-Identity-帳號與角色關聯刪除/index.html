@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>.Net Core Identity 帳號與角色關聯刪除 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content=".Net Core Identity 帳號與角色關聯刪除" />
+        <title>.Net Core Identity 帳號與角色關聯刪除 - 程式狂想筆記</title><meta name="Description" content="通常我們使用微軟建立好的資料表不會注意他有做那些關聯，功能方便，在使用的時候也需要注意一些事情，這邊特別記錄資料表關聯調整，設定上程式碼需要調整什麼。"><meta property="og:title" content=".Net Core Identity 帳號與角色關聯刪除" />
 <meta property="og:description" content="通常我們使用微軟建立好的資料表不會注意他有做那些關聯，功能方便，在使用的時候也需要注意一些事情，這邊特別記錄資料表關聯調整，設定上程式碼需要調整什麼。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/DotNet-Core-Identity-%E5%B8%B3%E8%99%9F%E8%88%87%E8%A7%92%E8%89%B2%E9%97%9C%E8%81%AF%E5%88%AA%E9%99%A4/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-16">2023-01-16</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;345 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png, https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png 1.5x, https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png"
-        title="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png" title="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png, https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png 1.5x, https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png"
+            title="https://user-images.githubusercontent.com/6058558/212698184-d57b4923-1c58-459f-9ba3-668294da2fed.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -188,22 +190,26 @@ ON DELETE SET DEFAULT
 <h2 id="預設-identity-資料表動作級聯刪除-cascade">預設 Identity 資料表動作(級聯刪除 CasCade)</h2>
 <p>Identity 資料表動作預設為<code>級聯刪除(CasCade)</code> ，這邊要注意 SQL Server 預設為 <code>NoAction</code>，Identity 資料表預設不知道為什麼做<code>級聯刪除 (CasCade)</code>。但我們可以手動改掉他。</p>
 <p>下圖是看資料表建立的Schema，可以看外鍵設定。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/giwTkOd.png"
-        data-srcset="https://i.imgur.com/giwTkOd.png, https://i.imgur.com/giwTkOd.png 1.5x, https://i.imgur.com/giwTkOd.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/giwTkOd.png"
-        title="https://i.imgur.com/giwTkOd.png" /></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/PgLoXCx.png"
-        data-srcset="https://i.imgur.com/PgLoXCx.png, https://i.imgur.com/PgLoXCx.png 1.5x, https://i.imgur.com/PgLoXCx.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/PgLoXCx.png"
-        title="https://i.imgur.com/PgLoXCx.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/giwTkOd.png" title="https://i.imgur.com/giwTkOd.png" data-thumbnail="https://i.imgur.com/giwTkOd.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/giwTkOd.png"
+            data-srcset="https://i.imgur.com/giwTkOd.png, https://i.imgur.com/giwTkOd.png 1.5x, https://i.imgur.com/giwTkOd.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/giwTkOd.png"
+            title="https://i.imgur.com/giwTkOd.png" />
+    </a></p>
+<p><a class="lightgallery" href="https://i.imgur.com/PgLoXCx.png" title="https://i.imgur.com/PgLoXCx.png" data-thumbnail="https://i.imgur.com/PgLoXCx.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/PgLoXCx.png"
+            data-srcset="https://i.imgur.com/PgLoXCx.png, https://i.imgur.com/PgLoXCx.png 1.5x, https://i.imgur.com/PgLoXCx.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/PgLoXCx.png"
+            title="https://i.imgur.com/PgLoXCx.png" />
+    </a></p>
 <p>這邊可以直接測試看看</p>
 <p>GIT: <a href="https://github.com/malagege/NetCoreAuthSample/commit/01b8e0a308df437426f78f649888d62ac58c4599" target="_blank" rel="noopener noreffer ">刪除使用者 · malagege/NetCoreAuthSample@01b8e0a</a></p>
 <h2 id="防止連同刪除方法">防止連同刪除方法</h2>
@@ -276,23 +282,27 @@ AppContextDb.cs</p>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>其他相關<a href="https://docs.microsoft.com/zh-tw/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#default-model-configuration" target="_blank" rel="noopener noreffer ">IdentityASP.NET Core 中的模型自訂 | Microsoft Docs</a></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/oXE36It.png"
-        data-srcset="https://i.imgur.com/oXE36It.png, https://i.imgur.com/oXE36It.png 1.5x, https://i.imgur.com/oXE36It.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/oXE36It.png"
-        title="https://i.imgur.com/oXE36It.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/oXE36It.png" title="https://i.imgur.com/oXE36It.png" data-thumbnail="https://i.imgur.com/oXE36It.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/oXE36It.png"
+            data-srcset="https://i.imgur.com/oXE36It.png, https://i.imgur.com/oXE36It.png 1.5x, https://i.imgur.com/oXE36It.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/oXE36It.png"
+            title="https://i.imgur.com/oXE36It.png" />
+    </a></p>
 <p>刪除含有帳號的角色會看到Exception。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/pxhg7Df.png"
-        data-srcset="https://i.imgur.com/pxhg7Df.png, https://i.imgur.com/pxhg7Df.png 1.5x, https://i.imgur.com/pxhg7Df.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/pxhg7Df.png"
-        title="https://i.imgur.com/pxhg7Df.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/pxhg7Df.png" title="https://i.imgur.com/pxhg7Df.png" data-thumbnail="https://i.imgur.com/pxhg7Df.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/pxhg7Df.png"
+            data-srcset="https://i.imgur.com/pxhg7Df.png, https://i.imgur.com/pxhg7Df.png 1.5x, https://i.imgur.com/pxhg7Df.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/pxhg7Df.png"
+            title="https://i.imgur.com/pxhg7Df.png" />
+    </a></p>
 <h2 id="指定-identity-table-外來鍵設定">指定 Identity Table 外來鍵設定</h2>
 <p>上面寫法我覺得程式很少，不能做到特定篩選，我怕日後這些程式碼會不會影響我建立關聯的Entity，所以我找相關可以取代指定 Entity方法。後來拼拼湊湊組成下面這個。</p>
 <div class="highlight"><div class="chroma">

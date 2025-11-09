@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Net 5 TimeSpan 做 Json 序列化引發的慘劇 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Net 5 TimeSpan 做 Json 序列化引發的慘劇" />
+        <title>Net 5 TimeSpan 做 Json 序列化引發的慘劇 - 程式狂想筆記</title><meta name="Description" content="最近因為用兩層緩存，第一層會抓 Memory Cache，沒有資料會抓第二層 SQL Server Cache，在沒有資料會抓取 API 相關資料，簡單多層緩存功能。因為 IDistributedCache 無法抓取到資料庫該 key 設定的資料，這邊有把 DistributedCacheEntryOptions做 Json 序列化衍生這次慘劇。"><meta property="og:title" content="Net 5 TimeSpan 做 Json 序列化引發的慘劇" />
 <meta property="og:description" content="最近因為用兩層緩存，第一層會抓 Memory Cache，沒有資料會抓第二層 SQL Server Cache，在沒有資料會抓取 API 相關資料，簡單多層緩存功能。因為 IDistributedCache 無法抓取到資料庫該 key 設定的資料，這邊有把 DistributedCacheEntryOptions做 Json 序列化衍生這次慘劇。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Net-5-TimeSpan-%E5%81%9A-Json-%E5%BA%8F%E5%88%97%E5%8C%96%E5%BC%95%E7%99%BC%E7%9A%84%E6%85%98%E5%8A%87/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-08-27">2023-08-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1104 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;6 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png, https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png 1.5x, https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png"
-        title="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png" title="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png, https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png 1.5x, https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png"
+            title="https://user-images.githubusercontent.com/6058558/263536638-60dcd420-73b5-4898-b21e-ba5906d2cc70.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -183,7 +185,8 @@
     解決方法
         實作 System.Text.Json Converter
         使用 Json.Net
-</div><h2 id="前景提要">前景提要</h2>
+</div>
+<h2 id="前景提要">前景提要</h2>
 <blockquote>
 <p>因為 <code>IDistributedCache</code> 無法抓取到資料庫該 key 設定的資料，這邊有把 <code>DistributedCacheEntryOptions</code>做 Json 序列化衍生這次慘劇。</p>
 </blockquote>
@@ -379,14 +382,16 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="慘劇發生">慘劇發生</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png, https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png 1.5x, https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png"
-        title="image" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png" title="image" data-thumbnail="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png, https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png 1.5x, https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/253622230-2b1526ee-772d-46d4-8ad1-260298a9786d.png"
+            title="image" />
+    </a></p>
 <p>半夜系統上線，早上收到有很多使用者遇到不能用，原因這次上板我加上<code>SlidingExpiration</code> 而造成下面錯誤。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -429,14 +434,16 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>好了，花了很多時間找到問題，這邊整理一下。文章都已經破題了，沒錯！就是 <code>TimeSpan</code> Json 序列化造成的。其實當初我看到重點在 <code>SMicrosoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions.set_SlidingExpiration(Nullable1 value)</code>所造成錯誤，這邊也翻了這個地方<a href="https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Caching.Abstractions/src/DistributedCacheEntryOptions.cs" target="_blank" rel="noopener noreffer ">源碼</a>。找到錯誤的地方，奇怪，我明明有設定 <code>SlidingExpiration</code> 五分鐘，怎麼這邊顯示 <code>00:00:00</code>?</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png, https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png 1.5x, https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png"
-        title="image" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png" title="image" data-thumbnail="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png, https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png 1.5x, https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/253625509-9f257fc7-205f-4f14-a5c6-06abccb82bd9.png"
+            title="image" />
+    </a></p>
 <h2 id="分析問題">分析問題</h2>
 <p>其實這個實例反序列化就錯了，其實從 log 中可以看出<code>System.Text.Json.JsonPropertyInfo1.ReadJsonAndSetMember</code>反序列化遇到這個錯誤問題。</p>
 <div class="details admonition info open">
@@ -459,14 +466,16 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>不過我從 LinqPad 7使用是<code>.Net6</code>，這邊產生結果不一樣。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png, https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png 1.5x, https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png"
-        title="image" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png" title="image" data-thumbnail="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png, https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png 1.5x, https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/253630743-1b40436e-cabc-4261-b799-42d17919a63b.png"
+            title="image" />
+    </a></p>
 <p>這也是這次不能寫入原因，原因是 .Net 6 會針對 TimeSpan 做格式轉換，.Net 5之前都不會做。可以看相關文章:</p>
 <ul>
 <li><a href="https://blog.poychang.net/system-text-json-custom-jsonconverter-for-timespan/" target="_blank" rel="noopener noreffer ">System.Text.Json 反序列化/序列化轉換 TimeSpan 型別</a></li>
@@ -474,42 +483,50 @@
 </ul>
 <h3 id="timespan-屬性唯讀">TimeSpan 屬性唯讀</h3>
 <p>其實上面 <code>.Net 5 和 .Net 6 TimeSpan 序列化不一樣結果</code> 也不是主要原因，其實 TimeSpan 是 <code>struct</code>，主要反序列化也會寫回屬性才對。然後我去看 <code>TimeSpan</code> 文件看到主要原因，<strong>原來屬性沒有 set 方法</strong>。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png, https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png 1.5x, https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png"
-        title="image" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png" title="image" data-thumbnail="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png, https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png 1.5x, https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/253632047-b92755f5-dee5-4fee-9de1-9dc03879e8d3.png"
+            title="image" />
+    </a></p>
 <h3 id="測試圖片">測試圖片</h3>
 <p>.Net 6 做序列化和反序列化正常。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png, https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png 1.5x, https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png, https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png 1.5x, https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/253583386-4cb602af-d74a-4668-bed3-241c5cab7b4e.png"
+            title="圖片" />
+    </a></p>
 <p>.Net 5 做序列化和反序列化沒成功還原，原因屬性沒有<code>set</code>方法。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png, https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png 1.5x, https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png, https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png 1.5x, https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/253583530-11456f8d-07a3-454c-80c1-76e1c305238b.png"
+            title="圖片" />
+    </a></p>
 <p>.Net 5 就算空的，他也會回來空的 TimeSpan。這也是為什麼屬性沒塞到也不會錯。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png, https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png 1.5x, https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png, https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png 1.5x, https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/253585167-d79d2d39-043d-4bb3-9301-7dfc22e4941c.png"
+            title="圖片" />
+    </a></p>
 <h2 id="解決方法">解決方法</h2>
 <h3 id="實作-systemtextjson-converter">實作 System.Text.Json Converter</h3>
 <p>.Net 5 自己要寫個 TimeSpan Json Converter 方法。可參考:</p>

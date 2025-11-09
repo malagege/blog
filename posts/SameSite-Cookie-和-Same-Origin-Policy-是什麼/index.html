@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>SameSite Cookie 和 Same Origin Policy 是什麼 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="SameSite Cookie 和 Same Origin Policy 是什麼" />
+        <title>SameSite Cookie 和 Same Origin Policy 是什麼 - 程式狂想筆記</title><meta name="Description" content="一般我們使用 Ajax 很長遇到跨域問題，之前我們很長設定 CORS 後端坐跨域設定結束這一回合。最近有研究 SSO 登入，有關 cookies 在不同子網域能不能做到 cookies 問題，原本覺得 cookies 是走 origin 的。結果後來發現 cookies 是走 SameSite ，我這邊就馬上惡補一下。結果發現有些東西很重要，但我竟然不知道，這邊簡單筆記一下。不過大致上你沒有要做到跨子網域登入一些東西可能就用不太到。"><meta property="og:title" content="SameSite Cookie 和 Same Origin Policy 是什麼" />
 <meta property="og:description" content="一般我們使用 Ajax 很長遇到跨域問題，之前我們很長設定 CORS 後端坐跨域設定結束這一回合。最近有研究 SSO 登入，有關 cookies 在不同子網域能不能做到 cookies 問題，原本覺得 cookies 是走 origin 的。結果後來發現 cookies 是走 SameSite ，我這邊就馬上惡補一下。結果發現有些東西很重要，但我竟然不知道，這邊簡單筆記一下。不過大致上你沒有要做到跨子網域登入一些東西可能就用不太到。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/SameSite-Cookie-%E5%92%8C-Same-Origin-Policy-%E6%98%AF%E4%BB%80%E9%BA%BC/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-02-19">2023-02-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;425 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png, https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png 1.5x, https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png"
-        title="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png" title="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png, https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png 1.5x, https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png"
+            title="https://user-images.githubusercontent.com/6058558/219941039-d12d9903-b845-433d-9263-8a82eff5bbed.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -236,62 +238,74 @@ ajax.post(&rsquo;/api2/data2&rsquo;) // 自動帶上sessionId</li>
 <p>這邊我們可以看到在 request 訪問 <code>a.demo.com</code> 和 <code>b.demo.com</code> 都會傳送 主網域<code>.demo.com</code> cookies 資料。</p>
 <h4 id="瀏覽器-demo">瀏覽器 Demo</h4>
 <p>我直接用 Yahoo 新聞來看。開發者工具可以看到網站有用那些 cookies下圖。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/yR0QdSy.png"
-        data-srcset="https://i.imgur.com/yR0QdSy.png, https://i.imgur.com/yR0QdSy.png 1.5x, https://i.imgur.com/yR0QdSy.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/yR0QdSy.png"
-        title="https://i.imgur.com/yR0QdSy.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/yR0QdSy.png" title="https://i.imgur.com/yR0QdSy.png" data-thumbnail="https://i.imgur.com/yR0QdSy.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/yR0QdSy.png"
+            data-srcset="https://i.imgur.com/yR0QdSy.png, https://i.imgur.com/yR0QdSy.png 1.5x, https://i.imgur.com/yR0QdSy.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/yR0QdSy.png"
+            title="https://i.imgur.com/yR0QdSy.png" />
+    </a></p>
 <p>在訪問<code>https://tw.news.yahoo.com</code> 會帶相關 cookies</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/ipOrZP3.png"
-        data-srcset="https://i.imgur.com/ipOrZP3.png, https://i.imgur.com/ipOrZP3.png 1.5x, https://i.imgur.com/ipOrZP3.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/ipOrZP3.png"
-        title="https://i.imgur.com/ipOrZP3.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/ipOrZP3.png" title="https://i.imgur.com/ipOrZP3.png" data-thumbnail="https://i.imgur.com/ipOrZP3.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/ipOrZP3.png"
+            data-srcset="https://i.imgur.com/ipOrZP3.png, https://i.imgur.com/ipOrZP3.png 1.5x, https://i.imgur.com/ipOrZP3.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/ipOrZP3.png"
+            title="https://i.imgur.com/ipOrZP3.png" />
+    </a></p>
 <p>但是在訪問非 <code>https://tw.news.yahoo.com</code> 網域 <code>thamba</code>因 domain 設定在 <code>https://tw.news.yahoo.com</code>，不會送出這組 cookies。參考下圖，我使用隨便不同子網域，並不回帶入<code>thamba</code> cookies。下面改成用Firefox，因為Chrome 404不會顯示傳什麼 cookies。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/49t7Dzj.png"
-        data-srcset="https://i.imgur.com/49t7Dzj.png, https://i.imgur.com/49t7Dzj.png 1.5x, https://i.imgur.com/49t7Dzj.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/49t7Dzj.png"
-        title="https://i.imgur.com/49t7Dzj.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/49t7Dzj.png" title="https://i.imgur.com/49t7Dzj.png" data-thumbnail="https://i.imgur.com/49t7Dzj.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/49t7Dzj.png"
+            data-srcset="https://i.imgur.com/49t7Dzj.png, https://i.imgur.com/49t7Dzj.png 1.5x, https://i.imgur.com/49t7Dzj.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/49t7Dzj.png"
+            title="https://i.imgur.com/49t7Dzj.png" />
+    </a></p>
 <p>注意整體 cookies 並非一致設定，可以個別設定。<br>
 上面不是有提到 <code>registrable domain</code> 是使用 <code>eTLD</code> 關係查到。<br>
 Firefox 和 Edge 可以看出 <code>registrable domain</code>。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/CiPK4lO.png"
-        data-srcset="https://i.imgur.com/CiPK4lO.png, https://i.imgur.com/CiPK4lO.png 1.5x, https://i.imgur.com/CiPK4lO.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/CiPK4lO.png"
-        title="https://i.imgur.com/CiPK4lO.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/CiPK4lO.png" title="https://i.imgur.com/CiPK4lO.png" data-thumbnail="https://i.imgur.com/CiPK4lO.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/CiPK4lO.png"
+            data-srcset="https://i.imgur.com/CiPK4lO.png, https://i.imgur.com/CiPK4lO.png 1.5x, https://i.imgur.com/CiPK4lO.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/CiPK4lO.png"
+            title="https://i.imgur.com/CiPK4lO.png" />
+    </a></p>
 <p>我們寫 cookies 進去通常有一個 <code>domain</code> 欄位，通常都不會帶。但瀏覽器不會隨便給你亂設定網域，這邊他會寫<code>eTLD</code>，除非你有寫正確子網域。我以前都不知道為什麼沒法修改 domain ，現在知道為什麼了。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/9ItTZmL.png"
-        data-srcset="https://i.imgur.com/9ItTZmL.png, https://i.imgur.com/9ItTZmL.png 1.5x, https://i.imgur.com/9ItTZmL.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/9ItTZmL.png"
-        title="https://i.imgur.com/9ItTZmL.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/9ItTZmL.png" title="https://i.imgur.com/9ItTZmL.png" data-thumbnail="https://i.imgur.com/9ItTZmL.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/9ItTZmL.png"
+            data-srcset="https://i.imgur.com/9ItTZmL.png, https://i.imgur.com/9ItTZmL.png 1.5x, https://i.imgur.com/9ItTZmL.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/9ItTZmL.png"
+            title="https://i.imgur.com/9ItTZmL.png" />
+    </a></p>
 <h3 id="可能忽略-cookies-跨域設定">可能忽略 Cookies 跨域設定</h3>
 <p>參考: <a href="https://zhuanlan.zhihu.com/p/121048298" target="_blank" rel="noopener noreffer ">SameSite小識 - 知乎</a><br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/DCtW7eW.png"
-        data-srcset="https://i.imgur.com/DCtW7eW.png, https://i.imgur.com/DCtW7eW.png 1.5x, https://i.imgur.com/DCtW7eW.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/DCtW7eW.png"
-        title="https://i.imgur.com/DCtW7eW.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/DCtW7eW.png" title="https://i.imgur.com/DCtW7eW.png" data-thumbnail="https://i.imgur.com/DCtW7eW.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/DCtW7eW.png"
+            data-srcset="https://i.imgur.com/DCtW7eW.png, https://i.imgur.com/DCtW7eW.png 1.5x, https://i.imgur.com/DCtW7eW.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/DCtW7eW.png"
+            title="https://i.imgur.com/DCtW7eW.png" />
+    </a></p>
 <p>我們常常前端串後端，因後端不同網域通常會後端加</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -332,14 +346,16 @@ Lax允許部分第三方請求攜帶Cookie<br>
 None無論是否跨站都會發送Cookie</p>
 </blockquote>
 <p>通常程式沒指定，預設都是<code>Lax</code>。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/ypsKPZL.png"
-        data-srcset="https://i.imgur.com/ypsKPZL.png, https://i.imgur.com/ypsKPZL.png 1.5x, https://i.imgur.com/ypsKPZL.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/ypsKPZL.png"
-        title="https://i.imgur.com/ypsKPZL.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/ypsKPZL.png" title="https://i.imgur.com/ypsKPZL.png" data-thumbnail="https://i.imgur.com/ypsKPZL.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/ypsKPZL.png"
+            data-srcset="https://i.imgur.com/ypsKPZL.png, https://i.imgur.com/ypsKPZL.png 1.5x, https://i.imgur.com/ypsKPZL.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/ypsKPZL.png"
+            title="https://i.imgur.com/ypsKPZL.png" />
+    </a></p>
 <blockquote>
 <p>Strict<br>
 只在 First-party 環境下帶上 Cookie，但這有個問題，假設使用者在 example.com 看到一條 FB 貼文連結（假設為 fb.com），就算使用者曾經登入過 fb.com 取得了 Cookie，點擊連結後因為兩個網站為 Cross-site，不會帶上 Cookie，只能看到登入頁面。</p>
@@ -369,23 +385,27 @@ SameSite=None + HTTPS：允許跨網域存取，但是若沒 HTTPS 則預設「�
 </ol>
 <p>比 SameSite 非常嚴格。</p>
 <p>這邊簡單看 MDN給的判斷範例就一目瞭然。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/zDC9BPm.png"
-        data-srcset="https://i.imgur.com/zDC9BPm.png, https://i.imgur.com/zDC9BPm.png 1.5x, https://i.imgur.com/zDC9BPm.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/zDC9BPm.png"
-        title="https://i.imgur.com/zDC9BPm.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/zDC9BPm.png" title="https://i.imgur.com/zDC9BPm.png" data-thumbnail="https://i.imgur.com/zDC9BPm.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/zDC9BPm.png"
+            data-srcset="https://i.imgur.com/zDC9BPm.png, https://i.imgur.com/zDC9BPm.png 1.5x, https://i.imgur.com/zDC9BPm.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/zDC9BPm.png"
+            title="https://i.imgur.com/zDC9BPm.png" />
+    </a></p>
 <p>這邊還是不知道差異嗎?這邊有比較可以參考</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png, https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png 1.5x, https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png, https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png 1.5x, https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/219940755-bb808816-7cad-44dc-8c65-67c34e50a334.png"
+            title="圖片" />
+    </a></p>
 <p>參考:<a href="https://blog.huli.tw/2022/01/16/same-site-to-same-origin-document-domain/" target="_blank" rel="noopener noreffer ">忍術！把 same site 變 same origin 之術！ - Huli&rsquo;s blog</a></p><div align="center">
     <script
       async

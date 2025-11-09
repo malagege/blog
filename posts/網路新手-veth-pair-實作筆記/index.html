@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="網路新手虛擬網路設備 veth pair 實作筆記" />
+        <title>網路新手虛擬網路設備 veth pair 實作筆記 - 程式狂想筆記</title><meta name="Description" content="原本自己電腦 KVM 都特別要設定路由表特別把 IP 指定到 KVM 主機上面， KVM 主機也要設定 SNAT 設定上面，最近看到可以用橋接接受到外面設定 IP，這邊就簡單做個研究。看到 veth peer就好其實做看看。"><meta property="og:title" content="網路新手虛擬網路設備 veth pair 實作筆記" />
 <meta property="og:description" content="原本自己電腦 KVM 都特別要設定路由表特別把 IP 指定到 KVM 主機上面， KVM 主機也要設定 SNAT 設定上面，最近看到可以用橋接接受到外面設定 IP，這邊就簡單做個研究。看到 veth peer就好其實做看看。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E7%B6%B2%E8%B7%AF%E6%96%B0%E6%89%8B-veth-pair-%E5%AF%A6%E4%BD%9C%E7%AD%86%E8%A8%98/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-09-11">2023-09-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1311 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png, https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png 1.5x, https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"
-        title="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png" title="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png, https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png 1.5x, https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png"
+            title="https://user-images.githubusercontent.com/6058558/267019878-3ffb41ab-e412-4673-97c2-cb438e3920ef.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -217,14 +219,16 @@
 </div><p>名詞解釋來源:<a href="https://joehuang-pop.github.io/2020/04/26/Linux-%E5%85%A7%E6%A0%B8%E8%99%9B%E6%93%ACBridge-veth%E5%8E%9F%E7%90%86%E8%88%87%E5%AF%A6%E4%BD%9C-Hands-on-Linux-Kernel-bridge-veth/" target="_blank" rel="noopener noreffer ">[Linux] 內核虛擬Bridge, veth原理與實作 | Hands on Linux Kernel: bridge, veth | 黃大仙的雲端修行室</a></p>
 <p><code>namespace</code>和<code>cgroup</code>那時候在學 docker 知道主要都是靠 Linux 核心模擬出來，我們知道 docker 建立出來網路和系統是隔離的，本篇 <code>ip netns</code> 可以對<code> network namespace</code> 做一些操作，本篇會新增 <code>network namespace</code>網路做個簡單互通。</p>
 <p><code>veth pair</code> 顧名思義，veth-pair 就是一對的虛擬裝置介面，和 tap/tun 裝置不同的是，它都是成對出現的。一端連著協議棧，一端彼此相連著。如下圖所示：</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png, https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png 1.5x, https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png"
-        title="圖片" /><br>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png, https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png 1.5x, https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256970551-ca573f47-42bc-4bd8-9952-94ad5909ddcc.png"
+            title="圖片" />
+    </a><br>
 參考: <a href="https://www.cnblogs.com/bakari/p/10613710.html" target="_blank" rel="noopener noreffer ">Linux 虛擬網路裝置 veth-pair 詳解，看這一篇就夠了 - bakari - 部落格園</a></p>
 <p>簡單來說，之前我一直在思考 <code>GNS3</code>設備跟設備之間都會拉一條線，不知道是怎麼模擬的。<code>veth pair</code> 簡單就是那一條線，在控制 <code>veth</code> 可以放置 <code>namespace</code> 裡面，當作把孔放置到設備上面。</p>
 <div class="details admonition info open">
@@ -233,25 +237,29 @@
         </div>
         <div class="details-content">
             <div class="admonition-content"><p>這邊可能不知道 <code>Netowrk Protocaol Stack</code>是什麼?我這邊簡單爬了一下就是 OSI 七層跟電腦供通，例如我們打 <code>ping</code>指令電腦是下面跑的，參考如下。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png, https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png 1.5x, https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png, https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png 1.5x, https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256970706-7b6cba3f-b15f-4ec5-ba4e-d4d68f01141a.png"
+            title="圖片" />
+    </a></p>
 <p>可參考:</p>
 <ul>
 <li><a href="https://zhidao.baidu.com/question/1836179785585305500.html" target="_blank" rel="noopener noreffer ">network stack是什么意思？_百度知道</a><br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png, https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png 1.5x, https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png"
-        title="圖片" /></li>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png, https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png 1.5x, https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256970840-c34bdddd-2182-4c05-9b6c-b33f3741995d.png"
+            title="圖片" />
+    </a></li>
 <li><a href="https://en.wikipedia.org/wiki/Protocol_stack" target="_blank" rel="noopener noreffer ">Protocol stack - Wikipedia</a></li>
 </ul>
 </div>
@@ -564,14 +572,16 @@ LIFETIME ] [ CONFFLAG-LIST ]<br>
 <li>建立一對 veth-pair</li>
 </ol>
 <p><code>ip link add veth0 type veth peer name veth1</code></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png, https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png 1.5x, https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png, https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png 1.5x, https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256982288-bb5c5bee-765d-4bc1-9f50-69a72244f5c6.png"
+            title="圖片" />
+    </a></p>
 <p>這邊很有趣可以看到新增兩個<code>veth0</code>和<code>veth1</code>。但這邊我們看到是<code>veth1@veth0</code>和<code>veth0@veth1</code>。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -600,14 +610,16 @@ LIFETIME ] [ CONFFLAG-LIST ]<br>
 </span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth1 netns ns1
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png, https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png 1.5x, https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png"
-        title="圖片" /></p>
+</div><p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png, https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png 1.5x, https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256982634-3f2e73e0-f5d6-463f-b232-ee0c96892aae.png"
+            title="圖片" />
+    </a></p>
 <p>我們外面 host 下面下<code>ip addr</code>找不到 <code>veth</code>。但 <code>network namespace</code>有看到移到 <code>ns0</code>和<code>ns1</code>裡面去。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -682,68 +694,80 @@ LIFETIME ] [ CONFFLAG-LIST ]<br>
 <ol>
 <li>在我們還沒下指令，只有 host 主機。</li>
 </ol>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png, https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png 1.5x, https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png, https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png 1.5x, https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256983209-c2398418-b392-47f9-b23c-f52ee2998674.png"
+            title="圖片" />
+    </a></p>
 <ol start="2">
 <li>建立兩個 network namespace</li>
 </ol>
 <p>2.1. <code>ip netns add ns0</code><br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png, https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png 1.5x, https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png, https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png 1.5x, https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256983269-c25beec2-6352-457a-af3f-03c0f1d7c47d.png"
+            title="圖片" />
+    </a></p>
 <p>2.2. <code>ip netns add ns1</code><br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png, https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png 1.5x, https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png, https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png 1.5x, https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256983316-635faea4-1cbe-4e92-925b-f52a29286b9c.png"
+            title="圖片" />
+    </a></p>
 <ol start="3">
 <li>建立一對veth<br>
 <code>ip link add veth0 type veth peer name veth1</code></li>
 </ol>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png, https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png 1.5x, https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png, https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png 1.5x, https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256983467-4a136dfa-d53c-4838-8421-232f6bec7758.png"
+            title="圖片" />
+    </a></p>
 <ol start="4">
 <li>將veth移動到netns中</li>
 </ol>
 <p>4.1. ip link set veth0 netns ns0</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png, https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png 1.5x, https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png, https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png 1.5x, https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256983511-380e4547-7612-4eed-bdcb-015065071b27.png"
+            title="圖片" />
+    </a></p>
 <p>4.2. ip link set veth1 netns ns1</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png, https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png 1.5x, https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png, https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png 1.5x, https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256983534-9fb21d09-fe42-4d45-b139-5071efcde09b.png"
+            title="圖片" />
+    </a></p>
 <p>後面設定 ip 就不需要特別畫了，透過指令跟圖片大概就知道這是幹嘛。這邊主機 Host 連不到兩個 <code>network namespace</code> ，這就是 linux 網路隔離，本機 host 看不到 namespace 網路介面卡。</p>
 <h2 id="host-連上-namespace加碼">host 連上 namespace(加碼)</h2>
 <p>我突然想 讓host 應該能連 <code>ns0</code> 上面，只需要加上 <code>veth-pair</code>到 <code>ns0</code>去就可以了。這邊就動手實作。</p>
@@ -766,41 +790,47 @@ LIFETIME ] [ CONFFLAG-LIST ]<br>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>還滿順利的。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png, https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png 1.5x, https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png"
-        title="圖片" /></p>
+<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png, https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png 1.5x, https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256985771-021b48a7-cb04-4e5c-8552-1d2397e0b2cf.png"
+            title="圖片" />
+    </a></p>
 <h2 id="總結">總結</h2>
 <p>這個步驟做很多，我們學會透過 <code>veth-pair</code> 可以讓兩個<code>namespace</code>連線。但這樣我們新增一個 VM 不是很麻煩，都需要建立<code>veth-pair</code>，然後網域不能重複，這邊就需要<code>bridge</code>。當然<code>ip addr</code>學到一些資訊也不錯。</p>
 <blockquote>
 <p>這樣我們新增一個 VM 不是很麻煩，都需要建立<code>veth-pair</code>。</p>
 </blockquote>
 <p>這邊我覺得很難解釋，但主要就是講<a href="https://zhuanlan.zhihu.com/p/293659939" target="_blank" rel="noopener noreffer ">Linux veth pair 详解 - 知乎</a>這段內容。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png, https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png 1.5x, https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png, https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png 1.5x, https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256986015-3ebf1eb1-3bc7-430a-ac99-0479228c1510.png"
+            title="圖片" />
+    </a></p>
 <h2 id="彩蛋">彩蛋</h2>
 <ul>
 <li><a href="https://access.redhat.com/sites/default/files/attachments/rh_ip_command_cheatsheet_1214_jcs_print.pdf" target="_blank" rel="noopener noreffer ">rh_ip_command_cheatsheet_1214_jcs_print.pdf</a></li>
 </ul>
 <p>順便還被我挖到以前舊指令相對應新指令打法。<a href="https://malagege.github.io/blog/posts/%E6%9F%A5%E7%9C%8B-IP-%E6%8C%87%E4%BB%A4%E5%92%8C%E8%B7%AF%E7%94%B1%E7%AD%86%E8%A8%98/#%E8%A2%AB%E5%BB%A2%E6%A3%84%E6%8E%89%E7%9A%84%E6%8C%87%E4%BB%A4%E5%BD%A9%E8%9B%8B" target="_blank" rel="noopener noreffer ">查看 IP 指令和路由筆記/被廢棄掉的指令</a></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png, https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png 1.5x, https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png"
-        title="圖片" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png, https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png 1.5x, https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/256969575-b719bef7-e879-4a63-823e-8c36150c439c.png"
+            title="圖片" />
+    </a></p>
 <ul>
 <li>
 <p><a href="https://zhuanlan.zhihu.com/p/293667316" target="_blank" rel="noopener noreffer ">Linux Bridge 详解 - 知乎</a></p>

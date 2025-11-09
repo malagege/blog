@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>.Net Core Identity 令牌驗證與帳號安全 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content=".Net Core Identity 令牌驗證與帳號安全" />
+        <title>.Net Core Identity 令牌驗證與帳號安全 - 程式狂想筆記</title><meta name="Description" content="本篇筆記紀錄使用 Net Core Identity 產生 Token 所做令牌做一些驗證信處理，帳號登入錯誤太多次，我們可以設定安全規則，在多次登入失敗可以封鎖幾分鐘帳號。我們可以產生令牌，令牌是有時效的，超過時間就會過期，這邊令牌非一般 JWT ，他是有 Data Protection API 做一層加密，這邊不會探討這部分。"><meta property="og:title" content=".Net Core Identity 令牌驗證與帳號安全" />
 <meta property="og:description" content="本篇筆記紀錄使用 Net Core Identity 產生 Token 所做令牌做一些驗證信處理，帳號登入錯誤太多次，我們可以設定安全規則，在多次登入失敗可以封鎖幾分鐘帳號。我們可以產生令牌，令牌是有時效的，超過時間就會過期，這邊令牌非一般 JWT ，他是有 Data Protection API 做一層加密，這邊不會探討這部分。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Net-Core-Identity-%E4%BB%A4%E7%89%8C%E9%A9%97%E8%AD%89%E8%88%87%E5%B8%B3%E8%99%9F%E5%AE%89%E5%85%A8/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-30">2023-01-30</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;717 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png, https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png 1.5x, https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png"
-        title="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png" title="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png, https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png 1.5x, https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png"
+            title="https://user-images.githubusercontent.com/6058558/215513894-701f08db-380e-487e-920b-4f82d35af069.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -310,14 +312,16 @@
 </div>
 </div><p>這邊特別提一下，<code>Url.Action(&quot;ConfirmEmail&quot;, &quot;Account&quot;, new { userId = user.Id, token = token }, Request.Scheme);</code>裡面的Request.Scheme是什麼，正常這個參數是填寫<code>http</code>或<code>https</code>，但使用這個<a href="https://docs.microsoft.com/zh-tw/dotnet/api/microsoft.aspnetcore.http.httprequest.scheme?view=aspnetcore-6.0#microsoft-aspnetcore-http-httprequest-scheme" target="_blank" rel="noopener noreffer ">HttpRequest</a>物件可以對應Server 設定。</p>
 <h3 id="產生-notsupportedexception-no-iusertwofactortokenprovidertuser-named-default-is-registered-錯誤">產生 NotSupportedException: No IUserTwoFactorTokenProvider&lt;TUser&gt; named &lsquo;Default&rsquo; is registered. 錯誤</h3>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/CF5QGAb.png"
-        data-srcset="https://i.imgur.com/CF5QGAb.png, https://i.imgur.com/CF5QGAb.png 1.5x, https://i.imgur.com/CF5QGAb.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/CF5QGAb.png"
-        title="https://i.imgur.com/CF5QGAb.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/CF5QGAb.png" title="https://i.imgur.com/CF5QGAb.png" data-thumbnail="https://i.imgur.com/CF5QGAb.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/CF5QGAb.png"
+            data-srcset="https://i.imgur.com/CF5QGAb.png, https://i.imgur.com/CF5QGAb.png 1.5x, https://i.imgur.com/CF5QGAb.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/CF5QGAb.png"
+            title="https://i.imgur.com/CF5QGAb.png" />
+    </a></p>
 <p>需要在<code>ConfigureServices()</code>方法添加<code>AddDefaultTokenProviders()</code>，該方法可以用來信箱令牌驗證、密碼重製、雙因子驗證。</p>
 <p>接下來就把 View 頁面用上去就完成</p>
 <div class="highlight"><div class="chroma">
@@ -626,14 +630,16 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>我們嘗試輸入多組錯誤密碼明顯看到資料庫有修改。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/vUprCfF.png"
-        data-srcset="https://i.imgur.com/vUprCfF.png, https://i.imgur.com/vUprCfF.png 1.5x, https://i.imgur.com/vUprCfF.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/vUprCfF.png"
-        title="https://i.imgur.com/vUprCfF.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/vUprCfF.png" title="https://i.imgur.com/vUprCfF.png" data-thumbnail="https://i.imgur.com/vUprCfF.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/vUprCfF.png"
+            data-srcset="https://i.imgur.com/vUprCfF.png, https://i.imgur.com/vUprCfF.png 1.5x, https://i.imgur.com/vUprCfF.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/vUprCfF.png"
+            title="https://i.imgur.com/vUprCfF.png" />
+    </a></p>
 <p>登入中調整登入成功顯示帳號被鎖。重置密碼功能也要設定解除鎖定。</p>
 <p><code>LoginAsync</code> 方法</p>
 <div class="highlight"><div class="chroma">

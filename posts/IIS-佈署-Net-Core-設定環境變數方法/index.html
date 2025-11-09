@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>IIS 部署 .Net Core 設定環境變數方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="IIS 部署 .Net Core 設定環境變數方法" />
+        <title>IIS 部署 .Net Core 設定環境變數方法 - 程式狂想筆記</title><meta name="Description" content="在驗證環境設定全域環境變數ASPNETCORE_ENVIRONMENT=Staging，但我看環境沒有生效&hellip;。我後來嘗試開exe有吃到，猜測是 IIS 問題，最後找到這篇。
+參考:[IIS] 從IIS設定環境變數指定ASP.NET Core站台的執行環境 | Ian Chen - 點部落"><meta property="og:title" content="IIS 部署 .Net Core 設定環境變數方法" />
 <meta property="og:description" content="在驗證環境設定全域環境變數ASPNETCORE_ENVIRONMENT=Staging，但我看環境沒有生效&hellip;。我後來嘗試開exe有吃到，猜測是 IIS 問題，最後找到這篇。
 參考:[IIS] 從IIS設定環境變數指定ASP.NET Core站台的執行環境 | Ian Chen - 點部落" />
 <meta property="og:type" content="article" />
@@ -142,14 +143,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-10-07">2023-10-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;72 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png, https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png 1.5x, https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png"
-        title="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png" title="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png, https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png 1.5x, https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png"
+            title="https://user-images.githubusercontent.com/6058558/273387543-ac09d871-ae62-42b6-8f0c-01b4518cefff.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -165,14 +168,16 @@
 <p>參考:<a href="https://dotblogs.com.tw/Null/2020/08/10/103012" target="_blank" rel="noopener noreffer ">[IIS] 從IIS設定環境變數指定ASP.NET Core站台的執行環境 | Ian Chen - 點部落</a></p>
 <h2 id="方法1-系統設定環境變數推薦">方法1: 系統設定環境變數(推薦)</h2>
 <p>後來入職進去，發現公司測試環境沒有在 IIS 設定相關設定，這就激起我的好奇心。發現他是用系統環境變數用的。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png, https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png 1.5x, https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png"
-        title="系統有設定 .Net 環境變數" /></p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png" title="系統有設定 .Net 環境變數" data-thumbnail="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png, https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png 1.5x, https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/272152360-c0365dec-6ee6-4907-a226-bea001678cfa.png"
+            title="系統有設定 .Net 環境變數" />
+    </a></p>
 <p>因為我突然想到，在學 .Net 課程時候有提到，相關設定環境變數後需要重啟命令提示字元，讓我猜測 IIS 環境變數也應該遇到一樣問題。後續重啟 IIS 服務可順利抓到環境變數。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -182,14 +187,16 @@
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">iisreset /restart
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png"
-        data-srcset="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png, https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png 1.5x, https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png"
-        title="IIS重啟服務" /></p>
+</div><p><a class="lightgallery" href="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png" title="IIS重啟服務" data-thumbnail="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png"
+            data-srcset="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png, https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png 1.5x, https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/75846914/272152610-6dd8fc85-c3e1-485f-974c-019a61e6c211.png"
+            title="IIS重啟服務" />
+    </a></p>
 <div class="details admonition warning open">
         <div class="details-summary admonition-title">
             <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
@@ -216,48 +223,58 @@ environmentVariables</p>
             <div class="admonition-content">Sites專案站台也可以設定，但相對<strong>每個專案站台</strong>都要設定，所以還是建議設定在一個地方。</div>
         </div>
     </div><br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/D8aHhFn.png"
-        data-srcset="https://i.imgur.com/D8aHhFn.png, https://i.imgur.com/D8aHhFn.png 1.5x, https://i.imgur.com/D8aHhFn.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/D8aHhFn.png"
-        title="IIS 點選 Configuration" /></p>
+<a class="lightgallery" href="https://i.imgur.com/D8aHhFn.png" title="IIS 點選 Configuration" data-thumbnail="https://i.imgur.com/D8aHhFn.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/D8aHhFn.png"
+            data-srcset="https://i.imgur.com/D8aHhFn.png, https://i.imgur.com/D8aHhFn.png 1.5x, https://i.imgur.com/D8aHhFn.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/D8aHhFn.png"
+            title="IIS 點選 Configuration" />
+    </a></p>
 <p>進去點擊專案會發現沒看到<code>system.webServer/aspNetCore</code>，但其實要點下圖紅框。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/prIGn62.png"
-        data-srcset="https://i.imgur.com/prIGn62.png, https://i.imgur.com/prIGn62.png 1.5x, https://i.imgur.com/prIGn62.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/prIGn62.png"
-        title="Section 選擇 system.webServer/aspNetCore" /></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/grZOby3.png"
-        data-srcset="https://i.imgur.com/grZOby3.png, https://i.imgur.com/grZOby3.png 1.5x, https://i.imgur.com/grZOby3.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/grZOby3.png"
-        title="選擇 system.webServer/aspNetCore" /></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/jMYFKs3.png"
-        data-srcset="https://i.imgur.com/jMYFKs3.png, https://i.imgur.com/jMYFKs3.png 1.5x, https://i.imgur.com/jMYFKs3.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/jMYFKs3.png"
-        title="點選 environmentVariables &amp;hellip;按鈕" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/prIGn62.png" title="Section 選擇 system.webServer/aspNetCore" data-thumbnail="https://i.imgur.com/prIGn62.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/prIGn62.png"
+            data-srcset="https://i.imgur.com/prIGn62.png, https://i.imgur.com/prIGn62.png 1.5x, https://i.imgur.com/prIGn62.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/prIGn62.png"
+            title="Section 選擇 system.webServer/aspNetCore" />
+    </a></p>
+<p><a class="lightgallery" href="https://i.imgur.com/grZOby3.png" title="選擇 system.webServer/aspNetCore" data-thumbnail="https://i.imgur.com/grZOby3.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/grZOby3.png"
+            data-srcset="https://i.imgur.com/grZOby3.png, https://i.imgur.com/grZOby3.png 1.5x, https://i.imgur.com/grZOby3.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/grZOby3.png"
+            title="選擇 system.webServer/aspNetCore" />
+    </a></p>
+<p><a class="lightgallery" href="https://i.imgur.com/jMYFKs3.png" title="點選 environmentVariables &amp;hellip;按鈕" data-thumbnail="https://i.imgur.com/jMYFKs3.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/jMYFKs3.png"
+            data-srcset="https://i.imgur.com/jMYFKs3.png, https://i.imgur.com/jMYFKs3.png 1.5x, https://i.imgur.com/jMYFKs3.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/jMYFKs3.png"
+            title="點選 environmentVariables &amp;hellip;按鈕" />
+    </a></p>
 <p>再來把該打的環境變數打上去就OK了。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/e3Fp7Sy.png"
-        data-srcset="https://i.imgur.com/e3Fp7Sy.png, https://i.imgur.com/e3Fp7Sy.png 1.5x, https://i.imgur.com/e3Fp7Sy.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/e3Fp7Sy.png"
-        title="點選 Add 新增變數" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/e3Fp7Sy.png" title="點選 Add 新增變數" data-thumbnail="https://i.imgur.com/e3Fp7Sy.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/e3Fp7Sy.png"
+            data-srcset="https://i.imgur.com/e3Fp7Sy.png, https://i.imgur.com/e3Fp7Sy.png 1.5x, https://i.imgur.com/e3Fp7Sy.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/e3Fp7Sy.png"
+            title="點選 Add 新增變數" />
+    </a></p>
 <div class="details admonition tip open">
         <div class="details-summary admonition-title">
             <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>Tip<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>

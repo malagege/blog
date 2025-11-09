@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>如何在 .Net 中處理 JSON 轉換時的過濾特殊字串 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串" />
+        <title>如何在 .Net 中處理 JSON 轉換時的過濾特殊字串 - 程式狂想筆記</title><meta name="Description" content="最近在專案中串接 OpenData 時，遇到了一個問題。某些資料中出現了一些奇怪的符號?，這在資料類型為 float 時會導致程式出錯。在這篇文章中，我將分享我找到的解決這個問題的方法。"><meta property="og:title" content="如何在 .Net 中處理 JSON 轉換時的過濾特殊字串" />
 <meta property="og:description" content="最近在專案中串接 OpenData 時，遇到了一個問題。某些資料中出現了一些奇怪的符號?，這在資料類型為 float 時會導致程式出錯。在這篇文章中，我將分享我找到的解決這個問題的方法。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/how-to-handle-special-string-in-json-conversion-in-dotnet/" /><meta property="article:section" content="posts" />
@@ -140,14 +140,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-04-09">2024-04-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;866 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"
-        data-srcset="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e, https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e 1.5x, https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e 2x"
-        data-sizes="auto"
-        alt="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"
-        title="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e" title="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e" data-thumbnail="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"
+            data-srcset="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e, https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e 1.5x, https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e"
+            title="https://gist.github.com/assets/6058558/0811b6d8-8780-4654-85e7-ddc7e0ced29e" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -192,14 +194,16 @@
 </div>
 </div><p><code>public string Trim (params char[]? trimChars);</code> 從官方文件中我們可以看到，<code>Trim</code> 方法可以接受多個參數。由於 <code>params</code> 的關係，我們可以直接將要過濾的字符作為參數傳入，如 <code>someString.Trim('*', '.');</code>。</p>
 <p><code>Trim</code> 方法會從字串的開頭和結尾過濾掉指定的字符。在上面的範例中，<code>Trim</code> 方法過濾掉了變數 <code>someString</code> 開頭的 &lsquo;.&rsquo; 字符和結尾的 &lsquo;*&rsquo; 字符，得到了乾淨的字串 <code>cleanString</code>。</p>
-<p>更多關於 Trim 方法的資訊，可以參考 <img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0"
-        data-srcset="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0, https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0 1.5x, https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0 2x"
-        data-sizes="auto"
-        alt="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0"
-        title="Microsoft 官方文件" />。</p>
+<p>更多關於 Trim 方法的資訊，可以參考 <a class="lightgallery" href="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0" title="Microsoft 官方文件" data-thumbnail="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0"
+            data-srcset="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0, https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0 1.5x, https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0 2x"
+            data-sizes="auto"
+            alt="https://learn.microsoft.com/zh-tw/dotnet/api/system.string.trim?view=net-5.0"
+            title="Microsoft 官方文件" />
+    </a>。</p>
 <h2 id="jsonnet-newtonsoft-屬性-trim-欄位">Json.NET (Newtonsoft) 屬性 Trim 欄位</h2>
 <p>在處理 JSON 字串的反序列化時，我們可能會遇到一些字串前後有多餘空白的情況。這時，我們可以使用 Json.NET (Newtonsoft) 的 <code>TrimmingConverter</code> 來自動修剪這些空白。以下是一個 <code>TrimmingConverter</code> 的範例：</p>
 <div class="highlight"><div class="chroma">

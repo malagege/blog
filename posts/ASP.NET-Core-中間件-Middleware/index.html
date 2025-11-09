@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>ASP.NET Core 中間件(Middleware) - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="ASP.NET Core 中間件(Middleware)" />
+        <title>ASP.NET Core 中間件(Middleware) - 程式狂想筆記</title><meta name="Description" content="中間件(Middleware)在程式架構上設計是很重要功能，之前我在學習 Spring Boot 對應 Request 所對應處理都使用 AOP，AOP概念很像 Middleware，但還是有點差異的，要如何使用 Middleware 讓開發程式更有效率、簡單，不需要異動程式這是很重要的。
+這個筆記很久之前就寫完了，但想說有空再整理一下，結果都沒改什麼東西。最近剛好寫中間件文章，覺得還是整理出來好了。"><meta property="og:title" content="ASP.NET Core 中間件(Middleware)" />
 <meta property="og:description" content="中間件(Middleware)在程式架構上設計是很重要功能，之前我在學習 Spring Boot 對應 Request 所對應處理都使用 AOP，AOP概念很像 Middleware，但還是有點差異的，要如何使用 Middleware 讓開發程式更有效率、簡單，不需要異動程式這是很重要的。
 這個筆記很久之前就寫完了，但想說有空再整理一下，結果都沒改什麼東西。最近剛好寫中間件文章，覺得還是整理出來好了。" />
 <meta property="og:type" content="article" />
@@ -142,14 +143,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/.Net-Core/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>.Net Core</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-06-22">2023-06-22</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;238 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png, https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png 1.5x, https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"
-        title="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png" title="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png, https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png 1.5x, https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png"
+            title="https://user-images.githubusercontent.com/6058558/247953536-abec583f-0bbe-4d31-94f6-34a25b8724d2.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -183,25 +186,29 @@ MVC 終端中間件。</p>
 <li>中間件是按照添加的順序執行的。</li>
 </ul>
 <p>官方順序可以參考:<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/9xF8rfr.png"
-        data-srcset="https://i.imgur.com/9xF8rfr.png, https://i.imgur.com/9xF8rfr.png 1.5x, https://i.imgur.com/9xF8rfr.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/9xF8rfr.png"
-        title="https://i.imgur.com/9xF8rfr.png" /><br>
+<a class="lightgallery" href="https://i.imgur.com/9xF8rfr.png" title="https://i.imgur.com/9xF8rfr.png" data-thumbnail="https://i.imgur.com/9xF8rfr.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/9xF8rfr.png"
+            data-srcset="https://i.imgur.com/9xF8rfr.png, https://i.imgur.com/9xF8rfr.png 1.5x, https://i.imgur.com/9xF8rfr.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/9xF8rfr.png"
+            title="https://i.imgur.com/9xF8rfr.png" />
+    </a><br>
 <a href="https://docs.microsoft.com/zh-tw/aspnet/core/fundamentals/middleware/?view=aspnetcore-6.0" target="_blank" rel="noopener noreffer ">ASP.NET Core 中介軟體 | Microsoft Docs</a></p>
 <h2 id="中間件範列">中間件範列</h2>
 <p>靜態文件建立需要建立 <code>wwwroot</code></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/O39qbsh.png"
-        data-srcset="https://i.imgur.com/O39qbsh.png, https://i.imgur.com/O39qbsh.png 1.5x, https://i.imgur.com/O39qbsh.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/O39qbsh.png"
-        title="https://i.imgur.com/O39qbsh.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/O39qbsh.png" title="https://i.imgur.com/O39qbsh.png" data-thumbnail="https://i.imgur.com/O39qbsh.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/O39qbsh.png"
+            data-srcset="https://i.imgur.com/O39qbsh.png, https://i.imgur.com/O39qbsh.png 1.5x, https://i.imgur.com/O39qbsh.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/O39qbsh.png"
+            title="https://i.imgur.com/O39qbsh.png" />
+    </a></p>
 <p><code>app.Run()</code>是一個終端中間件，他使用會短路。<br>
 下面範例只會印出<code>Hello World1</code></p>
 <div class="highlight"><div class="chroma">

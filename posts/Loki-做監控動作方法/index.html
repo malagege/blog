@@ -4,10 +4,34 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Loki 做監控動作方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Loki 做監控動作方法" />
+        <title>Loki 做監控動作方法 - 程式狂想筆記</title><meta name="Description" content="選 Loki 做監控主要是動物機架一個 Web 服務，天天查看 log 都有被攻擊跡象。我使用 Loki LogQL 去做查詢，雖然有做一層 網域才顯示內容，前正子使用 Autleia 做 雙因子驗證，更久以前還有設定 iptable 台灣 IP 才能連，但現在有做 TLS 關係，所以不能擋 IP，不知道 Docker 能不能跟 fail2ban 做結合。最近也有看 traefik plugnin 也有fail2ban ，改天有空也能研究看看。
+這兩天還攻擊滿可觀的。
+
+        
+    
+查詢不友善的IP訪問，這邊我之前寫的 LogQL，暫時放在這邊。之前想特別紀錄，但久久就忘記規則怎麼用，但所幸參考範例改一改還是能試出來。
+
+
+1
+
+
+{container_name=&#34;rpi-traefik_traefik_1&#34;,host=&#34;PI202&#34;} | json | ClientHost!~&#34;192.168.&#43;|排除IP&#34; RequestPath != &#34;/&#34;
+
+
+
+
+1
+
+
+{container_name=&#34;rpi-traefik_traefik_1&#34;,host=&#34;PI202&#34;} | json | ClientHost!~&#34;192.168.&#43;|排除IP&#34; RequestPath != &#34;/&#34; DownstreamStatus != &#34;404&#34;  | line_format &#34;{{.ClientHost}}&#34;
+
+
+本章節(筆記)還是重點還是放在，Open Beta 主機架設 Kubernetes 怎麼抓 Loki log資訊做監控。"><meta property="og:title" content="Loki 做監控動作方法" />
 <meta property="og:description" content="選 Loki 做監控主要是動物機架一個 Web 服務，天天查看 log 都有被攻擊跡象。我使用 Loki LogQL 去做查詢，雖然有做一層 網域才顯示內容，前正子使用 Autleia 做 雙因子驗證，更久以前還有設定 iptable 台灣 IP 才能連，但現在有做 TLS 關係，所以不能擋 IP，不知道 Docker 能不能跟 fail2ban 做結合。最近也有看 traefik plugnin 也有fail2ban ，改天有空也能研究看看。
 這兩天還攻擊滿可觀的。
 
+        
+    
 查詢不友善的IP訪問，這邊我之前寫的 LogQL，暫時放在這邊。之前想特別紀錄，但久久就忘記規則怎麼用，但所幸參考範例改一改還是能試出來。
 
 
@@ -35,6 +59,8 @@
 <meta name="twitter:description" content="選 Loki 做監控主要是動物機架一個 Web 服務，天天查看 log 都有被攻擊跡象。我使用 Loki LogQL 去做查詢，雖然有做一層 網域才顯示內容，前正子使用 Autleia 做 雙因子驗證，更久以前還有設定 iptable 台灣 IP 才能連，但現在有做 TLS 關係，所以不能擋 IP，不知道 Docker 能不能跟 fail2ban 做結合。最近也有看 traefik plugnin 也有fail2ban ，改天有空也能研究看看。
 這兩天還攻擊滿可觀的。
 
+        
+    
 查詢不友善的IP訪問，這邊我之前寫的 LogQL，暫時放在這邊。之前想特別紀錄，但久久就忘記規則怎麼用，但所幸參考範例改一改還是能試出來。
 
 
@@ -73,7 +99,7 @@
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e選 Loki 做監控主要是動物機架一個 Web 服務，天天查看 log 都有被攻擊跡象。我使用 Loki LogQL 去做查詢，雖然有做一層 網域才顯示內容，前正子使用 Autleia 做 雙因子驗證，更久以前還有設定 iptable 台灣 IP 才能連，但現在有做 TLS 關係，所以不能擋 IP，不知道 Docker 能不能跟 fail2ban 做結合。最近也有看 traefik plugnin 也有fail2ban ，改天有空也能研究看看。\u003c/p\u003e\n\u003cp\u003e這兩天還攻擊滿可觀的。\u003cbr\u003e\n\u003cimg\n        class=\"lazyload\"\n        src=\"/blog/svg/loading.min.svg\"\n        data-src=\"https://i.imgur.com/GNbpxmu.png\"\n        data-srcset=\"https://i.imgur.com/GNbpxmu.png, https://i.imgur.com/GNbpxmu.png 1.5x, https://i.imgur.com/GNbpxmu.png 2x\"\n        data-sizes=\"auto\"\n        alt=\"https://i.imgur.com/GNbpxmu.png\"\n        title=\"https://i.imgur.com/GNbpxmu.png\" /\u003e\u003c/p\u003e\n\u003cp\u003e查詢不友善的IP訪問，這邊我之前寫的 LogQL，暫時放在這邊。之前想特別紀錄，但久久就忘記規則怎麼用，但所幸參考範例改一改還是能試出來。\u003c/p\u003e\n\u003cdiv class=\"highlight\"\u003e\u003cdiv class=\"chroma\"\u003e\n\u003ctable class=\"lntable\"\u003e\u003ctr\u003e\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode\u003e\u003cspan class=\"lnt\"\u003e1\n\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\n\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode class=\"language-fallback\" data-lang=\"fallback\"\u003e\u003cspan class=\"line\"\u003e\u003cspan class=\"cl\"\u003e{container_name=\u0026#34;rpi-traefik_traefik_1\u0026#34;,host=\u0026#34;PI202\u0026#34;} | json | ClientHost!~\u0026#34;192.168.+|排除IP\u0026#34; RequestPath != \u0026#34;/\u0026#34;\n\u003c/span\u003e\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\u003cdiv class=\"highlight\"\u003e\u003cdiv class=\"chroma\"\u003e\n\u003ctable class=\"lntable\"\u003e\u003ctr\u003e\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode\u003e\u003cspan class=\"lnt\"\u003e1\n\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\n\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode class=\"language-fallback\" data-lang=\"fallback\"\u003e\u003cspan class=\"line\"\u003e\u003cspan class=\"cl\"\u003e{container_name=\u0026#34;rpi-traefik_traefik_1\u0026#34;,host=\u0026#34;PI202\u0026#34;} | json | ClientHost!~\u0026#34;192.168.+|排除IP\u0026#34; RequestPath != \u0026#34;/\u0026#34; DownstreamStatus != \u0026#34;404\u0026#34;  | line_format \u0026#34;{{.ClientHost}}\u0026#34;\n\u003c/span\u003e\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\u003cp\u003e本章節(筆記)還是重點還是放在，Open Beta 主機架設 Kubernetes 怎麼抓 Loki log資訊做監控。\u003c/p\u003e"
+            },"description": "\u003cp\u003e選 Loki 做監控主要是動物機架一個 Web 服務，天天查看 log 都有被攻擊跡象。我使用 Loki LogQL 去做查詢，雖然有做一層 網域才顯示內容，前正子使用 Autleia 做 雙因子驗證，更久以前還有設定 iptable 台灣 IP 才能連，但現在有做 TLS 關係，所以不能擋 IP，不知道 Docker 能不能跟 fail2ban 做結合。最近也有看 traefik plugnin 也有fail2ban ，改天有空也能研究看看。\u003c/p\u003e\n\u003cp\u003e這兩天還攻擊滿可觀的。\u003cbr\u003e\n\u003ca class=\"lightgallery\" href=\"https://i.imgur.com/GNbpxmu.png\" title=\"https://i.imgur.com/GNbpxmu.png\" data-thumbnail=\"https://i.imgur.com/GNbpxmu.png\"\u003e\n        \u003cimg\n            class=\"lazyload\"\n            src=\"/blog/svg/loading.min.svg\"\n            data-src=\"https://i.imgur.com/GNbpxmu.png\"\n            data-srcset=\"https://i.imgur.com/GNbpxmu.png, https://i.imgur.com/GNbpxmu.png 1.5x, https://i.imgur.com/GNbpxmu.png 2x\"\n            data-sizes=\"auto\"\n            alt=\"https://i.imgur.com/GNbpxmu.png\"\n            title=\"https://i.imgur.com/GNbpxmu.png\" /\u003e\n    \u003c/a\u003e\u003c/p\u003e\n\u003cp\u003e查詢不友善的IP訪問，這邊我之前寫的 LogQL，暫時放在這邊。之前想特別紀錄，但久久就忘記規則怎麼用，但所幸參考範例改一改還是能試出來。\u003c/p\u003e\n\u003cdiv class=\"highlight\"\u003e\u003cdiv class=\"chroma\"\u003e\n\u003ctable class=\"lntable\"\u003e\u003ctr\u003e\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode\u003e\u003cspan class=\"lnt\"\u003e1\n\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\n\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode class=\"language-fallback\" data-lang=\"fallback\"\u003e\u003cspan class=\"line\"\u003e\u003cspan class=\"cl\"\u003e{container_name=\u0026#34;rpi-traefik_traefik_1\u0026#34;,host=\u0026#34;PI202\u0026#34;} | json | ClientHost!~\u0026#34;192.168.+|排除IP\u0026#34; RequestPath != \u0026#34;/\u0026#34;\n\u003c/span\u003e\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\u003cdiv class=\"highlight\"\u003e\u003cdiv class=\"chroma\"\u003e\n\u003ctable class=\"lntable\"\u003e\u003ctr\u003e\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode\u003e\u003cspan class=\"lnt\"\u003e1\n\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\n\u003ctd class=\"lntd\"\u003e\n\u003cpre tabindex=\"0\" class=\"chroma\"\u003e\u003ccode class=\"language-fallback\" data-lang=\"fallback\"\u003e\u003cspan class=\"line\"\u003e\u003cspan class=\"cl\"\u003e{container_name=\u0026#34;rpi-traefik_traefik_1\u0026#34;,host=\u0026#34;PI202\u0026#34;} | json | ClientHost!~\u0026#34;192.168.+|排除IP\u0026#34; RequestPath != \u0026#34;/\u0026#34; DownstreamStatus != \u0026#34;404\u0026#34;  | line_format \u0026#34;{{.ClientHost}}\u0026#34;\n\u003c/span\u003e\u003c/span\u003e\u003c/code\u003e\u003c/pre\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\u003cp\u003e本章節(筆記)還是重點還是放在，Open Beta 主機架設 Kubernetes 怎麼抓 Loki log資訊做監控。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -199,14 +225,16 @@
 </nav></div>
             </div><div class="content" id="content"><p>選 Loki 做監控主要是動物機架一個 Web 服務，天天查看 log 都有被攻擊跡象。我使用 Loki LogQL 去做查詢，雖然有做一層 網域才顯示內容，前正子使用 Autleia 做 雙因子驗證，更久以前還有設定 iptable 台灣 IP 才能連，但現在有做 TLS 關係，所以不能擋 IP，不知道 Docker 能不能跟 fail2ban 做結合。最近也有看 traefik plugnin 也有fail2ban ，改天有空也能研究看看。</p>
 <p>這兩天還攻擊滿可觀的。<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/GNbpxmu.png"
-        data-srcset="https://i.imgur.com/GNbpxmu.png, https://i.imgur.com/GNbpxmu.png 1.5x, https://i.imgur.com/GNbpxmu.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/GNbpxmu.png"
-        title="https://i.imgur.com/GNbpxmu.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/GNbpxmu.png" title="https://i.imgur.com/GNbpxmu.png" data-thumbnail="https://i.imgur.com/GNbpxmu.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/GNbpxmu.png"
+            data-srcset="https://i.imgur.com/GNbpxmu.png, https://i.imgur.com/GNbpxmu.png 1.5x, https://i.imgur.com/GNbpxmu.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/GNbpxmu.png"
+            title="https://i.imgur.com/GNbpxmu.png" />
+    </a></p>
 <p>查詢不友善的IP訪問，這邊我之前寫的 LogQL，暫時放在這邊。之前想特別紀錄，但久久就忘記規則怎麼用，但所幸參考範例改一改還是能試出來。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -230,7 +258,8 @@
     Promtail ----> Loki
     Promtail -- metrics 增加 prometheus 資料 --> Prometheus
     Prometheus --> AlertManager
-</div><p>主要參照<a href="https://www.qikqiak.com/post/use-loki-monitor-alert/" target="_blank" rel="noopener noreffer ">使用 Loki 进行日志监控和报警-阳明的博客|Kubernetes|Istio|Prometheus|Python|Golang|云原生</a>文章，操作中發現現有版本設定有改，但修正也能正常使用。</p>
+</div>
+<p>主要參照<a href="https://www.qikqiak.com/post/use-loki-monitor-alert/" target="_blank" rel="noopener noreffer ">使用 Loki 进行日志监控和报警-阳明的博客|Kubernetes|Istio|Prometheus|Python|Golang|云原生</a>文章，操作中發現現有版本設定有改，但修正也能正常使用。</p>
 <h2 id="實作流程">實作流程</h2>
 <p>參考文章</p>
 <ul>
@@ -473,22 +502,26 @@
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>接下來用 Grafana 查詢 Promethus 看有沒有抓到資料，有資料代表成功了。原本以為可能要加時間控制抓5分鐘內，但我後來發現好像不需要做這件事，通知會在超過時間之前就發解決，可能後續我在看文件有沒有預設會抓多久。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/szhUj0b.png"
-        data-srcset="https://i.imgur.com/szhUj0b.png, https://i.imgur.com/szhUj0b.png 1.5x, https://i.imgur.com/szhUj0b.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/szhUj0b.png"
-        title="https://i.imgur.com/szhUj0b.png" /></p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/pQQbw19.png"
-        data-srcset="https://i.imgur.com/pQQbw19.png, https://i.imgur.com/pQQbw19.png 1.5x, https://i.imgur.com/pQQbw19.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/pQQbw19.png"
-        title="https://i.imgur.com/pQQbw19.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/szhUj0b.png" title="https://i.imgur.com/szhUj0b.png" data-thumbnail="https://i.imgur.com/szhUj0b.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/szhUj0b.png"
+            data-srcset="https://i.imgur.com/szhUj0b.png, https://i.imgur.com/szhUj0b.png 1.5x, https://i.imgur.com/szhUj0b.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/szhUj0b.png"
+            title="https://i.imgur.com/szhUj0b.png" />
+    </a></p>
+<p><a class="lightgallery" href="https://i.imgur.com/pQQbw19.png" title="https://i.imgur.com/pQQbw19.png" data-thumbnail="https://i.imgur.com/pQQbw19.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/pQQbw19.png"
+            data-srcset="https://i.imgur.com/pQQbw19.png, https://i.imgur.com/pQQbw19.png 1.5x, https://i.imgur.com/pQQbw19.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/pQQbw19.png"
+            title="https://i.imgur.com/pQQbw19.png" />
+    </a></p>
 <h2 id="架設-alertmanger-discord">架設 alertmanger-discord</h2>
 <p>建立 deployment 和 service 後，設定好 webhook 就能使用了。</p>
 <div class="highlight"><div class="chroma">

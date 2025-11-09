@@ -4,10 +4,17 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Maven 使用 Modules 載入 Project 的 Jar 方法 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="Maven 使用 Modules 載入 Project 的 Jar 方法" />
+        <title>Maven 使用 Modules 載入 Project 的 Jar 方法 - 程式狂想筆記</title><meta name="Description" content="前言
+之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。
+
+        
+    
+我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。"><meta property="og:title" content="Maven 使用 Modules 載入 Project 的 Jar 方法" />
 <meta property="og:description" content="前言
 之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。
 
+        
+    
 我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Maven-%E4%BD%BF%E7%94%A8-Modules-%E8%BC%89%E5%85%A5-Project-%E7%9A%84-Jar-%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
@@ -18,6 +25,8 @@
 <meta name="twitter:description" content="前言
 之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。
 
+        
+    
 我找到是使用 Module 方法，發現這水很深，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
@@ -39,7 +48,7 @@
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003ch2 id=\"前言\"\u003e前言\u003c/h2\u003e\n\u003cp\u003e之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。\u003c/p\u003e\n\u003cp\u003e\u003cimg\n        class=\"lazyload\"\n        src=\"/blog/svg/loading.min.svg\"\n        data-src=\"https://i.imgur.com/Atng1B7.png\"\n        data-srcset=\"https://i.imgur.com/Atng1B7.png, https://i.imgur.com/Atng1B7.png 1.5x, https://i.imgur.com/Atng1B7.png 2x\"\n        data-sizes=\"auto\"\n        alt=\"https://i.imgur.com/Atng1B7.png\"\n        title=\"https://i.imgur.com/Atng1B7.png\" /\u003e\u003c/p\u003e\n\u003cp\u003e我找到是使用 Module 方法，\u003cdel\u003e發現這水很深\u003c/del\u003e，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。\u003c/p\u003e"
+            },"description": "\u003ch2 id=\"前言\"\u003e前言\u003c/h2\u003e\n\u003cp\u003e之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"lightgallery\" href=\"https://i.imgur.com/Atng1B7.png\" title=\"https://i.imgur.com/Atng1B7.png\" data-thumbnail=\"https://i.imgur.com/Atng1B7.png\"\u003e\n        \u003cimg\n            class=\"lazyload\"\n            src=\"/blog/svg/loading.min.svg\"\n            data-src=\"https://i.imgur.com/Atng1B7.png\"\n            data-srcset=\"https://i.imgur.com/Atng1B7.png, https://i.imgur.com/Atng1B7.png 1.5x, https://i.imgur.com/Atng1B7.png 2x\"\n            data-sizes=\"auto\"\n            alt=\"https://i.imgur.com/Atng1B7.png\"\n            title=\"https://i.imgur.com/Atng1B7.png\" /\u003e\n    \u003c/a\u003e\u003c/p\u003e\n\u003cp\u003e我找到是使用 Module 方法，\u003cdel\u003e發現這水很深\u003c/del\u003e，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -170,14 +179,16 @@
 </nav></div>
             </div><div class="content" id="content"><h2 id="前言">前言</h2>
 <p>之前我們使用專案，需要透過 Eclipse 設定相關套件或Project 依賴。這邊我們看到 Maven 可以加載 Jar，對應相關 Project 卻沒有明確知道，最近發現 Maven 也能做到相同的事情。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/Atng1B7.png"
-        data-srcset="https://i.imgur.com/Atng1B7.png, https://i.imgur.com/Atng1B7.png 1.5x, https://i.imgur.com/Atng1B7.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/Atng1B7.png"
-        title="https://i.imgur.com/Atng1B7.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/Atng1B7.png" title="https://i.imgur.com/Atng1B7.png" data-thumbnail="https://i.imgur.com/Atng1B7.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/Atng1B7.png"
+            data-srcset="https://i.imgur.com/Atng1B7.png, https://i.imgur.com/Atng1B7.png 1.5x, https://i.imgur.com/Atng1B7.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/Atng1B7.png"
+            title="https://i.imgur.com/Atng1B7.png" />
+    </a></p>
 <p>我找到是使用 Module 方法，<del>發現這水很深</del>，，這邊也採了一些坑，這邊簡單做個紀錄。不會對全部功能做個假解。</p>
 <h2 id="有關-maven-文章整理">有關 Maven 文章整理</h2>
 <p>網路找到一些不錯文章，先整理在這邊。</p>
@@ -192,14 +203,16 @@
 <p>完全不熟的人可以推薦看一下<a href="https://www.bilibili.com/video/BV1Th411Z76q" target="_blank" rel="noopener noreffer ">项目构建工具Maven-11多模块-继承-聚合-依赖_哔哩哔哩_bilibili</a>影片，看完應該就大概了解怎麼使用。</p>
 <h3 id="properties">Properties</h3>
 <p>主要放置設定參數或使用者參數。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/vuJ2wAv.png"
-        data-srcset="https://i.imgur.com/vuJ2wAv.png, https://i.imgur.com/vuJ2wAv.png 1.5x, https://i.imgur.com/vuJ2wAv.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/vuJ2wAv.png"
-        title="https://i.imgur.com/vuJ2wAv.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/vuJ2wAv.png" title="https://i.imgur.com/vuJ2wAv.png" data-thumbnail="https://i.imgur.com/vuJ2wAv.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/vuJ2wAv.png"
+            data-srcset="https://i.imgur.com/vuJ2wAv.png, https://i.imgur.com/vuJ2wAv.png 1.5x, https://i.imgur.com/vuJ2wAv.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/vuJ2wAv.png"
+            title="https://i.imgur.com/vuJ2wAv.png" />
+    </a></p>
 <p>主要看<code>${poi.version}</code>。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -227,14 +240,16 @@
 <p><a href="https://github.com/Quison/maven-muilti-module-demo/tree/master/mvn-parent" target="_blank" rel="noopener noreffer ">maven-muilti-module-demo/mvn-parent at master · Quison/maven-muilti-module-demo</a></p>
 <p>從上面我可以能知道 <code>&lt;module&gt;</code>的名稱可以放在依賴 dependencies tag。但不幸我都失敗了</p>
 <h3 id="我踩到什麼雷">我踩到什麼雷?</h3>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/9OONdT6.png"
-        data-srcset="https://i.imgur.com/9OONdT6.png, https://i.imgur.com/9OONdT6.png 1.5x, https://i.imgur.com/9OONdT6.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/9OONdT6.png"
-        title="https://i.imgur.com/9OONdT6.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/9OONdT6.png" title="https://i.imgur.com/9OONdT6.png" data-thumbnail="https://i.imgur.com/9OONdT6.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/9OONdT6.png"
+            data-srcset="https://i.imgur.com/9OONdT6.png, https://i.imgur.com/9OONdT6.png 1.5x, https://i.imgur.com/9OONdT6.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/9OONdT6.png"
+            title="https://i.imgur.com/9OONdT6.png" />
+    </a></p>
 <p>最後發現是要加 Version，等等父層加也沒用。後來發現子層一定要加上去。但比較推薦用<code>&lt;version&gt;${project.version}&lt;/version&gt;</code>，通常依賴版本應該都會跟 maven其他依賴版本一致ˋ，可以這樣設定。很多文章這邊都沒講清楚，雖然我也不知道為什麼，但找到原因就這邊紀錄一下。</p>
 <p>這邊跟上面依賴規則跟我說的不太一樣，所以剛開始設定就會踩到這個雷，原理也不知道是什麼。</p><div align="center">
     <script

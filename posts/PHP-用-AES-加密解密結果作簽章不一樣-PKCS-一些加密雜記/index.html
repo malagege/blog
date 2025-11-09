@@ -4,7 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) &amp; 一些加密雜記 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) &amp; 一些加密雜記" />
+        <title>PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) &amp; 一些加密雜記 - 程式狂想筆記</title><meta name="Description" content="最近同事搞不定 PHP7 AES 加密
+由於我們從 PHP5 升級到 PHP7
+我們換成 openssl 但是到 Android APP 解憑證的時候竟然驗證結果會不一樣??
+被同事抓去救火(同事也處理不行 XD)
+然後不熟加密原理的我
+第一件事情就是去 github 上面找 ChaoLiFL/PHP-Java-AES-Encrypt-Decrypt: Pass data AES encrypted between PHP 5.x, PHP 7.1, PHP 7.2 and Java. Support two ways of encryption and decryption: Base64, Hexadecimal.
+沒想到剛好可以用!!! (運氣好)
+不過還是卡在 簽章 結果會不一樣"><meta property="og:title" content="PHP 用 AES 加密解密結果作簽章不一樣 (PKCS) &amp; 一些加密雜記" />
 <meta property="og:description" content="最近同事搞不定 PHP7 AES 加密
 由於我們從 PHP5 升級到 PHP7
 我們換成 openssl 但是到 Android APP 解憑證的時候竟然驗證結果會不一樣??
@@ -408,14 +415,16 @@ PS:<a href="https://zh.wikipedia.org/wiki/Base64" target="_blank" rel="noopener 
 有說<code>OPENSSL_ZERO_PADDING</code>會自動填充<br>
 但測試結果沒有效果 OPENSSL_RAW_DATA 方式【会用 PKCS#7 进行补位】</p>
 <h2 id="簡單說我對簽章的定義">簡單說我對簽章的定義</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png"
-        data-srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png, https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png 2x"
-        data-sizes="auto"
-        alt="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png"
-        title="簽章流程" /></p>
+<p><a class="lightgallery" href="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png" title="簽章流程" data-thumbnail="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png"
+            data-srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png, https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png 1.5x, https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png 2x"
+            data-sizes="auto"
+            alt="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Digital_Signature_diagram_zh-CN.svg/1280px-Digital_Signature_diagram_zh-CN.svg.png"
+            title="簽章流程" />
+    </a></p>
 <p>簽章主要目的加密，而是防止資料有被串改</p>
 <p>ebc 是沒有 iv 的，cbc 是有 iv 的<br>
 有用 iv 會比較安全，但是 iv 長度是有限制的<br>

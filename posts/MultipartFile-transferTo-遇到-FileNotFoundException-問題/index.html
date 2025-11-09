@@ -4,7 +4,51 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>MultipartFile.transferTo 遇到 FileNotFoundException 問題 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="MultipartFile.transferTo 遇到 FileNotFoundException 問題" />
+        <title>MultipartFile.transferTo 遇到 FileNotFoundException 問題 - 程式狂想筆記</title><meta name="Description" content="之前公司同事有教，在 Window 在專案 D 朝設定 /app/file(參照位置)，執行時候就會吃D:/app/file。這個非常實用，不需要再重新配置。
+但在用 Spring Boot 會發生讀不到檔案。
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+
+
+    @Override
+    public String store(MultipartFile file, String fileName) throws IOException {
+
+        String destPath &#34;/app/file/&#34;;
+        File filePath = new File(destPath);
+        File dest = new File(filePath, fileName);
+        if (!filePath.exists()) {
+            filePath.mkdirs();
+        }
+        try {
+            file.transferTo(dest);
+            log.info(&#34;file save success&#34;);
+        } catch (IOException e) {
+            log.error(&#34;File upload Error: &#34;, e);
+            throw e;
+        }
+        return dest.getCanonicalPath();
+    }
+
+
+"><meta property="og:title" content="MultipartFile.transferTo 遇到 FileNotFoundException 問題" />
 <meta property="og:description" content="之前公司同事有教，在 Window 在專案 D 朝設定 /app/file(參照位置)，執行時候就會吃D:/app/file。這個非常實用，不需要再重新配置。
 但在用 Spring Boot 會發生讀不到檔案。
 
@@ -339,14 +383,16 @@
 <li><a href="https://blog.csdn.net/qq_40734247/article/details/110248410" target="_blank" rel="noopener noreffer ">MultipartFile的transferTo方法的坑_CrazyDragon_King的博客-CSDN博客_file transferto</a></li>
 </ul>
 <h2 id="分析原因">分析原因</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/maX8QYw.png"
-        data-srcset="https://i.imgur.com/maX8QYw.png, https://i.imgur.com/maX8QYw.png 1.5x, https://i.imgur.com/maX8QYw.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/maX8QYw.png"
-        title="https://i.imgur.com/maX8QYw.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/maX8QYw.png" title="https://i.imgur.com/maX8QYw.png" data-thumbnail="https://i.imgur.com/maX8QYw.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/maX8QYw.png"
+            data-srcset="https://i.imgur.com/maX8QYw.png, https://i.imgur.com/maX8QYw.png 1.5x, https://i.imgur.com/maX8QYw.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/maX8QYw.png"
+            title="https://i.imgur.com/maX8QYw.png" />
+    </a></p>
 <p>參考來源:<br>
 <a href="https://blog.zcw159357.com/article/1/2020-05-08-2248.html" target="_blank" rel="noopener noreffer ">一次突如其来的FileNotFoundException &ndash; 大狗小窝</a></p>
 <p>因為 <code>file.isAbsolute()</code> 原因會補上<code>location</code>絕對位置，會造成抓出路徑錯誤位置。</p><div align="center">

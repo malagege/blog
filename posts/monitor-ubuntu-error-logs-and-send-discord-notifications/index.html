@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本" />
+        <title>在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本 - 程式狂想筆記</title><meta name="Description" content="
+最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 mtail，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 openITCOCKPIT，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供安裝教學。"><meta property="og:title" content="在 Ubuntu 上監控系統錯誤層級 Log 並發送 Discord 通知腳本" />
 <meta property="og:description" content="
 最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 mtail，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 openITCOCKPIT，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供安裝教學。" />
 <meta property="og:type" content="article" />
@@ -142,14 +143,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-08-26">2024-08-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;765 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"
-        data-srcset="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616, https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616 1.5x, https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616 2x"
-        data-sizes="auto"
-        alt="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"
-        title="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616" title="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616" data-thumbnail="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"
+            data-srcset="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616, https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616 1.5x, https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616"
+            title="https://gist.github.com/user-attachments/assets/e4907cf7-c76d-4f6a-8614-c6e5aca2a616" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -172,14 +175,16 @@
             </div><div class="content" id="content"><h1 id="heading"></h1>
 <p>最近我在尋找一種方法，讓樹梅派能夠監控系統 log，並在出現錯誤層級 Log 時發送通知。我曾考慮過 Prometheus Alertmanager，但它似乎無法查看 Log。我也看過 Loki，它確實能達到我要的效果，但我不希望建立集中式 Log，因為樹梅派的儲存空間有限。我也考慮過 <code>mtail</code>，但它可能無法正確解析 Log 層級，所以我最終沒有選擇它。至於 <code>openITCOCKPIT</code>，雖然它需要安裝資料庫，但我認為這不適合在樹梅派上進行，儘管官方有提供<a href="https://docs.openitcockpit.io/en/installation/#arm64-raspberry-pi" target="_blank" rel="noopener noreffer ">安裝教學</a>。</p>
 <h2 id="為何我需要系統錯誤通知">為何我需要系統錯誤通知？</h2>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a"
-        data-srcset="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a, https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a 1.5x, https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a 2x"
-        data-sizes="auto"
-        alt="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a"
-        title="image" /></p>
+<p><a class="lightgallery" href="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a" title="image" data-thumbnail="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a"
+            data-srcset="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a, https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a 1.5x, https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/assets/75846914/2e85b1f2-9a97-4b34-8497-58d51f81553a"
+            title="image" />
+    </a></p>
 <p>我曾在 Facebook 社群中看到有人在收到 SELinux 系統入侵的通知後，能夠立即採取行動。這篇留言提到他們是使用 <code>Cockpit</code>，但我發現這個工具並沒有我需要的功能。我知道 Zabbix 也是一個選擇，但我這次不打算使用它。</p>
 <p>我注意到 <code>Cockpit</code> 是使用 <code>journalctl</code> 來查看系統 log。由於沒有現成的工具可以滿足我的需求，我決定自己開發一個😆。</p>
 <h2 id="準備工作">準備工作</h2>

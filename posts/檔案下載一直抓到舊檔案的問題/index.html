@@ -4,7 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>檔案下載一直抓到舊檔案的問題 - 程式狂想筆記</title><meta name="Description" content="記錄著我接觸程式藝文"><meta property="og:title" content="檔案下載一直抓到舊檔案的問題" />
+        <title>檔案下載一直抓到舊檔案的問題 - 程式狂想筆記</title><meta name="Description" content="遇到問題
+最近用 .NET Core 做動態依照資料庫使用者會帶過來參數去尋找檔案路徑做回傳下載。下載檔案都是舊版本。我看Console 的 Network 都是 200。也沒有看到 204 抓Cache 的結果。這到底是為什麼呢?今天遇到我覺得要把這個問題找到。
+這邊說這麼詳細是怕有各種情境有可能就會有不一樣結果。"><meta property="og:title" content="檔案下載一直抓到舊檔案的問題" />
 <meta property="og:description" content="遇到問題
 最近用 .NET Core 做動態依照資料庫使用者會帶過來參數去尋找檔案路徑做回傳下載。下載檔案都是舊版本。我看Console 的 Network 都是 200。也沒有看到 204 抓Cache 的結果。這到底是為什麼呢?今天遇到我覺得要把這個問題找到。
 這邊說這麼詳細是怕有各種情境有可能就會有不一樣結果。" />
@@ -144,14 +146,16 @@
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-02-20">2023-02-20</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;238 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
-        </div><div class="featured-image"><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png"
-        data-srcset="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png, https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png 1.5x, https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png 2x"
-        data-sizes="auto"
-        alt="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png"
-        title="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+        </div><div class="featured-image"><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png" title="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png" data-thumbnail="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png, https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png 1.5x, https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png"
+            title="https://user-images.githubusercontent.com/6058558/220095517-bb805189-bb5d-45cd-b9c4-97d35f1e2278.png" />
+    </a></div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
@@ -184,55 +188,65 @@
 <p>後來抓到檔案因為我們沒有設定<code>Cache-Control</code>，然後動態下載檔案他的<code>Last-Modified</code>是<del>當下時間</del>可能是檔案異動時間。這邊雖然我沒給<code>Last-Modified</code>，是程式內部機制給的時間，雖然好像可以設定<code>Last-Modified</code>，但我發現再次跑檔案根本沒有進 Server 取檔案。仔細看Console 顯示<code>200 磁碟快取</code>，我覺得一定有什麼關係取到快取。雖然網路上很多交用<code>Cache-Control: no-cache</code>或 <code>max-age=xxx</code>，但我覺得要了解為什麼比較重要。</p>
 <p>這邊用小遊戲下載網隨便一個檔案來Demo<br>
 第一次跑<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/pdiOuOL.png"
-        data-srcset="https://i.imgur.com/pdiOuOL.png, https://i.imgur.com/pdiOuOL.png 1.5x, https://i.imgur.com/pdiOuOL.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/pdiOuOL.png"
-        title="https://i.imgur.com/pdiOuOL.png" /><br>
+<a class="lightgallery" href="https://i.imgur.com/pdiOuOL.png" title="https://i.imgur.com/pdiOuOL.png" data-thumbnail="https://i.imgur.com/pdiOuOL.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/pdiOuOL.png"
+            data-srcset="https://i.imgur.com/pdiOuOL.png, https://i.imgur.com/pdiOuOL.png 1.5x, https://i.imgur.com/pdiOuOL.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/pdiOuOL.png"
+            title="https://i.imgur.com/pdiOuOL.png" />
+    </a><br>
 第二次跑<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/4TPK7GT.png"
-        data-srcset="https://i.imgur.com/4TPK7GT.png, https://i.imgur.com/4TPK7GT.png 1.5x, https://i.imgur.com/4TPK7GT.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/4TPK7GT.png"
-        title="https://i.imgur.com/4TPK7GT.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/4TPK7GT.png" title="https://i.imgur.com/4TPK7GT.png" data-thumbnail="https://i.imgur.com/4TPK7GT.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/4TPK7GT.png"
+            data-srcset="https://i.imgur.com/4TPK7GT.png, https://i.imgur.com/4TPK7GT.png 1.5x, https://i.imgur.com/4TPK7GT.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/4TPK7GT.png"
+            title="https://i.imgur.com/4TPK7GT.png" />
+    </a></p>
 <p>我找到這篇<a href="https://webmasters.stackexchange.com/questions/111298/what-happens-if-you-dont-set-cache-control-header" target="_blank" rel="noopener noreffer ">http - What happens if you don&rsquo;t set cache-control header? - Webmasters Stack Exchange</a>。<br>
 裡面提到Chrome 至少 Cache 一個禮拜和<code>(current time - last modified time) / 10</code>兩者最小值。Firefox 規則又不太一樣。每一家實作不一樣，真的不好找阿&hellip;</p>
 <p>我觀察Github Release 下載檔案做的事情，他下載是有做<code>Cache-Control: no-cache</code>，不過我視覺的能不能設定個<code>60秒</code>之類的會比不會比較好，減少 Server Loading。</p>
-<p><img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/pWtSXML.png"
-        data-srcset="https://i.imgur.com/pWtSXML.png, https://i.imgur.com/pWtSXML.png 1.5x, https://i.imgur.com/pWtSXML.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/pWtSXML.png"
-        title="https://i.imgur.com/pWtSXML.png" /></p>
+<p><a class="lightgallery" href="https://i.imgur.com/pWtSXML.png" title="https://i.imgur.com/pWtSXML.png" data-thumbnail="https://i.imgur.com/pWtSXML.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/pWtSXML.png"
+            data-srcset="https://i.imgur.com/pWtSXML.png, https://i.imgur.com/pWtSXML.png 1.5x, https://i.imgur.com/pWtSXML.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/pWtSXML.png"
+            title="https://i.imgur.com/pWtSXML.png" />
+    </a></p>
 <h2 id="找到問題">找到問題</h2>
 <p>沒有副檔名的時候不會發送<code>If-Modified-Since</code>。上面測<code>小遊戲下載網隨便一個檔案來Demo</code>的exe檔案，請求(Request)竟然不會帶到這個header <code>If-Modified-Since</code> 。不過我這邊放在hfs上面，發現能抓到cache。但把<code>test7z</code>(沒有副檔名)放在hfs下載，兩次下載都會吃到Cache。</p>
 <p>所以我推知之前用程式指向路徑做下載，應該是採到 URL 沒有副檔名關係，所以都會吃到Cache。所以程式做這些事情可能要留意一下這個問題。</p>
 <p>第一次<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/yQxykMJ.png"
-        data-srcset="https://i.imgur.com/yQxykMJ.png, https://i.imgur.com/yQxykMJ.png 1.5x, https://i.imgur.com/yQxykMJ.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/yQxykMJ.png"
-        title="https://i.imgur.com/yQxykMJ.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/yQxykMJ.png" title="https://i.imgur.com/yQxykMJ.png" data-thumbnail="https://i.imgur.com/yQxykMJ.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/yQxykMJ.png"
+            data-srcset="https://i.imgur.com/yQxykMJ.png, https://i.imgur.com/yQxykMJ.png 1.5x, https://i.imgur.com/yQxykMJ.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/yQxykMJ.png"
+            title="https://i.imgur.com/yQxykMJ.png" />
+    </a></p>
 <p>第二次<br>
-<img
-        class="lazyload"
-        src="/blog/svg/loading.min.svg"
-        data-src="https://i.imgur.com/NhnjbDB.png"
-        data-srcset="https://i.imgur.com/NhnjbDB.png, https://i.imgur.com/NhnjbDB.png 1.5x, https://i.imgur.com/NhnjbDB.png 2x"
-        data-sizes="auto"
-        alt="https://i.imgur.com/NhnjbDB.png"
-        title="https://i.imgur.com/NhnjbDB.png" /></p>
+<a class="lightgallery" href="https://i.imgur.com/NhnjbDB.png" title="https://i.imgur.com/NhnjbDB.png" data-thumbnail="https://i.imgur.com/NhnjbDB.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.imgur.com/NhnjbDB.png"
+            data-srcset="https://i.imgur.com/NhnjbDB.png, https://i.imgur.com/NhnjbDB.png 1.5x, https://i.imgur.com/NhnjbDB.png 2x"
+            data-sizes="auto"
+            alt="https://i.imgur.com/NhnjbDB.png"
+            title="https://i.imgur.com/NhnjbDB.png" />
+    </a></p>
 <h3 id="簡單說重點">簡單說重點</h3>
 <p>我發現當沒有 <code>Cache-Control</code> 時候瀏覽器<strong>還是會做緩存</strong>，預設為<code>(current time - last modified time) / 10</code>，但這部分是找到相關資料，所以沒有什麼動作就會有緩存動作。這讓我想到以前做後端回傳報表資料都會有緩存問題，但有可能是這個問題。但這個緩存問題有時很複雜，有可能是 Server 吃住 Cache 導致，有可能要重啟服務才能跑。</p>
 <h2 id="解決方法">解決方法</h2>
