@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Docker Roon Server 本地建置與部署教學 - 程式狂想筆記</title><meta name="Description" content="本教學整合了 Roon Server 的 Docker 映像建置與部署流程，讓你可以在本地環境中運行 Roon Server。
+Info 以下這篇參考Docker上构建并部署Roon镜像 - 虚境星尘撰寫，並做了一些啟動調整，算是我自己個人筆記。 前置需求 Docker 與 Docker Compose 已安裝 足夠的磁碟空間（建議至少 50GB） 區域網路環境 步驟一：取得 Dockerfile 方法：從 GitHub 克隆 1 2 git clone https://github.com/cyril2007/docker-roonserver-local.git cd docker-roonserver-local 相關準備好的 RoonServer_linuxx64.tar.bz2 檔案也需要放在同一目錄中。
+步驟二：建置 Docker 映像 在包含 Dockerfile 的目錄中執行：
+1 docker build -t docker-roonserver:latest . 建置過程說明：
+-t docker-roonserver:latest：為映像命名並標記為 latest 版本 .：使用當前目錄的 Dockerfile 建置時間約 5-10 分鐘，視網路速度而定。
+驗證映像建置成功 1 docker images | grep docker-roonserver 應該會看到類似輸出：
+1 docker-roonserver latest abc123def456 2 minutes ago 500MB 步驟三：準備 Docker Compose 配置 選項 A：使用 Host 網路模式（推薦） 建立 docker-compose."><meta property="og:title" content="Docker Roon Server 本地建置與部署教學" />
+<meta property="og:description" content="本教學整合了 Roon Server 的 Docker 映像建置與部署流程，讓你可以在本地環境中運行 Roon Server。
+Info 以下這篇參考Docker上构建并部署Roon镜像 - 虚境星尘撰寫，並做了一些啟動調整，算是我自己個人筆記。 前置需求 Docker 與 Docker Compose 已安裝 足夠的磁碟空間（建議至少 50GB） 區域網路環境 步驟一：取得 Dockerfile 方法：從 GitHub 克隆 1 2 git clone https://github.com/cyril2007/docker-roonserver-local.git cd docker-roonserver-local 相關準備好的 RoonServer_linuxx64.tar.bz2 檔案也需要放在同一目錄中。
+步驟二：建置 Docker 映像 在包含 Dockerfile 的目錄中執行：
+1 docker build -t docker-roonserver:latest . 建置過程說明：
+-t docker-roonserver:latest：為映像命名並標記為 latest 版本 .：使用當前目錄的 Dockerfile 建置時間約 5-10 分鐘，視網路速度而定。
+驗證映像建置成功 1 docker images | grep docker-roonserver 應該會看到類似輸出：
+1 docker-roonserver latest abc123def456 2 minutes ago 500MB 步驟三：準備 Docker Compose 配置 選項 A：使用 Host 網路模式（推薦） 建立 docker-compose." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-11-09T23:02:30+08:00" />
+<meta property="article:modified_time" content="2025-11-09T23:21:17+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Docker Roon Server 本地建置與部署教學"/>
+<meta name="twitter:description" content="本教學整合了 Roon Server 的 Docker 映像建置與部署流程，讓你可以在本地環境中運行 Roon Server。
+Info 以下這篇參考Docker上构建并部署Roon镜像 - 虚境星尘撰寫，並做了一些啟動調整，算是我自己個人筆記。 前置需求 Docker 與 Docker Compose 已安裝 足夠的磁碟空間（建議至少 50GB） 區域網路環境 步驟一：取得 Dockerfile 方法：從 GitHub 克隆 1 2 git clone https://github.com/cyril2007/docker-roonserver-local.git cd docker-roonserver-local 相關準備好的 RoonServer_linuxx64.tar.bz2 檔案也需要放在同一目錄中。
+步驟二：建置 Docker 映像 在包含 Dockerfile 的目錄中執行：
+1 docker build -t docker-roonserver:latest . 建置過程說明：
+-t docker-roonserver:latest：為映像命名並標記為 latest 版本 .：使用當前目錄的 Dockerfile 建置時間約 5-10 分鐘，視網路速度而定。
+驗證映像建置成功 1 docker images | grep docker-roonserver 應該會看到類似輸出：
+1 docker-roonserver latest abc123def456 2 minutes ago 500MB 步驟三：準備 Docker Compose 配置 選項 A：使用 Host 網路模式（推薦） 建立 docker-compose."/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" /><link rel="prev" href="https://malagege.github.io/blog/posts/feishin-use-exclusive-mode-with-navidrome/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Docker Roon Server 本地建置與部署教學",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/roon-server-docker-local-build-deploy\/"
+        },"genre": "posts","keywords": "docker, linux, roon","wordcount":  327 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/roon-server-docker-local-build-deploy\/","datePublished": "2025-11-09T23:02:30+08:00","dateModified": "2025-11-09T23:21:17+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "本教學整合了 Roon Server 的 Docker 映像建置與部署流程，讓你可以在本地環境中運行 Roon Server。\nInfo 以下這篇參考Docker上构建并部署Roon镜像 - 虚境星尘撰寫，並做了一些啟動調整，算是我自己個人筆記。 前置需求 Docker 與 Docker Compose 已安裝 足夠的磁碟空間（建議至少 50GB） 區域網路環境 步驟一：取得 Dockerfile 方法：從 GitHub 克隆 1 2 git clone https://github.com/cyril2007/docker-roonserver-local.git cd docker-roonserver-local 相關準備好的 RoonServer_linuxx64.tar.bz2 檔案也需要放在同一目錄中。\n步驟二：建置 Docker 映像 在包含 Dockerfile 的目錄中執行：\n1 docker build -t docker-roonserver:latest . 建置過程說明：\n-t docker-roonserver:latest：為映像命名並標記為 latest 版本 .：使用當前目錄的 Dockerfile 建置時間約 5-10 分鐘，視網路速度而定。\n驗證映像建置成功 1 docker images | grep docker-roonserver 應該會看到類似輸出：\n1 docker-roonserver latest abc123def456 2 minutes ago 500MB 步驟三：準備 Docker Compose 配置 選項 A：使用 Host 網路模式（推薦） 建立 docker-compose."
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker Roon Server 本地建置與部署教學</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-11-09">2025-11-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;327 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前置需求">前置需求</a></li>
+    <li><a href="#步驟一取得-dockerfile">步驟一：取得 Dockerfile</a>
+      <ul>
+        <li><a href="#方法從-github-克隆">方法：從 GitHub 克隆</a></li>
+      </ul>
+    </li>
+    <li><a href="#步驟二建置-docker-映像">步驟二：建置 Docker 映像</a>
+      <ul>
+        <li><a href="#驗證映像建置成功">驗證映像建置成功</a></li>
+      </ul>
+    </li>
+    <li><a href="#步驟三準備-docker-compose-配置">步驟三：準備 Docker Compose 配置</a>
+      <ul>
+        <li><a href="#選項-a使用-host-網路模式推薦">選項 A：使用 Host 網路模式（推薦）</a></li>
+      </ul>
+    </li>
+    <li><a href="#步驟四啟動服務">步驟四：啟動服務</a>
+      <ul>
+        <li><a href="#1-建立目錄結構可以不用做自動會建立">1. 建立目錄結構(可以不用做，自動會建立)</a></li>
+        <li><a href="#2-啟動容器">2. 啟動容器</a></li>
+        <li><a href="#3-查看日誌">3. 查看日誌</a></li>
+        <li><a href="#4-驗證服務運行">4. 驗證服務運行</a></li>
+      </ul>
+    </li>
+    <li><a href="#設定-roon-客戶端">設定 Roon 客戶端</a>
+      <ul>
+        <li><a href="#1-下載-roon-控制-app">1. 下載 Roon 控制 App</a></li>
+        <li><a href="#2-連接到-server">2. 連接到 Server</a></li>
+        <li><a href="#3-新增音樂庫">3. 新增音樂庫</a></li>
+      </ul>
+    </li>
+    <li><a href="#管理與維護">管理與維護</a>
+      <ul>
+        <li><a href="#常用指令">常用指令</a></li>
+        <li><a href="#資料夾說明">資料夾說明</a></li>
+      </ul>
+    </li>
+    <li><a href="#故障排除">故障排除</a>
+      <ul>
+        <li><a href="#問找不到音樂裝置">問：找不到音樂裝置</a></li>
+      </ul>
+    </li>
+    <li><a href="#進階配置">進階配置</a>
+      <ul>
+        <li><a href="#使用外部音樂庫">使用外部音樂庫</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>本教學整合了 Roon Server 的 Docker 映像建置與部署流程，讓你可以在本地環境中運行 Roon Server。</p>
+<hr>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>Info<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">以下這篇參考<a href="http://120.24.178.77/archives/2025/05/03/13/13/" target="_blank" rel="noopener noreffer ">Docker上构建并部署Roon镜像 - 虚境星尘</a>撰寫，並做了一些啟動調整，算是我自己個人筆記。</div>
+        </div>
+    </div>
+<h2 id="前置需求">前置需求</h2>
+<ul>
+<li>Docker 與 Docker Compose 已安裝</li>
+<li>足夠的磁碟空間（建議至少 50GB）</li>
+<li>區域網路環境</li>
+</ul>
+<hr>
+<h2 id="步驟一取得-dockerfile">步驟一：取得 Dockerfile</h2>
+<h3 id="方法從-github-克隆">方法：從 GitHub 克隆</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">git clone https://github.com/cyril2007/docker-roonserver-local.git
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> docker-roonserver-local
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>相關準備好的 <code>RoonServer_linuxx64.tar.bz2</code>  檔案也需要放在同一目錄中。</p>
+<hr>
+<h2 id="步驟二建置-docker-映像">步驟二：建置 Docker 映像</h2>
+<p>在包含 <code>Dockerfile</code> 的目錄中執行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker build -t docker-roonserver:latest .
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>建置過程說明：</p>
+<ul>
+<li><code>-t docker-roonserver:latest</code>：為映像命名並標記為 latest 版本</li>
+<li><code>.</code>：使用當前目錄的 Dockerfile</li>
+</ul>
+<p>建置時間約 5-10 分鐘，視網路速度而定。</p>
+<h3 id="驗證映像建置成功">驗證映像建置成功</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker images <span class="p">|</span> grep docker-roonserver
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>應該會看到類似輸出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker-roonserver   latest    abc123def456   2 minutes ago   500MB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="步驟三準備-docker-compose-配置">步驟三：準備 Docker Compose 配置</h2>
+<h3 id="選項-a使用-host-網路模式推薦">選項 A：使用 Host 網路模式（推薦）</h3>
+<p>建立 <code>docker-compose.yml</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;3.8&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">roon-server</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">docker-roonserver:latest</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l">roon-server</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">network_mode</span><span class="p">:</span><span class="w"> </span><span class="l">host</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">TZ=Asia/Taipei</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">./roon-app:/app</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">./roon-data:/data</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">./roon-music:/music</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">./roon-backups:/backup</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l">unless-stopped</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>優點</strong>：</p>
+<ul>
+<li>✅ 最佳的網路相容性</li>
+<li>✅ 自動裝置發現功能完整</li>
+<li>✅ 不需要手動配置端口</li>
+</ul>
+<p><strong>適用情境</strong>：</p>
+<ul>
+<li>區域網路使用</li>
+<li>需要自動發現音訊裝置</li>
+<li>簡化網路配置</li>
+</ul>
+<hr>
+<h2 id="步驟四啟動服務">步驟四：啟動服務</h2>
+<h3 id="1-建立目錄結構可以不用做自動會建立">1. 建立目錄結構(可以不用做，自動會建立)</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mkdir -p roon-app roon-data roon-music roon-backups
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="2-啟動容器">2. 啟動容器</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker-compose up -d
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="3-查看日誌">3. 查看日誌</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker-compose logs -f roon-server
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="4-驗證服務運行">4. 驗證服務運行</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker ps <span class="p">|</span> grep roon-server
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="設定-roon-客戶端">設定 Roon 客戶端</h2>
+<h3 id="1-下載-roon-控制-app">1. 下載 Roon 控制 App</h3>
+<ul>
+<li><strong>iOS/Android</strong>：從 App Store 或 Google Play 下載 &ldquo;Roon&rdquo;</li>
+<li><strong>Windows/Mac</strong>：從 <a href="https://roonlabs.com/downloads" target="_blank" rel="noopener noreffer ">Roon 官網</a> 下載</li>
+</ul>
+<h3 id="2-連接到-server">2. 連接到 Server</h3>
+<ol>
+<li>開啟 Roon App</li>
+<li>App 應該會自動發現區域網路中的 Roon Server</li>
+<li>如果沒有自動發現，手動輸入 Server IP 地址</li>
+<li>登入你的 Roon 帳號</li>
+</ol>
+<h3 id="3-新增音樂庫">3. 新增音樂庫</h3>
+<p>在 Roon App 中：</p>
+<ol>
+<li>進入 Settings → Storage</li>
+<li>新增儲存位置指向 <code>/music</code> 目錄</li>
+<li>等待音樂掃描完成</li>
+</ol>
+<hr>
+<h2 id="管理與維護">管理與維護</h2>
+<h3 id="常用指令">常用指令</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 停止服務</span>
+</span></span><span class="line"><span class="cl">docker-compose down
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 重啟服務</span>
+</span></span><span class="line"><span class="cl">docker-compose restart
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看日誌</span>
+</span></span><span class="line"><span class="cl">docker-compose logs -f
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 更新映像（重新建置）</span>
+</span></span><span class="line"><span class="cl">docker build -t docker-roonserver:latest .
+</span></span><span class="line"><span class="cl">docker-compose up -d --force-recreate
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 備份數據</span>
+</span></span><span class="line"><span class="cl">tar -czf roon-backup-<span class="k">$(</span>date +%Y%m%d<span class="k">)</span>.tar.gz roon-data roon-backups
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="資料夾說明">資料夾說明</h3>
+<ul>
+<li><code>roon-app</code>：Roon 應用程式檔案</li>
+<li><code>roon-data</code>：資料庫與設定</li>
+<li><code>roon-music</code>：音樂檔案存放處</li>
+<li><code>roon-backups</code>：自動備份位置</li>
+</ul>
+<hr>
+<h2 id="故障排除">故障排除</h2>
+<h3 id="問找不到音樂裝置">問：找不到音樂裝置</h3>
+<p><strong>症狀</strong>：Roon App 無法發現音訊輸出裝置</p>
+<p><strong>解決方案</strong>：</p>
+<ol>
+<li><strong>改用 host 網路模式</strong>（最有效）
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">network_mode</span><span class="p">:</span><span class="w"> </span><span class="l">host</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>確認防火牆沒有阻擋 mDNS（5353/udp）</li>
+<li>確認裝置與 Server 在同一區域網路</li>
+</ol>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>Warning<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我之前開 port，安裝完 Roon 沒看到我音樂裝置，後來調整 Docker Network 模式才抓到。</div>
+        </div>
+    </div>
+<hr>
+<h2 id="進階配置">進階配置</h2>
+<h3 id="使用外部音樂庫">使用外部音樂庫</h3>
+<p>如果音樂存放在 NAS 或外部硬碟：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="l">./roon-app:/app</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="l">./roon-data:/data</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="l">/path/to/your/music:/music </span><span class="w"> </span><span class="c"># 修改為實際路徑</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="l">./roon-backups:/backup</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>我音樂透過掛載 Navdroime 的音樂資料夾，這樣 Roon 就能直接讀取 Navdroime 上的音樂檔案。因為我最近要用 AudioMuse-AI，產生播放清單(m3u)可以儲存和 Roon 共享使用。</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-11-09</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" data-title="Docker Roon Server 本地建置與部署教學" data-hashtags="docker,linux,roon"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" data-title="Docker Roon Server 本地建置與部署教學"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" data-title="Docker Roon Server 本地建置與部署教學"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/roon-server-docker-local-build-deploy/" data-title="Docker Roon Server 本地建置與部署教學"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/docker/">Docker</a>,&nbsp;<a href="/blog/tags/Linux/">Linux</a>,&nbsp;<a href="/blog/tags/roon/">Roon</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/feishin-use-exclusive-mode-with-navidrome/" class="prev" rel="prev" title="串流音樂伺服器 Navidrome 使用 Feishin 播放器的獨佔模式"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>串流音樂伺服器 Navidrome 使用 Feishin 播放器的獨佔模式</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
