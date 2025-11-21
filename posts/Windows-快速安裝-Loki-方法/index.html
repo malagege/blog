@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Windows 快速安裝 Loki 方法 - 程式狂想筆記</title><meta name="Description" content="最近有機會在 Windows 測試機上安裝 Loki 服務，來解決長久以來查看文字 txt log 的問題。同事原本想用 ELK 方案，不過這是一個非常吃資源的大怪獸，後來我們決定試試我玩過的 Loki。"><meta property="og:title" content="Windows 快速安裝 Loki 方法" />
+<meta property="og:description" content="最近有機會在 Windows 測試機上安裝 Loki 服務，來解決長久以來查看文字 txt log 的問題。同事原本想用 ELK 方案，不過這是一個非常吃資源的大怪獸，後來我們決定試試我玩過的 Loki。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-10-02T15:00:00+00:00" />
+<meta property="article:modified_time" content="2023-10-02T15:00:00+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Windows 快速安裝 Loki 方法"/>
+<meta name="twitter:description" content="最近有機會在 Windows 測試機上安裝 Loki 服務，來解決長久以來查看文字 txt log 的問題。同事原本想用 ELK 方案，不過這是一個非常吃資源的大怪獸，後來我們決定試試我玩過的 Loki。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Ubuntu-%E4%BD%BF%E7%94%A8-Bridge-%E8%AE%93%E5%A4%96%E9%9D%A2%E7%B6%B2%E8%B7%AF%E5%8F%AF%E4%BB%A5%E9%80%A3-KVM-%E8%99%9B%E6%93%AC%E4%B8%BB%E6%A9%9F/" /><link rel="next" href="https://malagege.github.io/blog/posts/IIS-%E4%BD%88%E7%BD%B2-Net-Core-%E8%A8%AD%E5%AE%9A%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Windows 快速安裝 Loki 方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95\/"
+        },"genre": "posts","keywords": "loki, grafana, windows, log, promtail","wordcount":  501 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95\/","datePublished": "2023-10-02T15:00:00+00:00","dateModified": "2023-10-02T15:00:00+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近有機會在 Windows 測試機上安裝 Loki 服務，來解決長久以來查看文字 txt log 的問題。同事原本想用 ELK 方案，不過這是一個非常吃資源的大怪獸，後來我們決定試試我玩過的 Loki。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Windows 快速安裝 Loki 方法</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Loki/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Loki</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-10-02">2023-10-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;501 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前面研究的-loki">前面研究的 Loki</a></li>
+    <li><a href="#安裝-lab-說明">安裝 Lab 說明</a></li>
+    <li><a href="#安裝教學">安裝教學</a>
+      <ul>
+        <li><a href="#grafana">Grafana</a></li>
+        <li><a href="#loki">Loki</a></li>
+        <li><a href="#promtail">Promtail</a></li>
+        <li><a href="#設定-loki-config">設定 Loki Config</a></li>
+        <li><a href="#登入-grafana">登入 Grafana</a></li>
+      </ul>
+    </li>
+    <li><a href="#把-loki-設定成-windows-service">把 Loki 設定成 Windows Service</a>
+      <ul>
+        <li><a href="#方法一使用-sc-命令">方法一：使用 sc 命令</a></li>
+        <li><a href="#方法二使用-winsw">方法二：使用 WinSW</a></li>
+      </ul>
+    </li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近有機會在 Windows 測試機上安裝 Loki 服務，來解決長久以來查看文字 txt log 的問題。同事原本想用 ELK 方案，不過這是一個非常吃資源的大怪獸，後來我們決定試試我玩過的 Loki。</p>
+<h2 id="前面研究的-loki">前面研究的 Loki</h2>
+<p>說來慚愧，之前在我家主要蒐集 traefik 的一些 log，相關設定我沒有到很熟悉。</p>
+<ul>
+<li><a href="https://malagege.github.io/blog/posts/Loki-%E5%88%9D%E9%AB%94%E9%A9%97%E6%95%99%E5%AD%B8/" target="_blank" rel="noopener noreffer ">Loki 初體驗教學(在Raspberry 啟用 Docker-Loki-Driver) - 程式狂想筆記</a></li>
+<li><a href="https://malagege.github.io/blog/posts/Loki-%E5%81%9A%E7%9B%A3%E6%8E%A7%E5%8B%95%E4%BD%9C%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">Loki 做監控動作方法 - 程式狂想筆記</a></li>
+<li><a href="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" target="_blank" rel="noopener noreffer ">在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記 - 程式狂想筆記</a></li>
+</ul>
+<p>主要我知道 ELK 對應到 Loki 一樣有三個元件：Grafana + Loki + Promtail，它們對應做的事情也差不多。</p>
+<p><strong>Grafana</strong>：查詢 Loki 紀錄的平台。<br>
+<strong>Loki</strong>：蒐集 log 的地方。<br>
+<strong>Promtail</strong>：對應 Filebeat，負責解析 log 並傳送到 Loki（類似 ELK 中的 Filebeat 傳到 ElasticSearch）。</p>
+<h2 id="安裝-lab-說明">安裝 Lab 說明</h2>
+<p>這次因為我的環境只有一台機器，Promtail 不打算安裝，這邊的規劃是 .Net 專案除了會記錄 txt log，也會直接推送 log 到 Loki。</p>
+<p>:::info<br>
+這邊推薦看以下專業安裝教學，本文內容是從這些文章整理而來：</p>
+<ul>
+<li><a href="https://tw511.com/a/01/48857.html" target="_blank" rel="noopener noreffer ">【.NET 6+Loki+Grafana】實現輕量級紀錄檔視覺化服務功能 - tw511教學網</a></li>
+<li><a href="https://blog.csdn.net/qq_39168874/article/details/130974603" target="_blank" rel="noopener noreffer ">windows本地 Loki+Promtail+Grafana_promtail配置文件-CSDN博客</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/593217800" target="_blank" rel="noopener noreffer ">【.NET 6+Loki+Grafana】实现轻量级日志可视化服务功能 - 知乎</a><br>
+:::</li>
+</ul>
+<h2 id="安裝教學">安裝教學</h2>
+<h3 id="grafana">Grafana</h3>
+<p>點<a href="https://grafana.com/grafana/download?edition=oss&amp;platform=windows" target="_blank" rel="noopener noreffer ">這邊</a>下載 Grafana。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png, https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png 1.5x, https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271972419-87ba8599-4a2e-4356-b981-949b217f2dbd.png"
+            title="圖片" />
+    </a></p>
+<p>安裝 Grafana 就不詳細說明，就一直下一步就對了。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png" title="安裝介面" data-thumbnail="https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png, https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png 1.5x, https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271973603-53a124ee-e517-403c-bca6-d3c33a955f8d.png"
+            title="安裝介面" />
+    </a></p>
+<h3 id="loki">Loki</h3>
+<p>從 <a href="https://github.com/grafana/loki/releases" target="_blank" rel="noopener noreffer ">Github grafana/loki</a> 這邊下載 <code>loki-windows-amd64.exe.zip</code>，注意這邊不是 <code>lokicli</code> 開頭喔！</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png, https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png 1.5x, https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271974424-1c1fdfbc-adfe-48f3-89fd-b8f4dc32ecbb.png"
+            title="圖片" />
+    </a></p>
+<h3 id="promtail">Promtail</h3>
+<p>本環境不打算安裝 Promtail，如果需要可以參考以下文章：</p>
+<ul>
+<li><a href="https://tw511.com/a/01/48857.html" target="_blank" rel="noopener noreffer ">【.NET 6+Loki+Grafana】實現輕量級紀錄檔視覺化服務功能 - tw511教學網</a></li>
+<li><a href="https://blog.csdn.net/qq_39168874/article/details/130974603" target="_blank" rel="noopener noreffer ">windows本地 Loki+Promtail+Grafana_promtail配置文件-CSDN博客</a></li>
+</ul>
+<h3 id="設定-loki-config">設定 Loki Config</h3>
+<p>可以到官方查看設定檔說明：<a href="https://grafana.com/docs/loki/latest/configure/" target="_blank" rel="noopener noreffer ">Grafana Loki configuration parameters | Grafana Loki documentation</a>，<a href="https://grafana.com/docs/loki/latest/configure/examples/" target="_blank" rel="noopener noreffer ">官方文件</a>裡面也有放範例。</p>
+<p>這邊使用官方的 <code>Local-Configuration-Example.yaml</code>，將設定檔存成 <code>config.yaml</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">auth_enabled</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">server</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">http_listen_port</span><span class="p">:</span><span class="w"> </span><span class="m">3100</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">common</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">ring</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">instance_addr</span><span class="p">:</span><span class="w"> </span><span class="m">127.0.0.1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">kvstore</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">store</span><span class="p">:</span><span class="w"> </span><span class="l">inmemory</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">replication_factor</span><span class="p">:</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">path_prefix</span><span class="p">:</span><span class="w"> </span><span class="l">/tmp/loki</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">schema_config</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">configs</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="ld">2020-05-15</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">store</span><span class="p">:</span><span class="w"> </span><span class="l">boltdb-shipper</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">object_store</span><span class="p">:</span><span class="w"> </span><span class="l">filesystem</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">schema</span><span class="p">:</span><span class="w"> </span><span class="l">v11</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">index</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">prefix</span><span class="p">:</span><span class="w"> </span><span class="l">index_</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l">24h</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這邊設定完就可以直接在 PowerShell 執行 <code>loki</code> 程式。一般教學都會教你加上 config 參數，但我比較懶。😅</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png, https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png 1.5x, https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271977265-f1a89854-e84e-497e-b016-9fdb937bad56.png"
+            title="圖片" />
+    </a></p>
+<h3 id="登入-grafana">登入 Grafana</h3>
+<p>登入 Grafana 頁面，網址是 <code>http://localhost:3000/login</code>，帳號密碼都是 <code>admin</code>。進入之後會要求你重新設定新密碼。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png, https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png 1.5x, https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271977494-0da45c62-525a-4ee6-a75b-f5a2bc3424c2.png"
+            title="圖片" />
+    </a></p>
+<p>進入 Grafana 後，前往 Connections 功能頁。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png, https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png 1.5x, https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271978071-bcac5ecf-c419-46f8-85bf-85fc748f6228.png"
+            title="圖片" />
+    </a></p>
+<p>搜尋 <code>loki</code>，選擇 <code>Loki</code>。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png, https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png 1.5x, https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271978323-8f1f4d31-a240-4c0b-aac2-def91510770d.png"
+            title="圖片" />
+    </a></p>
+<p>選擇 <code>Add new data source</code>。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png, https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png 1.5x, https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271978552-8366da45-4a12-4360-9cc0-8ecf5bddd80a.png"
+            title="圖片" />
+    </a></p>
+<p>URL 輸入 <code>http://localhost:3100</code>，然後可以按 <code>Save &amp; test</code>。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png, https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png 1.5x, https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271979230-23b5d2ff-14a3-41ec-9641-f4348cb62409.png"
+            title="圖片" />
+    </a></p>
+<p>別擔心，你可能還沒看到成功訊息。通常如果你有安裝 Promtail 並正確設定，可能就會成功。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Data source connected, but no labels were received. Verify that Loki and Promtail are correctly configured.
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個訊息簡單來說，是因為目前 Loki 裡面是空的，所以 Grafana 不給你加入。這時候只要簡單呼叫 API 就可以解決了。開啟 Git Bash，執行下面語法：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -v -H <span class="s2">&#34;Content-Type: application/json&#34;</span> -XPOST -s <span class="s2">&#34;http://localhost:3100/loki/api/v1/push&#34;</span> --data-raw <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  <span class="s1">&#39;{&#34;streams&#34;: [{ &#34;stream&#34;: { &#34;foo&#34;: &#34;bar2&#34; }, &#34;values&#34;: [ [ &#34;1696254175000000000&#34;, &#34;fizzbuzz&#34; ] ] }]}&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考：<a href="https://grafana.com/docs/loki/latest/reference/api/#examples-4" target="_blank" rel="noopener noreffer ">Grafana Loki HTTP API | Grafana Loki documentation</a></p>
+<p>完成後，再按一次 <code>Save &amp; test</code> 即可成功。</p>
+<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png"
+            data-srcset="https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png, https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png 1.5x, https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png 2x"
+            data-sizes="auto"
+            alt="https://user-images.githubusercontent.com/6058558/271982863-f18a091c-cc66-4a1f-a466-5a739360e16e.png"
+            title="圖片" />
+    </a></p>
+<p>:::warning<br>
+注意：如果打 Loki push API 沒有成功，但不影響後續操作。你可能會得到 <code>entry for stream '{foo=&quot;bar2&quot;}' has timestamp too old: 2019-10-12T02:23:58+08:00, oldest acceptable timestamp is: 2023-09-25T21:35:56+08:00</code> 錯誤。原因是範例中的時間太舊，你可以改成現在的時間戳記。</p>
+<p>時間轉換可用：<a href="https://tool.chinaz.com/tools/unixtime.aspx" target="_blank" rel="noopener noreffer ">Unix时间戳(Unix timestamp)转换工具 - 站长工具</a><br>
+:::</p>
+<h2 id="把-loki-設定成-windows-service">把 Loki 設定成 Windows Service</h2>
+<h3 id="方法一使用-sc-命令">方法一：使用 sc 命令</h3>
+<p>可以使用 Windows 內建的 sc 命令來新增服務：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sc.exe create &lt;new_service_name&gt; <span class="nv">binPath</span><span class="o">=</span> <span class="s2">&#34;&lt;path_to_the_service_executable&gt;&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>但這個方法在實際使用上可能會有一些限制。</p>
+<p>參考：</p>
+<ul>
+<li><a href="https://community.grafana.com/t/running-loki-and-promtail-as-a-windows-service/41440" target="_blank" rel="noopener noreffer ">Running Loki and Promtail as a Windows service - Grafana Community</a></li>
+<li><a href="https://www.wqf31415.xyz/2021/08/11/%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E6%B3%A8%E5%86%8CWindows%E6%9C%8D%E5%8A%A1/#%E4%BD%BF%E7%94%A8-nssm" target="_blank" rel="noopener noreffer ">两种方式注册Windows服务</a></li>
+</ul>
+<h3 id="方法二使用-winsw">方法二：使用 WinSW</h3>
+<p>推薦使用 WinSW（Windows Service Wrapper）來註冊服務。建立一個 XML 設定檔：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;service&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 該服務的唯一標識 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;id&gt;</span>Grafana Loki<span class="nt">&lt;/id&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 該服務的名稱 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;name&gt;</span>Grafana Loki<span class="nt">&lt;/name&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 該服務的描述 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;description&gt;</span>Grafana Loki<span class="nt">&lt;/description&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 要運行的程序路徑 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;executable&gt;</span>loki-windows-amd64<span class="nt">&lt;/executable&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 攜帶的參數 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;arguments&gt;</span>--config.file=config.yaml<span class="nt">&lt;/arguments&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 第一次啟動失敗 60秒後重啟 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;onfailure</span> <span class="na">action=</span><span class="s">&#34;restart&#34;</span> <span class="na">delay=</span><span class="s">&#34;60 sec&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 第二次啟動失敗 120秒後重啟 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;onfailure</span> <span class="na">action=</span><span class="s">&#34;restart&#34;</span> <span class="na">delay=</span><span class="s">&#34;120 sec&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 日誌模式 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;logmode&gt;</span>append<span class="nt">&lt;/logmode&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- 指定日誌文件目錄(相對於executable配置的路徑) --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;logpath&gt;</span>logs<span class="nt">&lt;/logpath&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/service&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用 WinSW 的常用命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">// 註冊服務
+</span></span><span class="line"><span class="cl">winsw.exe install
+</span></span><span class="line"><span class="cl">// 卸載服務
+</span></span><span class="line"><span class="cl">winsw.exe uninstall
+</span></span><span class="line"><span class="cl">// 啟動服務
+</span></span><span class="line"><span class="cl">winsw.exe start
+</span></span><span class="line"><span class="cl">// 停止服務
+</span></span><span class="line"><span class="cl">winsw.exe stop
+</span></span><span class="line"><span class="cl">// 重啟服務
+</span></span><span class="line"><span class="cl">winsw.exe restart
+</span></span><span class="line"><span class="cl">// 查看狀態
+</span></span><span class="line"><span class="cl">winsw.exe status
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考：<a href="https://blog.yosheng.tw/winsw" target="_blank" rel="noopener noreffer ">使用 winsw 將程式註冊為系統服務 - 夜升筆談</a></p>
+<h2 id="彩蛋">彩蛋</h2>
+<p>以下是一些相關的參考資料：</p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/385035679" target="_blank" rel="noopener noreffer ">.NET Worker Service 作为 Windows 服务运行及优雅退出改进 - 知乎</a></li>
+<li><a href="https://developer.aliyun.com/article/833897" target="_blank" rel="noopener noreffer ">日志系统新贵 Loki，真香！！-阿里云开发者社区</a></li>
+<li><a href="https://developer.aliyun.com/article/893351" target="_blank" rel="noopener noreffer ">轻量级日志系统Loki原理简介和使用（2）-阿里云开发者社区</a> <a href="https://user-images.githubusercontent.com/6058558/272914321-3492f162-0800-4c71-96b4-e724936ba986.png" target="_blank" rel="noopener noreffer ">備份圖</a></li>
+<li><a href="https://stackoverflow.com/questions/51261177/add-username-into-serilog" target="_blank" rel="noopener noreffer ">Add username into Serilog - Stack Overflow</a></li>
+<li><a href="https://medium.com/@jieshiun/grafana-%E5%84%80%E9%8C%B6%E6%9D%BF%E6%9F%A5%E8%A9%A2-loki-%E9%A1%AF%E7%A4%BA-too-many-outstanding-requests-7bfbd3420353" target="_blank" rel="noopener noreffer ">Grafana 儀錶板查詢 Loki 顯示 too many outstanding requests | by Ivan Cheng | Medium</a></li>
+</ul>
+<p>如果遇到多人查詢時出現 <code>too many outstanding requests</code> 錯誤，可以參考最後一篇文章的解決方法。</p></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-10-02</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" data-title="Windows 快速安裝 Loki 方法" data-hashtags="loki,grafana,windows,log,promtail"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" data-hashtag="loki"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" data-title="Windows 快速安裝 Loki 方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" data-title="Windows 快速安裝 Loki 方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/Windows-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki-%E6%96%B9%E6%B3%95/" data-title="Windows 快速安裝 Loki 方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/loki/">Loki</a>,&nbsp;<a href="/blog/tags/grafana/">Grafana</a>,&nbsp;<a href="/blog/tags/windows/">Windows</a>,&nbsp;<a href="/blog/tags/log/">Log</a>,&nbsp;<a href="/blog/tags/promtail/">Promtail</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Ubuntu-%E4%BD%BF%E7%94%A8-Bridge-%E8%AE%93%E5%A4%96%E9%9D%A2%E7%B6%B2%E8%B7%AF%E5%8F%AF%E4%BB%A5%E9%80%A3-KVM-%E8%99%9B%E6%93%AC%E4%B8%BB%E6%A9%9F/" class="prev" rel="prev" title="Ubuntu 使用 Bridge 讓外面網路可以連 KVM 虛擬主機"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Ubuntu 使用 Bridge 讓外面網路可以連 KVM 虛擬主機</a>
+            <a href="/blog/posts/IIS-%E4%BD%88%E7%BD%B2-Net-Core-%E8%A8%AD%E5%AE%9A%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8%E6%96%B9%E6%B3%95/" class="next" rel="next" title="IIS 部署 .Net Core 設定環境變數方法">IIS 部署 .Net Core 設定環境變數方法<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
