@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>使用 Caddy 和 devtunnel 實現內網穿透 - 程式狂想筆記</title><meta name="Description" content="在開發和測試過程中，我們經常需要讓外部網路能夠訪問內部網路的服務。本文介紹如何使用 Caddy 反向代理和 Microsoft devtunnel 來實現內網穿透，讓外部網路可以安全地連接到內部網路服務。"><meta property="og:title" content="使用 Caddy 和 devtunnel 實現內網穿透" />
+<meta property="og:description" content="在開發和測試過程中，我們經常需要讓外部網路能夠訪問內部網路的服務。本文介紹如何使用 Caddy 反向代理和 Microsoft devtunnel 來實現內網穿透，讓外部網路可以安全地連接到內部網路服務。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-12-17T04:56:00+00:00" />
+<meta property="article:modified_time" content="2025-12-17T04:56:00+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 Caddy 和 devtunnel 實現內網穿透"/>
+<meta name="twitter:description" content="在開發和測試過程中，我們經常需要讓外部網路能夠訪問內部網路的服務。本文介紹如何使用 Caddy 反向代理和 Microsoft devtunnel 來實現內網穿透，讓外部網路可以安全地連接到內部網路服務。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Windows-%E5%92%8C-Linux-%E6%A0%B9%E6%86%91%E8%AD%89%E6%AF%94%E5%B0%8D%E6%96%B9%E6%B3%95/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "使用 Caddy 和 devtunnel 實現內網穿透",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F\/"
+        },"genre": "posts","keywords": "caddy, devtunnel, reverse-proxy, 內網穿透","wordcount":  397 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F\/","datePublished": "2025-12-17T04:56:00+00:00","dateModified": "2025-12-17T04:56:00+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e在開發和測試過程中，我們經常需要讓外部網路能夠訪問內部網路的服務。本文介紹如何使用 Caddy 反向代理和 Microsoft devtunnel 來實現內網穿透，讓外部網路可以安全地連接到內部網路服務。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 Caddy 和 devtunnel 實現內網穿透</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-12-17">2025-12-17</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;397 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#使用場景">使用場景</a></li>
+    <li><a href="#什麼是-caddy">什麼是 Caddy？</a></li>
+    <li><a href="#什麼是-devtunnel">什麼是 devtunnel？</a></li>
+    <li><a href="#步驟一安裝-caddy">步驟一：安裝 Caddy</a>
+      <ul>
+        <li><a href="#windows-安裝">Windows 安裝</a></li>
+        <li><a href="#linux-安裝">Linux 安裝</a></li>
+        <li><a href="#macos-安裝">macOS 安裝</a></li>
+      </ul>
+    </li>
+    <li><a href="#步驟二設定-caddy-反向代理">步驟二：設定 Caddy 反向代理</a></li>
+    <li><a href="#步驟三啟動-caddy">步驟三：啟動 Caddy</a></li>
+    <li><a href="#步驟四安裝-devtunnel">步驟四：安裝 devtunnel</a>
+      <ul>
+        <li><a href="#windows-安裝-1">Windows 安裝</a></li>
+        <li><a href="#linuxmacos-安裝">Linux/macOS 安裝</a></li>
+      </ul>
+    </li>
+    <li><a href="#步驟五使用-devtunnel-建立通道">步驟五：使用 devtunnel 建立通道</a>
+      <ul>
+        <li><a href="#devtunnel-常用參數">devtunnel 常用參數</a></li>
+      </ul>
+    </li>
+    <li><a href="#完整流程圖">完整流程圖</a></li>
+    <li><a href="#注意事項">注意事項</a></li>
+    <li><a href="#常見問題">常見問題</a>
+      <ul>
+        <li><a href="#q-devtunnel-連接失敗怎麼辦">Q: devtunnel 連接失敗怎麼辦？</a></li>
+        <li><a href="#q-如何停止服務">Q: 如何停止服務？</a></li>
+        <li><a href="#q-可以同時開多個端口嗎">Q: 可以同時開多個端口嗎？</a></li>
+      </ul>
+    </li>
+    <li><a href="#總結">總結</a></li>
+    <li><a href="#相關資源">相關資源</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>在開發和測試過程中，我們經常需要讓外部網路能夠訪問內部網路的服務。本文介紹如何使用 Caddy 反向代理和 Microsoft devtunnel 來實現內網穿透，讓外部網路可以安全地連接到內部網路服務。</p>
+<h2 id="使用場景">使用場景</h2>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>實際案例分享<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">最近 PM 去公司外面開會，臨時需要讓客戶測試內網的開發環境，叫我幫忙他操作內網系統，我突然想起一招，利用 Caddy 和 devtunnel 快速架設一個通道，讓客戶能夠透過公開網址訪問內網服務。</div>
+        </div>
+    </div>
+<p>這個方案適用於以下場景：</p>
+<ul>
+<li>需要讓客戶或同事測試內部開發環境</li>
+<li>在本地開發環境進行 webhook 測試</li>
+<li>遠端存取家裡或辦公室的內部服務</li>
+<li>臨時分享本地開發的網站給其他人查看</li>
+</ul>
+<h2 id="什麼是-caddy">什麼是 Caddy？</h2>
+<p>Caddy 是一個功能強大、使用簡單的開源網頁伺服器，內建自動 HTTPS 功能。它可以作為反向代理，將請求轉發到指定的後端服務。</p>
+<h2 id="什麼是-devtunnel">什麼是 devtunnel？</h2>
+<p>Microsoft devtunnel 是微軟推出的開發工具，可以將本地端口暴露到公網，類似於 ngrok。它特別適合需要臨時測試的場景。</p>
+<h2 id="步驟一安裝-caddy">步驟一：安裝 Caddy</h2>
+<h3 id="windows-安裝">Windows 安裝</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 使用 winget 安裝</span>
+</span></span><span class="line"><span class="cl">winget install Caddy.Caddy
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或者從官網下載</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># https://caddyserver.com/download</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="linux-安裝">Linux 安裝</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Ubuntu/Debian</span>
+</span></span><span class="line"><span class="cl">sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+</span></span><span class="line"><span class="cl">curl -1sLf <span class="s1">&#39;https://dl.cloudsmith.io/public/caddy/stable/gpg.key&#39;</span> <span class="p">|</span> sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+</span></span><span class="line"><span class="cl">curl -1sLf <span class="s1">&#39;https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt&#39;</span> <span class="p">|</span> sudo tee /etc/apt/sources.list.d/caddy-stable.list
+</span></span><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt install caddy
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="macos-安裝">macOS 安裝</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">brew install caddy
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="步驟二設定-caddy-反向代理">步驟二：設定 Caddy 反向代理</h2>
+<p>建立一個 <code>Caddyfile</code> 設定檔：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-caddy" data-lang="caddy"><span class="line"><span class="cl"><span class="gh">:3000</span> <span class="p">{</span><span class="c1">
+</span></span></span><span class="line"><span class="cl"><span class="c1">    # 把所有請求代理到目標網站
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">reverse_proxy</span> <span class="s">https://stage.com.tw</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">header_up</span> <span class="s">Host</span> <span class="s">stage.com.tw</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個設定的意思是：</p>
+<ul>
+<li>在本機的 3000 端口監聽請求</li>
+<li>將所有請求轉發到 <code>https://stage.com.tw</code></li>
+<li>設定 Host header 為 <code>stage.com.tw</code>，確保目標伺服器能正確處理請求</li>
+</ul>
+<h2 id="步驟三啟動-caddy">步驟三：啟動 Caddy</h2>
+<p>在 <code>Caddyfile</code> 所在目錄執行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Windows</span>
+</span></span><span class="line"><span class="cl">caddy.exe run
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Linux/macOS</span>
+</span></span><span class="line"><span class="cl">caddy run
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>你應該會看到類似這樣的輸出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">2025/12/17 04:56:00.000 INFO    using provided configuration    {&#34;config_file&#34;: &#34;Caddyfile&#34;}
+</span></span><span class="line"><span class="cl">2025/12/17 04:56:00.000 INFO    http    server is listening only on the HTTP port, so no automatic HTTPS will be applied to this server        {&#34;server_name&#34;: &#34;srv0&#34;, &#34;http_port&#34;: 3000}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這表示 Caddy 已經成功在 3000 端口啟動。你可以透過 <code>http://localhost:3000</code> 測試是否正常運作。</p>
+<h2 id="步驟四安裝-devtunnel">步驟四：安裝 devtunnel</h2>
+<p>Microsoft devtunnel 是命令列工具，可以透過多種方式安裝。</p>
+<h3 id="windows-安裝-1">Windows 安裝</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">winget install Microsoft.devtunnel
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="linuxmacos-安裝">Linux/macOS 安裝</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 下載並安裝</span>
+</span></span><span class="line"><span class="cl">curl -sL https://aka.ms/DevTunnelCliInstall <span class="p">|</span> bash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>或者手動下載：</p>
+<ul>
+<li>前往 <a href="https://docs.tunnels.api.visualstudio.com/cli" target="_blank" rel="noopener noreffer ">Microsoft devtunnel 下載頁面</a></li>
+<li>下載對應平台的版本</li>
+<li>解壓縮並加入到 PATH 環境變數</li>
+</ul>
+<h2 id="步驟五使用-devtunnel-建立通道">步驟五：使用 devtunnel 建立通道</h2>
+<p>首次使用需要登入：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">devtunnel user login
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>建立並啟動通道：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 將本地 3000 端口暴露到公網，允許匿名訪問</span>
+</span></span><span class="line"><span class="cl">devtunnel host -p <span class="m">3000</span> --allow-anonymous
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>執行後，devtunnel 會產生一個公開網址，類似：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Hosting port: 3000
+</span></span><span class="line"><span class="cl">Connect via browser: https://abc123xyz.devtunnels.ms
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>現在，任何人都可以透過這個網址訪問你的內部服務了！</p>
+<h3 id="devtunnel-常用參數">devtunnel 常用參數</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 指定通道名稱（方便管理）</span>
+</span></span><span class="line"><span class="cl">devtunnel host -p <span class="m">3000</span> --allow-anonymous 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="完整流程圖">完整流程圖</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">外部使用者
+</span></span><span class="line"><span class="cl">    ↓
+</span></span><span class="line"><span class="cl">devtunnel 公開網址 (https://abc123xyz.devtunnels.ms)
+</span></span><span class="line"><span class="cl">    ↓
+</span></span><span class="line"><span class="cl">本機 Caddy (localhost:3000)
+</span></span><span class="line"><span class="cl">    ↓
+</span></span><span class="line"><span class="cl">目標服務 (https://stage.com.tw 或 localhost:8080)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="注意事項">注意事項</h2>
+<ol>
+<li>
+<p><strong>安全性考量</strong></p>
+<ul>
+<li>使用 <code>--allow-anonymous</code> 時，任何人都可以訪問你的服務，請確保不要暴露敏感資訊</li>
+<li>生產環境建議使用身份驗證</li>
+<li>定期更換或關閉不使用的通道</li>
+</ul>
+</li>
+<li>
+<p><strong>效能限制</strong></p>
+<ul>
+<li>devtunnel 免費版本有流量和連接數限制</li>
+<li>不建議用於生產環境</li>
+</ul>
+</li>
+<li>
+<p><strong>替代方案</strong></p>
+<ul>
+<li>ngrok: 功能更豐富，但免費版有限制</li>
+<li>frp: 需要自己架設伺服器</li>
+<li>Cloudflare Tunnel: 整合 Cloudflare CDN</li>
+</ul>
+</li>
+<li>
+<p><strong>防火牆設定</strong></p>
+<ul>
+<li>確保本機防火牆允許 Caddy 監聽的端口</li>
+<li>如果無法連接，檢查防火牆規則</li>
+</ul>
+</li>
+</ol>
+<h2 id="常見問題">常見問題</h2>
+<h3 id="q-devtunnel-連接失敗怎麼辦">Q: devtunnel 連接失敗怎麼辦？</h3>
+<p>A: 檢查以下幾點：</p>
+<ul>
+<li>確認 devtunnel 是否正常登入</li>
+<li>檢查本機端口 3000 是否被其他程式佔用</li>
+<li>確認 Caddy 是否正常運行</li>
+</ul>
+<h3 id="q-如何停止服務">Q: 如何停止服務？</h3>
+<p>A:</p>
+<ul>
+<li>Caddy: 在終端機按 <code>Ctrl+C</code> 即可停止</li>
+<li>devtunnel: 按 <code>Ctrl+C</code> 會關閉通道</li>
+</ul>
+<h3 id="q-可以同時開多個端口嗎">Q: 可以同時開多個端口嗎？</h3>
+<p>A: 可以，使用多個 <code>devtunnel</code> 實例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 終端機 1</span>
+</span></span><span class="line"><span class="cl">devtunnel host -p <span class="m">3000</span> --allow-anonymous
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 終端機 2</span>
+</span></span><span class="line"><span class="cl">devtunnel host -p <span class="m">4000</span> --allow-anonymous
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="總結">總結</h2>
+<p>透過 Caddy 和 devtunnel 的組合，我們可以快速建立一個從外部網路連接到內部網路的通道。這個方案特別適合：</p>
+<ul>
+<li>快速展示開發成果</li>
+<li>進行 webhook 測試</li>
+<li>遠端除錯</li>
+<li>臨時分享本地服務</li>
+</ul>
+<p>記得在不需要時關閉通道，以確保安全性。如果需要長期使用，建議考慮更專業的解決方案如 VPN 或正式的反向代理架構。</p>
+<h2 id="相關資源">相關資源</h2>
+<ul>
+<li><a href="https://caddyserver.com/docs/" target="_blank" rel="noopener noreffer ">Caddy 官方文件</a></li>
+<li><a href="https://docs.tunnels.api.visualstudio.com/" target="_blank" rel="noopener noreffer ">Microsoft devtunnel 文件</a></li>
+<li><a href="https://caddyserver.com/docs/caddyfile/directives/reverse_proxy" target="_blank" rel="noopener noreffer ">Caddy 反向代理設定</a></li>
+<li><a href="https://github.com/anderspitman/awesome-tunneling" target="_blank" rel="noopener noreffer ">ngrok 替代方案比較</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-12-17</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" data-title="使用 Caddy 和 devtunnel 實現內網穿透" data-hashtags="caddy,devtunnel,reverse-proxy,內網穿透"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" data-hashtag="caddy"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" data-title="使用 Caddy 和 devtunnel 實現內網穿透"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" data-title="使用 Caddy 和 devtunnel 實現內網穿透"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" data-title="使用 Caddy 和 devtunnel 實現內網穿透"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/caddy/">Caddy</a>,&nbsp;<a href="/blog/tags/devtunnel/">Devtunnel</a>,&nbsp;<a href="/blog/tags/reverse-proxy/">Reverse-Proxy</a>,&nbsp;<a href="/blog/tags/%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/">內網穿透</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/Windows-%E5%92%8C-Linux-%E6%A0%B9%E6%86%91%E8%AD%89%E6%AF%94%E5%B0%8D%E6%96%B9%E6%B3%95/" class="prev" rel="prev" title="Windows 和 Linux 根憑證比對方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Windows 和 Linux 根憑證比對方法</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
