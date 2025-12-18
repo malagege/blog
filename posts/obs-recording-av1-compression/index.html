@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片 - 程式狂想筆記</title><meta name="Description" content="常看到網路上有人貼補幀或對比示範影片，但不確定如何錄製與壓縮。其實用 OBS 就能錄製，Windows 內建遊戲列也能錄，但檔案通常偏大。這篇示範：
+
+用 OBS 錄製桌面（顯示器擷取）
+錄完用 FFmpeg 壓縮為 AV1（檔案小、品質佳）
+
+目標是做出「體積小、觀感不差、可快速分享」的示範影片。"><meta property="og:title" content="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片" />
+<meta property="og:description" content="常看到網路上有人貼補幀或對比示範影片，但不確定如何錄製與壓縮。其實用 OBS 就能錄製，Windows 內建遊戲列也能錄，但檔案通常偏大。這篇示範：
+
+用 OBS 錄製桌面（顯示器擷取）
+錄完用 FFmpeg 壓縮為 AV1（檔案小、品質佳）
+
+目標是做出「體積小、觀感不差、可快速分享」的示範影片。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-12-18T21:03:03+08:00" />
+<meta property="article:modified_time" content="2025-12-18T21:34:04+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片"/>
+<meta name="twitter:description" content="常看到網路上有人貼補幀或對比示範影片，但不確定如何錄製與壓縮。其實用 OBS 就能錄製，Windows 內建遊戲列也能錄，但檔案通常偏大。這篇示範：
+
+用 OBS 錄製桌面（顯示器擷取）
+錄完用 FFmpeg 壓縮為 AV1（檔案小、品質佳）
+
+目標是做出「體積小、觀感不差、可快速分享」的示範影片。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" /><link rel="prev" href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/obs-recording-av1-compression\/"
+        },"genre": "posts","keywords": "obs, ffmpeg, av1, av1_nvenc, hevc, windows","wordcount":  226 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/obs-recording-av1-compression\/","datePublished": "2025-12-18T21:03:03+08:00","dateModified": "2025-12-18T21:34:04+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e常看到網路上有人貼補幀或對比示範影片，但不確定如何錄製與壓縮。其實用 OBS 就能錄製，Windows 內建遊戲列也能錄，但檔案通常偏大。這篇示範：\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e用 OBS 錄製桌面（顯示器擷取）\u003c/li\u003e\n\u003cli\u003e錄完用 FFmpeg 壓縮為 AV1（檔案小、品質佳）\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e目標是做出「體積小、觀感不差、可快速分享」的示範影片。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%BD%B1%E9%9F%B3/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>影音</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-12-18">2025-12-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;226 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#obs-錄製建議設定">OBS 錄製（建議設定）</a></li>
+    <li><a href="#ffmpeg-壓縮-av1nvidia-av1_nvenc">FFmpeg 壓縮 AV1（NVIDIA av1_nvenc）</a></li>
+    <li><a href="#壓縮結果">壓縮結果</a></li>
+    <li><a href="#進階用法">進階用法</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>常看到網路上有人貼補幀或對比示範影片，但不確定如何錄製與壓縮。其實用 OBS 就能錄製，Windows 內建遊戲列也能錄，但檔案通常偏大。這篇示範：</p>
+<ul>
+<li>用 OBS 錄製桌面（顯示器擷取）</li>
+<li>錄完用 FFmpeg 壓縮為 AV1（檔案小、品質佳）</li>
+</ul>
+<p>目標是做出「體積小、觀感不差、可快速分享」的示範影片。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>為什麼用顯示器擷取？<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">部分播放器或瀏覽器的影片畫面在「視窗擷取」下可能無法被錄到，改用「顯示器擷取」最穩定。</div>
+        </div>
+    </div>
+<h2 id="obs-錄製建議設定">OBS 錄製（建議設定）</h2>
+<ol>
+<li>
+<p>安裝與開啟 OBS</p>
+<ul>
+<li>下載安裝 OBS（官方網站），安裝完成後開啟。</li>
+</ul>
+</li>
+<li>
+<p>建立來源：</p>
+<ul>
+<li>在「來源」點「+」新增「顯示器擷取」，選擇要錄的螢幕。</li>
+<li>若只想錄某區域，可在來源上按右鍵→「變換」→「編輯變換」做裁切。<br>
+<a class="lightgallery" href="obs1.png" title="obs1.png" data-thumbnail="obs1.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="obs1.png"
+            data-srcset="obs1.png, obs1.png 1.5x, obs1.png 2x"
+            data-sizes="auto"
+            alt="obs1.png"
+            title="obs1.png" />
+    </a></li>
+</ul>
+</li>
+<li>
+<p>音訊處理：</p>
+<ul>
+<li>不想錄聲音可直接把對應音軌調成靜音，或在設定裡取消音訊裝置。</li>
+</ul>
+</li>
+<li>
+<p>解析度與幀率：</p>
+<ul>
+<li>「設定 → 影像」
+<ul>
+<li>基本（畫布）解析度：建議維持實際桌面解析度。</li>
+<li>輸出（縮放）解析度：若要小檔，改為 1280x720 或 1920x1080 視需求。</li>
+<li>FPS：一般示範 30fps 即可，動態多再用 60fps。<br>
+<a class="lightgallery" href="obs3.png" title="obs3.png" data-thumbnail="obs3.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="obs3.png"
+            data-srcset="obs3.png, obs3.png 1.5x, obs3.png 2x"
+            data-sizes="auto"
+            alt="obs3.png"
+            title="obs3.png" />
+    </a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>錄製格式與安全性：</p>
+<ul>
+<li>「設定 → 輸出 → 錄影」
+<ul>
+<li>錄影格式建議選 MKV（錄製中斷也不會壞檔）。</li>
+<li>錄完可用「檔案 → 重新封裝錄影」轉成 MP4 再分享。<br>
+<a class="lightgallery" href="obs3.png" title="obs3.png" data-thumbnail="obs3.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="obs3.png"
+            data-srcset="obs3.png, obs3.png 1.5x, obs3.png 2x"
+            data-sizes="auto"
+            alt="obs3.png"
+            title="obs3.png" />
+    </a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>編碼器（可選）：</p>
+<ul>
+<li>若只是先錄製、之後再用 FFmpeg 壓縮，這裡用預設 H.264/HEVC 都可以。</li>
+<li>想直接小檔：NVIDIA 可選「HEVC (NVENC)」，品質與體積較平衡。<br>
+<a class="lightgallery" href="obs4.png" title="obs4.png" data-thumbnail="obs4.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="obs4.png"
+            data-srcset="obs4.png, obs4.png 1.5x, obs4.png 2x"
+            data-sizes="auto"
+            alt="obs4.png"
+            title="obs4.png" />
+    </a></li>
+</ul>
+</li>
+<li>
+<p>快捷鍵：</p>
+<ul>
+<li>「設定 → 快捷鍵」設定開始/停止錄影熱鍵，操作更順手。</li>
+</ul>
+</li>
+<li>
+<p>開始錄影：</p>
+<ul>
+<li>準備好場景後按「開始錄影」，錄完按「停止錄影」。</li>
+</ul>
+</li>
+</ol>
+<h2 id="ffmpeg-壓縮-av1nvidia-av1_nvenc">FFmpeg 壓縮 AV1（NVIDIA av1_nvenc）</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ffmpeg -i input.mp4 -c:v av1_nvenc -preset p5 -rc vbr -cq <span class="m">30</span> -b:v <span class="m">0</span> -c:a copy output.mkv
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>不需要聲音：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ffmpeg -i input.mp4 -c:v av1_nvenc -preset p5 -rc vbr -cq <span class="m">30</span> -b:v <span class="m">0</span> output.mkv
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參數說明（重點）：</p>
+<ul>
+<li><code>-c:v av1_nvenc</code>：用 NVIDIA NVENC 做 AV1 硬體編碼（需 RTX 40 系列或支援 AV1 的 NVENC）。</li>
+<li><code>-preset p5</code>：越小越慢但更省檔（p1 最快、p7 最慢較省檔）。</li>
+<li><code>-rc vbr</code> + <code>-cq 30</code>：以固定品質為主；<code>cq</code> 越小越清晰、檔案越大（常見區間 22–35）。</li>
+<li><code>-b:v 0</code>：搭配 <code>cq</code> 使用，交給品質控制。</li>
+<li><code>-c:a copy</code>：音訊複製，免重編（若要靜音則改 <code>-an</code>）。</li>
+</ul>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>沒有 av1_nvenc？替代解法<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><ul>
+<li>Intel Arc/新款 iGPU（Windows）：<code>-c:v av1_qsv</code></li>
+<li>AMD（Windows）：<code>-c:v av1_amf</code></li>
+<li>純 CPU（通用、較慢）：<code>-c:v libsvtav1 -crf 30 -preset 6</code></li>
+<li>只求相容與速度（NVIDIA）：<code>-c:v hevc_nvenc -cq 25 -preset p5 -b:v 0</code></li>
+</ul>
+</div>
+        </div>
+    </div>
+<h2 id="壓縮結果">壓縮結果</h2>
+<p>我在 mpv-lazy 回報了這個<a href="https://github.com/hooke007/mpv_PlayKit/discussions/644#discussioncomment-15255940" target="_blank" rel="noopener noreffer ">討論</a>，內有用方法錄製影片。</p>
+<p>以下是實測數據：</p>
+<ul>
+<li><strong>原始檔案</strong>（OBS 錄製 HEVC、20 秒、解析度 1280x720）：約 30MB</li>
+<li><strong>AV1 壓縮後</strong>（使用 NVENC、cq 30）：低於 10MB</li>
+</ul>
+<h2 id="進階用法">進階用法</h2>
+<p>常用進階技巧：</p>
+<ul>
+<li>縮小解析度與降幀可明顯減小檔案：
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ffmpeg -i input.mp4 -vf <span class="s2">&#34;scale=-2:720,fps=30&#34;</span> -c:v av1_nvenc -preset p5 -rc vbr -cq <span class="m">30</span> -b:v <span class="m">0</span> -c:a copy output.mkv
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>裁切片段（先粗切再壓）：
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 取 00:00:05 到 00:00:25 的片段並重編（最穩定）</span>
+</span></span><span class="line"><span class="cl">ffmpeg -ss <span class="m">5</span> -to <span class="m">25</span> -i input.mp4 -c:v av1_nvenc -preset p5 -rc vbr -cq <span class="m">30</span> -b:v <span class="m">0</span> -c:a copy output.mkv
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-12-18</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" data-title="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片" data-hashtags="obs,ffmpeg,av1,av1_nvenc,hevc,windows"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" data-hashtag="obs"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" data-title="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" data-title="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" data-title="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/obs/">Obs</a>,&nbsp;<a href="/blog/tags/ffmpeg/">Ffmpeg</a>,&nbsp;<a href="/blog/tags/av1/">Av1</a>,&nbsp;<a href="/blog/tags/av1_nvenc/">Av1_nvenc</a>,&nbsp;<a href="/blog/tags/hevc/">Hevc</a>,&nbsp;<a href="/blog/tags/windows/">Windows</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/%E4%BD%BF%E7%94%A8-Caddy-%E5%92%8C-devtunnel-%E5%AF%A6%E7%8F%BE%E5%85%A7%E7%B6%B2%E7%A9%BF%E9%80%8F/" class="prev" rel="prev" title="使用 Caddy 和 devtunnel 實現內網穿透"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>使用 Caddy 和 devtunnel 實現內網穿透</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2025</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
