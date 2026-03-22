@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>切歌總有「啵」一聲？解決獨佔模式切換歌會爆音 - 程式狂想筆記</title><meta name="Description" content="獨佔模式切歌出現啵聲或爆音時，如何用統一採樣率、SoX Resampler、Roon DSP Engine 與 Windows 電源設定降低雜音。"><meta property="og:title" content="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音" />
+<meta property="og:description" content="獨佔模式切歌出現啵聲或爆音時，如何用統一採樣率、SoX Resampler、Roon DSP Engine 與 Windows 電源設定降低雜音。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-03-22T14:11:10+08:00" />
+<meta property="article:modified_time" content="2026-03-22T22:45:53+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音"/>
+<meta name="twitter:description" content="獨佔模式切歌出現啵聲或爆音時，如何用統一採樣率、SoX Resampler、Roon DSP Engine 與 Windows 電源設定降低雜音。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" /><link rel="prev" href="https://malagege.github.io/blog/posts/obs-recording-av1-compression/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "切歌總有「啵」一聲？解決獨佔模式切換歌會爆音",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/fix-pop-sound-when-switching-songs-exclusive-mode\/"
+        },"genre": "posts","keywords": "windows, audio, dac, foobar2000, roon, exclusive-mode","wordcount":  197 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/fix-pop-sound-when-switching-songs-exclusive-mode\/","datePublished": "2026-03-22T14:11:10+08:00","dateModified": "2026-03-22T22:45:53+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近在玩 USB DAC、播放器獨佔模式時，有一個很容易讓人分心的小問題：\u003cstrong\u003e明明音質很好，但每次切歌都會突然「啵」一聲\u003c/strong\u003e。尤其是從 44.1kHz 切到 96kHz、192kHz 這種不同採樣率的音樂時，耳機裡那一下真的很明顯，聽久了不只不舒服，也會讓人擔心是不是設備哪裡有問題。\u003c/p\u003e\n\u003cp\u003e我一開始也以為是喇叭壞掉、USB 線不穩，或播放器設定怪怪的。後來查了一輪資料，有查到關掉獨佔模式可以解決部分問題，沒想到測試竟然解決。但聽音樂怎麼可能不開獨佔模式？那就失去很多音質優勢了啊。後來有找到解決方法，發現很少網站提到這個方法，甚至很多人都還在苦惱這個問題，希望這問題能幫助到大家。\u003c/p\u003e\n\u003cp\u003e這篇就整理成一篇實戰筆記，說明為什麼會有這個聲音，以及我自己覺得最有效、最省事的處理方式。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">切歌總有「啵」一聲？解決獨佔模式切換歌會爆音</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Windows/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Windows</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2026-03-22">2026-03-22</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;197 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#為什麼切換歌曲會有啵聲">為什麼切換歌曲會有「啵」聲？</a></li>
+    <li><a href="#核心解法統一採樣率讓-dac-不要一直切">核心解法：統一採樣率，讓 DAC 不要一直切</a></li>
+    <li><a href="#先決定你要固定在哪個採樣率">先決定你要固定在哪個採樣率</a></li>
+    <li><a href="#foobar2000resampler-處理切歌爆音">foobar2000：Resampler 處理切歌爆音</a></li>
+    <li><a href="#roon用-dsp-engine-固定輸出頻率">Roon：用 DSP Engine 固定輸出頻率</a>
+      <ul>
+        <li><a href="#步驟-1開啟裝置的-dsp-engine">步驟 1：開啟裝置的 DSP Engine</a></li>
+        <li><a href="#步驟-2改成自訂規則">步驟 2：改成自訂規則</a></li>
+        <li><a href="#步驟-3觀察-signal-path">步驟 3：觀察 Signal Path</a></li>
+      </ul>
+    </li>
+    <li><a href="#mpv-撥放器">MPV 撥放器</a>
+      <ul>
+        <li><a href="#feishin-設定調整">Feishin 設定調整</a></li>
+      </ul>
+    </li>
+    <li><a href="#網路上的其他解決方法">網路上的其他解決方法</a></li>
+    <li><a href="#結論">結論</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在玩 USB DAC、播放器獨佔模式時，有一個很容易讓人分心的小問題：<strong>明明音質很好，但每次切歌都會突然「啵」一聲</strong>。尤其是從 44.1kHz 切到 96kHz、192kHz 這種不同採樣率的音樂時，耳機裡那一下真的很明顯，聽久了不只不舒服，也會讓人擔心是不是設備哪裡有問題。</p>
+<p>我一開始也以為是喇叭壞掉、USB 線不穩，或播放器設定怪怪的。後來查了一輪資料，有查到關掉獨佔模式可以解決部分問題，沒想到測試竟然解決。但聽音樂怎麼可能不開獨佔模式？那就失去很多音質優勢了啊。後來有找到解決方法，發現很少網站提到這個方法，甚至很多人都還在苦惱這個問題，希望這問題能幫助到大家。</p>
+<p>這篇就整理成一篇實戰筆記，說明為什麼會有這個聲音，以及我自己覺得最有效、最省事的處理方式。</p>
+<h2 id="為什麼切換歌曲會有啵聲">為什麼切換歌曲會有「啵」聲？</h2>
+<p>在使用 <strong>Exclusive Mode（獨佔模式）</strong> 播放音樂時，播放器會直接接管音訊輸出設備，盡量避開 Windows 混音器的二次處理。這種做法的好處，是能更接近很多人追求的 Bit-Perfect 輸出。</p>
+<p>但問題也在這裡。</p>
+<p>當前一首歌是 44.1kHz，下一首歌變成 96kHz，甚至 192kHz 時，DAC 端通常需要重新同步時脈、重新鎖定新頻率。這段切換雖然通常只有幾毫秒，但有些 DAC、耳擴、USB 音訊晶片，或者驅動程式在這一瞬間會出現短暫電訊號衝擊，最後就變成耳朵聽到的「啵」聲、爆音，或者繼電器切換聲前後夾雜的小雜音。</p>
+<p>簡單講，可以把它理解成下面這個流程：</p>
+<ol>
+<li>播放器用獨佔模式直接控制 DAC。</li>
+<li>新歌曲的採樣率和上一首不同。</li>
+<li>DAC 被迫重新鎖定時脈。</li>
+<li>切換瞬間產生短暫異常訊號。</li>
+<li>你就聽到那一下「啵」。</li>
+</ol>
+<p>如果你的播放清單裡同時有 CD 品質、Hi-Res、串流來源，這問題就更容易反覆出現。</p>
+<div class="details admonition tip">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>先別急著懷疑 DAC 壞掉<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">如果只有在「切歌瞬間」發生，平常播放時完全正常，八成不是設備故障，而是採樣率切換造成的瞬時現象。</div>
+        </div>
+    </div>
+<h2 id="核心解法統一採樣率讓-dac-不要一直切">核心解法：統一採樣率，讓 DAC 不要一直切</h2>
+<p>我自己測下來，最有感也最穩的做法，就是：<strong>把所有音樂先在軟體端統一轉成同一個採樣率再輸出。</strong></p>
+<p>概念其實很單純。</p>
+<p>如果你的 DAC 永遠只收到 192kHz，或永遠只收到 96kHz，那它就不需要在每次切歌時重新切換頻率，自然也比較不會出現那一下突波。</p>
+<p>這件事本質上就是：</p>
+<ul>
+<li>不要讓 DAC 一直切 44.1kHz / 48kHz / 96kHz / 192kHz</li>
+<li>改成由播放器先做升頻或重採樣</li>
+<li>最後固定輸出到單一頻率</li>
+</ul>
+<p>雖然有些人會擔心這樣就不是最原始的 Bit-Perfect 了，但實務上如果你已經被切歌爆音困擾很久，這個做法通常是<strong>音質與使用體驗之間最好的平衡點</strong>。</p>
+<h2 id="先決定你要固定在哪個採樣率">先決定你要固定在哪個採樣率</h2>
+<p>很多文章會直接建議拉到最高，例如 192kHz，但我自己的建議會比較保守一點：</p>
+<ul>
+<li><strong>先看 DAC 官方規格支援哪些採樣率</strong></li>
+<li><strong>再選一個你實測最穩定的固定值</strong></li>
+<li><strong>不一定最高就是最好</strong></li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>入門 DAC：固定 96kHz 可能比 192kHz 更穩</li>
+<li>中高階 DAC：固定 192kHz 通常沒問題</li>
+<li>如果你主要播放 44.1kHz 系列音樂，也可以優先測試 88.2kHz 或 176.4kHz</li>
+</ul>
+<p>如果你發現固定 192kHz 反而 CPU 使用率增加、播放器延遲變高，或偶爾還是有聲音異常，那就往下一級測，例如改成 96kHz。</p>
+<h2 id="foobar2000resampler-處理切歌爆音">foobar2000：Resampler 處理切歌爆音</h2>
+<p>如果你平常是用 foobar2000，這套做法真的很直接。</p>
+<p>SoX Resampler 測試沒有效過，所以後來改用內建的 Resampler，測試有效。</p>
+<p><a class="lightgallery" href="foobar2000resample.avif" title="alt text" data-thumbnail="foobar2000resample.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="foobar2000resample.avif"
+            data-srcset="foobar2000resample.avif, foobar2000resample.avif 1.5x, foobar2000resample.avif 2x"
+            data-sizes="auto"
+            alt="foobar2000resample.avif"
+            title="alt text" />
+    </a></p>
+<h2 id="roon用-dsp-engine-固定輸出頻率">Roon：用 DSP Engine 固定輸出頻率</h2>
+<p>如果你是 Roon 使用者，設定也不難，而且 Roon 的 DSP 做得算完整。</p>
+<h3 id="步驟-1開啟裝置的-dsp-engine">步驟 1：開啟裝置的 DSP Engine</h3>
+<p>進入你正在使用的音訊設備設定頁，找到：</p>
+<ul>
+<li><code>DSP Engine</code></li>
+<li><code>Sample Rate Conversion</code></li>
+</ul>
+<h3 id="步驟-2改成自訂規則">步驟 2：改成自訂規則</h3>
+<p>建議選 <code>Custom</code>，然後把低於某個值的來源都統一拉到固定輸出。例如：</p>
+<ul>
+<li>44.1kHz → 192kHz</li>
+<li>48kHz → 192kHz</li>
+<li>88.2kHz → 192kHz</li>
+<li>96kHz → 192kHz</li>
+</ul>
+<p>如果你的設備沒有那麼穩，也可以全部統一到 96kHz。</p>
+<p><a class="lightgallery" href="image.avif" title="調整 192kHz 取樣率" data-thumbnail="image.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="image.avif"
+            data-srcset="image.avif, image.avif 1.5x, image.avif 2x"
+            data-sizes="auto"
+            alt="image.avif"
+            title="調整 192kHz 取樣率" />
+    </a><br>
+<a class="lightgallery" href="image-1.avif" title="alt text" data-thumbnail="image-1.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="image-1.avif"
+            data-srcset="image-1.avif, image-1.avif 1.5x, image-1.avif 2x"
+            data-sizes="auto"
+            alt="image-1.avif"
+            title="alt text" />
+    </a></p>
+<h3 id="步驟-3觀察-signal-path">步驟 3：觀察 Signal Path</h3>
+<p>Roon 的好處是你可以直接看 <code>Signal Path</code>，確認目前是不是已經固定做了重採樣輸出。這個地方很適合拿來驗證設定有沒有真的套用。</p>
+<p><a class="lightgallery" href="singlepath.avif" title="觀察 Signal Path" data-thumbnail="singlepath.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="singlepath.avif"
+            data-srcset="singlepath.avif, singlepath.avif 1.5x, singlepath.avif 2x"
+            data-sizes="auto"
+            alt="singlepath.avif"
+            title="觀察 Signal Path" />
+    </a></p>
+<h2 id="mpv-撥放器">MPV 撥放器</h2>
+<p>MPV 執行加上以下參數，強制把所有音樂都轉成 192kHz，並且開啟獨佔模式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">--af<span class="o">=</span><span class="nv">format</span><span class="o">=</span><span class="nv">srate</span><span class="o">=</span>192000:format<span class="o">=</span>double --audio-exclusive<span class="o">=</span>yes
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="feishin-設定調整">Feishin 設定調整</h3>
+<p>取樣率調成 192kHz。</p>
+<p><a class="lightgallery" href="feishin.avif" title="alt text" data-thumbnail="feishin.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="feishin.avif"
+            data-srcset="feishin.avif, feishin.avif 1.5x, feishin.avif 2x"
+            data-sizes="auto"
+            alt="feishin.avif"
+            title="alt text" />
+    </a></p>
+<h2 id="網路上的其他解決方法">網路上的其他解決方法</h2>
+<p>我測試過一些網路上提到的解決方法，但都沒有用，但還是留一下來給大家參考：</p>
+<ul>
+<li><strong>關掉獨佔模式</strong>：確實可以避免切歌爆音，但會失去 Bit-Perfect 的優勢，音質可能會變差。</li>
+<li><strong>調整 Windows 電源設定</strong>：有些人說把電源設定改成「高效能」可以減少爆音，但我實測後發現對切歌爆音沒有明顯幫助。</li>
+<li><strong>更新 DAC 驅動程式</strong>：有些 DAC 廠商會釋出更新驅動來改善這個問題，但這通常是針對特定型號，且不一定能完全解決。</li>
+<li><strong>更換 USB 線或接口</strong>：有時候 USB 線材或接口的品質也會影響信號穩定性，但這通常不是主要原因。</li>
+<li><strong>使用 ASIO 模式</strong>：有些人建議改用 ASIO 模式，但實際上 ASIO 也會遇到同樣的切歌爆音問題，因為核心問題還是在於採樣率切換。</li>
+</ul>
+<h2 id="結論">結論</h2>
+<p>切歌爆音雖然聽起來很煩人，不是每個 DAC 都會有這個問題，但如果你遇到了，可以試試看把所有音樂統一轉成同一個採樣率的做法。這樣雖然不是最原始的 Bit-Perfect，但在實際使用體驗上，通常是最穩定、最舒服的解決方案。</p></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2026-03-22</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" data-title="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音" data-hashtags="windows,audio,dac,foobar2000,roon,exclusive-mode"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" data-hashtag="windows"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" data-title="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" data-title="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" data-title="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/windows/">Windows</a>,&nbsp;<a href="/blog/tags/audio/">Audio</a>,&nbsp;<a href="/blog/tags/dac/">Dac</a>,&nbsp;<a href="/blog/tags/foobar2000/">Foobar2000</a>,&nbsp;<a href="/blog/tags/roon/">Roon</a>,&nbsp;<a href="/blog/tags/exclusive-mode/">Exclusive-Mode</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/obs-recording-av1-compression/" class="prev" rel="prev" title="使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2026</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
