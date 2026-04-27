@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Linux 掛載硬碟另類方法 - 程式狂想筆記</title><meta name="Description" content="在 Linux 系統管理裡，掛載硬碟看起來像是基本功，但真的遇到外接硬碟、USB、SD 卡、NAS 或 NFS 時，選錯方法很容易把自己搞到開機變慢、服務卡住，甚至一拔裝置就滿地錯誤。
+我以前比較常直接用 /etc/fstab，後來在不同情境下才慢慢發現，其實 systemd、udevil、udev，甚至 autofs 都各有適合的使用場景。這篇就把幾種常見做法整理成一篇，順便補上我自己覺得比較實用的踩雷心得。"><meta property="og:title" content="Linux 掛載硬碟另類方法" />
+<meta property="og:description" content="在 Linux 系統管理裡，掛載硬碟看起來像是基本功，但真的遇到外接硬碟、USB、SD 卡、NAS 或 NFS 時，選錯方法很容易把自己搞到開機變慢、服務卡住，甚至一拔裝置就滿地錯誤。
+我以前比較常直接用 /etc/fstab，後來在不同情境下才慢慢發現，其實 systemd、udevil、udev，甚至 autofs 都各有適合的使用場景。這篇就把幾種常見做法整理成一篇，順便補上我自己覺得比較實用的踩雷心得。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-04-27T20:48:23+08:00" />
+<meta property="article:modified_time" content="2026-04-27T21:01:54+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Linux 掛載硬碟另類方法"/>
+<meta name="twitter:description" content="在 Linux 系統管理裡，掛載硬碟看起來像是基本功，但真的遇到外接硬碟、USB、SD 卡、NAS 或 NFS 時，選錯方法很容易把自己搞到開機變慢、服務卡住，甚至一拔裝置就滿地錯誤。
+我以前比較常直接用 /etc/fstab，後來在不同情境下才慢慢發現，其實 systemd、udevil、udev，甚至 autofs 都各有適合的使用場景。這篇就把幾種常見做法整理成一篇，順便補上我自己覺得比較實用的踩雷心得。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" /><link rel="prev" href="https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Linux 掛載硬碟另類方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/linux-alternative-disk-mounting-methods\/"
+        },"genre": "posts","keywords": "linux, mount, systemd, udev, disk","wordcount":  765 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/linux-alternative-disk-mounting-methods\/","datePublished": "2026-04-27T20:48:23+08:00","dateModified": "2026-04-27T21:01:54+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e在 Linux 系統管理裡，掛載硬碟看起來像是基本功，但真的遇到外接硬碟、USB、SD 卡、NAS 或 NFS 時，選錯方法很容易把自己搞到開機變慢、服務卡住，甚至一拔裝置就滿地錯誤。\u003c/p\u003e\n\u003cp\u003e我以前比較常直接用 \u003ccode\u003e/etc/fstab\u003c/code\u003e，後來在不同情境下才慢慢發現，其實 \u003ccode\u003esystemd\u003c/code\u003e、\u003ccode\u003eudevil\u003c/code\u003e、\u003ccode\u003eudev\u003c/code\u003e，甚至 \u003ccode\u003eautofs\u003c/code\u003e 都各有適合的使用場景。這篇就把幾種常見做法整理成一篇，順便補上我自己覺得比較實用的踩雷心得。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux 掛載硬碟另類方法</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2026-04-27">2026-04-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;765 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#文章重點心智圖">文章重點心智圖</a></li>
+    <li><a href="#為什麼要分情境選掛載方法">為什麼要分情境選掛載方法</a></li>
+    <li><a href="#我自己的快速選擇">我自己的快速選擇</a></li>
+    <li><a href="#方法一etcfstab">方法一：<code>/etc/fstab</code></a>
+      <ul>
+        <li><a href="#實戰">實戰</a></li>
+        <li><a href="#這個方法在做什麼">這個方法在做什麼</a></li>
+        <li><a href="#常用掛載選項">常用掛載選項</a></li>
+        <li><a href="#設定步驟">設定步驟</a></li>
+        <li><a href="#優點與缺點">優點與缺點</a></li>
+      </ul>
+    </li>
+    <li><a href="#方法二systemd-掛載">方法二：<code>systemd</code> 掛載</a>
+      <ul>
+        <li><a href="#實戰-1">實戰</a></li>
+        <li><a href="#優點與缺點-1">優點與缺點</a></li>
+      </ul>
+    </li>
+    <li><a href="#方法三udevil">方法三：<code>udevil</code></a>
+      <ul>
+        <li><a href="#udevil-跟-devmon-的分工"><code>udevil</code> 跟 <code>devmon</code> 的分工</a></li>
+        <li><a href="#安裝與基本用法">安裝與基本用法</a></li>
+        <li><a href="#啟動-devmon">啟動 <code>devmon</code></a></li>
+        <li><a href="#udevilconf-常看欄位"><code>udevil.conf</code> 常看欄位</a></li>
+        <li><a href="#優點與缺點-2">優點與缺點</a></li>
+      </ul>
+    </li>
+    <li><a href="#方法四udev">方法四：<code>udev</code></a>
+      <ul>
+        <li><a href="#實戰-2">實戰</a></li>
+        <li><a href="#更完整的思路">更完整的思路</a></li>
+        <li><a href="#為什麼現在比較常搭配-systemd">為什麼現在比較常搭配 <code>systemd</code></a></li>
+        <li><a href="#優點與缺點-3">優點與缺點</a></li>
+      </ul>
+    </li>
+    <li><a href="#補充為什麼-nfs-比較適合-autofs">補充：為什麼 NFS 比較適合 <code>autofs</code></a>
+      <ul>
+        <li><a href="#問題核心">問題核心</a></li>
+        <li><a href="#autofs-為什麼比較穩"><code>autofs</code> 為什麼比較穩</a></li>
+        <li><a href="#小實驗">小實驗</a></li>
+      </ul>
+    </li>
+    <li><a href="#總結">總結</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>在 Linux 系統管理裡，掛載硬碟看起來像是基本功，但真的遇到外接硬碟、USB、SD 卡、NAS 或 NFS 時，選錯方法很容易把自己搞到開機變慢、服務卡住，甚至一拔裝置就滿地錯誤。</p>
+<p>我以前比較常直接用 <code>/etc/fstab</code>，後來在不同情境下才慢慢發現，其實 <code>systemd</code>、<code>udevil</code>、<code>udev</code>，甚至 <code>autofs</code> 都各有適合的使用場景。這篇就把幾種常見做法整理成一篇，順便補上我自己覺得比較實用的踩雷心得。</p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>先講結論<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">固定接在機器上的本機硬碟，優先考慮 <code>/etc/fstab</code> 或 <code>systemd</code> 掛載；可移動裝置偏向 <code>udevil</code> 或 <code>udev</code>；如果是 NFS 這類網路檔案系統，我反而更推薦 <code>autofs</code> 這種按需掛載做法，會穩很多。</div>
+        </div>
+    </div>
+<h2 id="文章重點心智圖">文章重點心智圖</h2>
+<div class="mermaid">mindmap
+	root((Linux 掛載硬碟方法))
+		fstab
+			最傳統
+			開機自動掛載
+			固定硬碟最好用
+			設錯可能卡開機
+		systemd
+			依賴管理清楚
+			支援 automount
+			適合服務型主機
+		udevil
+			一般使用者可操作
+			devmon 可自動掛載
+			適合桌面與 USB
+		udev
+			事件驅動
+			可客製規則
+			適合熱插拔裝置
+		autofs
+			按需掛載
+			適合 NFS
+			可避免系統卡死
+</div>
+<h2 id="為什麼要分情境選掛載方法">為什麼要分情境選掛載方法</h2>
+<p>同樣是「把硬碟掛上去」，背後情境其實差很多：</p>
+<ol>
+<li>固定掛在主機裡的資料碟，通常追求穩定與開機即用。</li>
+<li>USB 隨身碟或 SD 卡這類熱插拔裝置，比較在意插上就能用、拔掉也別出事。</li>
+<li>NFS、CIFS 這類網路磁碟，最大風險不是設定麻煩，而是遠端主機失聯時會拖垮本機 I/O。</li>
+</ol>
+<p>所以與其問哪一種最好，不如先問自己要解決哪一種場景。</p>
+<h2 id="我自己的快速選擇">我自己的快速選擇</h2>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>建議方法</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定本機硬碟</td>
+<td><code>/etc/fstab</code></td>
+<td>最直觀、最常見、維護成本低</td>
+</tr>
+<tr>
+<td>需要依賴網路或服務順序</td>
+<td><code>systemd mount</code></td>
+<td>相依關係與日誌比較清楚</td>
+</tr>
+<tr>
+<td>桌面環境 USB 自動掛載</td>
+<td><code>udevil</code> + <code>devmon</code></td>
+<td>使用者層級比較方便</td>
+</tr>
+<tr>
+<td>想依裝置事件自動處理</td>
+<td><code>udev</code></td>
+<td>客製化能力高</td>
+</tr>
+<tr>
+<td>NFS 或不穩定網路磁碟</td>
+<td><code>autofs</code></td>
+<td>按需掛載，較不容易拖垮系統</td>
+</tr>
+</tbody>
+</table>
+<h2 id="方法一etcfstab">方法一：<code>/etc/fstab</code></h2>
+<h3 id="實戰">實戰</h3>
+<p>我之前在另一篇 <a href="https://malagege.github.io/blog/posts/2023%E5%B9%B4%E6%A8%B9%E8%8E%93%E6%B4%BE%E9%87%8D%E8%A3%9D-Flexget/" target="_blank" rel="noopener noreffer ">2023 年樹莓派重裝 Flexget</a> 其實就有用過 <code>fstab</code> 來做自動掛載。對固定接在機器上的資料碟來說，這招真的夠用。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 建立掛載點</span>
+</span></span><span class="line"><span class="cl">sudo mkdir -p /media/extHDD
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 先手動掛載一次確認裝置沒問題</span>
+</span></span><span class="line"><span class="cl">sudo mount /dev/sda1 /media/extHDD
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查詢 UUID</span>
+</span></span><span class="line"><span class="cl">sudo blkid
+</span></span><span class="line"><span class="cl"><span class="c1"># /dev/sda1: UUID=&#34;4411c5bb-2392-45d8-a7ba-7b40275a84fd&#34; BLOCK_SIZE=&#34;4096&#34; TYPE=&#34;ext4&#34; PARTUUID=&#34;42f5e0d3-01&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 編輯 /etc/fstab</span>
+</span></span><span class="line"><span class="cl">sudo nano /etc/fstab
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在 <code>/etc/fstab</code> 裡加上：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">UUID=4411c5bb-2392-45d8-a7ba-7b40275a84fd /media/extHDD ext4 rw,defaults,nofail 0 0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>最後記得測試：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo mount -a
+</span></span><span class="line"><span class="cl">df -h
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="這個方法在做什麼">這個方法在做什麼</h3>
+<p><code>/etc/fstab</code> 是 Linux 傳統的檔案系統表，系統開機時會依照這份清單決定哪些檔案系統要掛載到哪裡。</p>
+<p>標準格式是：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">&lt;file system&gt; &lt;dir&gt; &lt;fs-type&gt; &lt;options&gt; &lt;dump&gt; &lt;pass&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>常見欄位意義如下：</p>
+<ul>
+<li><code>&lt;file system&gt;</code>：裝置路徑、UUID 或 LABEL。</li>
+<li><code>&lt;dir&gt;</code>：掛載點。</li>
+<li><code>&lt;fs-type&gt;</code>：檔案系統類型，例如 <code>ext4</code>、<code>xfs</code>、<code>ntfs</code>。</li>
+<li><code>&lt;options&gt;</code>：掛載選項。</li>
+<li><code>&lt;dump&gt;</code>：是否提供給 <code>dump</code> 備份工具使用。</li>
+<li><code>&lt;pass&gt;</code>：開機時 <code>fsck</code> 檢查順序。</li>
+</ul>
+<h3 id="常用掛載選項">常用掛載選項</h3>
+<ul>
+<li><code>defaults</code>：預設選項組合。</li>
+<li><code>rw</code>：可讀寫。</li>
+<li><code>ro</code>：唯讀。</li>
+<li><code>auto</code>：開機或 <code>mount -a</code> 時自動掛載。</li>
+<li><code>noauto</code>：不自動掛載。</li>
+<li><code>nofail</code>：掛載失敗也不要影響系統啟動。</li>
+<li><code>_netdev</code>：宣告這是網路檔案系統。</li>
+<li><code>x-systemd.automount</code>：首次存取時才真正掛載。</li>
+<li><code>x-systemd.device-timeout=15s</code>：等待裝置時間上限。</li>
+</ul>
+<h3 id="設定步驟">設定步驟</h3>
+<ol>
+<li>先用 <code>lsblk</code> 或 <code>sudo fdisk -l</code> 找到裝置名稱。</li>
+<li>用 <code>sudo blkid /dev/sdXN</code> 取得 UUID 與檔案系統類型。</li>
+<li>建立掛載點，例如 <code>sudo mkdir -p /mnt/mydata</code>。</li>
+<li>編輯 <code>/etc/fstab</code>，新增一行掛載設定。</li>
+<li>用 <code>sudo mount -a</code> 測試設定是否正確。</li>
+<li>用 <code>df -hT</code>、<code>lsblk</code> 或 <code>findmnt /mnt/mydata</code> 驗證結果。</li>
+</ol>
+<h3 id="優點與缺點">優點與缺點</h3>
+<p>優點：</p>
+<ul>
+<li>設定簡單，是最常見也最好維護的方式。</li>
+<li>很適合固定長期存在的本機硬碟。</li>
+<li>搭配 <code>x-systemd.automount</code> 也能做出類似按需掛載效果。</li>
+</ul>
+<p>缺點：</p>
+<ul>
+<li>設定錯了真的有機會讓系統卡在開機流程。</li>
+<li>對常插拔的裝置不夠彈性。</li>
+<li>網路磁碟若沒配好 <code>_netdev</code>、<code>nofail</code> 等選項，開機時很容易卡很久。</li>
+</ul>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>這裡最常踩雷<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><code>fstab</code> 最怕的不是語法難，而是太相信自己沒有打錯 UUID。寫完一定要先跑一次 <code>sudo mount -a</code>，不要等到重開機才驗證。</div>
+        </div>
+    </div>
+<h2 id="方法二systemd-掛載">方法二：<code>systemd</code> 掛載</h2>
+<p>如果你希望掛載動作能和其他服務有明確依賴關係，例如要等網路好了才掛 NFS，或要做 automount，那 <code>systemd</code> 通常會比單純寫 <code>fstab</code> 更清楚。</p>
+<h3 id="實戰-1">實戰</h3>
+<p>以下示範把 <code>/dev/sdb1</code> 掛到 <code>/mnt/mydata</code>。</p>
+<p>先建立 <code>.mount</code> 單元：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="c1"># /etc/systemd/system/mnt-mydata.mount</span>
+</span></span><span class="line"><span class="cl"><span class="k">[Unit]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Description</span><span class="o">=</span><span class="s">Mount MyData Partition</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Mount]</span>
+</span></span><span class="line"><span class="cl"><span class="na">What</span><span class="o">=</span><span class="s">/dev/disk/by-uuid/YOUR_DEVICE_UUID</span>
+</span></span><span class="line"><span class="cl"><span class="na">Where</span><span class="o">=</span><span class="s">/mnt/mydata</span>
+</span></span><span class="line"><span class="cl"><span class="na">Type</span><span class="o">=</span><span class="s">ext4</span>
+</span></span><span class="line"><span class="cl"><span class="na">Options</span><span class="o">=</span><span class="s">defaults,nofail</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Install]</span>
+</span></span><span class="line"><span class="cl"><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果想要按需掛載，再建立 <code>.automount</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-ini" data-lang="ini"><span class="line"><span class="cl"><span class="c1"># /etc/systemd/system/mnt-mydata.automount</span>
+</span></span><span class="line"><span class="cl"><span class="k">[Unit]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Description</span><span class="o">=</span><span class="s">Automount MyData Partition</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Automount]</span>
+</span></span><span class="line"><span class="cl"><span class="na">Where</span><span class="o">=</span><span class="s">/mnt/mydata</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># TimeoutIdleSec=300</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">[Install]</span>
+</span></span><span class="line"><span class="cl"><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>重新整理設定並啟用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo systemctl daemon-reload
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 開機即掛載</span>
+</span></span><span class="line"><span class="cl">sudo systemctl <span class="nb">enable</span> mnt-mydata.mount
+</span></span><span class="line"><span class="cl">sudo systemctl start mnt-mydata.mount
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或者改用按需掛載</span>
+</span></span><span class="line"><span class="cl">sudo systemctl <span class="nb">enable</span> mnt-mydata.automount
+</span></span><span class="line"><span class="cl">sudo systemctl start mnt-mydata.automount
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>驗證狀態：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">systemctl status mnt-mydata.mount
+</span></span><span class="line"><span class="cl">systemctl status mnt-mydata.automount
+</span></span><span class="line"><span class="cl">df -hT /mnt/mydata
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="優點與缺點-1">優點與缺點</h3>
+<p>優點：</p>
+<ul>
+<li>相依關係好管理，特別適合服務型主機。</li>
+<li>日誌可直接看 <code>journalctl</code>，問題比較好追。</li>
+<li><code>automount</code> 對不常用的磁區或網路磁碟很實用。</li>
+</ul>
+<p>缺點：</p>
+<ul>
+<li>設定比 <code>fstab</code> 稍微長一點。</li>
+<li>如果 <code>What=</code> 直接寫 <code>/dev/sdX</code>，重開後裝置名稱改掉就麻煩了。</li>
+<li>對沒碰過 <code>systemd</code> 單元的人來說，學習成本稍高。</li>
+</ul>
+<h2 id="方法三udevil">方法三：<code>udevil</code></h2>
+<p>如果你的需求是「一般使用者方便掛載 USB 或光碟」，<code>udevil</code> 會比直接碰系統層設定來得輕鬆。</p>
+<h3 id="udevil-跟-devmon-的分工"><code>udevil</code> 跟 <code>devmon</code> 的分工</h3>
+<ul>
+<li><code>udevil</code>：讓一般使用者也能依規則掛載或卸載裝置。</li>
+<li><code>devmon</code>：常駐監聽裝置變化，偵測到插入時自動呼叫 <code>udevil</code>。</li>
+</ul>
+<h3 id="安裝與基本用法">安裝與基本用法</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get update
+</span></span><span class="line"><span class="cl">sudo apt-get install udevil
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>手動掛載：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">udevil mount /dev/sdb1
+</span></span><span class="line"><span class="cl">udevil mount /dev/sdb1 /media/myusb
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>卸載：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">udevil umount /dev/sdb1
+</span></span><span class="line"><span class="cl">udevil umount /media/myusb
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="啟動-devmon">啟動 <code>devmon</code></h3>
+<p>在使用者登入後自動啟動：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">devmon <span class="p">&amp;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果要改成 systemd 方式啟用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">systemctl <span class="nb">enable</span> devmon@<span class="k">$(</span>whoami<span class="k">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>常見附加選項：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">devmon --exec-on-mount <span class="s2">&#34;thunar %d&#34;</span> <span class="p">&amp;</span>
+</span></span><span class="line"><span class="cl">devmon --mount-options <span class="s2">&#34;noatime,nodiratime&#34;</span> <span class="p">&amp;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="udevilconf-常看欄位"><code>udevil.conf</code> 常看欄位</h3>
+<ul>
+<li><code>allowed_devices</code>：允許掛載哪些裝置。</li>
+<li><code>allowed_internal_devices</code>：是否允許內部磁碟被一般使用者掛載。</li>
+<li><code>allowed_types</code>：允許哪些檔案系統類型。</li>
+<li><code>allowed_media_dirs</code>：掛載點允許建立在哪些目錄。</li>
+<li><code>default_options_FILESYSTEMTYPE</code>：針對指定檔案系統給預設掛載選項。</li>
+</ul>
+<h3 id="優點與缺點-2">優點與缺點</h3>
+<p>優點：</p>
+<ul>
+<li>對桌面使用者很方便。</li>
+<li>不用每次都 <code>sudo</code>。</li>
+<li>可移動裝置的使用體驗通常不錯。</li>
+</ul>
+<p>缺點：</p>
+<ul>
+<li>大多綁定在使用者會話，沒登入就不一定會自動處理。</li>
+<li>可能和桌面環境內建自動掛載機制重疊。</li>
+<li>若牽涉 SUID 設定，安全上要多看一眼。</li>
+</ul>
+<div class="details admonition note open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-pencil-alt fa-fw" aria-hidden="true"></i>我的看法<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">如果你本來就在 GNOME 或 KDE 上，很多時候其實桌面環境已經幫你處理得不錯。<code>udevil</code> 比較適合輕量桌面、純視窗管理器，或你想要自己掌控規則的情境。</div>
+        </div>
+    </div>
+<h2 id="方法四udev">方法四：<code>udev</code></h2>
+<p>如果想要在裝置插入或移除時直接觸發指定動作，<code>udev</code> 就是更底層、更硬派的做法。</p>
+<h3 id="實戰-2">實戰</h3>
+<p>先建立規則檔：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo nano /etc/udev/rules.d/99-usb-automount.rules
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>範例規則如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># add USB
+</span></span><span class="line"><span class="cl">ACTION==&#34;add&#34;, SUBSYSTEM==&#34;block&#34;, ENV{DEVTYPE}==&#34;partition&#34;, SUBSYSTEMS==&#34;usb&#34;, \
+</span></span><span class="line"><span class="cl">	ENV{MOUNT_PATH}=&#34;/media/$env{ID_FS_LABEL_ENC}-$env{ID_PART_TABLE_UUID}&#34;, \
+</span></span><span class="line"><span class="cl">	RUN+=&#34;/bin/mkdir -p &#39;$env{MOUNT_PATH}&#39;&#34;, \
+</span></span><span class="line"><span class="cl">	RUN+=&#34;/bin/systemd-mount -o relatime,sync,umask=022 --no-block --collect $env{DEVNAME} &#39;$env{MOUNT_PATH}&#39;&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># add SD
+</span></span><span class="line"><span class="cl">ACTION==&#34;add&#34;, SUBSYSTEM==&#34;block&#34;, ENV{DEVTYPE}==&#34;partition&#34;, ATTRS{type}==&#34;SD&#34;, \
+</span></span><span class="line"><span class="cl">	ENV{MOUNT_PATH}=&#34;/media/$env{ID_FS_LABEL_ENC}-$env{ID_PART_TABLE_UUID}&#34;, \
+</span></span><span class="line"><span class="cl">	RUN+=&#34;/bin/mkdir -p &#39;$env{MOUNT_PATH}&#39;&#34;, \
+</span></span><span class="line"><span class="cl">	RUN+=&#34;/bin/systemd-mount -o relatime,sync,umask=022 --no-block --collect $env{DEVNAME} &#39;$env{MOUNT_PATH}&#39;&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># remove
+</span></span><span class="line"><span class="cl">ACTION==&#34;remove&#34;, SUBSYSTEM==&#34;block&#34;, ENV{DEVTYPE}==&#34;partition&#34;, \
+</span></span><span class="line"><span class="cl">	ENV{MOUNT_PATH}=&#34;/media/$env{ID_FS_LABEL_ENC}-$env{ID_PART_TABLE_UUID}&#34;, \
+</span></span><span class="line"><span class="cl">	RUN+=&#34;/bin/systemd-mount --umount &#39;$env{MOUNT_PATH}&#39;&#34;, \
+</span></span><span class="line"><span class="cl">	RUN+=&#34;/bin/rmdir $env{MOUNT_PATH}&#34;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>重載規則：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo udevadm control --reload-rules
+</span></span><span class="line"><span class="cl">sudo udevadm trigger
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="更完整的思路">更完整的思路</h3>
+<p>撰寫 <code>udev</code> 規則前，建議先抓裝置屬性：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo udevadm info -a -p <span class="k">$(</span>udevadm info -q path -n /dev/sdb1<span class="k">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>你通常會關注這幾個欄位：</p>
+<ul>
+<li><code>ACTION</code></li>
+<li><code>SUBSYSTEM</code></li>
+<li><code>ENV{DEVTYPE}</code></li>
+<li><code>ENV{ID_FS_UUID}</code></li>
+<li><code>ATTRS{idVendor}</code></li>
+<li><code>ATTRS{idProduct}</code></li>
+</ul>
+<h3 id="為什麼現在比較常搭配-systemd">為什麼現在比較常搭配 <code>systemd</code></h3>
+<p>在現代 Linux 上，直接在 <code>udev</code> 裡用 <code>RUN+=</code> 去做複雜掛載，不一定是最穩定的做法。比較實務的方式，通常是讓 <code>udev</code> 負責辨識事件，再交給 <code>systemd</code> 服務處理真正的掛載流程。</p>
+<p>例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">ACTION==&#34;add&#34;, KERNEL==&#34;sd[a-z][0-9]*&#34;, SUBSYSTEM==&#34;block&#34;, ENV{ID_FS_UUID}==&#34;YOUR-UUID&#34;, TAG+=&#34;systemd&#34;, ENV{SYSTEMD_WANTS}=&#34;usb-mount@%k.service&#34;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這樣的好處是除錯比較清楚，也比較不容易踩到 <code>udev</code> 執行環境的限制。</p>
+<h3 id="優點與缺點-3">優點與缺點</h3>
+<p>優點：</p>
+<ul>
+<li>事件驅動，客製化能力很高。</li>
+<li>很適合處理熱插拔裝置。</li>
+<li>可以依照裝置屬性做精準判斷。</li>
+</ul>
+<p>缺點：</p>
+<ul>
+<li>規則不好寫時，除錯成本偏高。</li>
+<li>維護門檻比 <code>fstab</code>、<code>udevil</code> 都高。</li>
+<li>若直接在規則裡塞太多邏輯，之後很容易忘記自己當初在幹嘛。</li>
+</ul>
+<h2 id="補充為什麼-nfs-比較適合-autofs">補充：為什麼 NFS 比較適合 <code>autofs</code></h2>
+<p>原本我也會想說，既然 <code>mount</code> 可以掛 NFS，直接寫死不就好了？後來才慢慢理解，NFS 的真正問題不在「能不能掛」，而是在遠端主機出問題時，整台機器會一起被拖慢。</p>
+<h3 id="問題核心">問題核心</h3>
+<p>NFS 是透過網路連線的遠端檔案系統。當你把它掛到本機目錄後，系統會把它當成一顆本機磁碟來操作。問題在於，這顆磁碟其實是靠網路活著的。</p>
+<p>當 NFS Server 掛掉、網路中斷、名稱解析失敗或 IP 改了，本機對掛載點的存取就會卡在等待 RPC 回應。這種等待通常是阻塞式的，所以影響的不只是那個目錄：</p>
+<ul>
+<li><code>ls</code>、<code>cat</code>、<code>cp</code> 可能卡住。</li>
+<li>開機中的某些服務也可能一起等。</li>
+<li>使用者登入後，shell 或桌面環境可能變慢。</li>
+<li>某些 daemon 會被拖累，整體系統體感很差。</li>
+</ul>
+<h3 id="autofs-為什麼比較穩"><code>autofs</code> 為什麼比較穩</h3>
+<p><code>autofs</code> 是按需掛載。只有真的進入某個目錄或存取檔案時，它才會去做掛載。</p>
+<p>好處有兩個：</p>
+<ol>
+<li>平常不會硬掛在那裡，不容易拖慢整體系統。</li>
+<li>遠端主機不在時，通常是那次存取失敗，不會把整台主機一起卡住。</li>
+</ol>
+<h3 id="小實驗">小實驗</h3>
+<p>你可以自己試試看：</p>
+<ol>
+<li>先用一般 <code>mount</code> 掛一個 NFS 目錄。</li>
+<li>把 NFS Server 關掉，或直接拔網路。</li>
+<li>在 client 上執行 <code>ls /mnt/nfs/centos7</code>。</li>
+<li>通常你會看到它卡很久。</li>
+<li>改成 <code>autofs</code> 後，再做一次相同操作，體感通常差很多。</li>
+</ol>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>NFS 的實務建議<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">如果你不是很確定遠端檔案系統的穩定度，寧可先選擇 <code>autofs</code> 或 <code>x-systemd.automount</code> 這類按需掛載方案，也不要一開始就把它當本機固定硬碟硬掛上去。</div>
+        </div>
+    </div>
+<h2 id="總結">總結</h2>
+<p>Linux 的掛載方式沒有唯一正解，只有適不適合你的情境。</p>
+<p>如果你今天是在管理固定本機資料碟，<code>/etc/fstab</code> 依然是最務實的選擇；如果你需要更清楚的依賴管理，那就考慮 <code>systemd</code>；如果你是在桌面環境處理 USB 或 SD 卡，<code>udevil</code> 與 <code>udev</code> 會更靈活；至於 NFS 這種網路檔案系統，我自己會優先考慮按需掛載，因為真的比較不容易把整台主機一起拖下水。</p>
+<p>重點不是會不會掛，而是掛上去之後，出問題時你的系統還能不能好好活著。</p>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://www.weichen.idv.tw/wordpress/2023/02/20/ubuntu-%E9%96%8B%E6%A9%9F%E8%87%AA%E5%8B%95%E6%8E%9B%E8%BC%89%E7%A1%AC%E7%A2%9F/" target="_blank" rel="noopener noreffer ">ubuntu 開機自動掛載硬碟 – Willis 的學習紀錄</a></li>
+<li><a href="https://blog.gtwang.org/linux/linux-mount/" target="_blank" rel="noopener noreffer ">Linux 檔案系統掛載（mount）使用教學與範例 – G. T. Wang</a></li>
+<li><a href="https://docs.aws.amazon.com/zh_cn/efs/latest/ug/mounting-fs-nfs-mount-settings.html" target="_blank" rel="noopener noreffer ">推荐的 NFS 挂载设置 - Amazon Elastic File System</a></li>
+<li><a href="https://www.cnblogs.com/chuyiwang/p/17469223.html" target="_blank" rel="noopener noreffer ">/etc/fstab 挂载 NAS 盘配置 _netdev 区别 - Chuyio - 博客园</a></li>
+<li><a href="https://ruohai.wang/202401/systemd-auto-mount-sdcard/" target="_blank" rel="noopener noreffer ">用 systemd 实现存储设备的开机自动挂载</a></li>
+<li><a href="https://www.expoli.tech/articles/2022/12/23/use-systemd-mount-any-device" target="_blank" rel="noopener noreffer ">使用 systemd 开机挂载其它硬盘</a></li>
+<li><a href="https://zhangguanzhang.github.io/2019/01/30/fstab/" target="_blank" rel="noopener noreffer ">fstab 与 systemd.mount 自动挂载的一点研究和见解</a></li>
+<li><a href="https://www.cnblogs.com/ccpaging/p/4760051.html" target="_blank" rel="noopener noreffer ">Archlinux 的 U 盘自动装载（三）udevil</a></li>
+<li><a href="https://mgh.cool:9090/post/ubuntu%e4%bd%bf%e7%94%a8udevil%e8%87%aa%e5%8a%a8%e6%8c%82%e8%bd%bdu%e7%9b%98" target="_blank" rel="noopener noreffer ">Ubuntu 使用 udevil 自动挂载 U 盘</a></li>
+<li><a href="https://mgh.cool:9090/post/linux%e4%bd%bf%e7%94%a8udev%e5%ae%9e%e7%8e%b0%e8%87%aa%e5%8a%a8%e6%8c%82%e8%bd%bdu%e7%9b%98" target="_blank" rel="noopener noreffer ">Linux 使用 udev 实现自动挂载 U 盘</a></li>
+<li><a href="https://hackmd.io/@yzai/HJTg6IWG5" target="_blank" rel="noopener noreffer ">Autofs 自動掛載 - HackMD</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2026-04-27</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" data-title="Linux 掛載硬碟另類方法" data-hashtags="linux,mount,systemd,udev,disk"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" data-hashtag="linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" data-title="Linux 掛載硬碟另類方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" data-title="Linux 掛載硬碟另類方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/" data-title="Linux 掛載硬碟另類方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/Linux/">Linux</a>,&nbsp;<a href="/blog/tags/mount/">Mount</a>,&nbsp;<a href="/blog/tags/systemd/">Systemd</a>,&nbsp;<a href="/blog/tags/udev/">Udev</a>,&nbsp;<a href="/blog/tags/disk/">Disk</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/" class="prev" rel="prev" title="切歌總有「啵」一聲？解決獨佔模式切換歌會爆音"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>切歌總有「啵」一聲？解決獨佔模式切換歌會爆音</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2026</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
