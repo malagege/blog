@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>使用 mkcert 快速建立自簽憑證（Self-Signed Certificate） - 程式狂想筆記</title><meta name="Description" content="常常在本機測試 HTTPS、Webhook、反向代理，或是模擬正式環境時，都會需要一組可以快速拿來用的自簽憑證。以前我自己也會手刻 OpenSSL 指令慢慢生，但後來用了 mkcert 之後，真的方便很多。
+它最大的好處是，可以先在本機安裝一個受自己電腦信任的根憑證，後面要再簽出新的測試憑證時，就不用每次都重新匯入。這種做法在內部測試、開發環境，甚至臨時要掛到 Nginx、Kestrel、Traefik 時都很好用。"><meta property="og:title" content="使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）" />
+<meta property="og:description" content="常常在本機測試 HTTPS、Webhook、反向代理，或是模擬正式環境時，都會需要一組可以快速拿來用的自簽憑證。以前我自己也會手刻 OpenSSL 指令慢慢生，但後來用了 mkcert 之後，真的方便很多。
+它最大的好處是，可以先在本機安裝一個受自己電腦信任的根憑證，後面要再簽出新的測試憑證時，就不用每次都重新匯入。這種做法在內部測試、開發環境，甚至臨時要掛到 Nginx、Kestrel、Traefik 時都很好用。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-04-28T15:25:37+08:00" />
+<meta property="article:modified_time" content="2026-04-28T21:12:48+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）"/>
+<meta name="twitter:description" content="常常在本機測試 HTTPS、Webhook、反向代理，或是模擬正式環境時，都會需要一組可以快速拿來用的自簽憑證。以前我自己也會手刻 OpenSSL 指令慢慢生，但後來用了 mkcert 之後，真的方便很多。
+它最大的好處是，可以先在本機安裝一個受自己電腦信任的根憑證，後面要再簽出新的測試憑證時，就不用每次都重新匯入。這種做法在內部測試、開發環境，甚至臨時要掛到 Nginx、Kestrel、Traefik 時都很好用。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" /><link rel="prev" href="https://malagege.github.io/blog/posts/ssh-tunnel-three-methods-notes/" /><link rel="next" href="https://malagege.github.io/blog/posts/datetime-parse-loses-timezone-info/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/use-mkcert-to-create-self-signed-certificates-quickly\/"
+        },"genre": "posts","keywords": "mkcert, ssl, tls, openssl, nginx","wordcount":  702 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/use-mkcert-to-create-self-signed-certificates-quickly\/","datePublished": "2026-04-28T15:25:37+08:00","dateModified": "2026-04-28T21:12:48+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e常常在本機測試 HTTPS、Webhook、反向代理，或是模擬正式環境時，都會需要一組可以快速拿來用的自簽憑證。以前我自己也會手刻 OpenSSL 指令慢慢生，但後來用了 mkcert 之後，真的方便很多。\u003c/p\u003e\n\u003cp\u003e它最大的好處是，可以先在本機安裝一個受自己電腦信任的根憑證，後面要再簽出新的測試憑證時，就不用每次都重新匯入。這種做法在內部測試、開發環境，甚至臨時要掛到 Nginx、Kestrel、Traefik 時都很好用。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2026-04-28">2026-04-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;702 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#什麼是自簽憑證">什麼是自簽憑證？</a></li>
+    <li><a href="#ubuntu-安裝-mkcert">Ubuntu 安裝 mkcert</a></li>
+    <li><a href="#windows-安裝-mkcert">Windows 安裝 mkcert</a></li>
+    <li><a href="#基本使用方式">基本使用方式</a></li>
+    <li><a href="#windows-憑證管理小提醒">Windows 憑證管理小提醒</a></li>
+    <li><a href="#簡單驗證憑證">簡單驗證憑證</a>
+      <ul>
+        <li><a href="#ubuntu">Ubuntu</a></li>
+        <li><a href="#windows">Windows</a></li>
+      </ul>
+    </li>
+    <li><a href="#額外補充">額外補充</a>
+      <ul>
+        <li><a href="#ubuntu-安裝信任憑證">Ubuntu 安裝信任憑證</a></li>
+        <li><a href="#docker-內信任自訂憑證">Docker 內信任自訂憑證</a></li>
+        <li><a href="#windows-查-httpsys-ssl-綁定">Windows 查 HTTP.SYS SSL 綁定</a></li>
+      </ul>
+    </li>
+    <li><a href="#小結">小結</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>常常在本機測試 HTTPS、Webhook、反向代理，或是模擬正式環境時，都會需要一組可以快速拿來用的自簽憑證。以前我自己也會手刻 OpenSSL 指令慢慢生，但後來用了 mkcert 之後，真的方便很多。</p>
+<p>它最大的好處是，可以先在本機安裝一個受自己電腦信任的根憑證，後面要再簽出新的測試憑證時，就不用每次都重新匯入。這種做法在內部測試、開發環境，甚至臨時要掛到 Nginx、Kestrel、Traefik 時都很好用。</p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+	root((mkcert 快速建立自簽憑證))
+		安裝 mkcert
+			Ubuntu
+				apt 安裝相依
+				下載 mkcert
+			Windows
+				Chocolatey
+				Scoop
+		建立憑證
+			mkcert localhost
+			mkcert localhost.com "*.localhost.com"
+			產生 pem 與 key
+		安裝信任鏈
+			mkcert -install
+			匯入本機根憑證
+			避免瀏覽器顯示不安全
+		驗證方式
+			OpenSSL s_server
+			OpenSSL s_client
+			瀏覽器測試
+		額外補充
+			Windows 憑證管理工具
+			Ubuntu 匯入 CA
+			Docker 憑證處理
+</div>
+<h2 id="什麼是自簽憑證">什麼是自簽憑證？</h2>
+<p>自簽憑證是一種由憑證主體自己簽署的數位憑證，不是由公開受信任的 CA 簽發。它可以提供加密與基本身份識別，但因為不是公認 CA，所以預設通常不會被系統或瀏覽器信任。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>先快速理解一下<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">這類憑證很適合用在內部測試、開發環境、區網服務，或是本機 HTTPS 測試。</div>
+        </div>
+    </div>
+<h2 id="ubuntu-安裝-mkcert">Ubuntu 安裝 mkcert</h2>
+<p>先安裝 mkcert 所需相依套件，再把執行檔放到系統路徑中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt-get install wget libnss3-tools
+</span></span><span class="line"><span class="cl">curl -JLO <span class="s2">&#34;https://dl.filippo.io/mkcert/latest?for=linux/amd64&#34;</span>
+</span></span><span class="line"><span class="cl">chmod +x mkcert-v*-linux-amd64
+</span></span><span class="line"><span class="cl">sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>安裝完成後，可以用下面指令確認版本：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mkcert -version
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考資料： <a href="https://github.com/FiloSottile/mkcert" target="_blank" rel="noopener noreffer ">FiloSottile/mkcert: A simple zero-config tool to make locally trusted development certificates with any names you&rsquo;d like.</a></p>
+<h2 id="windows-安裝-mkcert">Windows 安裝 mkcert</h2>
+<p>Windows 端安裝更快，直接透過套件管理工具處理即可。</p>
+<p>使用 Chocolatey：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">choco install mkcert
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>或是使用 Scoop：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">scoop bucket add extras
+</span></span><span class="line"><span class="cl">scoop install mkcert
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>安裝完成後，同樣可以用下面指令檢查是否成功：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mkcert -version
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="基本使用方式">基本使用方式</h2>
+<p><code>mkcert</code> 後面可以直接帶網域名稱。執行後通常會產生 <code>.pem</code> 公鑰檔與 <code>-key.pem</code> 私鑰檔。</p>
+<p>不過這裡有一個超重要的點：如果你希望這張憑證被自己電腦信任，一定要先做 <code>mkcert -install</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">mkcert -install
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果沒有先安裝本機根憑證，就算你成功建立了憑證，瀏覽器或客戶端連線通常還是會顯示不安全。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>這一步不要漏掉<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>記得先執行 <code>mkcert -install</code>。</p>
+<p>真的很容易建立完憑證後忘記這一步，最後看到瀏覽器跳出不安全，才回頭找原因。</p>
+</div>
+        </div>
+    </div>
+<p>下面是一個建立萬用字元測試憑證的範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">mkcert</span> <span class="n">localhost</span><span class="p">.</span><span class="py">com</span> <span class="s2">&#34;*.localhost.com&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>執行結果大概會長這樣：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">PS C:\Users\steve\cert&gt; mkcert localhost.com &#34;*.localhost.com&#34;
+</span></span><span class="line"><span class="cl">Note: the local CA is not installed in the system trust store.
+</span></span><span class="line"><span class="cl">Note: the local CA is not installed in the Java trust store.
+</span></span><span class="line"><span class="cl">Run &#34;mkcert -install&#34; for certificates to be trusted automatically
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Created a new certificate valid for the following names
+</span></span><span class="line"><span class="cl"> - &#34;localhost.com&#34;
+</span></span><span class="line"><span class="cl"> - &#34;*.localhost.com&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Reminder: X.509 wildcards only go one level deep, so this won&#39;t match a.b.localhost.com
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">The certificate is at &#34;./localhost.com+1.pem&#34; and the key at &#34;./localhost.com+1-key.pem&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">It will expire on 27 February 2026
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>mkcert -install</code> 跑完之後，也可以到 Windows 憑證管理工具或系統信任憑證區查看是否有成功加入。</p>
+<p><a class="lightgallery" href="https://i.meee.com.tw/GhhTvW9.png" title="圖片" data-thumbnail="https://i.meee.com.tw/GhhTvW9.png">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://i.meee.com.tw/GhhTvW9.png"
+            data-srcset="https://i.meee.com.tw/GhhTvW9.png, https://i.meee.com.tw/GhhTvW9.png 1.5x, https://i.meee.com.tw/GhhTvW9.png 2x"
+            data-sizes="auto"
+            alt="https://i.meee.com.tw/GhhTvW9.png"
+            title="圖片" />
+    </a></p>
+<p>到這裡為止，基本上就已經能把產生出來的憑證掛到 Nginx 或其他服務上了。Nginx 的 HTTPS 設定這篇先不展開，如果你要接 Web Server，可以參考這篇：</p>
+<p><a href="https://blog.javawu.idv.tw/2020/06/nginx-nginx-https-ssl.html" target="_blank" rel="noopener noreffer ">好記憶不如爛筆頭: [Nginx] NGINX 設定 HTTPS 網頁加密連線，建立自行簽署的 SSL 憑證</a></p>
+<h2 id="windows-憑證管理小提醒">Windows 憑證管理小提醒</h2>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>看到憑證位置不對時先想這個<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>Windows 有兩個常見憑證管理工具：<code>certlm.msc</code> 與 <code>certmgr.msc</code>。</p>
+<ul>
+<li><code>certlm.msc</code> 是本機電腦層級的憑證管理。</li>
+<li><code>certmgr.msc</code> 是目前使用者層級的憑證管理。</li>
+</ul>
+<p>mkcert 預設常見情境會安裝在目前帳戶可用的憑證區，因此如果你打開錯誤的管理工具，很容易以為安裝失敗。</p>
+</div>
+        </div>
+    </div>
+<p>參考來源： <a href="https://blog.csdn.net/panjunnn/article/details/106988994" target="_blank" rel="noopener noreffer ">Windows证书管理_certmgr.exe-CSDN博客</a></p>
+<p>我自己一開始也有遇過，習慣先開某一個管理工具，然後想說怎麼找不到。後來才發現是看的位置不對。</p>
+<p><a class="lightgallery" href="https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836" title="圖片" data-thumbnail="https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836"
+            data-srcset="https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836, https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836 1.5x, https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/assets/75846914/b259d618-5927-447f-80f5-3d676f128836"
+            title="圖片" />
+    </a></p>
+<h2 id="簡單驗證憑證">簡單驗證憑證</h2>
+<p>如果只是想快速確認 mkcert 產生出來的憑證能不能正常用，其實不一定要先上 Nginx。直接用 OpenSSL 啟一個簡單 HTTPS 服務，再用 OpenSSL 或瀏覽器測就很夠用了。</p>
+<h3 id="ubuntu">Ubuntu</h3>
+<h4 id="步驟-1用-openssl-啟動本地-https-伺服器">步驟 1：用 OpenSSL 啟動本地 HTTPS 伺服器</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">openssl s_server -accept <span class="m">1443</span> -cert localhost.com+1.pem -key localhost.com+1-key.pem
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這樣會直接啟一個簡單的 HTTPS 服務。</p>
+<div class="details admonition info">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>為什麼這裡用 1443？<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">Linux 上如果使用 1024 以下的 Port，通常需要較高權限。用 1443 可以省去額外的 Root 權限問題。</div>
+        </div>
+    </div>
+<h4 id="步驟-2驗證-ssl-憑證">步驟 2：驗證 SSL 憑證</h4>
+<p>原本我也想直接用 <code>curl</code> 測，但後來發現用自訂 Hostname 測試時，<code>curl</code> 在這個情境下不夠直觀，最後還是 OpenSSL 最穩。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -H <span class="s2">&#34;Host: localhost.com&#34;</span> https://127.0.0.1:1443/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>建議直接使用下面的 OpenSSL 指令驗證：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">openssl s_client -connect 127.0.0.1:1443 -servername localhost.com
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可一起參考這篇： <a href="https://malagege.github.io/blog/posts/Linux-%E6%8C%87%E4%BB%A4%E7%A2%BA%E8%AA%8DSSL%E6%86%91%E8%AD%89/" target="_blank" rel="noopener noreffer ">Linux 指令確認 SSL 憑證</a></p>
+<p><a class="lightgallery" href="https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e" title="圖片" data-thumbnail="https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e"
+            data-srcset="https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e, https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e 1.5x, https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/user-attachments/assets/23a78be9-01d8-477f-81cd-54992e78704e"
+            title="圖片" />
+    </a></p>
+<h3 id="windows">Windows</h3>
+<p>Windows 也可以用 OpenSSL 來做一樣的測試。</p>
+<h4 id="步驟-0先建立-localhost-憑證">步驟 0：先建立 localhost 憑證</h4>
+<p>如果你只是要測本機，直接建立 <code>localhost</code> 憑證會更方便。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="c"># 建立 localhost 憑證</span>
+</span></span><span class="line"><span class="cl"><span class="n">mkcert</span> <span class="n">localhost</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c"># 安裝根憑證</span>
+</span></span><span class="line"><span class="cl"><span class="c"># 如果前面已經安裝過，可以不用重複執行</span>
+</span></span><span class="line"><span class="cl"><span class="n">mkcert</span> <span class="n">-install</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="步驟-1安裝-openssl">步驟 1：安裝 OpenSSL</h4>
+<ol>
+<li>到 <a href="https://slproweb.com/products/Win32OpenSSL.html" target="_blank" rel="noopener noreffer ">Shining Light Productions</a> 下載 Windows 版本 OpenSSL。</li>
+<li>安裝後，記得把 OpenSSL 的 <code>bin</code> 目錄加到 PATH。</li>
+</ol>
+<p>如果不想自己加環境變數，也可以直接從開始功能表開啟 <code>Win64 OpenSSL Command Prompt</code>。</p>
+<p><a class="lightgallery" href="https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf" title="所有應用程式可以找到 Win64 OpenSSL Command Prompt" data-thumbnail="https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf"
+            data-srcset="https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf, https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf 1.5x, https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/user-attachments/assets/9b49a6d8-32f0-453b-925b-5aa7331fdcbf"
+            title="所有應用程式可以找到 Win64 OpenSSL Command Prompt" />
+    </a></p>
+<h4 id="步驟-2啟動本地-https-伺服器">步驟 2：啟動本地 HTTPS 伺服器</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">openssl</span> <span class="n">s_server</span> <span class="n">-accept</span> <span class="mf">443</span> <span class="n">-cert</span> <span class="n">localhost</span><span class="p">.</span><span class="n">com</span><span class="p">+</span><span class="mf">1</span><span class="p">.</span><span class="py">pem</span> <span class="n">-key</span> <span class="n">localhost</span><span class="p">.</span><span class="n">com</span><span class="p">+</span><span class="mf">1</span><span class="n">-key</span><span class="p">.</span><span class="py">pem</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這會啟動一個簡單的 HTTPS 伺服器，並載入你剛才產生的憑證與私鑰。</p>
+<h4 id="步驟-3用瀏覽器或-openssl-測試">步驟 3：用瀏覽器或 OpenSSL 測試</h4>
+<p>瀏覽器直接開：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">https://localhost
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果看到安全連線，代表信任鏈大致沒問題。如果還是顯示不安全，就回頭確認 <code>mkcert -install</code> 有沒有做，以及憑證是否有安裝到正確的憑證區。</p>
+<p><a class="lightgallery" href="https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c" title="圖片" data-thumbnail="https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c"
+            data-srcset="https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c, https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c 1.5x, https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/user-attachments/assets/7eeb71c9-4b81-4392-b991-2d9d7e09983c"
+            title="圖片" />
+    </a></p>
+<p>另外也可以用 OpenSSL 驗證：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">openssl s_client -connect localhost:443 -servername localhost.com
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a class="lightgallery" href="https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff" title="圖片" data-thumbnail="https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff"
+            data-srcset="https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff, https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff 1.5x, https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff 2x"
+            data-sizes="auto"
+            alt="https://gist.github.com/user-attachments/assets/cd68e072-0341-40fe-98e0-e5e84c17c0ff"
+            title="圖片" />
+    </a></p>
+<h2 id="額外補充">額外補充</h2>
+<h3 id="ubuntu-安裝信任憑證">Ubuntu 安裝信任憑證</h3>
+<p>如果你有自己的 CA 憑證需要匯入 Ubuntu，可以把 <code>.crt</code> 檔放到系統信任目錄，再更新憑證清單。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo cp my-certificate.crt /usr/local/share/ca-certificates/
+</span></span><span class="line"><span class="cl">sudo update-ca-certificates
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>更新後，也可以從系統憑證目錄查看：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ls /etc/ssl/certs/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>想看特定憑證內容時，可以用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">openssl x509 -in /etc/ssl/certs/my-certificate.pem -noout -text
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="docker-內信任自訂憑證">Docker 內信任自訂憑證</h3>
+<p>有時候你不是本機服務要信任，而是 Docker Container 內的應用程式要信任這張 CA，這時候也要把根憑證一起帶進去。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="k">ADD</span> your_ca_root.crt /usr/local/share/ca-certificates/foo.crt<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> chmod <span class="m">644</span> /usr/local/share/ca-certificates/foo.crt <span class="o">&amp;&amp;</span> update-ca-certificates<span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果是 Alpine 系統，也可能會看到直接把憑證附加到 <code>ca-certificates.crt</code> 的做法：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">cat rootCA.crt &gt;&gt; /etc/ssl/certs/ca-certificates.crt
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="windows-查-httpsys-ssl-綁定">Windows 查 HTTP.SYS SSL 綁定</h3>
+<p>有時候如果你在 Windows 上測 HTTPS，不一定是憑證問題，也可能是 HTTP.SYS 綁定或 URLACL 的權限問題。</p>
+<p>列出目前 SSL/TLS 綁定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">netsh</span> <span class="n">http</span> <span class="n">show</span> <span class="n">sslcert</span> <span class="p">|</span> <span class="nb">Select-String</span> <span class="s1">&#39;IP:|Certificate Hash|Application ID|Certificate Store|SSL Protocol&#39;</span> <span class="p">|</span> <span class="nb">Out-String</span> <span class="n">-stream</span> <span class="p">|</span> <span class="nb">ConvertFrom-Csv</span> <span class="n">-Delimiter</span> <span class="s2">&#34;:&#34;</span> <span class="p">|</span> <span class="nb">Format-Table</span> <span class="n">-AutoSize</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>列出目前 URLACL：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">netsh</span> <span class="n">http</span> <span class="n">show</span> <span class="n">urlacl</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>URLACL 全名是 URL Access Control List，主要是 Windows 用來控管特定 URL 模式可由哪些使用者或服務綁定與使用。像 IIS、WCF，甚至某些自架 HTTP 服務都會碰到這一層。</p>
+<h2 id="小結">小結</h2>
+<p>mkcert 真的是本機 HTTPS 測試的好工具，尤其你只想快速生出一組可信任憑證，不想重新手刻一堆 OpenSSL 指令時，它的效率差很多。</p>
+<p>我自己覺得最值得記住的只有兩件事：</p>
+<ol>
+<li>先做 <code>mkcert -install</code>，不然你後面測起來很容易白忙一場。</li>
+<li>要驗證時，先用 OpenSSL 快速起服務與檢查，通常比直接接正式 Web Server 更快定位問題。</li>
+</ol>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://blog.miniasp.com/post/2021/09/27/How-to-create-TLS-certificate-in-Linux-and-make-Kestrel-works" target="_blank" rel="noopener noreffer ">如何在 Linux 正確建立自簽憑證並讓 ASP.NET Core 網站可以順利進行連線 | The Will Will Web</a></li>
+<li><a href="https://wangchujiang.com/linux-command/c/mkcert.html" target="_blank" rel="noopener noreffer ">mkcert 命令，Linux mkcert 命令詳解：用來產生自簽憑證的工具</a></li>
+<li><a href="https://stackoverflow.com/questions/42292444/how-do-i-add-a-ca-root-certificate-inside-a-docker-image" target="_blank" rel="noopener noreffer ">ubuntu - How do I add a CA root certificate inside a docker image? - Stack Overflow</a></li>
+<li><a href="https://isgb.otago.ac.nz/infosci/mark.george/Wiki/wiki/mkcert%20and%20CA%20certificates" target="_blank" rel="noopener noreffer ">mkcert and CA certificates - mark.george/Wiki</a></li>
+<li><a href="https://copyprogramming.com/howto/unable-to-add-certificates-to-alpine-linux-container" target="_blank" rel="noopener noreffer ">Docker: Alpine Linux Container Fails to Accept Certificates</a></li>
+</ul>
+<p>如果只是想快速查 mkcert 幾個常用指令，下面這段也很實用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 產生並安裝 CA 憑證到預設位置</span>
+</span></span><span class="line"><span class="cl">mkcert -install
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查詢 CA 憑證實際存放位置</span>
+</span></span><span class="line"><span class="cl">mkcert -CAROOT
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 指定不同的 CA 儲存路徑</span>
+</span></span><span class="line"><span class="cl"><span class="nv">CAROOT</span><span class="o">=</span>/some/other/place mkcert -install
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 建立 localhost 憑證</span>
+</span></span><span class="line"><span class="cl">mkcert localhost
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 產生 PKCS12 檔案，預設密碼為 changeit</span>
+</span></span><span class="line"><span class="cl">mkcert -pkcs12 localhost
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 指定安裝到哪些信任存放區</span>
+</span></span><span class="line"><span class="cl"><span class="nv">TRUST_STORES</span><span class="o">=</span>system,java,nss mkcert -install
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 移除安裝的 CA</span>
+</span></span><span class="line"><span class="cl">mkcert -uninstall
+</span></span></code></pre></td></tr></table>
+</div>
+</div></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2026-04-28</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" data-title="使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）" data-hashtags="mkcert,ssl,tls,openssl,nginx"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" data-hashtag="mkcert"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" data-title="使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" data-title="使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/use-mkcert-to-create-self-signed-certificates-quickly/" data-title="使用 mkcert 快速建立自簽憑證（Self-Signed Certificate）"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/mkcert/">Mkcert</a>,&nbsp;<a href="/blog/tags/SSL/">Ssl</a>,&nbsp;<a href="/blog/tags/tls/">Tls</a>,&nbsp;<a href="/blog/tags/openssl/">Openssl</a>,&nbsp;<a href="/blog/tags/nginx/">Nginx</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/ssh-tunnel-three-methods-notes/" class="prev" rel="prev" title="SSH Tunnel 三種方式備忘錄"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>SSH Tunnel 三種方式備忘錄</a>
+            <a href="/blog/posts/datetime-parse-loses-timezone-info/" class="next" rel="next" title="DateTime.Parse 解析文字時間時區會遺失問題">DateTime.Parse 解析文字時間時區會遺失問題<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2026</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
