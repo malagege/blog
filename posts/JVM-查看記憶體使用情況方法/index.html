@@ -4,30 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>JVM 查看記憶體使用情況方法 - 程式狂想筆記</title><meta name="Description" content="使用清單 1 2 3 4 # 檢視當前機器上所有執行的java程序名稱與pid(程序編號) jps -l # 顯示指定的jvm程序所有的屬性設定和配置引數 jinfo pid TODO: 整理
-利用jmap和MAT等工具查看JVM运行时堆内存 - osc_3wmngxzc的个人空间 - OSCHINA - 中文开源技术交流社区
-JVM 記憶體溢出 - 夜升筆談
-JVM故障分析及性能优化实战(VII)——使用MAT的Histogram和Dominator Tree定位溢出源 - 云&#43;社区 - 腾讯云
-JVM(完成度95%,不斷更新) - ⎝⎛CodingNote.cc ⎞⎠
-JVM引數對J2EE效能優化的影響 - IT閱讀"><meta property="og:title" content="JVM 查看記憶體使用情況方法" />
-<meta property="og:description" content="使用清單 1 2 3 4 # 檢視當前機器上所有執行的java程序名稱與pid(程序編號) jps -l # 顯示指定的jvm程序所有的屬性設定和配置引數 jinfo pid TODO: 整理
-利用jmap和MAT等工具查看JVM运行时堆内存 - osc_3wmngxzc的个人空间 - OSCHINA - 中文开源技术交流社区
-JVM 記憶體溢出 - 夜升筆談
-JVM故障分析及性能优化实战(VII)——使用MAT的Histogram和Dominator Tree定位溢出源 - 云&#43;社区 - 腾讯云
-JVM(完成度95%,不斷更新) - ⎝⎛CodingNote.cc ⎞⎠
-JVM引數對J2EE效能優化的影響 - IT閱讀" />
+        <title>JVM 查看記憶體使用情況方法 - 程式狂想筆記</title><meta name="Description" content="監控 JVM 記憶體使用狀況是 Java 應用程式效能調優的基礎。本文整理常用的 JVM 記憶體查看工具，從命令列工具到圖形化介面，以及 JVM 記憶體各區域的說明。"><meta property="og:title" content="JVM 查看記憶體使用情況方法" />
+<meta property="og:description" content="監控 JVM 記憶體使用狀況是 Java 應用程式效能調優的基礎。本文整理常用的 JVM 記憶體查看工具，從命令列工具到圖形化介面，以及 JVM 記憶體各區域的說明。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/JVM-%E6%9F%A5%E7%9C%8B%E8%A8%98%E6%86%B6%E9%AB%94%E4%BD%BF%E7%94%A8%E6%83%85%E6%B3%81%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-01-04T23:18:56+00:00" />
 <meta property="article:modified_time" content="2021-01-04T23:18:56+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="JVM 查看記憶體使用情況方法"/>
-<meta name="twitter:description" content="使用清單 1 2 3 4 # 檢視當前機器上所有執行的java程序名稱與pid(程序編號) jps -l # 顯示指定的jvm程序所有的屬性設定和配置引數 jinfo pid TODO: 整理
-利用jmap和MAT等工具查看JVM运行时堆内存 - osc_3wmngxzc的个人空间 - OSCHINA - 中文开源技术交流社区
-JVM 記憶體溢出 - 夜升筆談
-JVM故障分析及性能优化实战(VII)——使用MAT的Histogram和Dominator Tree定位溢出源 - 云&#43;社区 - 腾讯云
-JVM(完成度95%,不斷更新) - ⎝⎛CodingNote.cc ⎞⎠
-JVM引數對J2EE效能優化的影響 - IT閱讀"/>
+<meta name="twitter:description" content="監控 JVM 記憶體使用狀況是 Java 應用程式效能調優的基礎。本文整理常用的 JVM 記憶體查看工具，從命令列工具到圖形化介面，以及 JVM 記憶體各區域的說明。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -42,13 +27,13 @@ JVM引數對J2EE效能優化的影響 - IT閱讀"/>
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/JVM-%E6%9F%A5%E7%9C%8B%E8%A8%98%E6%86%B6%E9%AB%94%E4%BD%BF%E7%94%A8%E6%83%85%E6%B3%81%E6%96%B9%E6%B3%95\/"
-        },"genre": "posts","keywords": "jvm","wordcount":  39 ,
+        },"genre": "posts","keywords": "jvm","wordcount":  359 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/JVM-%E6%9F%A5%E7%9C%8B%E8%A8%98%E6%86%B6%E9%AB%94%E4%BD%BF%E7%94%A8%E6%83%85%E6%B3%81%E6%96%B9%E6%B3%95\/","datePublished": "2021-01-04T23:18:56+00:00","dateModified": "2021-01-04T23:18:56+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "使用清單 1 2 3 4 # 檢視當前機器上所有執行的java程序名稱與pid(程序編號) jps -l # 顯示指定的jvm程序所有的屬性設定和配置引數 jinfo pid TODO: 整理\n利用jmap和MAT等工具查看JVM运行时堆内存 - osc_3wmngxzc的个人空间 - OSCHINA - 中文开源技术交流社区\nJVM 記憶體溢出 - 夜升筆談\nJVM故障分析及性能优化实战(VII)——使用MAT的Histogram和Dominator Tree定位溢出源 - 云+社区 - 腾讯云\nJVM(完成度95%,不斷更新) - ⎝⎛CodingNote.cc ⎞⎠\nJVM引數對J2EE效能優化的影響 - IT閱讀"
+            },"description": "\u003cp\u003e監控 JVM 記憶體使用狀況是 Java 應用程式效能調優的基礎。本文整理常用的 JVM 記憶體查看工具，從命令列工具到圖形化介面，以及 JVM 記憶體各區域的說明。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -116,8 +101,8 @@ JVM引數對J2EE效能優化的影響 - IT閱讀"/>
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">JVM 查看記憶體使用情況方法</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-01-04">2021-01-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;39 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-01-04">2021-01-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;359 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
@@ -125,10 +110,225 @@ JVM引數對J2EE效能優化的影響 - IT閱讀"/>
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#使用清單">使用清單</a></li>
+    <li><a href="#jvm-記憶體架構概述">JVM 記憶體架構概述</a>
+      <ul>
+        <li><a href="#heap堆積記憶體">Heap（堆積記憶體）</a></li>
+        <li><a href="#non-heap">Non-Heap</a></li>
+      </ul>
+    </li>
+    <li><a href="#命令列工具">命令列工具</a>
+      <ul>
+        <li><a href="#jps--查看-java-程序">jps — 查看 Java 程序</a></li>
+        <li><a href="#jstat--即時-gc-統計">jstat — 即時 GC 統計</a></li>
+        <li><a href="#jmap--heap-詳情與-dump">jmap — Heap 詳情與 Dump</a></li>
+        <li><a href="#jcmd--多功能診斷工具推薦">jcmd — 多功能診斷工具（推薦）</a></li>
+        <li><a href="#jinfo--查看-jvm-參數">jinfo — 查看 JVM 參數</a></li>
+      </ul>
+    </li>
+    <li><a href="#圖形化工具">圖形化工具</a>
+      <ul>
+        <li><a href="#visualvm">VisualVM</a></li>
+        <li><a href="#jconsole">JConsole</a></li>
+      </ul>
+    </li>
+    <li><a href="#常見記憶體問題排查">常見記憶體問題排查</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><h2 id="使用清單">使用清單</h2>
+            </div><div class="content" id="content"><p>監控 JVM 記憶體使用狀況是 Java 應用程式效能調優的基礎。本文整理常用的 JVM 記憶體查看工具，從命令列工具到圖形化介面，以及 JVM 記憶體各區域的說明。</p>
+<h2 id="jvm-記憶體架構概述">JVM 記憶體架構概述</h2>
+<p>在查看工具之前，先了解 JVM 記憶體的主要區域：</p>
+<h3 id="heap堆積記憶體">Heap（堆積記憶體）</h3>
+<p>GC 管理的主要區域，儲存物件實例：</p>
+<ul>
+<li><strong>Eden Space</strong>：新建物件首先分配在這裡</li>
+<li><strong>Survivor Space（S0/S1）</strong>：Minor GC 後存活的物件移到這裡</li>
+<li><strong>Old Generation（Tenured）</strong>：存活多次 GC 的長壽物件</li>
+<li><strong>（Java 7 以前）Permanent Generation</strong>：Class 資訊、常數池</li>
+</ul>
+<h3 id="non-heap">Non-Heap</h3>
+<ul>
+<li><strong>Metaspace（Java 8+）</strong>：Class 定義、方法資訊（取代 PermGen，使用原生記憶體）</li>
+<li><strong>Code Cache</strong>：JIT 編譯後的機器碼</li>
+<li><strong>Thread Stack</strong>：每個執行緒的方法呼叫堆疊</li>
+</ul>
+<h2 id="命令列工具">命令列工具</h2>
+<h3 id="jps--查看-java-程序">jps — 查看 Java 程序</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 列出所有 Java 程序的 PID 和名稱</span>
+</span></span><span class="line"><span class="cl">jps -l
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>輸出範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">12345 com.example.MyApp
+</span></span><span class="line"><span class="cl">67890 org.apache.catalina.startup.Bootstrap
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="jstat--即時-gc-統計">jstat — 即時 GC 統計</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 每 1000ms 輸出一次 GC 統計，共 10 次</span>
+</span></span><span class="line"><span class="cl">jstat -gc &lt;pid&gt; <span class="m">1000</span> <span class="m">10</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>主要欄位說明：</p>
+<table>
+<thead>
+<tr>
+<th>欄位</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S0C/S1C</td>
+<td>Survivor 0/1 容量（KB）</td>
+</tr>
+<tr>
+<td>S0U/S1U</td>
+<td>Survivor 0/1 使用量（KB）</td>
+</tr>
+<tr>
+<td>EC/EU</td>
+<td>Eden 容量 / 使用量（KB）</td>
+</tr>
+<tr>
+<td>OC/OU</td>
+<td>Old Gen 容量 / 使用量（KB）</td>
+</tr>
+<tr>
+<td>MC/MU</td>
+<td>Metaspace 容量 / 使用量（KB）</td>
+</tr>
+<tr>
+<td>YGC/YGCT</td>
+<td>Minor GC 次數 / 累計時間</td>
+</tr>
+<tr>
+<td>FGC/FGCT</td>
+<td>Full GC 次數 / 累計時間</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看各記憶體區容量百分比</span>
+</span></span><span class="line"><span class="cl">jstat -gcutil &lt;pid&gt; <span class="m">1000</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="jmap--heap-詳情與-dump">jmap — Heap 詳情與 Dump</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看 Heap 摘要（Java 11 以前）</span>
+</span></span><span class="line"><span class="cl">jmap -heap &lt;pid&gt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Java 11+ 使用 jcmd 替代</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; GC.heap_info
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 產生 Heap Dump（用於後續分析）</span>
+</span></span><span class="line"><span class="cl">jmap -dump:format<span class="o">=</span>b,file<span class="o">=</span>heap.hprof &lt;pid&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Heap Dump 後可用 <strong>Eclipse Memory Analyzer (MAT)</strong> 或 <strong>VisualVM</strong> 分析。</p>
+<h3 id="jcmd--多功能診斷工具推薦">jcmd — 多功能診斷工具（推薦）</h3>
+<p><code>jcmd</code> 是 Java 8+ 推薦的診斷工具，整合了多項功能：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 列出所有可用指令</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; <span class="nb">help</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看 JVM 資訊</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; VM.info
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看原生記憶體（需啟動 JVM 時加 -XX:NativeMemoryTracking=summary）</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; VM.native_memory summary
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 觸發 GC</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; GC.run
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 產生 Heap Dump</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; GC.heap_dump <span class="nv">filename</span><span class="o">=</span>heap.hprof
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看 JVM 旗標設定</span>
+</span></span><span class="line"><span class="cl">jcmd &lt;pid&gt; VM.flags
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="jinfo--查看-jvm-參數">jinfo — 查看 JVM 參數</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看 JVM 所有屬性和設定</span>
+</span></span><span class="line"><span class="cl">jinfo &lt;pid&gt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看特定參數</span>
+</span></span><span class="line"><span class="cl">jinfo -flag MaxHeapSize &lt;pid&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="圖形化工具">圖形化工具</h2>
+<h3 id="visualvm">VisualVM</h3>
+<p>JDK 內建的監控工具（<code>$JAVA_HOME/bin/jvisualvm</code>），功能豐富：</p>
+<ul>
+<li>即時查看 Heap / CPU 使用率</li>
+<li>執行 Heap Dump 並分析物件</li>
+<li>支援 GC 即時圖表</li>
+<li>可連接遠端 JVM（JMX）</li>
+</ul>
+<h3 id="jconsole">JConsole</h3>
+<p>較輕量的圖形化工具（<code>$JAVA_HOME/bin/jconsole</code>）：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -137,18 +337,67 @@ JVM引數對J2EE效能優化的影響 - IT閱讀"/>
 </span><span class="lnt">4
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1">#  檢視當前機器上所有執行的java程序名稱與pid(程序編號)</span>
-</span></span><span class="line"><span class="cl">jps -l
-</span></span><span class="line"><span class="cl"><span class="c1">#  顯示指定的jvm程序所有的屬性設定和配置引數</span>
-</span></span><span class="line"><span class="cl">jinfo pid
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 啟動 JConsole</span>
+</span></span><span class="line"><span class="cl">jconsole &lt;pid&gt;
+</span></span><span class="line"><span class="cl"><span class="c1"># 或連接遠端</span>
+</span></span><span class="line"><span class="cl">jconsole host:port
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>TODO: 整理</p>
-<p><a href="https://my.oschina.net/u/4416802/blog/3845052" target="_blank" rel="noopener noreffer ">利用jmap和MAT等工具查看JVM运行时堆内存 - osc_3wmngxzc的个人空间 - OSCHINA - 中文开源技术交流社区</a><br>
-<a href="https://blog.yosheng.tw/jvm-out-of-memory" target="_blank" rel="noopener noreffer ">JVM 記憶體溢出 - 夜升筆談</a></p>
-<p><a href="https://cloud.tencent.com/developer/article/1518274" target="_blank" rel="noopener noreffer ">JVM故障分析及性能优化实战(VII)——使用MAT的Histogram和Dominator Tree定位溢出源 - 云+社区 - 腾讯云</a></p>
-<p><a href="https://codingnote.cc/zh-tw/p/152324/" target="_blank" rel="noopener noreffer ">JVM(完成度95%,不斷更新) - ⎝⎛CodingNote.cc ⎞⎠</a></p>
-<p><a href="https://www.itread01.com/p/580598.html" target="_blank" rel="noopener noreffer ">JVM引數對J2EE效能優化的影響 - IT閱讀</a></p></div><div class="post-footer" id="post-footer">
+</div><blockquote>
+<p>若要遠端連線，啟動應用時需加上：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">-Dcom.sun.management.jmxremote
+</span></span><span class="line"><span class="cl">-Dcom.sun.management.jmxremote.port<span class="o">=</span><span class="m">9999</span>
+</span></span><span class="line"><span class="cl">-Dcom.sun.management.jmxremote.authenticate<span class="o">=</span><span class="nb">false</span>
+</span></span><span class="line"><span class="cl">-Dcom.sun.management.jmxremote.ssl<span class="o">=</span><span class="nb">false</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></blockquote>
+<h2 id="常見記憶體問題排查">常見記憶體問題排查</h2>
+<table>
+<thead>
+<tr>
+<th>現象</th>
+<th>可能原因</th>
+<th>排查工具</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full GC 頻繁</td>
+<td>Old Gen 空間不足</td>
+<td><code>jstat -gcutil</code></td>
+</tr>
+<tr>
+<td>Heap 持續增長</td>
+<td>記憶體洩漏</td>
+<td><code>jmap -dump</code> + MAT</td>
+</tr>
+<tr>
+<td>Metaspace OOM</td>
+<td>動態 class 載入太多</td>
+<td><code>jstat -gcmetacapacity</code></td>
+</tr>
+<tr>
+<td>Thread Stack OOM</td>
+<td>執行緒太多或遞迴過深</td>
+<td><code>jstack &lt;pid&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://my.oschina.net/u/4416802/blog/3845052" target="_blank" rel="noopener noreffer ">利用 jmap 和 MAT 查看 JVM 運行時堆記憶體</a></li>
+<li><a href="https://blog.yosheng.tw/jvm-out-of-memory" target="_blank" rel="noopener noreffer ">JVM 記憶體溢出 - 夜升筆談</a></li>
+<li><a href="https://codingnote.cc/zh-tw/p/152324/" target="_blank" rel="noopener noreffer ">JVM 完整筆記 - CodingNote.cc</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

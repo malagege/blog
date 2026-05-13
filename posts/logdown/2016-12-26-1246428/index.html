@@ -13,7 +13,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/logdown/2016-12-26-1246428/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2016-12-26T07:50:00+00:00" />
-<meta property="article:modified_time" content="2022-10-06T22:45:08+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta property="article:modified_time" content="2026-04-30T23:49:13+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="[JavaScript]JSONP為什麼不能用POST"/>
 <meta name="twitter:description" content="為什麼JSONP不能使用POST?
@@ -33,8 +33,8 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2016-12-26-1246428\/"
-        },"genre": "posts","keywords": "JavaScript, JSONP","wordcount":  19 ,
-        "url": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2016-12-26-1246428\/","datePublished": "2016-12-26T07:50:00+00:00","dateModified": "2022-10-06T22:45:08+08:00","publisher": {
+        },"genre": "posts","keywords": "JavaScript, JSONP","wordcount":  166 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2016-12-26-1246428\/","datePublished": "2016-12-26T07:50:00+00:00","dateModified": "2026-04-30T23:49:13+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
@@ -107,27 +107,118 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">[JavaScript]JSONP為什麼不能用POST</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/JavaScript/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>JavaScript</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2016-12-26">2016-12-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;19 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2016-12-26">2016-12-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;166 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#jsonp-的工作原理">JSONP 的工作原理</a></li>
+    <li><a href="#為什麼-jsonp-只能用-get">為什麼 JSONP 只能用 GET？</a></li>
+    <li><a href="#jsonp-的安全性問題">JSONP 的安全性問題</a></li>
+    <li><a href="#現代替代方案cors">現代替代方案：CORS</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
             </div><div class="content" id="content"><p>為什麼JSONP不能使用POST?<br>
 因為JSONP透過script標籤實作<br>
 所以才沒辦法做</p>
-<p>就這樣:)</p>
-<p>參考來源:<br>
-How to use type: “POST” in jsonp ajax call<br>
-<a href="http://stackoverflow.com/questions/4508198/how-to-use-type-post-in-jsonp-ajax-call" target="_blank" rel="noopener noreffer ">http://stackoverflow.com/questions/4508198/how-to-use-type-post-in-jsonp-ajax-call</a><br>
-使用 JSONP 跨站請求<br>
-<a href="http://openhome.cc/Gossip/JavaScript/JSONP.html" target="_blank" rel="noopener noreffer ">http://openhome.cc/Gossip/JavaScript/JSONP.html</a></p></div><div class="post-footer" id="post-footer">
+<h2 id="jsonp-的工作原理">JSONP 的工作原理</h2>
+<p>JSONP（JSON with Padding）是一種繞過瀏覽器**同源政策（Same-Origin Policy）**限制的技術，在 CORS 尚未普及時被廣泛使用。</p>
+<p>其核心原理是：<code>&lt;script&gt;</code> 標籤不受同源政策限制，可以載入任意來源的 JavaScript 檔案。JSONP 就是利用這一點，動態建立 <code>&lt;script&gt;</code> 標籤來發送跨域請求：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="c1">// 1. 定義回呼函式
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">function</span> <span class="nx">handleResponse</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;收到資料：&#39;</span><span class="p">,</span> <span class="nx">data</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 2. 動態建立 script 標籤，附上 callback 參數
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">script</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s1">&#39;script&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">script</span><span class="p">.</span><span class="nx">src</span> <span class="o">=</span> <span class="s1">&#39;https://api.example.com/data?callback=handleResponse&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">script</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 3. 伺服器回傳的內容（不是 JSON，是 JS 函式呼叫）
+</span></span></span><span class="line"><span class="cl"><span class="c1">// handleResponse({&#34;name&#34;: &#34;John&#34;, &#34;age&#34;: 30});
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="為什麼-jsonp-只能用-get">為什麼 JSONP 只能用 GET？</h2>
+<p><code>&lt;script&gt;</code> 標籤的 <code>src</code> 屬性只能發送 <strong>HTTP GET 請求</strong>，不支援 POST、PUT、DELETE 等方法。這是 HTML 規範決定的，無法透過 JavaScript 改變。</p>
+<p>因此 JSONP 天生只能使用 GET，無法傳送請求體（Request Body）。</p>
+<h2 id="jsonp-的安全性問題">JSONP 的安全性問題</h2>
+<p>JSONP 存在嚴重的安全隱患：</p>
+<ul>
+<li><strong>XSS 風險</strong>：伺服器回傳的內容會被當作 JavaScript 執行，若第三方 API 被入侵，惡意程式碼會直接在你的網站執行。</li>
+<li><strong>CSRF 風險</strong>：任何網站都可以用 JSONP 呼叫你的 API，若 API 依賴 Cookie 認證，可能被惡意網站竊取資料。</li>
+<li><strong>無法設定請求標頭</strong>：無法加入 <code>Authorization</code>、<code>Content-Type</code> 等自訂標頭，限制了認證機制的選擇。</li>
+</ul>
+<h2 id="現代替代方案cors">現代替代方案：CORS</h2>
+<p>CORS（Cross-Origin Resource Sharing）是現代標準的跨域解決方案，透過 HTTP 標頭來控制跨域存取：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Access-Control-Allow-Origin: https://your-site.com
+</span></span><span class="line"><span class="cl">Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+</span></span><span class="line"><span class="cl">Access-Control-Allow-Headers: Content-Type, Authorization
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+<thead>
+<tr>
+<th>比較項目</th>
+<th>JSONP</th>
+<th>CORS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>支援方法</td>
+<td>只有 GET</td>
+<td>所有 HTTP 方法</td>
+</tr>
+<tr>
+<td>安全性</td>
+<td>較低</td>
+<td>較高（有 Preflight 機制）</td>
+</tr>
+<tr>
+<td>錯誤處理</td>
+<td>困難</td>
+<td>標準 HTTP 狀態碼</td>
+</tr>
+</tbody>
+</table>
+<p>現代專案應優先使用 CORS，JSONP 已屬於過時技術。</p>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="http://stackoverflow.com/questions/4508198/how-to-use-type-post-in-jsonp-ajax-call" target="_blank" rel="noopener noreffer ">Stack Overflow - How to use type: &ldquo;POST&rdquo; in jsonp ajax call</a></li>
+<li><a href="http://openhome.cc/Gossip/JavaScript/JSONP.html" target="_blank" rel="noopener noreffer ">使用 JSONP 跨站請求</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2022-10-06</span>
+                <span>Updated on 2026-04-30</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"></div>

@@ -4,21 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Docker權限問題 - 程式狂想筆記</title><meta name="Description" content="要做blog移轉，筆記先存檔&hellip;
-docker 容器挂载目录权限问题
-docker data volume vs mounted host directory - Stack Overflow"><meta property="og:title" content="Docker權限問題" />
-<meta property="og:description" content="要做blog移轉，筆記先存檔&hellip;
-docker 容器挂载目录权限问题
-docker data volume vs mounted host directory - Stack Overflow" />
+        <title>Docker權限問題 - 程式狂想筆記</title><meta name="Description" content="在使用 Docker 掛載目錄（bind mount）時，常常會遇到容器內部無法讀寫宿主機目錄的權限問題。這是因為容器內的使用者 UID/GID 與宿主機上的使用者 UID/GID 不同所導致的。"><meta property="og:title" content="Docker權限問題" />
+<meta property="og:description" content="在使用 Docker 掛載目錄（bind mount）時，常常會遇到容器內部無法讀寫宿主機目錄的權限問題。這是因為容器內的使用者 UID/GID 與宿主機上的使用者 UID/GID 不同所導致的。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/logdown/2018-01-14-docker-permission-issues/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-01-14T15:47:00+00:00" />
-<meta property="article:modified_time" content="2022-10-06T22:45:08+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta property="article:modified_time" content="2026-04-30T23:49:13+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Docker權限問題"/>
-<meta name="twitter:description" content="要做blog移轉，筆記先存檔&hellip;
-docker 容器挂载目录权限问题
-docker data volume vs mounted host directory - Stack Overflow"/>
+<meta name="twitter:description" content="在使用 Docker 掛載目錄（bind mount）時，常常會遇到容器內部無法讀寫宿主機目錄的權限問題。這是因為容器內的使用者 UID/GID 與宿主機上的使用者 UID/GID 不同所導致的。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -33,13 +27,13 @@ docker data volume vs mounted host directory - Stack Overflow"/>
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2018-01-14-docker-permission-issues\/"
-        },"genre": "posts","keywords": "Docker","wordcount":  13 ,
-        "url": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2018-01-14-docker-permission-issues\/","datePublished": "2018-01-14T15:47:00+00:00","dateModified": "2022-10-06T22:45:08+08:00","publisher": {
+        },"genre": "posts","keywords": "Docker","wordcount":  175 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/logdown\/2018-01-14-docker-permission-issues\/","datePublished": "2018-01-14T15:47:00+00:00","dateModified": "2026-04-30T23:49:13+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "要做blog移轉，筆記先存檔\u0026hellip;\ndocker 容器挂载目录权限问题\ndocker data volume vs mounted host directory - Stack Overflow"
+            },"description": "\u003cp\u003e在使用 Docker 掛載目錄（bind mount）時，常常會遇到容器內部無法讀寫宿主機目錄的權限問題。這是因為容器內的使用者 UID/GID 與宿主機上的使用者 UID/GID 不同所導致的。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -107,22 +101,158 @@ docker data volume vs mounted host directory - Stack Overflow"/>
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker權限問題</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-01-14">2018-01-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;13 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-01-14">2018-01-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;175 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>要做blog移轉，筆記先存檔&hellip;<br>
-<a href="http://www.jdkhome.com/article/docker-%E5%AE%B9%E5%99%A8%E6%8C%82%E8%BD%BD%E7%9B%AE%E5%BD%95%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98" target="_blank" rel="noopener noreffer ">docker 容器挂载目录权限问题</a><br>
-<a href="https://stackoverflow.com/questions/34357252/docker-data-volume-vs-mounted-host-directory" target="_blank" rel="noopener noreffer ">docker data volume vs mounted host directory - Stack Overflow</a></p>
-</div><div class="post-footer" id="post-footer">
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#問題原因">問題原因</a></li>
+    <li><a href="#解決方式">解決方式</a>
+      <ul>
+        <li><a href="#方法一在-dockerfile-中建立對應-uid-的使用者">方法一：在 Dockerfile 中建立對應 UID 的使用者</a></li>
+        <li><a href="#方法二使用---user-參數">方法二：使用 <code>--user</code> 參數</a></li>
+        <li><a href="#方法三調整宿主機目錄的權限">方法三：調整宿主機目錄的權限</a></li>
+        <li><a href="#方法四在容器啟動腳本中修正權限">方法四：在容器啟動腳本中修正權限</a></li>
+      </ul>
+    </li>
+    <li><a href="#volume-與-bind-mount-的差異">Volume 與 Bind Mount 的差異</a></li>
+    <li><a href="#最佳實踐">最佳實踐</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>在使用 Docker 掛載目錄（bind mount）時，常常會遇到容器內部無法讀寫宿主機目錄的權限問題。這是因為容器內的使用者 UID/GID 與宿主機上的使用者 UID/GID 不同所導致的。</p>
+<h2 id="問題原因">問題原因</h2>
+<p>Docker 容器中的程序預設以某個使用者身份執行（例如 <code>www-data</code>，UID=33），而宿主機上掛載的目錄擁有者可能是另一個使用者（例如 UID=1000）。當 UID 不符合時，容器內程序便無法寫入該目錄，產生 <code>Permission denied</code> 錯誤。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ docker run -v /host/data:/container/data myimage
+</span></span><span class="line"><span class="cl">touch: /container/data/test.txt: Permission denied
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="解決方式">解決方式</h2>
+<h3 id="方法一在-dockerfile-中建立對應-uid-的使用者">方法一：在 Dockerfile 中建立對應 UID 的使用者</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="k">FROM</span><span class="s"> ubuntu:22.04</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># 建立與宿主機相同 UID 的使用者</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> groupadd -g <span class="m">1000</span> appuser <span class="o">&amp;&amp;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>    useradd -u <span class="m">1000</span> -g appuser appuser<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">USER</span><span class="s"> appuser</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="方法二使用---user-參數">方法二：使用 <code>--user</code> 參數</h3>
+<p>執行容器時直接指定以宿主機使用者身份執行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run --user <span class="k">$(</span>id -u<span class="k">)</span>:<span class="k">$(</span>id -g<span class="k">)</span> -v /host/data:/container/data myimage
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="方法三調整宿主機目錄的權限">方法三：調整宿主機目錄的權限</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 設定目錄可被所有人讀寫（較不安全，僅用於開發環境）</span>
+</span></span><span class="line"><span class="cl">chmod -R <span class="m">777</span> /host/data
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或設定特定群組可寫入</span>
+</span></span><span class="line"><span class="cl">chown -R 1000:1000 /host/data
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="方法四在容器啟動腳本中修正權限">方法四：在容器啟動腳本中修正權限</h3>
+<p>在 <code>entrypoint.sh</code> 中動態修正權限：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="cp">#!/bin/bash
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>chown -R appuser:appuser /container/data
+</span></span><span class="line"><span class="cl"><span class="nb">exec</span> <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="volume-與-bind-mount-的差異">Volume 與 Bind Mount 的差異</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Volume</th>
+<th>Bind Mount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管理方式</td>
+<td>Docker 管理（<code>docker volume</code>）</td>
+<td>直接指定宿主機路徑</td>
+</tr>
+<tr>
+<td>路徑</td>
+<td><code>/var/lib/docker/volumes/...</code></td>
+<td>任意宿主機路徑</td>
+</tr>
+<tr>
+<td>權限問題</td>
+<td>較少遇到</td>
+<td>常見 UID/GID 不符</td>
+</tr>
+<tr>
+<td>跨平台</td>
+<td>較一致</td>
+<td>Windows/Mac 行為不同</td>
+</tr>
+<tr>
+<td>適用場景</td>
+<td>生產環境資料持久化</td>
+<td>開發時程式碼掛載</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Volume</strong> 由 Docker 自動建立和管理，容器對 volume 擁有完整控制權，較不容易遇到權限問題。</p>
+<p><strong>Bind Mount</strong> 直接將宿主機路徑掛載進容器，因此宿主機的檔案權限設定直接影響容器內的存取。</p>
+<h2 id="最佳實踐">最佳實踐</h2>
+<ol>
+<li>開發環境可使用 <code>--user</code> 搭配 bind mount，方便直接編輯程式碼</li>
+<li>生產環境建議使用 Docker volume，並在 Dockerfile 明確設定執行使用者</li>
+<li>避免在 Dockerfile 中使用 <code>root</code> 使用者執行應用程式，降低安全風險</li>
+</ol>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://stackoverflow.com/questions/34357252/docker-data-volume-vs-mounted-host-directory" target="_blank" rel="noopener noreffer ">docker data volume vs mounted host directory - Stack Overflow</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2022-10-06</span>
+                <span>Updated on 2026-04-30</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"></div>

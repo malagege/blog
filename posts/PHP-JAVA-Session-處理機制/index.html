@@ -27,7 +27,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/PHP-JAVA-Session-%E8%99%95%E7%90%86%E6%A9%9F%E5%88%B6\/"
-        },"genre": "posts","keywords": "php, java, session, cookies","wordcount":  9 ,
+        },"genre": "posts","keywords": "php, java, session, cookies","wordcount":  292 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/PHP-JAVA-Session-%E8%99%95%E7%90%86%E6%A9%9F%E5%88%B6\/","datePublished": "2022-07-31T00:20:24+00:00","dateModified": "2022-07-31T00:20:24+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
@@ -101,8 +101,8 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">PHP JAVA Session 處理機制</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-07-31">2022-07-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;9 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-07-31">2022-07-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;292 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
@@ -110,23 +110,219 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li>
+    <li><a href="#http-session-的基本概念">HTTP Session 的基本概念</a></li>
+    <li><a href="#php-session-機制">PHP Session 機制</a>
       <ul>
-        <li><a href="#php">PHP</a></li>
-        <li><a href="#java">JAVA</a></li>
+        <li><a href="#基本使用">基本使用</a></li>
+        <li><a href="#運作機制">運作機制</a></li>
+        <li><a href="#session-設定">Session 設定</a></li>
       </ul>
     </li>
+    <li><a href="#java-servlet-session-機制">Java Servlet Session 機制</a>
+      <ul>
+        <li><a href="#基本使用-1">基本使用</a></li>
+        <li><a href="#運作機制-1">運作機制</a></li>
+      </ul>
+    </li>
+    <li><a href="#php-vs-java-session-比較">PHP vs Java Session 比較</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
   </ul>
 </nav></div>
             </div><div class="content" id="content"><p>小記</p>
-<h3 id="php">PHP</h3>
-<p><a href="https://blog.csdn.net/qq_45521281/article/details/106665608" target="_blank" rel="noopener noreffer ">https://blog.csdn.net/qq_45521281/article/details/106665608</a></p>
-<p><a href="https://blog.markgdi.com/article/php-session-principle/" target="_blank" rel="noopener noreffer ">https://blog.markgdi.com/article/php-session-principle/</a></p>
-<p><a href="https://blog.51cto.com/cmdschool/1714757" target="_blank" rel="noopener noreffer ">https://blog.51cto.com/cmdschool/1714757</a></p>
-<h3 id="java">JAVA</h3>
-<p><a href="https://blog.csdn.net/liujiding/article/details/77529972" target="_blank" rel="noopener noreffer ">https://blog.csdn.net/liujiding/article/details/77529972</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/27117070" target="_blank" rel="noopener noreffer ">https://zhuanlan.zhihu.com/p/27117070</a></p>
-<p><a href="https://www.iteye.com/blog/zmx-1846181" target="_blank" rel="noopener noreffer ">https://www.iteye.com/blog/zmx-1846181</a></p></div><div class="post-footer" id="post-footer">
+<h2 id="http-session-的基本概念">HTTP Session 的基本概念</h2>
+<p>HTTP 是一個**無狀態（Stateless）**的協定，每次請求之間彼此獨立，伺服器無法自動辨認兩次請求是否來自同一個使用者。Session 機制就是為了解決這個問題而生。</p>
+<p>Session 的核心概念：</p>
+<ol>
+<li>使用者首次訪問時，伺服器建立一個唯一的 <strong>Session ID</strong></li>
+<li>Session ID 透過 Cookie（或 URL 參數）傳給瀏覽器</li>
+<li>瀏覽器後續每次請求都帶上此 Session ID</li>
+<li>伺服器根據 Session ID 查找對應的 <strong>Session 資料</strong>（存在記憶體或檔案中）</li>
+<li>以此識別使用者的狀態（例如：是否已登入、購物車內容等）</li>
+</ol>
+<h2 id="php-session-機制">PHP Session 機制</h2>
+<h3 id="基本使用">基本使用</h3>
+<p>PHP 提供內建的 Session 支援，使用非常簡單：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 開啟 Session（每個需要使用 Session 的頁面都要呼叫）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">session_start</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 寫入 Session 資料
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">123</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Alice&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 讀取 Session 資料
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">echo</span> <span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">];</span> <span class="c1">// 輸出：Alice
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 刪除特定 Session 變數
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">unset</span><span class="p">(</span><span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 銷毀整個 Session（登出時使用）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">session_destroy</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="cp">?&gt;</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="運作機制">運作機制</h3>
+<ol>
+<li><code>session_start()</code> 被呼叫時，PHP 會：
+<ul>
+<li>讀取請求中的 Cookie（預設名稱為 <code>PHPSESSID</code>）</li>
+<li>若無 Cookie，則建立新的 Session ID 並透過 <code>Set-Cookie</code> 回應標頭傳給瀏覽器</li>
+</ul>
+</li>
+<li>Session 資料預設以<strong>檔案形式</strong>存在伺服器的 <code>/tmp</code> 目錄（可透過 <code>session.save_path</code> 設定）</li>
+<li>每個 Session 檔案以 Session ID 命名，例如：<code>sess_abc123xyz</code></li>
+</ol>
+<h3 id="session-設定">Session 設定</h3>
+<p>可在 <code>php.ini</code> 或程式中調整 Session 行為：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="c1">// 設定 Session 過期時間（秒）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ini_set</span><span class="p">(</span><span class="s1">&#39;session.gc_maxlifetime&#39;</span><span class="p">,</span> <span class="mi">3600</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 設定 Session Cookie 的有效時間
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">session_set_cookie_params</span><span class="p">(</span><span class="mi">3600</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="java-servlet-session-機制">Java Servlet Session 機制</h2>
+<h3 id="基本使用-1">基本使用</h3>
+<p>Java Web 應用透過 <code>HttpSession</code> 介面管理 Session：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span><span class="w"> </span><span class="nn">javax.servlet.http.HttpSession</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// 取得 Session（若不存在則建立新的）</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">HttpSession</span><span class="w"> </span><span class="n">session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">request</span><span class="p">.</span><span class="na">getSession</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// 寫入 Session 資料</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">session</span><span class="p">.</span><span class="na">setAttribute</span><span class="p">(</span><span class="s">&#34;userId&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">123</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">session</span><span class="p">.</span><span class="na">setAttribute</span><span class="p">(</span><span class="s">&#34;username&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;Alice&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// 讀取 Session 資料</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">String</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">String</span><span class="p">)</span><span class="w"> </span><span class="n">session</span><span class="p">.</span><span class="na">getAttribute</span><span class="p">(</span><span class="s">&#34;username&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// 設定 Session 過期時間（秒）</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">session</span><span class="p">.</span><span class="na">setMaxInactiveInterval</span><span class="p">(</span><span class="n">1800</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// 移除特定屬性</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">session</span><span class="p">.</span><span class="na">removeAttribute</span><span class="p">(</span><span class="s">&#34;username&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// 銷毀 Session</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">session</span><span class="p">.</span><span class="na">invalidate</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="運作機制-1">運作機制</h3>
+<ol>
+<li>第一次呼叫 <code>request.getSession()</code> 時，Servlet 容器（Tomcat）建立新的 <code>HttpSession</code> 物件，並生成唯一的 Session ID（<code>JSESSIONID</code>）</li>
+<li>Session ID 預設透過 <strong>Cookie</strong> 傳遞，Cookie 名稱為 <code>JSESSIONID</code></li>
+<li>若瀏覽器禁用 Cookie，Servlet 支援 <strong>URL Rewriting</strong>，將 Session ID 附加在 URL 中：
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">http://example.com/page;jsessionid=ABC123
+</span></span></code></pre></td></tr></table>
+</div>
+</div>可用 <code>response.encodeURL(url)</code> 自動處理</li>
+<li>Session 資料存放在 <strong>JVM 記憶體</strong>中（單機），叢集環境需要外部 Session 存儲（Redis、資料庫）</li>
+</ol>
+<h2 id="php-vs-java-session-比較">PHP vs Java Session 比較</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>PHP</th>
+<th>Java (Servlet)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session ID Cookie 名稱</td>
+<td><code>PHPSESSID</code></td>
+<td><code>JSESSIONID</code></td>
+</tr>
+<tr>
+<td>預設存儲位置</td>
+<td>檔案系統（/tmp）</td>
+<td>JVM 記憶體</td>
+</tr>
+<tr>
+<td>啟動方式</td>
+<td><code>session_start()</code></td>
+<td><code>request.getSession()</code></td>
+</tr>
+<tr>
+<td>URL Rewriting</td>
+<td>支援</td>
+<td>支援（<code>encodeURL()</code>）</td>
+</tr>
+<tr>
+<td>叢集 Session 共享</td>
+<td>需設定 Redis/Memcached</td>
+<td>需設定外部 Session Store</td>
+</tr>
+<tr>
+<td>過期設定</td>
+<td><code>gc_maxlifetime</code></td>
+<td><code>setMaxInactiveInterval()</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://blog.markgdi.com/article/php-session-principle/" target="_blank" rel="noopener noreffer ">PHP Session 機制原理 - blog.markgdi.com</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/27117070" target="_blank" rel="noopener noreffer ">Java HttpSession 機制詳解 - 知乎</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

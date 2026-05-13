@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>在日誌中顯示Spring事務 - 程式狂想筆記</title><meta name="Description" content="每次都要找很久，所以特別記錄"><meta property="og:title" content="在日誌中顯示Spring事務" />
-<meta property="og:description" content="每次都要找很久，所以特別記錄" />
+        <title>在日誌中顯示Spring事務 - 程式狂想筆記</title><meta name="Description" content="每次設定 Spring 事務日誌都要重新查詢，這篇整理各種 logging 框架的設定方式，以及如何解讀事務日誌輸出。"><meta property="og:title" content="在日誌中顯示Spring事務" />
+<meta property="og:description" content="每次設定 Spring 事務日誌都要重新查詢，這篇整理各種 logging 框架的設定方式，以及如何解讀事務日誌輸出。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8%E6%97%A5%E8%AA%8C%E4%B8%AD%E9%A1%AF%E7%A4%BASpring%E4%BA%8B%E5%8B%99/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-06-02T20:29:46+00:00" />
 <meta property="article:modified_time" content="2021-06-02T20:29:46+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="在日誌中顯示Spring事務"/>
-<meta name="twitter:description" content="每次都要找很久，所以特別記錄"/>
+<meta name="twitter:description" content="每次設定 Spring 事務日誌都要重新查詢，這篇整理各種 logging 框架的設定方式，以及如何解讀事務日誌輸出。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8%E6%97%A5%E8%AA%8C%E4%B8%AD%E9%A1%AF%E7%A4%BASpring%E4%BA%8B%E5%8B%99\/"
-        },"genre": "posts","keywords": "spring","wordcount":  6 ,
+        },"genre": "posts","keywords": "spring","wordcount":  232 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8%E6%97%A5%E8%AA%8C%E4%B8%AD%E9%A1%AF%E7%A4%BASpring%E4%BA%8B%E5%8B%99\/","datePublished": "2021-06-02T20:29:46+00:00","dateModified": "2021-06-02T20:29:46+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e每次都要找很久，所以特別記錄\u003c/p\u003e"
+            },"description": "\u003cp\u003e每次設定 Spring 事務日誌都要重新查詢，這篇整理各種 logging 框架的設定方式，以及如何解讀事務日誌輸出。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -101,24 +101,185 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在日誌中顯示Spring事務</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-06-02">2021-06-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;6 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-06-02">2021-06-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;232 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>每次都要找很久，所以特別記錄</p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#為何需要監控-spring-事務日誌">為何需要監控 Spring 事務日誌？</a></li>
+    <li><a href="#log4jproperties-設定">log4j.properties 設定</a></li>
+    <li><a href="#log4j2xml-設定">log4j2.xml 設定</a></li>
+    <li><a href="#slf4j--logback-設定logbackxml">SLF4J + Logback 設定（logback.xml）</a></li>
+    <li><a href="#解讀事務日誌輸出">解讀事務日誌輸出</a>
+      <ul>
+        <li><a href="#日誌解讀說明">日誌解讀說明</a></li>
+      </ul>
+    </li>
+    <li><a href="#常見問題transactional-沒有作用">常見問題：@Transactional 沒有作用</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>每次設定 Spring 事務日誌都要重新查詢，這篇整理各種 logging 框架的設定方式，以及如何解讀事務日誌輸出。</p>
+<h2 id="為何需要監控-spring-事務日誌">為何需要監控 Spring 事務日誌？</h2>
+<p><code>@Transactional</code> 讓 Spring 自動管理資料庫交易，但有時候：</p>
+<ul>
+<li>懷疑事務沒有正常開啟（方法是否真的在事務中執行？）</li>
+<li>排查 N+1 問題或異常回滾（rollback）</li>
+<li>確認事務傳播行為（Propagation）是否如預期</li>
+</ul>
+<p>透過設定日誌層級為 <code>TRACE</code>，可以看到 Spring 如何開啟、提交、回滾事務。</p>
+<hr>
+<h2 id="log4jproperties-設定">log4j.properties 設定</h2>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">log4j.logger.org.springframework.transaction.interceptor = trace
+<pre tabindex="0" class="chroma"><code class="language-properties" data-lang="properties"><span class="line"><span class="cl"><span class="c1"># 顯示事務攔截器詳細資訊（開啟/提交/回滾）</span>
+</span></span><span class="line"><span class="cl"><span class="na">log4j.logger.org.springframework.transaction.interceptor</span><span class="o">=</span><span class="s">TRACE</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 顯示 JDBC 事務管理器的底層操作</span>
+</span></span><span class="line"><span class="cl"><span class="na">log4j.logger.org.springframework.jdbc.datasource.DataSourceTransactionManager</span><span class="o">=</span><span class="s">DEBUG</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><a href="https://www.itranslater.com/qa/details/2127334888293532672" target="_blank" rel="noopener noreffer ">https://www.itranslater.com/qa/details/2127334888293532672</a></p></div><div class="post-footer" id="post-footer">
+</div><hr>
+<h2 id="log4j2xml-設定">log4j2.xml 設定</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;Configuration&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;Loggers&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="c">&lt;!-- Spring 事務攔截器 --&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;Logger</span> <span class="na">name=</span><span class="s">&#34;org.springframework.transaction.interceptor&#34;</span>
+</span></span><span class="line"><span class="cl">                <span class="na">level=</span><span class="s">&#34;TRACE&#34;</span> <span class="na">additivity=</span><span class="s">&#34;false&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&#34;Console&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/Logger&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c">&lt;!-- DataSource 事務管理器 --&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;Logger</span> <span class="na">name=</span><span class="s">&#34;org.springframework.jdbc.datasource.DataSourceTransactionManager&#34;</span>
+</span></span><span class="line"><span class="cl">                <span class="na">level=</span><span class="s">&#34;DEBUG&#34;</span> <span class="na">additivity=</span><span class="s">&#34;false&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&#34;Console&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/Logger&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/Loggers&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/Configuration&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="slf4j--logback-設定logbackxml">SLF4J + Logback 設定（logback.xml）</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;configuration&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- Spring 事務攔截器 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;logger</span> <span class="na">name=</span><span class="s">&#34;org.springframework.transaction.interceptor&#34;</span>
+</span></span><span class="line"><span class="cl">            <span class="na">level=</span><span class="s">&#34;TRACE&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c">&lt;!-- DataSource 事務管理器 --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;logger</span> <span class="na">name=</span><span class="s">&#34;org.springframework.jdbc.datasource.DataSourceTransactionManager&#34;</span>
+</span></span><span class="line"><span class="cl">            <span class="na">level=</span><span class="s">&#34;DEBUG&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/configuration&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="解讀事務日誌輸出">解讀事務日誌輸出</h2>
+<p>設定完成後，執行含有 <code>@Transactional</code> 的方法，會看到類似以下的日誌：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">TRACE o.s.t.i.TransactionInterceptor - Getting transaction for [com.example.service.UserService.createUser]
+</span></span><span class="line"><span class="cl">DEBUG o.s.j.d.DataSourceTransactionManager - Creating new transaction with name [com.example.service.UserService.createUser]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+</span></span><span class="line"><span class="cl">DEBUG o.s.j.d.DataSourceTransactionManager - Acquired Connection [xxx] for JDBC transaction
+</span></span><span class="line"><span class="cl">DEBUG o.s.j.d.DataSourceTransactionManager - Switching JDBC Connection [xxx] to manual commit
+</span></span><span class="line"><span class="cl">TRACE o.s.t.i.TransactionInterceptor - Completing transaction for [com.example.service.UserService.createUser]
+</span></span><span class="line"><span class="cl">DEBUG o.s.j.d.DataSourceTransactionManager - Committing JDBC transaction on Connection [xxx]
+</span></span><span class="line"><span class="cl">DEBUG o.s.j.d.DataSourceTransactionManager - Releasing JDBC Connection [xxx] after transaction
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="日誌解讀說明">日誌解讀說明</h3>
+<table>
+<thead>
+<tr>
+<th>日誌訊息</th>
+<th>意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Getting transaction for [...]</code></td>
+<td>方法進入，事務攔截器開始處理</td>
+</tr>
+<tr>
+<td><code>Creating new transaction</code></td>
+<td>建立新的事務（PROPAGATION_REQUIRED 時，若無現有事務）</td>
+</tr>
+<tr>
+<td><code>Participating in existing transaction</code></td>
+<td>加入現有事務（PROPAGATION_REQUIRED，上層已有事務）</td>
+</tr>
+<tr>
+<td><code>Committing JDBC transaction</code></td>
+<td>事務正常提交</td>
+</tr>
+<tr>
+<td><code>Rolling back JDBC transaction</code></td>
+<td>事務回滾（發生例外）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="常見問題transactional-沒有作用">常見問題：@Transactional 沒有作用</h2>
+<p>如果日誌中看到 <code>Getting transaction for</code> 但沒有 <code>Creating new transaction</code>，可能是：</p>
+<ol>
+<li>方法是 <code>private</code> 的（Spring AOP 無法攔截）</li>
+<li>同一個類別中直接呼叫（self-invocation 問題）</li>
+<li>沒有設定 <code>@EnableTransactionManagement</code></li>
+</ol>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://www.itranslater.com/qa/details/2127334888293532672" target="_blank" rel="noopener noreffer ">在日誌中顯示 Spring 事務 - iTranslater</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

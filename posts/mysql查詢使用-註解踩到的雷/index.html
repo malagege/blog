@@ -4,21 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>mysql查詢使用--註解踩到的雷 - 程式狂想筆記</title><meta name="Description" content="因為先前工作是使用DB2
-不過&hellip;最近新的工作使用Mysql
-發現竟然--註解不能用&hellip;"><meta property="og:title" content="mysql查詢使用--註解踩到的雷" />
-<meta property="og:description" content="因為先前工作是使用DB2
-不過&hellip;最近新的工作使用Mysql
-發現竟然--註解不能用&hellip;" />
+        <title>mysql查詢使用--註解踩到的雷 - 程式狂想筆記</title><meta name="Description" content="從 DB2 切換到 MySQL 時，常見的踩雷點之一就是 -- 註解的行為不同。這篇說明 MySQL 的三種註解方式與使用注意事項。"><meta property="og:title" content="mysql查詢使用--註解踩到的雷" />
+<meta property="og:description" content="從 DB2 切換到 MySQL 時，常見的踩雷點之一就是 -- 註解的行為不同。這篇說明 MySQL 的三種註解方式與使用注意事項。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/mysql%E6%9F%A5%E8%A9%A2%E4%BD%BF%E7%94%A8-%E8%A8%BB%E8%A7%A3%E8%B8%A9%E5%88%B0%E7%9A%84%E9%9B%B7/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-04-18T20:35:51+00:00" />
 <meta property="article:modified_time" content="2018-04-18T20:35:51+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="mysql查詢使用--註解踩到的雷"/>
-<meta name="twitter:description" content="因為先前工作是使用DB2
-不過&hellip;最近新的工作使用Mysql
-發現竟然--註解不能用&hellip;"/>
+<meta name="twitter:description" content="從 DB2 切換到 MySQL 時，常見的踩雷點之一就是 -- 註解的行為不同。這篇說明 MySQL 的三種註解方式與使用注意事項。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -33,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/mysql%E6%9F%A5%E8%A9%A2%E4%BD%BF%E7%94%A8-%E8%A8%BB%E8%A7%A3%E8%B8%A9%E5%88%B0%E7%9A%84%E9%9B%B7\/"
-        },"genre": "posts","keywords": "mysql, comment, 註解","wordcount":  13 ,
+        },"genre": "posts","keywords": "mysql, comment, 註解","wordcount":  223 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/mysql%E6%9F%A5%E8%A9%A2%E4%BD%BF%E7%94%A8-%E8%A8%BB%E8%A7%A3%E8%B8%A9%E5%88%B0%E7%9A%84%E9%9B%B7\/","datePublished": "2018-04-18T20:35:51+00:00","dateModified": "2018-04-18T20:35:51+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e因為先前工作是使用DB2\u003cbr\u003e\n不過\u0026hellip;最近新的工作使用Mysql\u003c/p\u003e\n\u003cp\u003e發現竟然\u003ccode\u003e--\u003c/code\u003e註解不能用\u0026hellip;\u003c/p\u003e"
+            },"description": "\u003cp\u003e從 DB2 切換到 MySQL 時，常見的踩雷點之一就是 \u003ccode\u003e--\u003c/code\u003e 註解的行為不同。這篇說明 MySQL 的三種註解方式與使用注意事項。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -107,24 +101,183 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">mysql查詢使用--註解踩到的雷</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%A8%8B%E5%BC%8F%E5%BF%83%E6%B3%95/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>程式心法</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-04-18">2018-04-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;13 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-04-18">2018-04-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;223 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>因為先前工作是使用DB2<br>
-不過&hellip;最近新的工作使用Mysql</p>
-<p>發現竟然<code>--</code>註解不能用&hellip;</p>
-<p>Google一下，原來MySQL註解有3種</p>
-<ol>
-<li>#</li>
-<li>/**/</li>
-<li>--   (但這種前後要留白)   ex : &ndash; test</li>
-</ol>
-<p>希望下次不要踩到一樣的雷XD</p></div><div class="post-footer" id="post-footer">
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#mysql-的三種註解方式">MySQL 的三種註解方式</a>
+      <ul>
+        <li><a href="#1--單行註解">1. <code>#</code> 單行註解</a></li>
+        <li><a href="#2---多行區塊註解">2. <code>/* */</code> 多行區塊註解</a></li>
+        <li><a href="#3----單行註解需要後接空格">3. <code>--</code> 單行註解（需要後接空格）</a></li>
+      </ul>
+    </li>
+    <li><a href="#為何----需要空格">為何 <code>--</code> 需要空格？</a></li>
+    <li><a href="#各種場景的使用建議">各種場景的使用建議</a>
+      <ul>
+        <li><a href="#在-stored-procedure-中">在 Stored Procedure 中</a></li>
+        <li><a href="#在一般查詢中臨時停用條件">在一般查詢中臨時停用條件</a></li>
+        <li><a href="#跨資料庫移植建議">跨資料庫移植建議</a></li>
+      </ul>
+    </li>
+    <li><a href="#三種註解方式比較">三種註解方式比較</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>從 DB2 切換到 MySQL 時，常見的踩雷點之一就是 <code>--</code> 註解的行為不同。這篇說明 MySQL 的三種註解方式與使用注意事項。</p>
+<h2 id="mysql-的三種註解方式">MySQL 的三種註解方式</h2>
+<h3 id="1--單行註解">1. <code>#</code> 單行註解</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span><span class="w"> </span><span class="o">#</span><span class="w"> </span><span class="err">這是註解</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="o">#</span><span class="w"> </span><span class="err">這整行都是註解</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>#</code> 是 MySQL 特有的語法，不屬於 SQL 標準，其他資料庫（如 DB2、PostgreSQL）不支援。</p>
+<h3 id="2---多行區塊註解">2. <code>/* */</code> 多行區塊註解</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="cm">/* 這是區塊註解
+</span></span></span><span class="line"><span class="cl"><span class="cm">   可以跨多行 */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="cm">/* 選擇欄位 */</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>這是標準 SQL 語法，所有主流資料庫都支援，也可以用在行中間。</p>
+<h3 id="3----單行註解需要後接空格">3. <code>--</code> 單行註解（需要後接空格）</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">-- 這是正確的 SQL 標準單行註解
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span><span class="w"> </span><span class="c1">-- 查詢所有使用者
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>⚠️ <strong>重要</strong>：MySQL 要求 <code>--</code> 後面至少要有一個空格（或 Tab、換行），否則不會被視為註解。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">-- 正確：後面有空格
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span><span class="w"> </span><span class="c1">-- 正確
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- 錯誤：--後面沒有空格，不會被視為註解
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span><span class="w"> </span><span class="c1">--錯誤
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="為何----需要空格">為何 <code>--</code> 需要空格？</h2>
+<p>根據 SQL 標準（SQL-99），<code>--</code> 後面接空格才是合法的行內註解語法。MySQL 嚴格遵守這個規定，主要原因是避免與數字運算的負號混淆。例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="mi">5</span><span class="c1">--3;  -- 這是 5 減去 -3 = 8，不是 5 後接註解
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">SELECT</span><span class="w"> </span><span class="mi">5</span><span class="c1">-- 3; -- 這是 5，後接行內註解
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>DB2、Oracle 和 SQL Server 的實作通常更寬鬆，不強制要求空格，所以從這些資料庫切換到 MySQL 容易踩雷。</p>
+<hr>
+<h2 id="各種場景的使用建議">各種場景的使用建議</h2>
+<h3 id="在-stored-procedure-中">在 Stored Procedure 中</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">DELIMITER</span><span class="w"> </span><span class="err">$$</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">PROCEDURE</span><span class="w"> </span><span class="n">get_users</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">BEGIN</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">-- 查詢所有使用者（注意：-- 後需要空格）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="cm">/* 也可以用區塊註解 */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">END</span><span class="err">$$</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">DELIMITER</span><span class="w"> </span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="在一般查詢中臨時停用條件">在一般查詢中臨時停用條件</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="n">orders</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;active&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="cm">/* AND created_at &gt; &#39;2024-01-01&#39; */</span><span class="w"> </span><span class="c1">-- 暫時停用日期篩選
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">123</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="跨資料庫移植建議">跨資料庫移植建議</h3>
+<p>如果 SQL 需要跨不同資料庫（MySQL、DB2、PostgreSQL），建議統一使用 <code>/* */</code> 或 <code>-- </code>（含空格）以確保相容性，避免使用 MySQL 特有的 <code>#</code> 語法。</p>
+<hr>
+<h2 id="三種註解方式比較">三種註解方式比較</h2>
+<table>
+<thead>
+<tr>
+<th>語法</th>
+<th>類型</th>
+<th>SQL 標準</th>
+<th>跨資料庫相容</th>
+<th>注意事項</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>#</code></td>
+<td>單行</td>
+<td>否（MySQL 特有）</td>
+<td>否</td>
+<td>簡單方便</td>
+</tr>
+<tr>
+<td><code>/* */</code></td>
+<td>多行區塊</td>
+<td>是</td>
+<td>是</td>
+<td>最通用</td>
+</tr>
+<tr>
+<td><code>-- </code></td>
+<td>單行</td>
+<td>是</td>
+<td>是（含空格）</td>
+<td>後面必須有空格</td>
+</tr>
+</tbody>
+</table></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

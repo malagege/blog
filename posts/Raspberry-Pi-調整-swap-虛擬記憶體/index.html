@@ -4,27 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Raspberry Pi 調整 swap 虛擬記憶體 - 程式狂想筆記</title><meta name="Description" content="最近用 prometheus 設定兩台樹莓派
-Swap 吃到99%~100%
-樹莓派預設都是設定100MB
-目前曾經 transmission 有因為記憶體不足關係
-有中斷過&hellip;，因為記憶體關係"><meta property="og:title" content="Raspberry Pi 調整 swap 虛擬記憶體" />
-<meta property="og:description" content="最近用 prometheus 設定兩台樹莓派
-Swap 吃到99%~100%
-樹莓派預設都是設定100MB
-目前曾經 transmission 有因為記憶體不足關係
-有中斷過&hellip;，因為記憶體關係" />
+        <title>Raspberry Pi 調整 swap 虛擬記憶體 - 程式狂想筆記</title><meta name="Description" content="Raspberry Pi 預設的 Swap 空間只有 100MB，在跑 Prometheus、Transmission 等較吃資源的服務時，記憶體加 Swap 加起來仍然不夠，容易導致服務被系統強制終止（OOM Kill）。本文說明如何調整 Swap 大小，並了解相關的注意事項。"><meta property="og:title" content="Raspberry Pi 調整 swap 虛擬記憶體" />
+<meta property="og:description" content="Raspberry Pi 預設的 Swap 空間只有 100MB，在跑 Prometheus、Transmission 等較吃資源的服務時，記憶體加 Swap 加起來仍然不夠，容易導致服務被系統強制終止（OOM Kill）。本文說明如何調整 Swap 大小，並了解相關的注意事項。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-04-04T15:56:05+00:00" />
 <meta property="article:modified_time" content="2021-04-04T15:56:05+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Raspberry Pi 調整 swap 虛擬記憶體"/>
-<meta name="twitter:description" content="最近用 prometheus 設定兩台樹莓派
-Swap 吃到99%~100%
-樹莓派預設都是設定100MB
-目前曾經 transmission 有因為記憶體不足關係
-有中斷過&hellip;，因為記憶體關係"/>
+<meta name="twitter:description" content="Raspberry Pi 預設的 Swap 空間只有 100MB，在跑 Prometheus、Transmission 等較吃資源的服務時，記憶體加 Swap 加起來仍然不夠，容易導致服務被系統強制終止（OOM Kill）。本文說明如何調整 Swap 大小，並了解相關的注意事項。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -39,13 +27,13 @@ Swap 吃到99%~100%
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94\/"
-        },"genre": "posts","keywords": "linux, swap","wordcount":  41 ,
+        },"genre": "posts","keywords": "linux, swap","wordcount":  332 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/Raspberry-Pi-%E8%AA%BF%E6%95%B4-swap-%E8%99%9B%E6%93%AC%E8%A8%98%E6%86%B6%E9%AB%94\/","datePublished": "2021-04-04T15:56:05+00:00","dateModified": "2021-04-04T15:56:05+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近用 prometheus 設定兩台樹莓派\u003cbr\u003e\nSwap 吃到99%~100%\u003cbr\u003e\n樹莓派預設都是設定100MB\u003cbr\u003e\n目前曾經 transmission 有因為記憶體不足關係\u003cbr\u003e\n有中斷過\u0026hellip;，因為記憶體關係\u003c/p\u003e"
+            },"description": "\u003cp\u003eRaspberry Pi 預設的 Swap 空間只有 100MB，在跑 Prometheus、Transmission 等較吃資源的服務時，記憶體加 Swap 加起來仍然不夠，容易導致服務被系統強制終止（OOM Kill）。本文說明如何調整 Swap 大小，並了解相關的注意事項。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -113,20 +101,101 @@ Swap 吃到99%~100%
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Raspberry Pi 調整 swap 虛擬記憶體</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-04-04">2021-04-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;41 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-04-04">2021-04-04</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;332 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>最近用 prometheus 設定兩台樹莓派<br>
-Swap 吃到99%~100%<br>
-樹莓派預設都是設定100MB<br>
-目前曾經 transmission 有因為記憶體不足關係<br>
-有中斷過&hellip;，因為記憶體關係</p>
-<p>調大 SWAP 參考<a href="https://blog.gtwang.org/iot/raspberry-pi/raspberry-pi-swap-configuration-using-usb-stick/" target="_blank" rel="noopener noreffer ">樹莓派 Raspberry Pi 記憶體不足當機？調整 Swap 交換空間大小解決 - G. T. Wang</a></p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#為何需要調整-swap">為何需要調整 Swap</a></li>
+    <li><a href="#查看目前-swap-使用情況">查看目前 Swap 使用情況</a></li>
+    <li><a href="#調整-swap-大小的步驟">調整 Swap 大小的步驟</a>
+      <ul>
+        <li><a href="#步驟一編輯設定檔">步驟一：編輯設定檔</a></li>
+        <li><a href="#步驟二重新啟動-dphys-swapfile-服務">步驟二：重新啟動 dphys-swapfile 服務</a></li>
+        <li><a href="#步驟三確認設定生效">步驟三：確認設定生效</a></li>
+      </ul>
+    </li>
+    <li><a href="#swap-過大的缺點">Swap 過大的缺點</a></li>
+    <li><a href="#監控-swap-使用情況">監控 Swap 使用情況</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>Raspberry Pi 預設的 Swap 空間只有 100MB，在跑 Prometheus、Transmission 等較吃資源的服務時，記憶體加 Swap 加起來仍然不夠，容易導致服務被系統強制終止（OOM Kill）。本文說明如何調整 Swap 大小，並了解相關的注意事項。</p>
+<h2 id="為何需要調整-swap">為何需要調整 Swap</h2>
+<p>Swap（交換空間）是一種虛擬記憶體機制，當實體 RAM 不足時，作業系統會把部分記憶體內容搬移到 Swap 區，騰出空間給當前執行的程式。</p>
+<p>Raspberry Pi 各型號的 RAM：</p>
+<table>
+<thead>
+<tr>
+<th>型號</th>
+<th>RAM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pi Zero / Zero 2</td>
+<td>512MB</td>
+</tr>
+<tr>
+<td>Pi 3B / 3B+</td>
+<td>1GB</td>
+</tr>
+<tr>
+<td>Pi 4B</td>
+<td>2GB / 4GB / 8GB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>問題</strong>：Raspberry Pi OS 預設只設定 100MB Swap，對於需要長時間執行服務的情境遠遠不夠。</p>
+<h2 id="查看目前-swap-使用情況">查看目前 Swap 使用情況</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看記憶體與 Swap 使用狀況（-h 顯示人類可讀格式）</span>
+</span></span><span class="line"><span class="cl">free -h
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 輸出範例：</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#               total        used        free      shared  buff/cache   available</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Mem:          927Mi       512Mi        85Mi        12Mi       329Mi       351Mi</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Swap:          99Mi        99Mi         0.0Ki</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看 Swap 詳細資訊</span>
+</span></span><span class="line"><span class="cl">swapon -s
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或用 cat 直接查看</span>
+</span></span><span class="line"><span class="cl">cat /proc/swaps
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="調整-swap-大小的步驟">調整 Swap 大小的步驟</h2>
+<p>Raspberry Pi OS 使用 <code>dphys-swapfile</code> 管理 Swap，設定檔在 <code>/etc/dphys-swapfile</code>。</p>
+<h3 id="步驟一編輯設定檔">步驟一：編輯設定檔</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo nano /etc/dphys-swapfile
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>找到 <code>CONF_SWAPSIZE</code> 這行，修改為想要的大小（單位：MB）：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -134,17 +203,111 @@ Swap 吃到99%~100%<br>
 </span><span class="lnt">3
 </span><span class="lnt">4
 </span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo vim /etc/dphys-swapfile
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 預設值（100MB，通常不夠用）</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># CONF_SWAPSIZE=100</span>
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># 100MB設定注解</span>
-</span></span><span class="line"><span class="cl"><span class="c1"># 設定 CONF_SWAPFACTOR=2</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 改為 512MB</span>
+</span></span><span class="line"><span class="cl"><span class="nv">CONF_SWAPSIZE</span><span class="o">=</span><span class="m">512</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或改為 1024MB（1GB）</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># CONF_SWAPSIZE=1024</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可以改用 <code>CONF_SWAPFACTOR</code>，讓 Swap 自動設定為 RAM 的倍數：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 設定 Swap = RAM × 2（例如 RAM 1GB → Swap 2GB）</span>
+</span></span><span class="line"><span class="cl"><span class="nv">CONF_SWAPFACTOR</span><span class="o">=</span><span class="m">2</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 注意：使用 CONF_SWAPFACTOR 時需要先將 CONF_SWAPSIZE 這行注解掉</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="步驟二重新啟動-dphys-swapfile-服務">步驟二：重新啟動 dphys-swapfile 服務</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 停止並重新建立 Swap</span>
+</span></span><span class="line"><span class="cl">sudo service dphys-swapfile stop
+</span></span><span class="line"><span class="cl">sudo service dphys-swapfile start
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或直接 restart（會自動重建 swap file）</span>
 </span></span><span class="line"><span class="cl">sudo service dphys-swapfile restart
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>完成<br>
-再觀查這幾個還會不會吃到快滿狀況</p></div><div class="post-footer" id="post-footer">
+</div><h3 id="步驟三確認設定生效">步驟三：確認設定生效</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">free -h
+</span></span><span class="line"><span class="cl"><span class="c1"># Swap 那行應該顯示新的大小</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="swap-過大的缺點">Swap 過大的缺點</h2>
+<p>雖然增加 Swap 可以避免 OOM 問題，但也有副作用：</p>
+<ol>
+<li><strong>SD Card 壽命減少</strong>：Swap 會頻繁讀寫 SD Card，而 SD Card 的寫入次數（P/E 次數）有限，過度使用會加速老化。</li>
+<li><strong>效能低落</strong>：Swap 的速度遠低於 RAM，頻繁 Swap 會讓系統反應變慢。</li>
+<li><strong>掩蓋真正問題</strong>：Swap 用盡不代表 Swap 不夠，有時是記憶體洩漏（Memory Leak）的症狀。</li>
+</ol>
+<p><strong>建議</strong>：</p>
+<ul>
+<li>一般情況設定 512MB 到 1GB 即可</li>
+<li>若 Swap 長期接近滿載，應考慮使用 USB SSD 取代 SD Card，或升級到更高 RAM 的型號</li>
+<li>可將 Swap 設定到 USB 外接儲存裝置上，延長 SD Card 壽命</li>
+</ul>
+<h2 id="監控-swap-使用情況">監控 Swap 使用情況</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 即時監控</span>
+</span></span><span class="line"><span class="cl">watch -n <span class="m">5</span> free -h
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看哪些程式佔用最多記憶體</span>
+</span></span><span class="line"><span class="cl">ps aux --sort<span class="o">=</span>-%mem <span class="p">|</span> head -10
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看 Swap 使用量（分程序）</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> file in /proc/*/status<span class="p">;</span> <span class="k">do</span>
+</span></span><span class="line"><span class="cl">  awk <span class="s1">&#39;/VmSwap|Name/{printf $2 &#34; &#34; $3 &#34;\n&#34;}&#39;</span> <span class="nv">$file</span> 2&gt;/dev/null
+</span></span><span class="line"><span class="cl"><span class="k">done</span> <span class="p">|</span> sort -k2 -n -r <span class="p">|</span> head -10
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://blog.gtwang.org/iot/raspberry-pi/raspberry-pi-swap-configuration-using-usb-stick/" target="_blank" rel="noopener noreffer ">樹莓派 Raspberry Pi 記憶體不足當機？調整 Swap 交換空間大小解決 - G. T. Wang</a></li>
+<li><a href="http://neil.franklin.ch/Projects/dphys-swapfile/" target="_blank" rel="noopener noreffer ">dphys-swapfile 說明文件</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

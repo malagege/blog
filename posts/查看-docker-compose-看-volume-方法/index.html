@@ -5,11 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
         <title>查看 docker compose 看 volume 方法 - 程式狂想筆記</title><meta name="Description" content="查看 docker compose 看 volume 方法
-一直以為 docker-compose volume /inspect
-但發現沒有這個功能"><meta property="og:title" content="查看 docker compose 看 volume 方法" />
+查看 Docker Container 中的 Volume 掛載資訊有幾種方式，整理如下。"><meta property="og:title" content="查看 docker compose 看 volume 方法" />
 <meta property="og:description" content="查看 docker compose 看 volume 方法
-一直以為 docker-compose volume /inspect
-但發現沒有這個功能" />
+查看 Docker Container 中的 Volume 掛載資訊有幾種方式，整理如下。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E6%9F%A5%E7%9C%8B-docker-compose-%E7%9C%8B-volume-%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-06-03T22:28:20+00:00" />
@@ -17,8 +15,7 @@
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="查看 docker compose 看 volume 方法"/>
 <meta name="twitter:description" content="查看 docker compose 看 volume 方法
-一直以為 docker-compose volume /inspect
-但發現沒有這個功能"/>
+查看 Docker Container 中的 Volume 掛載資訊有幾種方式，整理如下。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -33,13 +30,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E6%9F%A5%E7%9C%8B-docker-compose-%E7%9C%8B-volume-%E6%96%B9%E6%B3%95\/"
-        },"genre": "posts","keywords": "docker, volume","wordcount":  35 ,
+        },"genre": "posts","keywords": "docker, volume","wordcount":  356 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E6%9F%A5%E7%9C%8B-docker-compose-%E7%9C%8B-volume-%E6%96%B9%E6%B3%95\/","datePublished": "2021-06-03T22:28:20+00:00","dateModified": "2021-06-03T22:28:20+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003ch1 id=\"查看-docker-compose-看-volume-方法\"\u003e查看 docker compose 看 volume 方法\u003c/h1\u003e\n\u003cp\u003e一直以為 docker-compose volume /inspect\u003cbr\u003e\n但發現沒有這個功能\u003c/p\u003e"
+            },"description": "\u003ch1 id=\"查看-docker-compose-看-volume-方法\"\u003e查看 docker compose 看 volume 方法\u003c/h1\u003e\n\u003cp\u003e查看 Docker Container 中的 Volume 掛載資訊有幾種方式，整理如下。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -107,21 +104,262 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">查看 docker compose 看 volume 方法</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-06-03">2021-06-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;35 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-06-03">2021-06-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;356 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#方法一docker-inspect-查看-mounts-資訊">方法一：docker inspect 查看 Mounts 資訊</a></li>
+    <li><a href="#方法二docker-volume-ls-列出所有-volume">方法二：docker volume ls 列出所有 Volume</a></li>
+    <li><a href="#方法三docker-volume-inspect-查看-volume-詳情">方法三：docker volume inspect 查看 Volume 詳情</a></li>
+    <li><a href="#方法四docker-compose-相關指令">方法四：docker-compose 相關指令</a></li>
+    <li><a href="#方法五在容器內查看掛載點">方法五：在容器內查看掛載點</a></li>
+    <li><a href="#方法六使用-portainer圖形介面">方法六：使用 Portainer（圖形介面）</a></li>
+    <li><a href="#快速查詢對照表">快速查詢對照表</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
             </div><div class="content" id="content"><h1 id="查看-docker-compose-看-volume-方法">查看 docker compose 看 volume 方法</h1>
-<p>一直以為 docker-compose volume /inspect<br>
-但發現沒有這個功能</p>
-<p><a href="https://github.com/docker/compose/issues/4155" target="_blank" rel="noopener noreffer ">docker-compose inspect · Issue #4155 · docker/compose · GitHub</a></p>
-<p><a href="https://stackoverflow.com/questions/30133664/how-do-you-list-volumes-in-docker-containers" target="_blank" rel="noopener noreffer ">How do you list volumes in docker containers? - Stack Overflow</a></p>
-<p>看來用 portainer 會比較快</p>
-<p>有更好的方法，會再補充</p></div><div class="post-footer" id="post-footer">
+<p>查看 Docker Container 中的 Volume 掛載資訊有幾種方式，整理如下。</p>
+<h2 id="方法一docker-inspect-查看-mounts-資訊">方法一：docker inspect 查看 Mounts 資訊</h2>
+<p><code>docker inspect</code> 可以取得容器的詳細設定，包含 Volume 掛載資訊：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看完整容器資訊（JSON 格式）</span>
+</span></span><span class="line"><span class="cl">docker inspect &lt;container_name_or_id&gt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 只取出 Mounts 部分（推薦）</span>
+</span></span><span class="line"><span class="cl">docker inspect &lt;container_name_or_id&gt; --format<span class="o">=</span><span class="s1">&#39;{{json .Mounts}}&#39;</span> <span class="p">|</span> python3 -m json.tool
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>輸出範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">[</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Type&#34;</span><span class="p">:</span> <span class="s2">&#34;volume&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Name&#34;</span><span class="p">:</span> <span class="s2">&#34;my_postgres_data&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Source&#34;</span><span class="p">:</span> <span class="s2">&#34;/var/lib/docker/volumes/my_postgres_data/_data&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Destination&#34;</span><span class="p">:</span> <span class="s2">&#34;/var/lib/postgresql/data&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Driver&#34;</span><span class="p">:</span> <span class="s2">&#34;local&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Mode&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;RW&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Propagation&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>重要欄位說明：</p>
+<ul>
+<li><code>Source</code>：實際在主機上的路徑</li>
+<li><code>Destination</code>：在容器內部的掛載路徑</li>
+<li><code>Type</code>：<code>volume</code>（Named Volume）或 <code>bind</code>（Bind Mount）</li>
+<li><code>RW</code>：是否可讀寫</li>
+</ul>
+<h2 id="方法二docker-volume-ls-列出所有-volume">方法二：docker volume ls 列出所有 Volume</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 列出所有 Volume</span>
+</span></span><span class="line"><span class="cl">docker volume ls
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 輸出範例：</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># DRIVER    VOLUME NAME</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># local     my_postgres_data</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># local     my_redis_data</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># local     my_nginx_conf</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 篩選特定 Volume</span>
+</span></span><span class="line"><span class="cl">docker volume ls --filter <span class="nv">name</span><span class="o">=</span>postgres
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="方法三docker-volume-inspect-查看-volume-詳情">方法三：docker volume inspect 查看 Volume 詳情</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker volume inspect &lt;volume_name&gt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 範例：</span>
+</span></span><span class="line"><span class="cl">docker volume inspect my_postgres_data
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>輸出範例：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">[</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;CreatedAt&#34;</span><span class="p">:</span> <span class="s2">&#34;2024-01-15T10:30:00Z&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Driver&#34;</span><span class="p">:</span> <span class="s2">&#34;local&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Labels&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;com.docker.compose.project&#34;</span><span class="p">:</span> <span class="s2">&#34;myapp&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;com.docker.compose.volume&#34;</span><span class="p">:</span> <span class="s2">&#34;postgres_data&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Mountpoint&#34;</span><span class="p">:</span> <span class="s2">&#34;/var/lib/docker/volumes/my_postgres_data/_data&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Name&#34;</span><span class="p">:</span> <span class="s2">&#34;my_postgres_data&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Options&#34;</span><span class="p">:</span> <span class="p">{},</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;Scope&#34;</span><span class="p">:</span> <span class="s2">&#34;local&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>Mountpoint</code> 是 Volume 在主機上的實際路徑（通常在 <code>/var/lib/docker/volumes/</code> 下）。</p>
+<h2 id="方法四docker-compose-相關指令">方法四：docker-compose 相關指令</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 查看 docker-compose.yml 解析後的完整設定（包含 volume 設定）</span>
+</span></span><span class="line"><span class="cl">docker compose config
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看目前執行中的容器狀態</span>
+</span></span><span class="line"><span class="cl">docker compose ps
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 查看特定服務的 Volume 資訊（需先知道 container 名稱）</span>
+</span></span><span class="line"><span class="cl">docker compose ps -q db <span class="p">|</span> xargs docker inspect --format<span class="o">=</span><span class="s1">&#39;{{json .Mounts}}&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="方法五在容器內查看掛載點">方法五：在容器內查看掛載點</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 進入容器查看掛載資訊</span>
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> -it &lt;container_name&gt; df -h
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 或查看 /proc/mounts</span>
+</span></span><span class="line"><span class="cl">docker <span class="nb">exec</span> -it &lt;container_name&gt; cat /proc/mounts
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="方法六使用-portainer圖形介面">方法六：使用 Portainer（圖形介面）</h2>
+<p>若需要長期管理多個容器的 Volume，可以使用 <a href="https://www.portainer.io/" target="_blank" rel="noopener noreffer ">Portainer</a> 圖形化管理工具：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -d <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -p 9443:9443 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --name portainer <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --restart<span class="o">=</span>always <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v /var/run/docker.sock:/var/run/docker.sock <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -v portainer_data:/data <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  portainer/portainer-ce:latest
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>啟動後訪問 <code>https://localhost:9443</code>，可在 Volumes 頁面直觀地查看所有 Volume 和掛載資訊。</p>
+<h2 id="快速查詢對照表">快速查詢對照表</h2>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>指令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查看容器的 Volume 掛載</td>
+<td><code>docker inspect &lt;container&gt; | grep -A 20 Mounts</code></td>
+</tr>
+<tr>
+<td>列出所有 Volume</td>
+<td><code>docker volume ls</code></td>
+</tr>
+<tr>
+<td>查看 Volume 在主機的路徑</td>
+<td><code>docker volume inspect &lt;volume_name&gt;</code></td>
+</tr>
+<tr>
+<td>清除未使用的 Volume</td>
+<td><code>docker volume prune</code></td>
+</tr>
+<tr>
+<td>查看 compose 設定</td>
+<td><code>docker compose config</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://github.com/docker/compose/issues/4155" target="_blank" rel="noopener noreffer ">docker-compose inspect · Issue #4155 · docker/compose · GitHub</a></li>
+<li><a href="https://stackoverflow.com/questions/30133664/how-do-you-list-volumes-in-docker-containers" target="_blank" rel="noopener noreffer ">How do you list volumes in docker containers? - Stack Overflow</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

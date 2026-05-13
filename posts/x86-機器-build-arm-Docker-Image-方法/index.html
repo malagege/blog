@@ -4,24 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>x86 機器 build arm Docker Image 方法 - 程式狂想筆記</title><meta name="Description" content="最近要build arm image
-但是&hellip;在Raspberry Pi build 的時間非常久
-在想x86有沒有辦法做到
-結果真得可以"><meta property="og:title" content="x86 機器 build arm Docker Image 方法" />
-<meta property="og:description" content="最近要build arm image
-但是&hellip;在Raspberry Pi build 的時間非常久
-在想x86有沒有辦法做到
-結果真得可以" />
+        <title>x86 機器 build arm Docker Image 方法 - 程式狂想筆記</title><meta name="Description" content="最近要 build ARM Image 在 Raspberry Pi 上部署，但在 Raspberry Pi 上直接 build 的時間非常久。調查後發現 x86 機器可以透過 QEMU 模擬 ARM 架構來 build Image，大幅縮短開發週期。"><meta property="og:title" content="x86 機器 build arm Docker Image 方法" />
+<meta property="og:description" content="最近要 build ARM Image 在 Raspberry Pi 上部署，但在 Raspberry Pi 上直接 build 的時間非常久。調查後發現 x86 機器可以透過 QEMU 模擬 ARM 架構來 build Image，大幅縮短開發週期。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/x86-%E6%A9%9F%E5%99%A8-build-arm-Docker-Image-%E6%96%B9%E6%B3%95/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-03-28T16:17:49+00:00" />
 <meta property="article:modified_time" content="2021-03-28T16:17:49+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="x86 機器 build arm Docker Image 方法"/>
-<meta name="twitter:description" content="最近要build arm image
-但是&hellip;在Raspberry Pi build 的時間非常久
-在想x86有沒有辦法做到
-結果真得可以"/>
+<meta name="twitter:description" content="最近要 build ARM Image 在 Raspberry Pi 上部署，但在 Raspberry Pi 上直接 build 的時間非常久。調查後發現 x86 機器可以透過 QEMU 模擬 ARM 架構來 build Image，大幅縮短開發週期。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -36,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/x86-%E6%A9%9F%E5%99%A8-build-arm-Docker-Image-%E6%96%B9%E6%B3%95\/"
-        },"genre": "posts","keywords": "docker","wordcount":  36 ,
+        },"genre": "posts","keywords": "docker","wordcount":  363 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/x86-%E6%A9%9F%E5%99%A8-build-arm-Docker-Image-%E6%96%B9%E6%B3%95\/","datePublished": "2021-03-28T16:17:49+00:00","dateModified": "2021-03-28T16:17:49+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近要build arm image\u003cbr\u003e\n但是\u0026hellip;在Raspberry Pi build 的時間非常久\u003cbr\u003e\n在想x86有沒有辦法做到\u003cbr\u003e\n結果真得可以\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近要 build ARM Image 在 Raspberry Pi 上部署，但在 Raspberry Pi 上直接 build 的時間非常久。調查後發現 x86 機器可以透過 QEMU 模擬 ARM 架構來 build Image，大幅縮短開發週期。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -110,28 +101,187 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">x86 機器 build arm Docker Image 方法</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-03-28">2021-03-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;36 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2021-03-28">2021-03-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;363 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>最近要build arm image<br>
-但是&hellip;在Raspberry Pi build 的時間非常久<br>
-在想x86有沒有辦法做到<br>
-結果真得可以</p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#為什麼需要在-x86-上-build-arm-image">為什麼需要在 x86 上 build ARM Image？</a></li>
+    <li><a href="#方法一安裝-qemu--docker-buildx">方法一：安裝 QEMU + docker buildx</a>
+      <ul>
+        <li><a href="#步驟-1安裝-qemu-跨架構模擬支援">步驟 1：安裝 QEMU 跨架構模擬支援</a></li>
+        <li><a href="#步驟-2啟用-binfmt_misc-支援">步驟 2：啟用 binfmt_misc 支援</a></li>
+        <li><a href="#步驟-3建立-buildx-builder">步驟 3：建立 buildx Builder</a></li>
+        <li><a href="#步驟-4build-arm-image">步驟 4：Build ARM Image</a></li>
+      </ul>
+    </li>
+    <li><a href="#方法二使用-docker-manifest-建立多架構-image">方法二：使用 docker manifest 建立多架構 Image</a></li>
+    <li><a href="#在-raspberry-pi-上拉取-image">在 Raspberry Pi 上拉取 Image</a></li>
+    <li><a href="#應用場景">應用場景</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近要 build ARM Image 在 Raspberry Pi 上部署，但在 Raspberry Pi 上直接 build 的時間非常久。調查後發現 x86 機器可以透過 QEMU 模擬 ARM 架構來 build Image，大幅縮短開發週期。</p>
+<h2 id="為什麼需要在-x86-上-build-arm-image">為什麼需要在 x86 上 build ARM Image？</h2>
+<p>Raspberry Pi 使用 ARM 架構（ARMv7/ARMv8），而開發機通常是 x86_64。若直接在 Raspberry Pi 上 build Image：</p>
+<ul>
+<li>編譯速度極慢（Pi 的 CPU 效能遠低於開發機）</li>
+<li>CI/CD Pipeline 難以整合（Runner 通常是 x86）</li>
+</ul>
+<p>在 x86 機器上 build ARM Image，可以利用開發機的高效能 CPU，再將 Image 部署到 Pi 上執行。</p>
+<h2 id="方法一安裝-qemu--docker-buildx">方法一：安裝 QEMU + docker buildx</h2>
+<h3 id="步驟-1安裝-qemu-跨架構模擬支援">步驟 1：安裝 QEMU 跨架構模擬支援</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get update <span class="o">&amp;&amp;</span> sudo apt-get install -y --no-install-recommends <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  qemu-user-static <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  binfmt-support
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>qemu-user-static</code> 讓 Linux kernel 能夠透過 QEMU 執行 ARM 二進位檔案。</p>
+<h3 id="步驟-2啟用-binfmt_misc-支援">步驟 2：啟用 binfmt_misc 支援</h3>
+<p>Docker Desktop（Mac/Windows）已內建此支援。Linux 上需要執行：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get update <span class="o">&amp;&amp;</span> sudo apt-get install -y --no-install-recommends qemu-user-static binfmt-support
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run --privileged --rm tonistiigi/binfmt --install all
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>參考:<a href="https://learningsky.io/docker-build-on-ubuntu-x86/" target="_blank" rel="noopener noreffer ">【 Solutions 】解決在 x86 環境下無法 Build ARM 的 Docker Image</a></p>
-<p>試著build 一個Raspberry Pi image 沒有什麼問題</p></div><div class="post-footer" id="post-footer">
+</div><p>確認支援的平台：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker buildx ls
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="步驟-3建立-buildx-builder">步驟 3：建立 buildx Builder</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 建立新的 builder instance</span>
+</span></span><span class="line"><span class="cl">docker buildx create --name mybuilder --use
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 啟動 builder</span>
+</span></span><span class="line"><span class="cl">docker buildx inspect --bootstrap
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="步驟-4build-arm-image">步驟 4：Build ARM Image</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Build ARM64 Image（適用 Raspberry Pi 4）</span>
+</span></span><span class="line"><span class="cl">docker buildx build --platform linux/arm64 -t myimage:arm64 .
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Build ARMv7 Image（適用 Raspberry Pi 3/4 32-bit 系統）</span>
+</span></span><span class="line"><span class="cl">docker buildx build --platform linux/arm/v7 -t myimage:armv7 .
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 同時 Build 多個平台並推送到 Registry</span>
+</span></span><span class="line"><span class="cl">docker buildx build <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --platform linux/amd64,linux/arm64,linux/arm/v7 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  -t your-registry/myimage:latest <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --push <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  .
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>--push</code> 會在 build 完成後直接推送到 Container Registry，並自動建立多架構 Manifest。</p>
+<h2 id="方法二使用-docker-manifest-建立多架構-image">方法二：使用 docker manifest 建立多架構 Image</h2>
+<p>若已分別 build 好不同架構的 Image，可以手動建立 Multi-arch Manifest：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 分別 build 各架構</span>
+</span></span><span class="line"><span class="cl">docker build -t your-registry/myimage:amd64 .
+</span></span><span class="line"><span class="cl">docker buildx build --platform linux/arm64 -t your-registry/myimage:arm64 .
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 推送各架構 Image</span>
+</span></span><span class="line"><span class="cl">docker push your-registry/myimage:amd64
+</span></span><span class="line"><span class="cl">docker push your-registry/myimage:arm64
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 建立 manifest list</span>
+</span></span><span class="line"><span class="cl">docker manifest create your-registry/myimage:latest <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  your-registry/myimage:amd64 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  your-registry/myimage:arm64
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 推送 manifest</span>
+</span></span><span class="line"><span class="cl">docker manifest push your-registry/myimage:latest
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之後執行 <code>docker pull your-registry/myimage:latest</code>，Docker 會根據當前機器架構自動拉取對應的 Image。</p>
+<h2 id="在-raspberry-pi-上拉取-image">在 Raspberry Pi 上拉取 Image</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 在 Raspberry Pi 上，直接 pull，Docker 自動選擇 arm64 版本</span>
+</span></span><span class="line"><span class="cl">docker pull your-registry/myimage:latest
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 確認 Image 架構</span>
+</span></span><span class="line"><span class="cl">docker inspect your-registry/myimage:latest <span class="p">|</span> grep Architecture
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="應用場景">應用場景</h2>
+<ul>
+<li><strong>Raspberry Pi 部署</strong>：在 CI/CD Pipeline（x86 Runner）build ARM Image，自動部署到 Raspberry Pi 叢集</li>
+<li><strong>ARM 雲端服務器</strong>：AWS Graviton、Azure Ampere 等 ARM 雲端機器，可在 x86 開發機上 build Image 後部署</li>
+<li><strong>多架構發布</strong>：開源軟體通常需要同時支援 x86 和 ARM，使用 buildx 一次 build 多架構版本</li>
+</ul>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://learningsky.io/docker-build-on-ubuntu-x86/" target="_blank" rel="noopener noreffer ">解決在 x86 環境下無法 Build ARM 的 Docker Image - Learningsky</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

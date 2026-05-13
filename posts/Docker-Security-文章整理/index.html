@@ -27,7 +27,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/Docker-Security-%E6%96%87%E7%AB%A0%E6%95%B4%E7%90%86\/"
-        },"genre": "posts","keywords": "docker, security","wordcount":  20 ,
+        },"genre": "posts","keywords": "docker, security","wordcount":  400 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/Docker-Security-%E6%96%87%E7%AB%A0%E6%95%B4%E7%90%86\/","datePublished": "2022-07-31T02:04:12+00:00","dateModified": "2022-07-31T02:04:12+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
@@ -101,8 +101,8 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker Security 文章整理</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-07-31">2022-07-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;20 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-07-31">2022-07-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;400 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
@@ -110,15 +110,309 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#文章">文章</a></li>
+    <li><a href="#docker-安全的重要性">Docker 安全的重要性</a></li>
+    <li><a href="#image-安全">Image 安全</a>
+      <ul>
+        <li><a href="#使用官方或可信賴的-base-image">使用官方或可信賴的 Base Image</a></li>
+        <li><a href="#最小化-imagemulti-stage-build">最小化 Image（Multi-Stage Build）</a></li>
+      </ul>
+    </li>
+    <li><a href="#container-隔離">Container 隔離</a>
+      <ul>
+        <li><a href="#不以-root-執行容器">不以 root 執行容器</a></li>
+        <li><a href="#使用唯讀檔案系統">使用唯讀檔案系統</a></li>
+        <li><a href="#避免特權模式privileged-mode">避免特權模式（Privileged Mode）</a></li>
+      </ul>
+    </li>
+    <li><a href="#network-安全">Network 安全</a>
+      <ul>
+        <li><a href="#限制開放的-port">限制開放的 Port</a></li>
+        <li><a href="#使用自訂網路隔離容器">使用自訂網路隔離容器</a></li>
+      </ul>
+    </li>
+    <li><a href="#secret-管理">Secret 管理</a>
+      <ul>
+        <li><a href="#不要在-dockerfile-中寫入機密資訊">不要在 Dockerfile 中寫入機密資訊</a></li>
+      </ul>
+    </li>
+    <li><a href="#安全掃描工具">安全掃描工具</a>
+      <ul>
+        <li><a href="#trivy推薦">Trivy（推薦）</a></li>
+        <li><a href="#clair">Clair</a></li>
+      </ul>
+    </li>
+    <li><a href="#參考資料">參考資料</a></li>
   </ul>
 </nav></div>
             </div><div class="content" id="content"><p>文章蒐集</p>
-<h2 id="文章">文章</h2>
-<p><a href="https://www.mdeditor.tw/pl/pi6J/zh-tw" target="_blank" rel="noopener noreffer ">淺析Docker執行安全_FreeBuf - MdEditor</a></p>
-<p><a href="https://blog.trendmicro.com.tw/?p=62986" target="_blank" rel="noopener noreffer ">為何在 Docker 中執行特權容器不是個好主意? – 資安趨勢部落格</a></p>
-<p><a href="https://guide.daocloud.io/dcs/docker-root-9153994.html" target="_blank" rel="noopener noreffer ">Docker 容器的 root 安全吗？ - DCS 文档</a></p>
-<p><a href="https://www.mdeditor.tw/pl/23x3/zh-tw" target="_blank" rel="noopener noreffer ">淺談Docker的安全性支援（上篇）_小米運維 - MdEditor</a></p></div><div class="post-footer" id="post-footer">
+<h2 id="docker-安全的重要性">Docker 安全的重要性</h2>
+<p>容器化技術雖然帶來了部署便利，但若設定不當，同樣存在嚴重的安全風險。Docker 容器共用主機的 Linux Kernel，若容器被攻破，可能直接影響到主機系統。以下整理 Docker 安全的幾個主要面向。</p>
+<h2 id="image-安全">Image 安全</h2>
+<h3 id="使用官方或可信賴的-base-image">使用官方或可信賴的 Base Image</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="c"># 推薦：使用官方 slim 版本，體積小、攻擊面小</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="s"> node:20-slim</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># 避免：不明來源的 Image</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="s"> unknownuser/some-image</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>建議原則：</p>
+<ul>
+<li>優先使用 Docker Hub 的<strong>官方 Image</strong>（帶有 Official Image 標章）</li>
+<li>使用 <strong>Alpine</strong> 或 <strong>slim</strong> 版本，減少預裝套件</li>
+<li>定期更新 Base Image，修補已知漏洞</li>
+<li>在 CI/CD 中設定定期重建 Image</li>
+</ul>
+<h3 id="最小化-imagemulti-stage-build">最小化 Image（Multi-Stage Build）</h3>
+<p>使用多階段建構（Multi-Stage Build）讓最終 Image 只包含執行所需的檔案：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="c"># Build Stage</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="s"> maven:3.9-eclipse-temurin-17 AS build</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">WORKDIR</span><span class="s"> /app</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">COPY</span> . .<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> mvn package -DskipTests<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Runtime Stage（只包含 JRE，不含 Maven 和原始碼）</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="s"> eclipse-temurin:17-jre-slim</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">WORKDIR</span><span class="s"> /app</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">COPY</span> --from<span class="o">=</span>build /app/target/app.jar .<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">ENTRYPOINT</span> <span class="p">[</span><span class="s2">&#34;java&#34;</span><span class="p">,</span> <span class="s2">&#34;-jar&#34;</span><span class="p">,</span> <span class="s2">&#34;app.jar&#34;</span><span class="p">]</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="container-隔離">Container 隔離</h2>
+<h3 id="不以-root-執行容器">不以 root 執行容器</h3>
+<p>預設情況下，Docker 容器內的程序以 root 身分執行，一旦容器被攻破，攻擊者可能取得主機的高權限。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="c"># 建立非 root 使用者</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> addgroup --system appgroup <span class="o">&amp;&amp;</span> adduser --system --ingroup appgroup appuser<span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">USER</span><span class="s"> appuser</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可在 <code>docker run</code> 時指定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run --user 1000:1000 myimage
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用唯讀檔案系統">使用唯讀檔案系統</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run --read-only myimage
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>若應用程式需要寫入，只掛載必要的可寫入目錄：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run --read-only <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --tmpfs /tmp <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --mount <span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span>/data,target<span class="o">=</span>/app/data <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  myimage
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="避免特權模式privileged-mode">避免特權模式（Privileged Mode）</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 危險：不要使用 --privileged，它會賦予容器幾乎等同主機 root 的權限</span>
+</span></span><span class="line"><span class="cl">docker run --privileged myimage
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 若需要特定 Linux Capability，改用 --cap-add 精確授權</span>
+</span></span><span class="line"><span class="cl">docker run --cap-add NET_ADMIN myimage
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="network-安全">Network 安全</h2>
+<h3 id="限制開放的-port">限制開放的 Port</h3>
+<p>不要隨意 <code>-p 0.0.0.0:port:port</code> 把 Port 開放給所有介面：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 危險：對所有介面開放</span>
+</span></span><span class="line"><span class="cl">docker run -p 3306:3306 mysql
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 安全：只對本機 loopback 開放（外部無法直接連線）</span>
+</span></span><span class="line"><span class="cl">docker run -p 127.0.0.1:3306:3306 mysql
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用自訂網路隔離容器">使用自訂網路隔離容器</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># docker-compose.yml</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">web</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">nginx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">frontend</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">api</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">myapi</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">frontend</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">backend</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">db</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">postgres</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">backend </span><span class="w"> </span><span class="c"># db 只在 backend 網路，web 無法直接連線</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">networks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">frontend</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">backend</span><span class="p">:</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="secret-管理">Secret 管理</h2>
+<h3 id="不要在-dockerfile-中寫入機密資訊">不要在 Dockerfile 中寫入機密資訊</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="c"># 危險：密碼寫死在 Dockerfile 中，會被存入 Image 歷史</span><span class="err">
+</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">ENV</span> <span class="nv">DB_PASSWORD</span><span class="o">=</span>mysecretpassword
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c"># 正確：使用環境變數或 Docker Secret</span><span class="err">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用 Docker Compose 的環境變數檔案：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># .env 檔案（加入 .gitignore，不提交到版本控制）</span>
+</span></span><span class="line"><span class="cl"><span class="nv">DB_PASSWORD</span><span class="o">=</span>mysecretpassword
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># docker-compose.yml</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">app</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">.env</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Docker Swarm 可使用 <code>docker secret</code>，Kubernetes 可使用 <code>Secret</code> 物件或 Vault 等外部 Secret 管理工具。</p>
+<h2 id="安全掃描工具">安全掃描工具</h2>
+<h3 id="trivy推薦">Trivy（推薦）</h3>
+<p>由 Aqua Security 開發的開源漏洞掃描工具：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 安裝</span>
+</span></span><span class="line"><span class="cl">brew install trivy  <span class="c1"># macOS</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 或直接用 Docker</span>
+</span></span><span class="line"><span class="cl">docker run aquasec/trivy image myimage:latest
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 掃描 Image 漏洞</span>
+</span></span><span class="line"><span class="cl">trivy image nginx:latest
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 掃描 Dockerfile</span>
+</span></span><span class="line"><span class="cl">trivy config ./Dockerfile
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="clair">Clair</h3>
+<p>CoreOS 開發的靜態分析工具，常整合進 CI/CD Pipeline，自動掃描推送到 Registry 的 Image。</p>
+<h2 id="參考資料">參考資料</h2>
+<ul>
+<li><a href="https://www.mdeditor.tw/pl/pi6J/zh-tw" target="_blank" rel="noopener noreffer ">淺析Docker執行安全 - MdEditor</a></li>
+<li><a href="https://blog.trendmicro.com.tw/?p=62986" target="_blank" rel="noopener noreffer ">為何在 Docker 中執行特權容器不是個好主意？ – 資安趨勢部落格</a></li>
+<li><a href="https://guide.daocloud.io/dcs/docker-root-9153994.html" target="_blank" rel="noopener noreffer ">Docker 容器的 root 安全吗？ - DCS 文档</a></li>
+<li><a href="https://www.mdeditor.tw/pl/23x3/zh-tw" target="_blank" rel="noopener noreffer ">淺談Docker的安全性支援（上篇） - MdEditor</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

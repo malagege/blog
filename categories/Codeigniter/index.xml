@@ -30,12 +30,13 @@
     <pubDate>Fri, 02 Jun 2017 14:50:00 &#43;0000</pubDate>
     <author>malagege</author>
     <guid>https://malagege.github.io/blog/posts/logdown/2017-06-02-codeigniter-session-error-problems/</guid>
-    <description><![CDATA[在config設定
-1 $config[&#39;sess_save_path&#39;] =BASEPATH.&#39;../&#39;.&#39;session_file&#39;; http://codeigniter.org.cn/forums/thread-21295-1-1.html
-由於我是用Docker設定
-目前猜測可能權限有問題&hellip;
-導制錯誤
-在此記錄，不然一下就忘記了XD]]></description>
+    <description><![CDATA[CodeIgniter 的 Session 預設使用檔案方式儲存，在某些環境（特別是 Docker 容器）下可能因為路徑或權限問題導致 Session 無法正常運作，以下整理常見問題與解決方式。
+Session 路徑設定 在 application/config/config.php 中設定 Session 儲存路徑：
+1 2 // 設定 session 檔案存放目錄（相對於 BASEPATH） $config[&#39;sess_save_path&#39;] = BASEPATH . &#39;../&#39; . &#39;session_file&#39;; 或使用絕對路徑，更為明確：
+1 $config[&#39;sess_save_path&#39;] = &#39;/var/www/html/session_file&#39;; 確保這個目錄存在，且 Web server 的執行使用者有寫入權限。
+目錄權限設定 Session 目錄必須對 Web server 使用者（通常是 www-data）可寫：
+1 2 3 4 5 6 # 建立目錄 mkdir -p session_file # 設定權限 chmod 755 session_file chown www-data:www-data session_file 若使用 Docker，則需要確認容器內的使用者身份，並給予對應權限。
+Docker 環境的特殊注意事項 在 Docker 容器中，常見的 Session 問題包括：]]></description>
 </item>
 </channel>
 </rss>
