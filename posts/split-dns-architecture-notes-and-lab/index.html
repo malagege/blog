@@ -9,7 +9,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2026-05-14T21:50:21+08:00" />
-<meta property="article:modified_time" content="2026-05-14T21:57:05+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta property="article:modified_time" content="2026-05-14T21:57:25+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Split DNS 架構整理與小實驗"/>
 <meta name="twitter:description" content="整理 Split DNS 的基本架構與實驗方向。"/>
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/split-dns-architecture-notes-and-lab\/"
-        },"genre": "posts","keywords": "dns, network","wordcount":  599 ,
-        "url": "https:\/\/malagege.github.io\/blog\/posts\/split-dns-architecture-notes-and-lab\/","datePublished": "2026-05-14T21:50:21+08:00","dateModified": "2026-05-14T21:57:05+08:00","publisher": {
+        },"genre": "posts","keywords": "dns, network","wordcount":  596 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/split-dns-architecture-notes-and-lab\/","datePublished": "2026-05-14T21:50:21+08:00","dateModified": "2026-05-14T21:57:25+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003ch1 id=\"split-dns-實戰筆記與架構整理\"\u003eSplit DNS 實戰筆記與架構整理\u003c/h1\u003e\n\u003cp\u003e在網路架構中，\u003cstrong\u003eSplit DNS\u003c/strong\u003e 或 \u003cstrong\u003eSplit-horizon DNS\u003c/strong\u003e 是這類技術的「總稱」。其核心目的在於：\u003cstrong\u003e根據發出 DNS 查詢的來源（通常是 IP 位址），回傳相對應的解析結果\u003c/strong\u003e。最常見的應用場景就是讓公司內網與外部網際網路的使用者，在查詢同一個網域名稱時，被導向不同的伺服器 IP。\u003c/p\u003e"
+            },"description": "\u003cp\u003e在網路架構中，\u003cstrong\u003eSplit DNS\u003c/strong\u003e 或 \u003cstrong\u003eSplit-horizon DNS\u003c/strong\u003e 是這類技術的「總稱」。其核心目的在於：\u003cstrong\u003e根據發出 DNS 查詢的來源（通常是 IP 位址），回傳相對應的解析結果\u003c/strong\u003e。最常見的應用場景就是讓公司內網與外部網際網路的使用者，在查詢同一個網域名稱時，被導向不同的伺服器 IP。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -101,7 +101,7 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Split DNS 架構整理與小實驗</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2026-05-14">2026-05-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;599 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2026-05-14">2026-05-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;596 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
@@ -127,8 +127,7 @@
     <li><a href="#心智圖">心智圖</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><h1 id="split-dns-實戰筆記與架構整理">Split DNS 實戰筆記與架構整理</h1>
-<p>在網路架構中，<strong>Split DNS</strong> 或 <strong>Split-horizon DNS</strong> 是這類技術的「總稱」。其核心目的在於：<strong>根據發出 DNS 查詢的來源（通常是 IP 位址），回傳相對應的解析結果</strong>。最常見的應用場景就是讓公司內網與外部網際網路的使用者，在查詢同一個網域名稱時，被導向不同的伺服器 IP。</p>
+            </div><div class="content" id="content"><p>在網路架構中，<strong>Split DNS</strong> 或 <strong>Split-horizon DNS</strong> 是這類技術的「總稱」。其核心目的在於：<strong>根據發出 DNS 查詢的來源（通常是 IP 位址），回傳相對應的解析結果</strong>。最常見的應用場景就是讓公司內網與外部網際網路的使用者，在查詢同一個網域名稱時，被導向不同的伺服器 IP。</p>
 <p>以下整理三種常見的 Split DNS 架構與優缺點，並附上使用 Unbound 實作的測試紀錄。</p>
 <h2 id="基礎架構分類">基礎架構分類</h2>
 <h3 id="1-雙腦架構-split-brain-dns--實體--完全隔離">1. 雙腦架構 (Split-brain DNS) —— 「實體 / 完全隔離」</h3>
