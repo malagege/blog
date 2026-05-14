@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Split DNS 架構整理與小實驗 - 程式狂想筆記</title><meta name="Description" content="整理 Split DNS 的基本架構與實驗方向。"><meta property="og:title" content="Split DNS 架構整理與小實驗" />
+<meta property="og:description" content="整理 Split DNS 的基本架構與實驗方向。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-05-14T21:50:21+08:00" />
+<meta property="article:modified_time" content="2026-05-14T21:57:05+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Split DNS 架構整理與小實驗"/>
+<meta name="twitter:description" content="整理 Split DNS 的基本架構與實驗方向。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" /><link rel="prev" href="https://malagege.github.io/blog/posts/sshuttle-jump-vpn-tool/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Split DNS 架構整理與小實驗",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/split-dns-architecture-notes-and-lab\/"
+        },"genre": "posts","keywords": "dns, network","wordcount":  599 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/split-dns-architecture-notes-and-lab\/","datePublished": "2026-05-14T21:50:21+08:00","dateModified": "2026-05-14T21:57:05+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003ch1 id=\"split-dns-實戰筆記與架構整理\"\u003eSplit DNS 實戰筆記與架構整理\u003c/h1\u003e\n\u003cp\u003e在網路架構中，\u003cstrong\u003eSplit DNS\u003c/strong\u003e 或 \u003cstrong\u003eSplit-horizon DNS\u003c/strong\u003e 是這類技術的「總稱」。其核心目的在於：\u003cstrong\u003e根據發出 DNS 查詢的來源（通常是 IP 位址），回傳相對應的解析結果\u003c/strong\u003e。最常見的應用場景就是讓公司內網與外部網際網路的使用者，在查詢同一個網域名稱時，被導向不同的伺服器 IP。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Split DNS 架構整理與小實驗</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/%E7%B6%B2%E8%B7%AF/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>網路</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2026-05-14">2026-05-14</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;599 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#基礎架構分類">基礎架構分類</a>
+      <ul>
+        <li><a href="#1-雙腦架構-split-brain-dns--實體--完全隔離">1. 雙腦架構 (Split-brain DNS) —— 「實體 / 完全隔離」</a></li>
+        <li><a href="#2-split-view-dns--集中化視圖管理">2. Split View DNS —— 「集中化視圖管理」</a></li>
+        <li><a href="#3-dns-override--輕量化邊緣攔截">3. DNS Override —— 「輕量化邊緣攔截」</a></li>
+      </ul>
+    </li>
+    <li><a href="#實戰演練unbound-操作-split-view-dns">實戰演練：Unbound 操作 Split-view DNS</a>
+      <ul>
+        <li><a href="#-設定-linux-網路命名空間-network-namespace-與-dns">🧪 設定 Linux 網路命名空間 (Network Namespace) 與 DNS</a></li>
+      </ul>
+    </li>
+    <li><a href="#補充使用-unbound-實作-dns-override">補充：使用 Unbound 實作 DNS Override</a></li>
+    <li><a href="#相關文章">相關文章</a></li>
+    <li><a href="#心智圖">心智圖</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="split-dns-實戰筆記與架構整理">Split DNS 實戰筆記與架構整理</h1>
+<p>在網路架構中，<strong>Split DNS</strong> 或 <strong>Split-horizon DNS</strong> 是這類技術的「總稱」。其核心目的在於：<strong>根據發出 DNS 查詢的來源（通常是 IP 位址），回傳相對應的解析結果</strong>。最常見的應用場景就是讓公司內網與外部網際網路的使用者，在查詢同一個網域名稱時，被導向不同的伺服器 IP。</p>
+<p>以下整理三種常見的 Split DNS 架構與優缺點，並附上使用 Unbound 實作的測試紀錄。</p>
+<h2 id="基礎架構分類">基礎架構分類</h2>
+<h3 id="1-雙腦架構-split-brain-dns--實體--完全隔離">1. 雙腦架構 (Split-brain DNS) —— 「實體 / 完全隔離」</h3>
+<ul>
+<li><strong>概念：</strong> 系統如同被分割成「兩個獨立的大腦」，內部 DNS 和外部 DNS 各自獨立運作，互不相連，也對彼此的存在一無所知。</li>
+<li><strong>做法：</strong> 內網架設一台專屬的 DNS 伺服器（A 腦），外部雲端或 DMZ 區放置另一台 DNS 伺服器（B 腦）。兩邊雖然都託管 <code>company.com</code> 這個網域，但內部的 Zone file 紀錄與外部完全不同。</li>
+<li><strong>優點：</strong> 安全性最高、架構最單純。即使外部 DNS 遭受攻擊或被惡意竄改，內部 DNS 依然安然無恙，企業內部的機密網路拓樸完全不會外洩。</li>
+<li><strong>缺點：</strong> 維護成本倍增。每次新增或修改共用的網域名稱時，網管人員都必須在內、外兩台伺服器上各設定一次，容易產生資料不同步的人為疏失。</li>
+</ul>
+<h3 id="2-split-view-dns--集中化視圖管理">2. Split View DNS —— 「集中化視圖管理」</h3>
+<ul>
+<li><strong>概念：</strong> 依靠「一台」強大的 DNS 伺服器集中處理，但具備「看來源給答案」的能力。它會根據發問者的 Source IP 網段，動態切換並回傳對應的「視圖 (Views)」。</li>
+<li><strong>做法：</strong> 利用 BIND9 的 <code>views</code> 功能、Windows Server 的 <code>DNS Policies</code>，或 Unbound 的 <code>access-control-view</code>。在同一台伺服器內定義好 ACL（存取控制清單）與規則：「匹配到 192.168.x.x 的來源給內部 Zone 紀錄，其餘則給外部 Zone 紀錄」。</li>
+<li><strong>優點：</strong> 集中管理。維運人員只需登入一台伺服器即可完成所有設定，免去了維護兩套系統的麻煩。</li>
+<li><strong>缺點：</strong> 設定邏輯較為複雜。若 View 或 ACL 的匹配規則寫錯，很容易導致內外網解析錯亂（例如外網拿到內網的私有 IP）。</li>
+</ul>
+<h3 id="3-dns-override--輕量化邊緣攔截">3. DNS Override —— 「輕量化邊緣攔截」</h3>
+<ul>
+<li><strong>概念：</strong> 不特別架設正規的內部 DNS 伺服器，而是利用既有的<strong>邊緣設備（路由器或防火牆）</strong>（如 pfSense、FortiGate 等）來「攔截」並「覆寫」特定的 DNS 查詢。</li>
+<li><strong>做法：</strong></li>
+</ul>
+<ol>
+<li>外部 DNS 一樣依賴 Cloudflare 或 HiNet 等公共 DNS 代管。</li>
+<li>公司內部的終端設備，將 DNS 指向公司的路由器 (Gateway)。</li>
+<li>路由器平常作為 Forwarder，將查詢轉發給外部公共 DNS。<strong>但是</strong>，網管會在路由器中設定幾條「特例規則 (Host Overrides)」：當有人查詢 <code>erp.company.com</code> 時，路由器會自己攔截該請求，直接回覆內部 IP <code>192.168.1.50</code>，其餘沒寫在規則裡的網域才往外丟。</li>
+</ol>
+<ul>
+<li><strong>優點：</strong> 超級輕量、建置成本極低。不需額外採購伺服器或維護作業系統，現有的商用路由器/防火牆即可實現。</li>
+<li><strong>缺點：</strong> 擴充性差，只適合少量的網域覆寫。如果企業內部有數百個網址需要解析，透過路由器的 Web UI 或單一清單來管理會是一場災難。</li>
+</ul>
+<blockquote>
+<p>參考資料：<a href="https://defencedev.com/network-tutorials/fortigate/fortigate-dns-server-configuration/" target="_blank" rel="noopener noreffer ">FortiGate DNS Server Configuration</a></p>
+</blockquote>
+<hr>
+<h2 id="實戰演練unbound-操作-split-view-dns">實戰演練：Unbound 操作 Split-view DNS</h2>
+<p>在 <strong>Unbound</strong> 中實作 Split-view DNS，核心概念為：<strong>透過 ACL (Access Control List) 將不同來源的網段綁定到不同的 View，再搭配 local-zone / local-data 來回覆對應的解析結果。</strong></p>
+<p>首先安裝 Unbound 並確認服務狀態：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt install unbound
+</span></span><span class="line"><span class="cl">sudo service unbound status
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="-設定-linux-網路命名空間-network-namespace-與-dns">🧪 設定 Linux 網路命名空間 (Network Namespace) 與 DNS</h3>
+<p>為了方便在一台機器上模擬內、外網環境，我們可以使用 Linux 的 <code>netns</code> 搭配 <code>veth pair</code> 來進行測試。以下操作皆以 <code>root</code> 權限執行：</p>
+<p><strong>1. 建立兩個獨立的 Namespace</strong> * <code>ns-internal</code> → 模擬內網使用者環境</p>
+<ul>
+<li><code>ns-external</code> → 模擬外網使用者環境</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip netns add ns-internal
+</span></span><span class="line"><span class="cl">ip netns add ns-external
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>2. 建立 veth pair 並配置 IP 網段</strong> 利用 <code>veth</code> pair 將 Namespace 與 Host 主機連接，使其能向主機上的 Unbound 發送 DNS 查詢。</p>
+<p><em>設定內部網路 (<code>ns-internal</code>)：</em></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link add veth-in <span class="nb">type</span> veth peer name veth-in-br
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-in netns ns-internal
+</span></span><span class="line"><span class="cl">ip addr add 192.168.1.2/24 dev veth-in-br
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-in-br up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns-internal ip addr add 192.168.1.10/24 dev veth-in
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns-internal ip link <span class="nb">set</span> veth-in up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>設定外部網路 (<code>ns-external</code>)：</em></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip link add veth-ex <span class="nb">type</span> veth peer name veth-ex-br
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-ex netns ns-external
+</span></span><span class="line"><span class="cl">ip addr add 10.0.0.2/24 dev veth-ex-br
+</span></span><span class="line"><span class="cl">ip link <span class="nb">set</span> veth-ex-br up
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns-external ip addr add 10.0.0.10/24 dev veth-ex
+</span></span><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns-external ip link <span class="nb">set</span> veth-ex up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>3. 配置 Unbound 的 Split-view 規則</strong> 編輯 <code>unbound.conf</code>，定義不同來源網段對應的解析紀錄（註：以下配置為測試環境驗證用，未作極度嚴謹的安全強化）：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">server:
+</span></span><span class="line"><span class="cl">    # 監聽的介面
+</span></span><span class="line"><span class="cl">    interface: 127.0.0.1
+</span></span><span class="line"><span class="cl">    interface: 192.168.1.2
+</span></span><span class="line"><span class="cl">    interface: 10.0.0.2
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    # 1. 基本存取權限：允許以下網段進行 DNS 查詢
+</span></span><span class="line"><span class="cl">    access-control: 192.168.1.0/24 allow
+</span></span><span class="line"><span class="cl">    access-control: 10.0.0.0/24 allow
+</span></span><span class="line"><span class="cl">    access-control: 127.0.0.0/8 allow
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    # 2. 關鍵修正：透過 access-control-view 將連線網段綁定到對應的 view
+</span></span><span class="line"><span class="cl">    access-control-view: 192.168.1.0/24 &#34;internal&#34;
+</span></span><span class="line"><span class="cl">    access-control-view: 10.0.0.0/24 &#34;external&#34;
+</span></span><span class="line"><span class="cl">    access-control-view: 127.0.0.0/8 &#34;internal&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    # 備註：若要將所有其他未匹配到的網段預設綁定到 external，可設定 0.0.0.0/0。
+</span></span><span class="line"><span class="cl">    # (若省略則會走 server 區塊的預設值)
+</span></span><span class="line"><span class="cl">    # access-control-view: 0.0.0.0/0 &#34;external&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># 3. 內網 view：明確宣告 internal 區塊
+</span></span><span class="line"><span class="cl">view:
+</span></span><span class="line"><span class="cl">    name: &#34;internal&#34;
+</span></span><span class="line"><span class="cl">    local-zone: &#34;example.com.&#34; static
+</span></span><span class="line"><span class="cl">    local-data: &#34;example.com. IN A 192.168.1.100&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># 4. 外網 view：宣告 external 區塊
+</span></span><span class="line"><span class="cl">view:
+</span></span><span class="line"><span class="cl">    name: &#34;external&#34;
+</span></span><span class="line"><span class="cl">    local-zone: &#34;example.com.&#34; static
+</span></span><span class="line"><span class="cl">    local-data: &#34;example.com. IN A 203.0.113.5&#34;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>設定完成後，重啟 Unbound 服務：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">service unbound restart
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>參考資料：<a href="https://oneuptime.com/blog/post/2026-03-04-set-up-split-horizon-dns-with-unbound/view" target="_blank" rel="noopener noreffer ">How to Set Up Split-Horizon DNS with Unbound on RHEL</a></p>
+</blockquote>
+<p><strong>4. 驗證與測試</strong> 我們可以直接在剛剛建好的 namespace 中使用 <code>dig</code> 來測試是否成功切換 View。</p>
+<p><em>在 <code>ns-internal</code> 中查詢（應回傳內網 IP <code>192.168.1.100</code>）：</em></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns-internal dig @192.168.1.2 example.com +short
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><em>在 <code>ns-external</code> 中查詢（應回傳外網 IP <code>203.0.113.5</code>）：</em></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ip netns <span class="nb">exec</span> ns-external dig @10.0.0.2 example.com +short
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="補充使用-unbound-實作-dns-override">補充：使用 Unbound 實作 DNS Override</h2>
+<p>前面提到路由器可以做 DNS Override，其實在 Unbound 的 <code>server</code> 區塊中，我們也可以直接利用 <code>local-data</code> 來強行覆寫特定網域的解析結果，這在阻擋廣告或是區域性服務覆寫時非常實用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># DNS Override Area (寫在 server: 區塊內)
+</span></span><span class="line"><span class="cl">local-data: &#34;blog.cre0809.com. 3600 IN AAAA 2606:4700::16:16&#34;
+</span></span><span class="line"><span class="cl">local-data: &#34;blog.cre0809.com. 3600 IN A 104.16.16.16&#34;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="相關文章">相關文章</h2>
+<ul>
+<li><a href="https://blog.cre0809.com/archives/981/" target="_blank" rel="noopener noreffer ">Unbound 設定 DNS Override</a></li>
+<li><a href="https://blog.cre0809.com/archives/826/" target="_blank" rel="noopener noreffer ">建置自己的 DNS 解析器 – Unbound</a></li>
+</ul>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+    root((Split DNS))
+        核心概念
+            同網域不同解析結果
+            依來源 IP 回傳不同答案
+            常見於內外網分流
+        架構分類
+            雙腦架構
+                內外 DNS 完全隔離
+                安全性高
+                維護成本高
+            Split View DNS
+                單一 DNS 集中管理
+                依 ACL 與 View 回應
+                規則寫錯容易解析混亂
+            DNS Override
+                路由器或防火牆覆寫
+                建置輕量
+                不適合大量網域
+</div></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2026-05-14</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" data-title="Split DNS 架構整理與小實驗" data-hashtags="dns,network"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" data-hashtag="dns"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" data-title="Split DNS 架構整理與小實驗"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" data-title="Split DNS 架構整理與小實驗"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/split-dns-architecture-notes-and-lab/" data-title="Split DNS 架構整理與小實驗"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/blog/tags/dns/">Dns</a>,&nbsp;<a href="/blog/tags/network/">Network</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/sshuttle-jump-vpn-tool/" class="prev" rel="prev" title="sshuttle 一個免架設 VPN 的跳板代理工具"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>sshuttle 一個免架設 VPN 的跳板代理工具</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2026</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
