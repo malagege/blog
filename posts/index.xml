@@ -3,7 +3,39 @@
         <title>All Posts - 程式狂想筆記</title>
         <link>https://malagege.github.io/blog/posts/</link>
         <description>All Posts | 程式狂想筆記</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-tw</language><lastBuildDate>Wed, 20 May 2026 23:18:53 &#43;0800</lastBuildDate><atom:link href="https://malagege.github.io/blog/posts/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-tw</language><lastBuildDate>Tue, 16 Jun 2026 20:42:39 &#43;0800</lastBuildDate><atom:link href="https://malagege.github.io/blog/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>更新 WSL 後無法順利打開 Docker Desktop 解決方法</title>
+    <link>https://malagege.github.io/blog/posts/update-wsl-fix-docker-desktop-startup-issue/</link>
+    <pubDate>Tue, 16 Jun 2026 20:42:39 &#43;0800</pubDate>
+    <author>malagege</author>
+    <guid>https://malagege.github.io/blog/posts/update-wsl-fix-docker-desktop-startup-issue/</guid>
+    <description><![CDATA[<p>最近為了跑 CUDA Docker 服務，把 WSL 更新到新版，結果 Docker Desktop 直接打不開。</p>
+<p>其實我平常不太敢亂升級，怕的就是這種「看起來只是更新，實際上整個開發流程卡住」的狀況。這次查了很久，最後找到一個看似不相關、但真的有效的修復方式，順手記錄下來，避免下次再踩一次。</p>]]></description>
+</item>
+<item>
+    <title>深入解析 Nginx location 匹配規則：別再被誤導了</title>
+    <link>https://malagege.github.io/blog/posts/nginx-location-rules/</link>
+    <pubDate>Tue, 16 Jun 2026 10:00:00 &#43;0800</pubDate>
+    <author>malagege</author>
+    <guid>https://malagege.github.io/blog/posts/nginx-location-rules/</guid>
+    <description><![CDATA[最近公司專案設定 API Gateway 無法順利導向後端 API 位置。檢查 Azure 的配置時發現，Azure 的路由規則是有上下順序的，但 Nginx 並不是這樣運作。經過研究才發現 Nginx 的 location 匹配規則和 Azure API Gateway 的邏輯完全不同，這裡就做個完整整理。
+核心匹配順序 (從高到低) Nginx 在處理請求時，會遵循以下邏輯來決定最終使用的 location：
+順序 修飾符 匹配類型 匹配規則與行為 1 = 精確匹配 全字串完全符合。一旦命中，立刻停止搜尋，直接採用此設定。 2 ^~ 前綴匹配 (阻斷) 如果該前綴是「最長匹配」，立即停止搜尋，不檢查正規表達式。 3 (無修飾符) 普通前綴匹配 尋找最長符合的前綴並暫存起來，但會繼續往下檢查正規表達式。 4 ~ / ~* 正規表達式 依據在設定檔中出現的先後順序比對。第一個命中的立刻停止搜尋。 一句話秒懂 「精確優先；最長匹配帶 ^~ 直接贏；否則交給正規表達式按順序比對（先到先得），全都沒命中才由最長前綴保底。」 完整的演算法決策流程 如果我們把 Nginx 的「大腦」拆解成三個階段，邏輯會變得非常清晰：
+第一階段：前綴字串比對 (Literal/Prefix Strings) 檢查 = 精確匹配：如果有完全一致的 URI（例如 /index.html），直接採用並結束。 尋找最長前綴：找出所有普通字串（包含無修飾與 ^~）中，匹配長度最長的那一個。 判斷是否阻斷： 如果這個「最長匹配」帶有 ^~ 修飾符，Nginx 認為這已經足夠明確，會直接採用此設定並停止搜尋。 如果只是普通字串（無修飾），Nginx 會將此結果暫存起來作為備選方案，然後進入下一階段。 第二階段：正規表達式比對 (Regular Expressions) 按順序掃描 ~ 或 ~*：從設定檔由上往下逐行讀取。 只要有任何一個正規表達式成功匹配，就會立即採用此規則，並丟棄第一階段暫存的備選方案。 第三階段：最終終點 保底機制：如果所有的正規表達式都沒有匹配成功，Nginx 才會最後採用第一階段暫存的最長普通前綴。 實戰範例與差異對比 透過以下配置，你可以清楚看到不同修飾符帶來的行為差異：]]></description>
+</item>
+<item>
+    <title>主機跳板本機串接整合測試 API</title>
+    <link>https://malagege.github.io/blog/posts/local-testing-api-jump-host/</link>
+    <pubDate>Sat, 06 Jun 2026 10:00:00 &#43;0800</pubDate>
+    <author>malagege</author>
+    <guid>https://malagege.github.io/blog/posts/local-testing-api-jump-host/</guid>
+    <description><![CDATA[<p>在進行 OAuth 串接開發時，常會遇到「只有測試環境機器才能存取後端服務」的問題。這時要如何在本地端（Localhost）進行除錯與整合測試？</p>
+<p>本文將分享一個實用的解決方案：透過 <strong>mkcert</strong>、<strong>SSH Tunneling</strong> 以及 <strong>Reverse Proxy (Caddy)</strong> 的組合，在本地建立一個模擬真實環境的網路架構。</p>
+<h2 id="核心概念">核心概念</h2>
+<p>當我們在本地開發時，往往無法直接連線到遠端的生產或測試環境 API。透過以下流程，我們可以將流量導向正確的地方：<br>
+<strong>前端 → Redirect 至後端入口 → 後端 → 目標服務</strong></p>]]></description>
+</item>
+<item>
     <title>為什麼內網連内網對外 IP 會不通？淺談 NAT Loopback (Hairpin NAT) 運作原理</title>
     <link>https://malagege.github.io/blog/posts/nat-loopback-hairpin-nat-explained/</link>
     <pubDate>Wed, 20 May 2026 23:18:53 &#43;0800</pubDate>
@@ -65,38 +97,6 @@
     <guid>https://malagege.github.io/blog/posts/ssh-tunnel-three-methods-notes/</guid>
     <description><![CDATA[<p>最近要連某一台主機上的 Transmission 管理介面，Port 是 <code>9091</code>，但主機本身沒有直接對外開放這個 Port，所以最後還是得靠 SSH Tunnel 裡最常見的 <code>Local Port Forwarding</code> 來處理。</p>
 <p>這個功能我以前就知道，只是通常久久才會用一次。每次要用的時候，又得重新想一次 <code>-L</code>、<code>-R</code>、<code>-D</code> 到底差在哪裡。既然這次剛好重新整理，就乾脆把重點記下來，之後自己複習也比較快。</p>]]></description>
-</item>
-<item>
-    <title>Linux 掛載硬碟另類方法</title>
-    <link>https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/</link>
-    <pubDate>Mon, 27 Apr 2026 20:48:23 &#43;0800</pubDate>
-    <author>malagege</author>
-    <guid>https://malagege.github.io/blog/posts/linux-alternative-disk-mounting-methods/</guid>
-    <description><![CDATA[<p>在 Linux 系統管理裡，掛載硬碟看起來像是基本功，但真的遇到外接硬碟、USB、SD 卡、NAS 或 NFS 時，選錯方法很容易把自己搞到開機變慢、服務卡住，甚至一拔裝置就滿地錯誤。</p>
-<p>我以前比較常直接用 <code>/etc/fstab</code>，後來在不同情境下才慢慢發現，其實 <code>systemd</code>、<code>udevil</code>、<code>udev</code>，甚至 <code>autofs</code> 都各有適合的使用場景。這篇就把幾種常見做法整理成一篇，順便補上我自己覺得比較實用的踩雷心得。</p>]]></description>
-</item>
-<item>
-    <title>切歌總有「啵」一聲？解決獨佔模式切換歌會爆音</title>
-    <link>https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/</link>
-    <pubDate>Sun, 22 Mar 2026 14:11:10 &#43;0800</pubDate>
-    <author>malagege</author>
-    <guid>https://malagege.github.io/blog/posts/fix-pop-sound-when-switching-songs-exclusive-mode/</guid>
-    <description><![CDATA[<p>最近在玩 USB DAC、播放器獨佔模式時，有一個很容易讓人分心的小問題：<strong>明明音質很好，但每次切歌都會突然「啵」一聲</strong>。尤其是從 44.1kHz 切到 96kHz、192kHz 這種不同採樣率的音樂時，耳機裡那一下真的很明顯，聽久了不只不舒服，也會讓人擔心是不是設備哪裡有問題。</p>
-<p>我一開始也以為是喇叭壞掉、USB 線不穩，或播放器設定怪怪的。後來查了一輪資料，有查到關掉獨佔模式可以解決部分問題，沒想到測試竟然解決。但聽音樂怎麼可能不開獨佔模式？那就失去很多音質優勢了啊。後來有找到解決方法，發現很少網站提到這個方法，甚至很多人都還在苦惱這個問題，希望這問題能幫助到大家。</p>
-<p>這篇就整理成一篇實戰筆記，說明為什麼會有這個聲音，以及我自己覺得最有效、最省事的處理方式。</p>]]></description>
-</item>
-<item>
-    <title>使用 OBS 錄製畫面，並以 FFmpeg AV1 壓縮影片</title>
-    <link>https://malagege.github.io/blog/posts/obs-recording-av1-compression/</link>
-    <pubDate>Thu, 18 Dec 2025 21:03:03 &#43;0800</pubDate>
-    <author>malagege</author>
-    <guid>https://malagege.github.io/blog/posts/obs-recording-av1-compression/</guid>
-    <description><![CDATA[<p>常看到網路上有人貼補幀或對比示範影片，但不確定如何錄製與壓縮。其實用 OBS 就能錄製，Windows 內建遊戲列也能錄，但檔案通常偏大。這篇示範：</p>
-<ul>
-<li>用 OBS 錄製桌面（顯示器擷取）</li>
-<li>錄完用 FFmpeg 壓縮為 AV1（檔案小、品質佳）</li>
-</ul>
-<p>目標是做出「體積小、觀感不差、可快速分享」的示範影片。</p>]]></description>
 </item>
 </channel>
 </rss>

@@ -4,51 +4,39 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>xargs 參數代換簡單使用筆記 - 程式狂想筆記</title><meta name="Description" content="最近做find . -mmin -60 |  ls -l 發現怎麼不能讀ls內容
-原來我以為 |pipe 就是把輸出結果加到後面去
-但是並非跟&lt;,&lt;&lt;一樣
-所以我在stackoverflow找到linux - Unix pipe into ls - Stack Overflow
-要使用xargs
-不過我真的對這個不太熟"><meta property="og:title" content="xargs 參數代換簡單使用筆記" />
-<meta property="og:description" content="最近做find . -mmin -60 |  ls -l 發現怎麼不能讀ls內容
-原來我以為 |pipe 就是把輸出結果加到後面去
-但是並非跟&lt;,&lt;&lt;一樣
-所以我在stackoverflow找到linux - Unix pipe into ls - Stack Overflow
-要使用xargs
-不過我真的對這個不太熟" />
+        <title>xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題 - 程式狂想筆記</title><meta name="Description" content="在學習 Linux 指令時，我們經常會使用管道符號（Pipe |）來串接不同的指令。然而，新手常會遇到一個令人困惑的問題：為什麼有些指令無法直接接收前一個指令的輸出？
+這篇文章將帶領大家了解 xargs 的核心觀念，以及它如何解決這些常見問題。"><meta property="og:title" content="xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題" />
+<meta property="og:description" content="在學習 Linux 指令時，我們經常會使用管道符號（Pipe |）來串接不同的指令。然而，新手常會遇到一個令人困惑的問題：為什麼有些指令無法直接接收前一個指令的輸出？
+這篇文章將帶領大家了解 xargs 的核心觀念，以及它如何解決這些常見問題。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2018-08-18T13:19:03+00:00" />
-<meta property="article:modified_time" content="2018-08-18T13:19:03+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta property="article:published_time" content="2018-08-18T13:19:03+08:00" />
+<meta property="article:modified_time" content="2018-08-18T13:19:03+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
-<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="xargs 參數代換簡單使用筆記"/>
-<meta name="twitter:description" content="最近做find . -mmin -60 |  ls -l 發現怎麼不能讀ls內容
-原來我以為 |pipe 就是把輸出結果加到後面去
-但是並非跟&lt;,&lt;&lt;一樣
-所以我在stackoverflow找到linux - Unix pipe into ls - Stack Overflow
-要使用xargs
-不過我真的對這個不太熟"/>
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題"/>
+<meta name="twitter:description" content="在學習 Linux 指令時，我們經常會使用管道符號（Pipe |）來串接不同的指令。然而，新手常會遇到一個令人困惑的問題：為什麼有些指令無法直接接收前一個指令的輸出？
+這篇文章將帶領大家了解 xargs 的核心觀念，以及它如何解決這些常見問題。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="canonical" href="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/Linux-find-%E5%AF%A6%E7%94%A8%E6%8C%87%E4%BB%A4%E7%AD%86%E8%A8%98/" /><link rel="next" href="https://malagege.github.io/blog/posts/vscode%E4%BD%BF%E7%94%A8svn%E5%81%9A%E7%89%88%E6%8E%A7%E7%B0%A1%E5%96%AE%E7%AD%86%E8%A8%98/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="canonical" href="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" /><link rel="prev" href="https://malagege.github.io/blog/posts/git-log%E7%B0%A1%E5%96%AE%E7%94%A8%E6%B3%95%E7%AD%86%E8%A8%98/" /><link rel="next" href="https://malagege.github.io/blog/posts/Hello-World-%E5%9C%A8PHP%E8%88%87-JavaScript%E7%A8%8B%E5%BC%8FLogical-Operators%E5%B7%AE%E7%95%B0/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "xargs 參數代換簡單使用筆記",
+        "headline": "xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題",
         "inLanguage": "zh-tw",
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98\/"
-        },"genre": "posts","keywords": "linux, xargs","wordcount":  134 ,
-        "url": "https:\/\/malagege.github.io\/blog\/posts\/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98\/","datePublished": "2018-08-18T13:19:03+00:00","dateModified": "2018-08-18T13:19:03+00:00","publisher": {
+        },"genre": "posts","keywords": "linux, xargs","wordcount":  180 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98\/","datePublished": "2018-08-18T13:19:03+08:00","dateModified": "2018-08-18T13:19:03+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近做\u003ccode\u003efind . -mmin -60 |  ls -l \u003c/code\u003e發現怎麼不能讀ls內容\u003cbr\u003e\n原來我以為 \u003ccode\u003e|\u003c/code\u003epipe 就是把輸出結果加到後面去\u003cbr\u003e\n但是並非跟\u003ccode\u003e\u0026lt;,\u0026lt;\u0026lt;\u003c/code\u003e一樣\u003cbr\u003e\n所以我在stackoverflow找到\u003ca href=\"https://stackoverflow.com/questions/18210956/unix-pipe-into-ls\" target=\"_blank\" rel=\"noopener noreffer \"\u003elinux - Unix pipe into ls - Stack Overflow\u003c/a\u003e\u003cbr\u003e\n要使用xargs\u003cbr\u003e\n不過我真的對這個不太熟\u003c/p\u003e"
+            },"description": "\u003cp\u003e在學習 Linux 指令時，我們經常會使用管道符號（Pipe \u003ccode\u003e|\u003c/code\u003e）來串接不同的指令。然而，新手常會遇到一個令人困惑的問題：\u003cstrong\u003e為什麼有些指令無法直接接收前一個指令的輸出？\u003c/strong\u003e\u003c/p\u003e\n\u003cp\u003e這篇文章將帶領大家了解 \u003ccode\u003exargs\u003c/code\u003e 的核心觀念，以及它如何解決這些常見問題。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -114,10 +102,16 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">xargs 參數代換簡單使用筆記</h1><div class="post-meta">
-            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span>&nbsp;<span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-08-18">2018-08-18</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;134 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
+            <div class="post-meta-line"><span class="post-meta-item post-meta-date">
+                        <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2018-08-18">2018-08-18</time>
+                    </span><span class="post-meta-item">
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>180 words
+                </span>
+                <span class="post-meta-item">
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
+                </span></div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
@@ -125,46 +119,87 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#xargs簡單小試">xargs簡單小試</a></li>
-    <li><a href="#執行前的確認">執行前的確認</a></li>
-    <li><a href="#實用指令">實用指令</a></li>
+    <li><a href="#-問題背景為什麼-pipe-有時會失效">💡 問題背景：為什麼 Pipe 有時會失效？</a>
+      <ul>
+        <li><a href="#為什麼會這樣">為什麼會這樣？</a></li>
+      </ul>
+    </li>
+    <li><a href="#-解決方案使用-xargs">🚀 解決方案：使用 <code>xargs</code></a>
+      <ul>
+        <li><a href="#正確寫法">正確寫法</a></li>
+      </ul>
+    </li>
+    <li><a href="#-實用範例與進階技巧">🛠️ 實用範例與進階技巧</a>
+      <ul>
+        <li><a href="#1-基本練習">1. 基本練習</a></li>
+        <li><a href="#2-安全檢查-p-參數">2. 安全檢查：<code>-p</code> 參數</a></li>
+        <li><a href="#3-進階實戰搜尋特定檔案內的內容">3. 進階實戰：搜尋特定檔案內的內容</a></li>
+      </ul>
+    </li>
+    <li><a href="#-踩雷心得避坑指南">⚠️ 踩雷心得：避坑指南</a></li>
+    <li><a href="#-參考資源">📚 參考資源</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>最近做<code>find . -mmin -60 |  ls -l </code>發現怎麼不能讀ls內容<br>
-原來我以為 <code>|</code>pipe 就是把輸出結果加到後面去<br>
-但是並非跟<code>&lt;,&lt;&lt;</code>一樣<br>
-所以我在stackoverflow找到<a href="https://stackoverflow.com/questions/18210956/unix-pipe-into-ls" target="_blank" rel="noopener noreffer ">linux - Unix pipe into ls - Stack Overflow</a><br>
-要使用xargs<br>
-不過我真的對這個不太熟</p>
-<p>相關資料流重新導向可以看<a href="http://linux.vbird.org/linux_basic/0320bash.php#redirect" target="_blank" rel="noopener noreffer ">鳥哥的 Linux 私房菜 &ndash; 第十章、認識與學習BASH</a><br>
-<a href="/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/Wang_web.png" rel="">上面連結備份圖</a></p>
-<p>xargs網路有爬到<a href="https://blog.gtwang.org/linux/xargs-command-examples-in-linux-unix/" target="_blank" rel="noopener noreffer ">Linux 系統 xargs 指令範例與教學 - G. T. Wang</a>講解非常清楚</p>
-<p>這邊我就簡單紀錄看起來很常用的指令</p>
-<p><code>xargs</code> 在指令輸入<br>
-可以接著輸入很多東西</p>
+            </div><div class="content" id="content"><p>在學習 Linux 指令時，我們經常會使用管道符號（Pipe <code>|</code>）來串接不同的指令。然而，新手常會遇到一個令人困惑的問題：<strong>為什麼有些指令無法直接接收前一個指令的輸出？</strong></p>
+<p>這篇文章將帶領大家了解 <code>xargs</code> 的核心觀念，以及它如何解決這些常見問題。</p>
+<h2 id="-問題背景為什麼-pipe-有時會失效">💡 問題背景：為什麼 Pipe 有時會失效？</h2>
+<p>假設我們想要找出「在過去一小時內修改過的文件」，並列出它們的詳細資訊，我們可能會直覺地寫下：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">a b c
-</span></span><span class="line"><span class="cl">def
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">find . -mmin -60 <span class="p">|</span> ls -l
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>再按<code>Ctrl+d</code>可以看到螢幕輸出<code>a b c def</code></p>
-<h2 id="xargs簡單小試">xargs簡單小試</h2>
-<p><code> xargs ls</code><br>
-再輸入<code>.</code><br>
-再按下<code>Ctrl+D</code><br>
-可以跳出</p>
-<p>所以我們<code>find . -mmin -60 |  ls -l </code>這段<br>
-要改成<code>find . -mmin -60 | xargs  ls -l</code></p>
-<h2 id="執行前的確認">執行前的確認</h2>
-<p><code>-p</code>會問要不要執行這個參數<br>
-echo a b c d e f| xargs -p</p>
-<h2 id="實用指令">實用指令</h2>
-<p>參考<a href="https://blog.gtwang.org/linux/xargs-command-examples-in-linux-unix/" target="_blank" rel="noopener noreffer ">Linux 系統 xargs 指令範例與教學 - G. T. Wang</a></p>
+</div><p><strong>預期結果</strong>：列出符合條件的文件清單。<br>
+<strong>實際結果</strong>：通常會顯示當前目錄下的所有文件，或者報錯。</p>
+<h3 id="為什麼會這樣">為什麼會這樣？</h3>
+<p>這是因為 <code>ls</code> 指令的設計邏輯是接收「參數（Arguments）」，而不是從標準輸入（Standard Input）讀取內容。</p>
+<ul>
+<li><strong>Pipe (<code>|</code>)</strong>：將前一個指令的輸出作為後一個指令的 <strong>標準輸入 (stdin)</strong>。</li>
+<li><strong>Argument</strong>：指令後方直接跟隨的字串（例如 <code>ls -l [檔案名稱]</code>）。</li>
+</ul>
+<p>當我們執行 <code>find ... | ls -l</code> 時，<code>ls</code> 並沒有去讀取管道傳過來的內容，它只是在等待你給它參數。因為你沒給它任何參數，它就預設列出當前目錄的所有內容。</p>
+<hr>
+<h2 id="-解決方案使用-xargs">🚀 解決方案：使用 <code>xargs</code></h2>
+<p>為了將前一個指令的輸出轉換為後一個指令的「參數」，我們就需要到 <code>xargs</code> 出場。</p>
+<h3 id="正確寫法">正確寫法</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">find . -mmin -60 <span class="p">|</span> xargs ls -l
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>原理說明</strong>：<br>
+<code>xargs</code> 會讀取標準輸入中的每一行，並將它們作為參數附加到後面的指令中。這就像是一個「翻譯官」，把管道傳過來的資料轉化成 <code>ls</code> 能聽懂的參數格式。</p>
+<hr>
+<h2 id="-實用範例與進階技巧">🛠️ 實用範例與進階技巧</h2>
+<h3 id="1-基本練習">1. 基本練習</h3>
+<p>你可以手動輸入內容給 <code>xargs</code>，看看它是如何處理的：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">xargs ls
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>接著輸入 <code>. </code> 並按下 <code>Ctrl+D</code>，你會發現它成功將 <code>.</code> 作為參數傳給了 <code>ls</code>。</p>
+<h3 id="2-安全檢查-p-參數">2. 安全檢查：<code>-p</code> 參數</h3>
+<p>在執行某些具有破壞性（如 <code>rm</code>）的指令時，建議加上 <code>-p</code> (prompt) 參數。這會讓 <code>xargs</code> 在執行前詢問你是否確定要執行該動作。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;file1.txt file2.txt&#34;</span> <span class="p">|</span> xargs -p rm
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="3-進階實戰搜尋特定檔案內的內容">3. 進階實戰：搜尋特定檔案內的內容</h3>
+<p>這是最實用的場景之一。假設我們要找出所有 <code>.c</code> 檔案，並檢查其中是否包含 <code>stdlib.h</code>：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -173,7 +208,7 @@ echo a b c d e f| xargs -p</p>
 <pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">find . -name <span class="s1">&#39;*.c&#39;</span> <span class="p">|</span> xargs grep <span class="s1">&#39;stdlib.h&#39;</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>輸出結果</p>
+</div><p><strong>輸出結果範例</strong>：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -188,7 +223,7 @@ echo a b c d e f| xargs -p</p>
 </span><span class="lnt">10
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">./CMake/TestOggTheoraSubsampling.c:#include &lt;stdlib.h&gt;
+<pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">./CMake/TestOggTheoraSubsampling.c:#include &lt;stdlib.h&gt;
 </span></span><span class="line"><span class="cl">./Wrapping/Tools/lex.yy.c:#include &lt;stdlib.h&gt;
 </span></span><span class="line"><span class="cl">./Wrapping/Tools/vtkWrapPythonInit.c:#include &lt;stdlib.h&gt;
 </span></span><span class="line"><span class="cl">./Wrapping/Tools/vtkWrapTcl.c:#include &lt;stdlib.h&gt;
@@ -200,7 +235,26 @@ echo a b c d e f| xargs -p</p>
 </span></span><span class="line"><span class="cl">./Wrapping/Tools/vtkParseMain.c:#include &lt;stdlib.h&gt;
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>這個指令感覺很實用</p></div><div class="post-footer" id="post-footer">
+</div><hr>
+<h2 id="-踩雷心得避坑指南">⚠️ 踩雷心得：避坑指南</h2>
+<div class="details admonition tip">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>重點筆記<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p><strong>核心觀念區分</strong>：</p>
+<ul>
+<li><strong>Pipe (<code>|</code>)</strong> $\rightarrow$ 傳遞給 <strong>標準輸入 (stdin)</strong>。適合處理內容（如 <code>grep</code>, <code>sed</code>, <code>awk</code>）。</li>
+<li><strong>xargs</strong> $\rightarrow$ 傳遞給 <strong>指令參數 (Arguments)</strong>。適合處理檔案清單（如 <code>ls</code>, <code>rm</code>, <code>cp</code>）。</li>
+</ul></div>
+        </div>
+    </div>
+<hr>
+<h2 id="-參考資源">📚 參考資源</h2>
+<ul>
+<li><a href="http://linux.vbird.org/linux_basic/0320bash.php#redirect" target="_blank" rel="noopener noreffer ">鳥哥的 Linux 私房菜 &ndash; 第十章、認識與學習BASH</a></li>
+<li><a href="https://blog.gtwang.org/linux/xargs-command-examples-in-linux-unix/" target="_blank" rel="noopener noreffer ">Linux 系統 xargs 指令範例與教學 - G. T. Wang</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
@@ -209,7 +263,7 @@ echo a b c d e f| xargs -p</p>
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記" data-hashtags="linux,xargs"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-hashtag="linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題" data-hashtags="linux,xargs"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-hashtag="linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/xargs-%E5%8F%83%E6%95%B8%E4%BB%A3%E6%8F%9B%E7%B0%A1%E5%96%AE%E4%BD%BF%E7%94%A8%E7%AD%86%E8%A8%98/" data-title="xargs 參數代換簡單使用筆記：解決 Pipe 傳遞參數的常見問題"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
@@ -221,8 +275,8 @@ echo a b c d e f| xargs -p</p>
         </section>
     </div>
 
-    <div class="post-nav"><a href="/blog/posts/Linux-find-%E5%AF%A6%E7%94%A8%E6%8C%87%E4%BB%A4%E7%AD%86%E8%A8%98/" class="prev" rel="prev" title="Linux find 實用指令筆記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Linux find 實用指令筆記</a>
-            <a href="/blog/posts/vscode%E4%BD%BF%E7%94%A8svn%E5%81%9A%E7%89%88%E6%8E%A7%E7%B0%A1%E5%96%AE%E7%AD%86%E8%A8%98/" class="next" rel="next" title="vscode使用svn做版控簡單筆記">vscode使用svn做版控簡單筆記<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+    <div class="post-nav"><a href="/blog/posts/git-log%E7%B0%A1%E5%96%AE%E7%94%A8%E6%B3%95%E7%AD%86%E8%A8%98/" class="prev" rel="prev" title="git log簡單用法筆記"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>git log簡單用法筆記</a>
+            <a href="/blog/posts/Hello-World-%E5%9C%A8PHP%E8%88%87-JavaScript%E7%A8%8B%E5%BC%8FLogical-Operators%E5%B7%AE%E7%95%B0/" class="next" rel="next" title="&#39;Hello World&#39; || &#39;&#39; 在PHP與 JavaScript程式Logical Operators差異">'Hello World' || '' 在PHP與 JavaScript程式Logical Operators差異<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
 </div>
 <div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
                 Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
