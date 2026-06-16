@@ -102,7 +102,7 @@
         <a href="/blog/posts/update-wsl-fix-docker-desktop-startup-issue/">Read More</a><div class="post-tags">
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/wsl/">Wsl</a>,<a href="/blog/tags/docker/">Docker</a>,<a href="/blog/tags/windows/">Windows</a>,<a href="/blog/tags/troubleshooting/">Troubleshooting</a></div></div>
 </article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
-        <a href="/blog/posts/nginx-location-rules/">深入解析 Nginx location 匹配規則：別再被誤導了</a>
+        <a href="/blog/posts/nginx-location-rules/">深入解析 Nginx location 匹配規則</a>
     </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-publish">published on <time datetime="2026-06-16">2026-06-16</time></span><span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div><div class="content">最近公司專案設定 API Gateway 無法順利導向後端 API 位置。檢查 Azure 的配置時發現，Azure 的路由規則是有上下順序的，但 Nginx 並不是這樣運作。經過研究才發現 Nginx 的 location 匹配規則和 Azure API Gateway 的邏輯完全不同，這裡就做個完整整理。
 核心匹配順序 (從高到低) Nginx 在處理請求時，會遵循以下邏輯來決定最終使用的 location：
 順序 修飾符 匹配類型 匹配規則與行為 1 = 精確匹配 全字串完全符合。一旦命中，立刻停止搜尋，直接採用此設定。 2 ^~ 前綴匹配 (阻斷) 如果該前綴是「最長匹配」，立即停止搜尋，不檢查正規表達式。 3 (無修飾符) 普通前綴匹配 尋找最長符合的前綴並暫存起來，但會繼續往下檢查正規表達式。 4 ~ / ~* 正規表達式 依據在設定檔中出現的先後順序比對。第一個命中的立刻停止搜尋。 一句話秒懂 「精確優先；最長匹配帶 ^~ 直接贏；否則交給正規表達式按順序比對（先到先得），全都沒命中才由最長前綴保底。」 完整的演算法決策流程 如果我們把 Nginx 的「大腦」拆解成三個階段，邏輯會變得非常清晰：

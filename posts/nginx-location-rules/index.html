@@ -4,10 +4,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>深入解析 Nginx location 匹配規則：別再被誤導了 - 程式狂想筆記</title><meta name="Description" content="最近公司專案設定 API Gateway 無法順利導向後端 API 位置。檢查 Azure 的配置時發現，Azure 的路由規則是有上下順序的，但 Nginx 並不是這樣運作。經過研究才發現 Nginx 的 location 匹配規則和 Azure API Gateway 的邏輯完全不同，這裡就做個完整整理。
+        <title>深入解析 Nginx location 匹配規則 - 程式狂想筆記</title><meta name="Description" content="最近公司專案設定 API Gateway 無法順利導向後端 API 位置。檢查 Azure 的配置時發現，Azure 的路由規則是有上下順序的，但 Nginx 並不是這樣運作。經過研究才發現 Nginx 的 location 匹配規則和 Azure API Gateway 的邏輯完全不同，這裡就做個完整整理。
 核心匹配順序 (從高到低) Nginx 在處理請求時，會遵循以下邏輯來決定最終使用的 location：
 順序 修飾符 匹配類型 匹配規則與行為 1 = 精確匹配 全字串完全符合。一旦命中，立刻停止搜尋，直接採用此設定。 2 ^~ 前綴匹配 (阻斷) 如果該前綴是「最長匹配」，立即停止搜尋，不檢查正規表達式。 3 (無修飾符) 普通前綴匹配 尋找最長符合的前綴並暫存起來，但會繼續往下檢查正規表達式。 4 ~ / ~* 正規表達式 依據在設定檔中出現的先後順序比對。第一個命中的立刻停止搜尋。 一句話秒懂 「精確優先；最長匹配帶 ^~ 直接贏；否則交給正規表達式按順序比對（先到先得），全都沒命中才由最長前綴保底。」 完整的演算法決策流程 如果我們把 Nginx 的「大腦」拆解成三個階段，邏輯會變得非常清晰：
-第一階段：前綴字串比對 (Literal/Prefix Strings) 檢查 = 精確匹配：如果有完全一致的 URI（例如 /index.html），直接採用並結束。 尋找最長前綴：找出所有普通字串（包含無修飾與 ^~）中，匹配長度最長的那一個。 判斷是否阻斷： 如果這個「最長匹配」帶有 ^~ 修飾符，Nginx 認為這已經足夠明確，會直接採用此設定並停止搜尋。 如果只是普通字串（無修飾），Nginx 會將此結果暫存起來作為備選方案，然後進入下一階段。 第二階段：正規表達式比對 (Regular Expressions) 按順序掃描 ~ 或 ~*：從設定檔由上往下逐行讀取。 只要有任何一個正規表達式成功匹配，就會立即採用此規則，並丟棄第一階段暫存的備選方案。 第三階段：最終終點 保底機制：如果所有的正規表達式都沒有匹配成功，Nginx 才會最後採用第一階段暫存的最長普通前綴。 實戰範例與差異對比 透過以下配置，你可以清楚看到不同修飾符帶來的行為差異："><meta property="og:title" content="深入解析 Nginx location 匹配規則：別再被誤導了" />
+第一階段：前綴字串比對 (Literal/Prefix Strings) 檢查 = 精確匹配：如果有完全一致的 URI（例如 /index.html），直接採用並結束。 尋找最長前綴：找出所有普通字串（包含無修飾與 ^~）中，匹配長度最長的那一個。 判斷是否阻斷： 如果這個「最長匹配」帶有 ^~ 修飾符，Nginx 認為這已經足夠明確，會直接採用此設定並停止搜尋。 如果只是普通字串（無修飾），Nginx 會將此結果暫存起來作為備選方案，然後進入下一階段。 第二階段：正規表達式比對 (Regular Expressions) 按順序掃描 ~ 或 ~*：從設定檔由上往下逐行讀取。 只要有任何一個正規表達式成功匹配，就會立即採用此規則，並丟棄第一階段暫存的備選方案。 第三階段：最終終點 保底機制：如果所有的正規表達式都沒有匹配成功，Nginx 才會最後採用第一階段暫存的最長普通前綴。 實戰範例與差異對比 透過以下配置，你可以清楚看到不同修飾符帶來的行為差異："><meta property="og:title" content="深入解析 Nginx location 匹配規則" />
 <meta property="og:description" content="最近公司專案設定 API Gateway 無法順利導向後端 API 位置。檢查 Azure 的配置時發現，Azure 的路由規則是有上下順序的，但 Nginx 並不是這樣運作。經過研究才發現 Nginx 的 location 匹配規則和 Azure API Gateway 的邏輯完全不同，這裡就做個完整整理。
 核心匹配順序 (從高到低) Nginx 在處理請求時，會遵循以下邏輯來決定最終使用的 location：
 順序 修飾符 匹配類型 匹配規則與行為 1 = 精確匹配 全字串完全符合。一旦命中，立刻停止搜尋，直接採用此設定。 2 ^~ 前綴匹配 (阻斷) 如果該前綴是「最長匹配」，立即停止搜尋，不檢查正規表達式。 3 (無修飾符) 普通前綴匹配 尋找最長符合的前綴並暫存起來，但會繼續往下檢查正規表達式。 4 ~ / ~* 正規表達式 依據在設定檔中出現的先後順序比對。第一個命中的立刻停止搜尋。 一句話秒懂 「精確優先；最長匹配帶 ^~ 直接贏；否則交給正規表達式按順序比對（先到先得），全都沒命中才由最長前綴保底。」 完整的演算法決策流程 如果我們把 Nginx 的「大腦」拆解成三個階段，邏輯會變得非常清晰：
@@ -15,9 +15,9 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/nginx-location-rules/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2026-06-16T10:00:00+08:00" />
-<meta property="article:modified_time" content="2026-06-16T20:52:20+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta property="article:modified_time" content="2026-06-16T21:18:01+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
-<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="深入解析 Nginx location 匹配規則：別再被誤導了"/>
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="深入解析 Nginx location 匹配規則"/>
 <meta name="twitter:description" content="最近公司專案設定 API Gateway 無法順利導向後端 API 位置。檢查 Azure 的配置時發現，Azure 的路由規則是有上下順序的，但 Nginx 並不是這樣運作。經過研究才發現 Nginx 的 location 匹配規則和 Azure API Gateway 的邏輯完全不同，這裡就做個完整整理。
 核心匹配順序 (從高到低) Nginx 在處理請求時，會遵循以下邏輯來決定最終使用的 location：
 順序 修飾符 匹配類型 匹配規則與行為 1 = 精確匹配 全字串完全符合。一旦命中，立刻停止搜尋，直接採用此設定。 2 ^~ 前綴匹配 (阻斷) 如果該前綴是「最長匹配」，立即停止搜尋，不檢查正規表達式。 3 (無修飾符) 普通前綴匹配 尋找最長符合的前綴並暫存起來，但會繼續往下檢查正規表達式。 4 ~ / ~* 正規表達式 依據在設定檔中出現的先後順序比對。第一個命中的立刻停止搜尋。 一句話秒懂 「精確優先；最長匹配帶 ^~ 直接贏；否則交給正規表達式按順序比對（先到先得），全都沒命中才由最長前綴保底。」 完整的演算法決策流程 如果我們把 Nginx 的「大腦」拆解成三個階段，邏輯會變得非常清晰：
@@ -31,13 +31,13 @@
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "深入解析 Nginx location 匹配規則：別再被誤導了",
+        "headline": "深入解析 Nginx location 匹配規則",
         "inLanguage": "zh-tw",
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/nginx-location-rules\/"
         },"genre": "posts","keywords": "nginx, webserver, linux, network","wordcount":  252 ,
-        "url": "https:\/\/malagege.github.io\/blog\/posts\/nginx-location-rules\/","datePublished": "2026-06-16T10:00:00+08:00","dateModified": "2026-06-16T20:52:20+08:00","publisher": {
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/nginx-location-rules\/","datePublished": "2026-06-16T10:00:00+08:00","dateModified": "2026-06-16T21:18:01+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
@@ -108,7 +108,7 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">深入解析 Nginx location 匹配規則：別再被誤導了</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">深入解析 Nginx location 匹配規則</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/Linux/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Linux</a></span></div>
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2026-06-16">2026-06-16</time>
@@ -341,7 +341,7 @@
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則：別再被誤導了" data-hashtags="nginx,webserver,linux,network"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-hashtag="nginx"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則：別再被誤導了"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則：別再被誤導了"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則：別再被誤導了"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則" data-hashtags="nginx,webserver,linux,network"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-hashtag="nginx"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/nginx-location-rules/" data-title="深入解析 Nginx location 匹配規則"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
