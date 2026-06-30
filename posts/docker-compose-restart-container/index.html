@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Docker Compose 強制重啟 Container - 程式狂想筆記</title><meta name="Description" content="在 Docker Compose 的早期版本中，連續啟動兩次會導致容器重啟，但在某一版之後，這種行為已經被改變。然而，有時我們可能需要手動重啟容器。在這篇文章中，我將介紹如何重啟容器。"><meta property="og:title" content="Docker Compose 強制重啟 Container" />
-<meta property="og:description" content="在 Docker Compose 的早期版本中，連續啟動兩次會導致容器重啟，但在某一版之後，這種行為已經被改變。然而，有時我們可能需要手動重啟容器。在這篇文章中，我將介紹如何重啟容器。" />
+        <title>Docker Compose 強制重啟 Container - 程式狂想筆記</title><meta name="Description" content="有時候 Docker Compose 環境改完設定或程式碼後，單純執行一次 up 不一定會照你預期把容器完整重建。這時如果只是想確認容器狀態乾淨、設定有重新吃進去，最直接的方式通常就是強制重建。"><meta property="og:title" content="Docker Compose 強制重啟 Container" />
+<meta property="og:description" content="有時候 Docker Compose 環境改完設定或程式碼後，單純執行一次 up 不一定會照你預期把容器完整重建。這時如果只是想確認容器狀態乾淨、設定有重新吃進去，最直接的方式通常就是強制重建。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/docker-compose-restart-container/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-01-31T21:19:08+08:00" />
-<meta property="article:modified_time" content="2024-04-02T21:28:50+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+<meta property="article:modified_time" content="2026-06-30T23:09:44+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Docker Compose 強制重啟 Container"/>
-<meta name="twitter:description" content="在 Docker Compose 的早期版本中，連續啟動兩次會導致容器重啟，但在某一版之後，這種行為已經被改變。然而，有時我們可能需要手動重啟容器。在這篇文章中，我將介紹如何重啟容器。"/>
+<meta name="twitter:description" content="有時候 Docker Compose 環境改完設定或程式碼後，單純執行一次 up 不一定會照你預期把容器完整重建。這時如果只是想確認容器狀態乾淨、設定有重新吃進去，最直接的方式通常就是強制重建。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/docker-compose-restart-container\/"
-        },"genre": "posts","keywords": "docker, docker compose, container, devops","wordcount":  54 ,
-        "url": "https:\/\/malagege.github.io\/blog\/posts\/docker-compose-restart-container\/","datePublished": "2024-01-31T21:19:08+08:00","dateModified": "2024-04-02T21:28:50+08:00","publisher": {
+        },"genre": "posts","keywords": "docker, docker compose, container, devops","wordcount":  61 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/docker-compose-restart-container\/","datePublished": "2024-01-31T21:19:08+08:00","dateModified": "2026-06-30T23:09:44+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e在 Docker Compose 的早期版本中，連續啟動兩次會導致容器重啟，但在某一版之後，這種行為已經被改變。然而，有時我們可能需要手動重啟容器。在這篇文章中，我將介紹如何重啟容器。\u003c/p\u003e"
+            },"description": "\u003cp\u003e有時候 Docker Compose 環境改完設定或程式碼後，單純執行一次 up 不一定會照你預期把容器完整重建。這時如果只是想確認容器狀態乾淨、設定有重新吃進去，最直接的方式通常就是強制重建。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -104,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2024-01-31">2024-01-31</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>54 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>61 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -122,15 +122,22 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#docker-compose-重啟容器">Docker Compose 重啟容器</a></li>
-    <li><a href="#docker-指令重啟容器">Docker 指令重啟容器</a></li>
+    <li><a href="#最常用的做法">最常用的做法</a></li>
+    <li><a href="#什麼情況適合用">什麼情況適合用</a></li>
+    <li><a href="#這和-restart-有什麼不一樣">這和 restart 有什麼不一樣</a></li>
+    <li><a href="#另一個相關概念自動重啟政策">另一個相關概念：自動重啟政策</a></li>
+    <li><a href="#使用時要注意">使用時要注意</a>
+      <ul>
+        <li><a href="#1-別把重建當成萬靈丹">1. 別把重建當成萬靈丹</a></li>
+        <li><a href="#2-留意資料卷與資料持久化">2. 留意資料卷與資料持久化</a></li>
+      </ul>
+    </li>
+    <li><a href="#小結">小結</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>在 Docker Compose 的早期版本中，連續啟動兩次會導致容器重啟，但在某一版之後，這種行為已經被改變。然而，有時我們可能需要手動重啟容器。在這篇文章中，我將介紹如何重啟容器。</p>
-<h2 id="docker-compose-重啟容器">Docker Compose 重啟容器</h2>
-<p>Docker Compose 是一個用於定義和運行多容器 Docker 應用程式的工具。透過 Docker Compose，您可以使用 YAML 文件來配置應用程式的服務，然後一次性地創建和啟動所有服務。</p>
-<p><code>--force-recreate</code> 是 Docker Compose 的一個選項，當使用此選項時，Docker Compose 會強制重建、重啟容器。這在您需要更新容器設定或應用程式代碼時非常有用。</p>
-<p>使用 <code>--force-recreate</code> 選項的命令如下：</p>
+            </div><div class="content" id="content"><p>有時候 Docker Compose 環境改完設定或程式碼後，單純執行一次 up 不一定會照你預期把容器完整重建。這時如果只是想確認容器狀態乾淨、設定有重新吃進去，最直接的方式通常就是強制重建。</p>
+<h2 id="最常用的做法">最常用的做法</h2>
+<p>如果你要的是「不要沿用舊容器，直接重建」，可以用：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -139,19 +146,43 @@
 <pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker-compose up --force-recreate
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h2 id="docker-指令重啟容器">Docker 指令重啟容器</h2>
-<p>在 Docker 中，你可以使用 <code>--restart</code> 參數來設定容器的自動重啟。以下是一個例子：</p>
-<p>在這個例子中，<code>--restart=always</code> 指定了如果容器停止，Docker 應該總是嘗試重啟它。除了 always，&ndash;restart 參數還可以設定為以下的值：</p>
-<ul>
-<li><code>no</code>：容器不會自動重啟。</li>
-<li><code>on-failure</code>：只有在容器退出狀態非零（表示出錯）時，才會自動重啟。</li>
-<li><code>unless-stopped</code>：除非手動停止，否則總是重啟容器。</li>
-</ul>
-<p>請注意，這個設定只適用於容器異常終止的情況，並不包括 Docker 服務或主機的重啟。如果你需要在 Docker 服務或主機重啟後自動啟動容器，你應該使用 Docker 的 &ndash;restart 參數。</p></div><div class="post-footer" id="post-footer">
+</div><p>這個參數的意思很直接，就是不管 Compose 認為需不需要重建，都把容器重新建立一次。</p>
+<h2 id="什麼情況適合用">什麼情況適合用</h2>
+<p>我自己比較常在下面幾種情境用它：</p>
+<ol>
+<li>Compose 設定有改，但變更沒有明顯反映出來。</li>
+<li>想排除是不是舊容器狀態殘留。</li>
+<li>開發環境要快速重整而不想手動一個個砍容器。</li>
+</ol>
+<h2 id="這和-restart-有什麼不一樣">這和 restart 有什麼不一樣</h2>
+<p>很多人會把「重啟容器」和「重建容器」混在一起看，但兩者其實不一樣：</p>
+<ol>
+<li><code>restart</code> 比較像把既有容器停掉再啟動。</li>
+<li><code>--force-recreate</code> 是直接重建容器實體。</li>
+</ol>
+<p>如果問題出在舊容器配置或初始化狀態，單純 restart 不一定有用。</p>
+<h2 id="另一個相關概念自動重啟政策">另一個相關概念：自動重啟政策</h2>
+<p>Docker 本身還有 <code>--restart</code> 這種設定，處理的是容器異常結束後要不要自動再拉起來，例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run --restart<span class="o">=</span>always my-image
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這類設定比較偏向執行期容錯，不是拿來手動刷新容器內容。</p>
+<h2 id="使用時要注意">使用時要注意</h2>
+<h3 id="1-別把重建當成萬靈丹">1. 別把重建當成萬靈丹</h3>
+<p>如果容器一直掛掉，先查 log 和設定才是根本。重建只是幫你排除舊狀態，不是修問題本身。</p>
+<h3 id="2-留意資料卷與資料持久化">2. 留意資料卷與資料持久化</h3>
+<p>重建容器不代表資料一定消失，關鍵還是要看資料有沒有掛 volume。如果沒有處理好持久化，重建時就可能把你以為會保留的東西洗掉。</p>
+<h2 id="小結">小結</h2>
+<p>Docker Compose 想強制讓容器重新建立，最直接的做法就是 <code>docker-compose up --force-recreate</code>。把它和單純 restart、自動重啟政策這幾件事分清楚，之後在排查容器狀態問題時會比較不容易誤判。</p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2024-04-02</span>
+                <span>Updated on 2026-06-30</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"></div>

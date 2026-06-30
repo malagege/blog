@@ -4,18 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Kubernetes pod-network-cidr 設錯會發生什麼事情 - 程式狂想筆記</title><meta name="Description" content="最近看到Install Kubernetes Cluster on Ubuntu 20.04 with kubeadm | ComputingForGeeks教學，裡面提到使用 IP 192.168.0.0/16，因為我區網範圍在 192.168.1.0/24，原本照常安裝 Kubernetes，但是 Kubernetes Worker 主機沒辦法連到 Kubernetes Master 主機，Pod那些都看起來正常。
-tracepath 發現路徑會傳到外網網路。"><meta property="og:title" content="Kubernetes pod-network-cidr 設錯會發生什麼事情" />
-<meta property="og:description" content="最近看到Install Kubernetes Cluster on Ubuntu 20.04 with kubeadm | ComputingForGeeks教學，裡面提到使用 IP 192.168.0.0/16，因為我區網範圍在 192.168.1.0/24，原本照常安裝 Kubernetes，但是 Kubernetes Worker 主機沒辦法連到 Kubernetes Master 主機，Pod那些都看起來正常。
-tracepath 發現路徑會傳到外網網路。" />
+        <title>Kubernetes pod-network-cidr 設錯會發生什麼事情 - 程式狂想筆記</title><meta name="Description" content="第一次用 kubeadm 建 Kubernetes 時，pod-network-cidr 很容易被當成一個「先抄文件再說」的參數，但它其實是整個 Pod 網路配置的基礎。只要這個值設錯，後面即使節點起來了，網路也可能會出現很難查的異常。"><meta property="og:title" content="Kubernetes pod-network-cidr 設錯會發生什麼事情" />
+<meta property="og:description" content="第一次用 kubeadm 建 Kubernetes 時，pod-network-cidr 很容易被當成一個「先抄文件再說」的參數，但它其實是整個 Pod 網路配置的基礎。只要這個值設錯，後面即使節點起來了，網路也可能會出現很難查的異常。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-04-02T23:51:43+00:00" />
 <meta property="article:modified_time" content="2022-04-02T23:51:43+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Kubernetes pod-network-cidr 設錯會發生什麼事情"/>
-<meta name="twitter:description" content="最近看到Install Kubernetes Cluster on Ubuntu 20.04 with kubeadm | ComputingForGeeks教學，裡面提到使用 IP 192.168.0.0/16，因為我區網範圍在 192.168.1.0/24，原本照常安裝 Kubernetes，但是 Kubernetes Worker 主機沒辦法連到 Kubernetes Master 主機，Pod那些都看起來正常。
-tracepath 發現路徑會傳到外網網路。"/>
+<meta name="twitter:description" content="第一次用 kubeadm 建 Kubernetes 時，pod-network-cidr 很容易被當成一個「先抄文件再說」的參數，但它其實是整個 Pod 網路配置的基礎。只要這個值設錯，後面即使節點起來了，網路也可能會出現很難查的異常。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -30,13 +27,13 @@ tracepath 發現路徑會傳到外網網路。"/>
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85\/"
-        },"genre": "posts","keywords": "kubernetes","wordcount":  87 ,
+        },"genre": "posts","keywords": "kubernetes","wordcount":  103 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/Kubernetes-pod-network-cidr-%E8%A8%AD%E9%8C%AF%E6%9C%83%E7%99%BC%E7%94%9F%E4%BB%80%E9%BA%BC%E4%BA%8B%E6%83%85\/","datePublished": "2022-04-02T23:51:43+00:00","dateModified": "2022-04-02T23:51:43+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近看到\u003ca href=\"https://computingforgeeks.com/deploy-kubernetes-cluster-on-ubuntu-with-kubeadm/\" target=\"_blank\" rel=\"noopener noreffer \"\u003eInstall Kubernetes Cluster on Ubuntu 20.04 with kubeadm | ComputingForGeeks\u003c/a\u003e教學，裡面提到使用 IP \u003ccode\u003e192.168.0.0/16\u003c/code\u003e，因為我區網範圍在 \u003ccode\u003e192.168.1.0/24\u003c/code\u003e，原本照常安裝 Kubernetes，但是 Kubernetes Worker 主機沒辦法連到 Kubernetes Master 主機，Pod那些都看起來正常。\u003c/p\u003e\n\u003cp\u003etracepath 發現路徑會傳到外網網路。\u003c/p\u003e"
+            },"description": "\u003cp\u003e第一次用 kubeadm 建 Kubernetes 時，\u003ccode\u003epod-network-cidr\u003c/code\u003e 很容易被當成一個「先抄文件再說」的參數，但它其實是整個 Pod 網路配置的基礎。只要這個值設錯，後面即使節點起來了，網路也可能會出現很難查的異常。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -107,7 +104,7 @@ tracepath 發現路徑會傳到外網網路。"/>
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2022-04-02">2022-04-02</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>87 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>103 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -119,26 +116,41 @@ tracepath 發現路徑會傳到外網網路。"/>
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#pod-network-cidr-不是可以隨便設定的">pod-network-cidr 不是可以隨便設定的</a></li>
-    <li><a href="#調整方式">調整方式</a>
-      <ul>
-        <li><a href="#flannel">Flannel</a></li>
-      </ul>
-    </li>
-    <li><a href="#calico">Calico</a></li>
+    <li><a href="#pod-network-cidr-在管什麼"><code>pod-network-cidr</code> 在管什麼</a></li>
+    <li><a href="#最常見的錯誤">最常見的錯誤</a></li>
+    <li><a href="#會出現什麼症狀">會出現什麼症狀</a></li>
+    <li><a href="#為什麼這件事麻煩">為什麼這件事麻煩</a></li>
+    <li><a href="#怎麼避開">怎麼避開</a></li>
+    <li><a href="#小結">小結</a></li>
     <li><a href="#重置發生問題彩蛋">重置發生問題(彩蛋)</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>最近看到<a href="https://computingforgeeks.com/deploy-kubernetes-cluster-on-ubuntu-with-kubeadm/" target="_blank" rel="noopener noreffer ">Install Kubernetes Cluster on Ubuntu 20.04 with kubeadm | ComputingForGeeks</a>教學，裡面提到使用 IP <code>192.168.0.0/16</code>，因為我區網範圍在 <code>192.168.1.0/24</code>，原本照常安裝 Kubernetes，但是 Kubernetes Worker 主機沒辦法連到 Kubernetes Master 主機，Pod那些都看起來正常。</p>
-<p>tracepath 發現路徑會傳到外網網路。</p>
-<h2 id="pod-network-cidr-不是可以隨便設定的">pod-network-cidr 不是可以隨便設定的</h2>
-<p>後來發現文件有寫避免用相同 IP 範圍。我就調整 <code>pod-network-cidr</code>，IP範圍，但發現 Network 相關 Pod 都沒有啟動，經過多次測試、重置，調整原來的<code>pod-network-cidr</code> 就會產生 Network 的 Pod，我就發覺這個不是簡單可以調整，單然還是可以調整。</p>
-<h2 id="調整方式">調整方式</h2>
-<p>要調整方式我稍微網路找一下方法，發現需要一些步驟，改天熟悉 Kubernetes 時候有需求在操作看看。</p>
-<h3 id="flannel">Flannel</h3>
-<p><a href="https://segmentfault.com/a/1190000041057390" target="_blank" rel="noopener noreffer ">Kubernetes 使用kubeadm创建集群 - SegmentFault 思否</a></p>
-<h2 id="calico">Calico</h2>
-<p><a href="https://www.cnblogs.com/ltzhang/p/14315683.html" target="_blank" rel="noopener noreffer ">calico修改podCIDR - 雷探长 - 博客园</a></p>
+            </div><div class="content" id="content"><p>第一次用 kubeadm 建 Kubernetes 時，<code>pod-network-cidr</code> 很容易被當成一個「先抄文件再說」的參數，但它其實是整個 Pod 網路配置的基礎。只要這個值設錯，後面即使節點起來了，網路也可能會出現很難查的異常。</p>
+<h2 id="pod-network-cidr-在管什麼"><code>pod-network-cidr</code> 在管什麼</h2>
+<p>它定義的是 Pod 使用的 IP 範圍，也就是 CNI 外掛之後拿來分配 Pod 網段的基礎。如果這個網段和你實際的主機區網、路由規劃互相衝突，封包路徑就會亂掉。</p>
+<h2 id="最常見的錯誤">最常見的錯誤</h2>
+<p>最典型的問題，就是把 Pod 網段設成和現有內網過於接近，甚至直接重疊。例如主機區網本來就在 <code>192.168.x.x</code>，你卻又把 Pod 網段設成包含同區段的範圍，這時系統很容易不知道流量到底該往節點、Pod 還是外部路由送。</p>
+<h2 id="會出現什麼症狀">會出現什麼症狀</h2>
+<p>這種錯誤不一定一開始就很明顯，但常見現象包括：</p>
+<ol>
+<li>節點變成 <code>NotReady</code>。</li>
+<li>CNI Pod 起不來或狀態異常。</li>
+<li>Worker 和 Master 之間互通有問題。</li>
+<li>封包被導去奇怪的路由。</li>
+</ol>
+<p>也就是說，看起來像是「Kubernetes 壞掉」，但根因其實可能只是網段規劃不對。</p>
+<h2 id="為什麼這件事麻煩">為什麼這件事麻煩</h2>
+<p>因為 <code>pod-network-cidr</code> 不是那種隨便改一下設定檔就完全沒事的參數。很多情況下，如果初始化時就設錯，後面往往得重設叢集再來一次，成本比一般配置錯誤高很多。</p>
+<h2 id="怎麼避開">怎麼避開</h2>
+<p>最基本的原則很簡單：</p>
+<ol>
+<li>Pod 網段不要和現有主機內網重疊。</li>
+<li>在初始化前先確認 CNI 官方文件建議的網段。</li>
+<li>若環境複雜，先畫出實際網路拓樸再決定 CIDR。</li>
+</ol>
+<p>如果你的主機已經大量使用 <code>192.168.x.x</code>，很多人會選擇把 Pod 網段切到 <code>10.x.x.x</code> 這類更容易區隔的範圍。</p>
+<h2 id="小結">小結</h2>
+<p><code>pod-network-cidr</code> 不是可有可無的小參數，它直接影響 Kubernetes 叢集裡 Pod 網路怎麼走。設錯最麻煩的地方，不只是連線失敗，而是問題表面看起來像 CNI、節點或路由都壞了。部署前先把網段規劃想清楚，會比後面重建叢集輕鬆很多。</p>
 <h2 id="重置發生問題彩蛋">重置發生問題(彩蛋)</h2>
 <p><a href="https://www.cjavapy.com/article/2392/" target="_blank" rel="noopener noreffer ">Kubernetes(K8s) 使用kubeadm reset重置后 kubeadm init 失败的解决方法-CJavaPy</a></p>
 <p><a href="https://system51.github.io/2020/05/27/using-calico/" target="_blank" rel="noopener noreffer ">Calico配置及原理 | Mr.Ye Blogs</a></p>

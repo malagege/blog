@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>SSRF 風險 - 程式狂想筆記</title><meta name="Description" content="小記"><meta property="og:title" content="SSRF 風險" />
-<meta property="og:description" content="小記" />
+        <title>SSRF 風險 - 程式狂想筆記</title><meta name="Description" content="SSRF 全名是 Server-Side Request Forgery，中文通常翻成伺服器端請求偽造。它的危險點在於：攻擊者不是直接從自己電腦打內網，而是誘導你的伺服器幫他去打。只要系統有「替使用者抓網址內容」這類功能，就值得特別留意。"><meta property="og:title" content="SSRF 風險" />
+<meta property="og:description" content="SSRF 全名是 Server-Side Request Forgery，中文通常翻成伺服器端請求偽造。它的危險點在於：攻擊者不是直接從自己電腦打內網，而是誘導你的伺服器幫他去打。只要系統有「替使用者抓網址內容」這類功能，就值得特別留意。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/SSRF-%E9%A2%A8%E9%9A%AA/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-07-30T23:45:37+00:00" />
 <meta property="article:modified_time" content="2022-07-30T23:45:37+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="SSRF 風險"/>
-<meta name="twitter:description" content="小記"/>
+<meta name="twitter:description" content="SSRF 全名是 Server-Side Request Forgery，中文通常翻成伺服器端請求偽造。它的危險點在於：攻擊者不是直接從自己電腦打內網，而是誘導你的伺服器幫他去打。只要系統有「替使用者抓網址內容」這類功能，就值得特別留意。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/SSRF-%E9%A2%A8%E9%9A%AA\/"
-        },"genre": "posts","keywords": "ssrf","wordcount":  71 ,
+        },"genre": "posts","keywords": "ssrf","wordcount":  65 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/SSRF-%E9%A2%A8%E9%9A%AA\/","datePublished": "2022-07-30T23:45:37+00:00","dateModified": "2022-07-30T23:45:37+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e小記\u003c/p\u003e"
+            },"description": "\u003cp\u003eSSRF 全名是 Server-Side Request Forgery，中文通常翻成伺服器端請求偽造。它的危險點在於：攻擊者不是直接從自己電腦打內網，而是誘導你的伺服器幫他去打。只要系統有「替使用者抓網址內容」這類功能，就值得特別留意。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -104,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2022-07-30">2022-07-30</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>71 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>65 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -116,59 +116,55 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#server-side-request-forgery-prevention">Server Side Request Forgery Prevention</a>
+    <li><a href="#典型長什麼樣">典型長什麼樣</a></li>
+    <li><a href="#為什麼危險">為什麼危險</a></li>
+    <li><a href="#防禦重點">防禦重點</a>
       <ul>
-        <li><a href="#case-1---application-can-send-request-only-to-identified-and-trusted-applications">Case 1 - Application can send request only to identified and trusted applications</a></li>
+        <li><a href="#1-不要直接信任完整-url">1. 不要直接信任完整 URL</a></li>
+        <li><a href="#2-做-allowlist不要只做-denylist">2. 做 allowlist，不要只做 denylist</a></li>
+        <li><a href="#3-解析後還要檢查-ip">3. 解析後還要檢查 IP</a></li>
       </ul>
     </li>
+    <li><a href="#常見誤區">常見誤區</a>
+      <ul>
+        <li><a href="#1-以為-regex-驗網址就夠了">1. 以為 regex 驗網址就夠了</a></li>
+        <li><a href="#2-只擋-localhost">2. 只擋 localhost</a></li>
+      </ul>
+    </li>
+    <li><a href="#小結">小結</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>小記</p>
-<h2 id="server-side-request-forgery-prevention">Server Side Request Forgery Prevention</h2>
-<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html#case-1-application-can-send-request-only-to-identified-and-trusted-applications" target="_blank" rel="noopener noreffer ">Server Side Request Forgery Prevention - OWASP Cheat Sheet Series</a></p>
-<p>上面這篇推薦看，這邊小記</p>
-<h3 id="case-1---application-can-send-request-only-to-identified-and-trusted-applications">Case 1 - Application can send request only to identified and trusted applications</h3>
-<p>這邊我們看常常呼叫API，可能會在參數帶網址，程式去做呼叫API問題。但沒有限制API URL 檢核，可能會讓使用者作惡意事情。</p>
-<p>解決方法有兩個層面</p>
-<h4 id="application-layer">Application Layer:</h4>
+            </div><div class="content" id="content"><p>SSRF 全名是 Server-Side Request Forgery，中文通常翻成伺服器端請求偽造。它的危險點在於：攻擊者不是直接從自己電腦打內網，而是誘導你的伺服器幫他去打。只要系統有「替使用者抓網址內容」這類功能，就值得特別留意。</p>
+<h2 id="典型長什麼樣">典型長什麼樣</h2>
+<p>最常見的情境是程式接收一個 URL，然後伺服器去下載、預覽、轉檔或轉發資料。例如：</p>
 <ol>
-<li>
-<p>字串檢核，使用regex。</p>
-</li>
-<li>
-<p>IP Address 驗證。可參考文章<a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html#ip-address" target="_blank" rel="noopener noreffer ">Server Side Request Forgery Prevention - OWASP Cheat Sheet Series</a><br>
-<a class="lightgallery" href="https://i.imgur.com/rM29CQt.png" title="https://i.imgur.com/rM29CQt.png" data-thumbnail="https://i.imgur.com/rM29CQt.png">
-        <img
-            class="lazyload"
-            src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/rM29CQt.png"
-            data-srcset="https://i.imgur.com/rM29CQt.png, https://i.imgur.com/rM29CQt.png 1.5x, https://i.imgur.com/rM29CQt.png 2x"
-            data-sizes="auto"
-            alt="https://i.imgur.com/rM29CQt.png"
-            title="https://i.imgur.com/rM29CQt.png" />
-    </a></p>
-</li>
-<li>
-<p>Domain 驗證。<a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html#domain-name" target="_blank" rel="noopener noreffer ">Server Side Request Forgery Prevention - OWASP Cheat Sheet Series</a></p>
-</li>
+<li>貼一個圖片網址，系統幫你抓圖。</li>
+<li>給一個 webhook URL，系統主動回呼。</li>
+<li>輸入一個遠端 API 網址，系統代為請求。</li>
 </ol>
-<p><a class="lightgallery" href="https://i.imgur.com/lKWyyl8.png" title="https://i.imgur.com/lKWyyl8.png" data-thumbnail="https://i.imgur.com/lKWyyl8.png">
-        <img
-            class="lazyload"
-            src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/lKWyyl8.png"
-            data-srcset="https://i.imgur.com/lKWyyl8.png, https://i.imgur.com/lKWyyl8.png 1.5x, https://i.imgur.com/lKWyyl8.png 2x"
-            data-sizes="auto"
-            alt="https://i.imgur.com/lKWyyl8.png"
-            title="https://i.imgur.com/lKWyyl8.png" />
-    </a></p>
-<ol start="4">
-<li>不要使用參數過來的完整URL。帶後面參數</li>
+<p>如果這些網址完全信任使用者輸入，問題就來了。</p>
+<h2 id="為什麼危險">為什麼危險</h2>
+<p>因為你的伺服器通常能看到比外部使用者更多的東西，例如：</p>
+<ol>
+<li>內網服務。</li>
+<li><code>127.0.0.1</code> 或 <code>localhost</code> 上的管理介面。</li>
+<li>雲端環境中的 Metadata 服務。</li>
 </ol>
-<h4 id="network-layer">Network layer:</h4>
-<p>使用防火牆做防禦。</p>
-<p>其他文章:</p>
-<p><a href="https://websec.readthedocs.io/zh/latest/vuln/ssrf.html" target="_blank" rel="noopener noreffer ">4.4. SSRF — Web安全学习笔记 1.0 文档</a></p></div><div class="post-footer" id="post-footer">
+<p>攻擊者如果能讓你的系統去請求這些位置，就可能把原本不該暴露的資訊間接拿出來。</p>
+<h2 id="防禦重點">防禦重點</h2>
+<h3 id="1-不要直接信任完整-url">1. 不要直接信任完整 URL</h3>
+<p>如果可以，盡量不要讓使用者提供任意完整網址。改成只接受必要參數，再由系統自己組出要請求的目標，通常安全很多。</p>
+<h3 id="2-做-allowlist不要只做-denylist">2. 做 allowlist，不要只做 denylist</h3>
+<p>與其一直擋 <code>127.0.0.1</code>、<code>10.x.x.x</code>、<code>192.168.x.x</code> 等私網段，不如反過來只允許已知可信的網域或服務。</p>
+<h3 id="3-解析後還要檢查-ip">3. 解析後還要檢查 IP</h3>
+<p>只看字串表面不夠，因為網域解析後可能仍然指向內網或保留位址，所以最好在 DNS 解析後再驗證一次。</p>
+<h2 id="常見誤區">常見誤區</h2>
+<h3 id="1-以為-regex-驗網址就夠了">1. 以為 regex 驗網址就夠了</h3>
+<p>Regex 只能幫你做格式檢查，不能解決目標位置是否安全這件事。</p>
+<h3 id="2-只擋-localhost">2. 只擋 localhost</h3>
+<p>真正危險的不只 <code>localhost</code>，還包括整批私網 IP、特殊位址與雲端 metadata 端點。</p>
+<h2 id="小結">小結</h2>
+<p>SSRF 真正可怕的地方，是把你自己的伺服器變成攻擊跳板。只要系統會根據使用者輸入主動發出請求，就應該把目標驗證、網域 allowlist、IP 檢查和網路層限制一起納入設計，而不是只做表面字串過濾。</p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

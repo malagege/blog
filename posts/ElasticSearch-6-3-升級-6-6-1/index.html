@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>ElasticSearch 6.3 升級 6.6.1 - 程式狂想筆記</title><meta name="Description" content="最近因為 ES 安全性問題，手上接的專案 ES 需要升級 6.6.1，這邊我沒有相關經驗，簡單整理一下筆記。"><meta property="og:title" content="ElasticSearch 6.3 升級 6.6.1" />
-<meta property="og:description" content="最近因為 ES 安全性問題，手上接的專案 ES 需要升級 6.6.1，這邊我沒有相關經驗，簡單整理一下筆記。" />
+        <title>ElasticSearch 6.3 升級 6.6.1 - 程式狂想筆記</title><meta name="Description" content="ElasticSearch 做版本升級時，最怕的不是指令本身，而是升級後才發現資料、外掛或設定彼此不相容。尤其從 6.3 升到 6.6.1 這種同大版本下的小升級，看起來跨度不大，但實務上還是不能直接當作覆蓋檔案就結束。"><meta property="og:title" content="ElasticSearch 6.3 升級 6.6.1" />
+<meta property="og:description" content="ElasticSearch 做版本升級時，最怕的不是指令本身，而是升級後才發現資料、外掛或設定彼此不相容。尤其從 6.3 升到 6.6.1 這種同大版本下的小升級，看起來跨度不大，但實務上還是不能直接當作覆蓋檔案就結束。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/ElasticSearch-6-3-%E5%8D%87%E7%B4%9A-6-6-1/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-07-30T23:58:26+00:00" />
 <meta property="article:modified_time" content="2022-07-30T23:58:26+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="ElasticSearch 6.3 升級 6.6.1"/>
-<meta name="twitter:description" content="最近因為 ES 安全性問題，手上接的專案 ES 需要升級 6.6.1，這邊我沒有相關經驗，簡單整理一下筆記。"/>
+<meta name="twitter:description" content="ElasticSearch 做版本升級時，最怕的不是指令本身，而是升級後才發現資料、外掛或設定彼此不相容。尤其從 6.3 升到 6.6.1 這種同大版本下的小升級，看起來跨度不大，但實務上還是不能直接當作覆蓋檔案就結束。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/ElasticSearch-6-3-%E5%8D%87%E7%B4%9A-6-6-1\/"
-        },"genre": "posts","keywords": "elasticsearch","wordcount":  43 ,
+        },"genre": "posts","keywords": "elasticsearch","wordcount":  69 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/ElasticSearch-6-3-%E5%8D%87%E7%B4%9A-6-6-1\/","datePublished": "2022-07-30T23:58:26+00:00","dateModified": "2022-07-30T23:58:26+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近因為 ES 安全性問題，手上接的專案 ES 需要升級 6.6.1，這邊我沒有相關經驗，簡單整理一下筆記。\u003c/p\u003e"
+            },"description": "\u003cp\u003eElasticSearch 做版本升級時，最怕的不是指令本身，而是升級後才發現資料、外掛或設定彼此不相容。尤其從 6.3 升到 6.6.1 這種同大版本下的小升級，看起來跨度不大，但實務上還是不能直接當作覆蓋檔案就結束。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -104,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2022-07-30">2022-07-30</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>43 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>69 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -116,49 +116,87 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#流程">流程</a>
+    <li><a href="#升級前先想清楚三件事">升級前先想清楚三件事</a></li>
+    <li><a href="#升級前的基本動作">升級前的基本動作</a></li>
+    <li><a href="#常見升級流程">常見升級流程</a>
       <ul>
-        <li><a href="#備份-es-資料夾">備份 es 資料夾</a></li>
-        <li><a href="#覆蓋對應-es-資料夾檔案">覆蓋對應 ES 資料夾檔案</a></li>
-        <li><a href="#plugin-升級檔案到相對應路徑">Plugin 升級檔案到相對應路徑</a></li>
+        <li><a href="#1-先停服務">1. 先停服務</a></li>
+        <li><a href="#2-替換核心程式內容">2. 替換核心程式內容</a></li>
+        <li><a href="#3-檢查外掛">3. 檢查外掛</a></li>
+        <li><a href="#4-啟動後驗證">4. 啟動後驗證</a></li>
       </ul>
     </li>
+    <li><a href="#升級時容易忽略的點">升級時容易忽略的點</a>
+      <ul>
+        <li><a href="#1-小版本升級不代表零風險">1. 小版本升級不代表零風險</a></li>
+        <li><a href="#2-先看應用有沒有綁死舊行為">2. 先看應用有沒有綁死舊行為</a></li>
+        <li><a href="#3-維護時段要預留">3. 維護時段要預留</a></li>
+      </ul>
+    </li>
+    <li><a href="#小結">小結</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>最近因為 ES 安全性問題，手上接的專案 ES 需要升級 6.6.1，這邊我沒有相關經驗，簡單整理一下筆記。</p>
-<h2 id="流程">流程</h2>
-<h3 id="備份-es-資料夾">備份 es 資料夾</h3>
-<h3 id="覆蓋對應-es-資料夾檔案">覆蓋對應 ES 資料夾檔案</h3>
-<p>ES 6.6.1 部分資料夾覆蓋到</p>
+            </div><div class="content" id="content"><p>ElasticSearch 做版本升級時，最怕的不是指令本身，而是升級後才發現資料、外掛或設定彼此不相容。尤其從 6.3 升到 6.6.1 這種同大版本下的小升級，看起來跨度不大，但實務上還是不能直接當作覆蓋檔案就結束。</p>
+<h2 id="升級前先想清楚三件事">升級前先想清楚三件事</h2>
 <ol>
-<li>bin</li>
-<li>lib</li>
-<li>modules</li>
+<li>資料要怎麼備份。</li>
+<li>外掛有沒有對應版本。</li>
+<li>現有設定能不能沿用。</li>
 </ol>
-<h3 id="plugin-升級檔案到相對應路徑">Plugin 升級檔案到相對應路徑</h3>
-<p>plugin 查看有哪些東西，去官網做升級下載檔案動作。</p>
-<p>elasticsearch-sql 套件<br>
-<a href="https://github.com/NLPchina/elasticsearch-sql/releases/tag/6.6.1.0" target="_blank" rel="noopener noreffer ">https://github.com/NLPchina/elasticsearch-sql/releases/tag/6.6.1.0</a></p>
-<p>可以把 <code>plugins\sql</code> 做覆蓋。</p>
-<p>官方安裝套件是用 command line 執行，可以參考看看。安裝:<a href="https://github.com/NLPchina/elasticsearch-sql/wiki/Installation-Guide" target="_blank" rel="noopener noreffer ">Installation Guide · NLPchina/elasticsearch-sql Wiki · GitHub</a></p>
+<p>如果這三件事沒有先確認，升級很容易變成邊修邊救火。</p>
+<h2 id="升級前的基本動作">升級前的基本動作</h2>
+<p>最基本的就是先備份原本的安裝目錄與資料：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="p">.</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">elasticsearch</span><span class="o">-</span><span class="n">plugin</span><span class="w"> </span><span class="n">install</span><span class="w"> </span><span class="n">file</span><span class="p">:</span><span class="c1">///home/yourFolder/elasticsearch-sql-x.x.x.x.zip</span><span class="w">
-</span></span></span></code></pre></td></tr></table>
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">cp -r /path/to/elasticsearch /path/to/elasticsearch-backup
+</span></span></code></pre></td></tr></table>
 </div>
-</div><p><a class="lightgallery" href="https://i.imgur.com/HpaSQL0.png" title="https://i.imgur.com/HpaSQL0.png" data-thumbnail="https://i.imgur.com/HpaSQL0.png">
-        <img
-            class="lazyload"
-            src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/HpaSQL0.png"
-            data-srcset="https://i.imgur.com/HpaSQL0.png, https://i.imgur.com/HpaSQL0.png 1.5x, https://i.imgur.com/HpaSQL0.png 2x"
-            data-sizes="auto"
-            alt="https://i.imgur.com/HpaSQL0.png"
-            title="https://i.imgur.com/HpaSQL0.png" />
-    </a></p></div><div class="post-footer" id="post-footer">
+</div><p>若環境允許，更建議先做完整 snapshot 或其他資料備援，不要只靠一份目錄複製就覺得安全。</p>
+<h2 id="常見升級流程">常見升級流程</h2>
+<h3 id="1-先停服務">1. 先停服務</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">systemctl stop elasticsearch
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="2-替換核心程式內容">2. 替換核心程式內容</h3>
+<p>一般會更新像 <code>bin</code>、<code>lib</code>、<code>modules</code> 這些核心目錄，但不要隨便動到既有的 <code>data</code> 和正式使用中的 <code>config</code>。</p>
+<h3 id="3-檢查外掛">3. 檢查外掛</h3>
+<p>這一步很關鍵。像 elasticsearch-sql 這類協力廠商外掛，版本不對就可能直接起不來。可以先列出現有外掛：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./bin/elasticsearch-plugin list
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>需要時先移除舊版，再安裝對應版本。</p>
+<h3 id="4-啟動後驗證">4. 啟動後驗證</h3>
+<p>升級完不是能啟動就算成功，還要看叢集狀態、索引狀態和應用查詢是否正常。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl http://localhost:9200/_cluster/health
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="升級時容易忽略的點">升級時容易忽略的點</h2>
+<h3 id="1-小版本升級不代表零風險">1. 小版本升級不代表零風險</h3>
+<p>雖然不是跨大版，但外掛和某些設定還是可能有差異。</p>
+<h3 id="2-先看應用有沒有綁死舊行為">2. 先看應用有沒有綁死舊行為</h3>
+<p>有些系統其實不是 ES 升不了，而是你上層應用把某些查詢或欄位格式綁得太死。</p>
+<h3 id="3-維護時段要預留">3. 維護時段要預留</h3>
+<p>不要預設這類升級一定一次成功。外掛重裝、啟動驗證、回滾判斷都需要時間。</p>
+<h2 id="小結">小結</h2>
+<p>ElasticSearch 6.3 升到 6.6.1 看似只是小升級，但仍然要把備份、外掛相容性和啟動後驗證當成重點。比起追求最快升級，真正重要的是能不能安全升上去、出問題時能不能退回來。</p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

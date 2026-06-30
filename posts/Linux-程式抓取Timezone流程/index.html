@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Linux 程式抓取Timezone流程 - 程式狂想筆記</title><meta name="Description" content="簡單小記"><meta property="og:title" content="Linux 程式抓取Timezone流程" />
-<meta property="og:description" content="簡單小記" />
+        <title>Linux 程式抓取Timezone流程 - 程式狂想筆記</title><meta name="Description" content="程式在 Linux 上跑時間相關邏輯時，如果時區抓錯，影響通常不只是畫面顯示，而是連排程、記錄時間、資料比對都可能一起偏掉。這種問題平常不一定馬上爆，但一旦跨環境部署或進到容器，往往就會開始出現落差。"><meta property="og:title" content="Linux 程式抓取Timezone流程" />
+<meta property="og:description" content="程式在 Linux 上跑時間相關邏輯時，如果時區抓錯，影響通常不只是畫面顯示，而是連排程、記錄時間、資料比對都可能一起偏掉。這種問題平常不一定馬上爆，但一旦跨環境部署或進到容器，往往就會開始出現落差。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Linux-%E7%A8%8B%E5%BC%8F%E6%8A%93%E5%8F%96Timezone%E6%B5%81%E7%A8%8B/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-08-31T21:44:34+00:00" />
 <meta property="article:modified_time" content="2020-08-31T21:44:34+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Linux 程式抓取Timezone流程"/>
-<meta name="twitter:description" content="簡單小記"/>
+<meta name="twitter:description" content="程式在 Linux 上跑時間相關邏輯時，如果時區抓錯，影響通常不只是畫面顯示，而是連排程、記錄時間、資料比對都可能一起偏掉。這種問題平常不一定馬上爆，但一旦跨環境部署或進到容器，往往就會開始出現落差。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/Linux-%E7%A8%8B%E5%BC%8F%E6%8A%93%E5%8F%96Timezone%E6%B5%81%E7%A8%8B\/"
-        },"genre": "posts","keywords": "linux, timezone","wordcount":  42 ,
+        },"genre": "posts","keywords": "linux, timezone","wordcount":  70 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/Linux-%E7%A8%8B%E5%BC%8F%E6%8A%93%E5%8F%96Timezone%E6%B5%81%E7%A8%8B\/","datePublished": "2020-08-31T21:44:34+00:00","dateModified": "2020-08-31T21:44:34+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e簡單小記\u003c/p\u003e"
+            },"description": "\u003cp\u003e程式在 Linux 上跑時間相關邏輯時，如果時區抓錯，影響通常不只是畫面顯示，而是連排程、記錄時間、資料比對都可能一起偏掉。這種問題平常不一定馬上爆，但一旦跨環境部署或進到容器，往往就會開始出現落差。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -104,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2020-08-31">2020-08-31</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>42 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>70 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -114,27 +114,79 @@
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>簡單小記</p>
-<p>Linux 程式抓取Timezone流程</p>
-<p>​</p>
-<p><a href="https://blog.csdn.net/weixin_42167759/article/details/90648225" target="_blank" rel="noopener noreffer ">Linux —— 时间（tzselect、timedatactl命令，查看和修改时区，修改时区为东八区）_杰儿__er 的博客-CSDN博客</a></p>
-<p>​</p>
-<p>預設會抓Linux  TZ 環境變數，如果不存在，就會抓取/etc/localtime<br>
-注意這個不是單純txt，會用 linux link 方式去做連結的<br>
-所以可以ls - l /etc/localtime 看到指定的語系</p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#程式通常怎麼判斷時區">程式通常怎麼判斷時區</a></li>
+    <li><a href="#怎麼檢查現在的系統時區">怎麼檢查現在的系統時區</a>
+      <ul>
+        <li><a href="#看環境變數">看環境變數</a></li>
+        <li><a href="#看-etclocaltime">看 <code>/etc/localtime</code></a></li>
+        <li><a href="#用系統工具確認">用系統工具確認</a></li>
+      </ul>
+    </li>
+    <li><a href="#為什麼這件事常在部署時出問題">為什麼這件事常在部署時出問題</a>
+      <ul>
+        <li><a href="#1-容器預設常常是-utc">1. 容器預設常常是 UTC</a></li>
+        <li><a href="#2-不同服務的啟動環境可能不同">2. 不同服務的啟動環境可能不同</a></li>
+      </ul>
+    </li>
+    <li><a href="#實務上的建議">實務上的建議</a></li>
+    <li><a href="#小結">小結</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>程式在 Linux 上跑時間相關邏輯時，如果時區抓錯，影響通常不只是畫面顯示，而是連排程、記錄時間、資料比對都可能一起偏掉。這種問題平常不一定馬上爆，但一旦跨環境部署或進到容器，往往就會開始出現落差。</p>
+<h2 id="程式通常怎麼判斷時區">程式通常怎麼判斷時區</h2>
+<p>在 Linux 環境中，程式抓時區時常見會看兩個來源：</p>
 <ol>
-<li>echo $TZ;</li>
-<li>ls -al /etc/localtime</li>
+<li><code>TZ</code> 環境變數。</li>
+<li>系統時區設定，例如 <code>/etc/localtime</code>。</li>
 </ol>
-<p>還可以用指令看 <code>datetimectl</code> 可以看目前使用語系</p>
-<p>就這麼簡單</p>
-<p>​</p>
-<p>​</p>
-<p>其他小記<br>
-<a href="https://linuxhint.com/linux_date_command/" target="_blank" rel="noopener noreffer ">https://linuxhint.com/linux_date_command/</a><br>
-<a href="https://www.jianshu.com/p/e0dd536dd3e4" target="_blank" rel="noopener noreffer ">HTTP日期/时间格式 - 簡書</a><br>
-<a href="https://ckplus.github.io/2016/08/20/python-timezone/" target="_blank" rel="noopener noreffer ">Python 時間/時區處理 | CKPlus&rsquo;s Blog</a></p></div><div class="post-footer" id="post-footer">
+<p>簡單講，如果有明確設定 <code>TZ</code>，很多程式會優先吃它；如果沒有，才回頭看系統本身目前設定的時區。</p>
+<h2 id="怎麼檢查現在的系統時區">怎麼檢查現在的系統時區</h2>
+<h3 id="看環境變數">看環境變數</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="nb">echo</span> <span class="nv">$TZ</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果有值，表示目前 Shell 或服務環境可能有覆寫時區。</p>
+<h3 id="看-etclocaltime">看 <code>/etc/localtime</code></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ls -l /etc/localtime
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這通常會連到 <code>/usr/share/zoneinfo/</code> 底下的某個時區檔，例如 <code>Asia/Taipei</code>。</p>
+<h3 id="用系統工具確認">用系統工具確認</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">timedatectl
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這個方式通常最直觀，能直接看到目前系統認為的時區與時間設定。</p>
+<h2 id="為什麼這件事常在部署時出問題">為什麼這件事常在部署時出問題</h2>
+<h3 id="1-容器預設常常是-utc">1. 容器預設常常是 UTC</h3>
+<p>很多 Docker image 預設就是 UTC。如果你的應用原本在主機上跑是台灣時間，搬進容器後沒處理時區，很容易直接差 8 小時。</p>
+<h3 id="2-不同服務的啟動環境可能不同">2. 不同服務的啟動環境可能不同</h3>
+<p>你在互動式 Shell 裡看到的 <code>TZ</code>，不代表 systemd service、Cron 或 Web Server 啟動的應用也會看到同樣的值。</p>
+<h2 id="實務上的建議">實務上的建議</h2>
+<ol>
+<li>儲存時間盡量以 UTC 為主。</li>
+<li>呈現給使用者時再轉成目標時區。</li>
+<li>容器和正式環境都明確檢查時區，不要靠猜。</li>
+</ol>
+<p>這樣通常比直接讓應用到處依賴本機時區安全很多。</p>
+<h2 id="小結">小結</h2>
+<p>Linux 程式抓時區的流程本身不複雜，難的是不同執行環境可能看到不同設定。只要先釐清 <code>TZ</code> 和系統時區誰在生效，再回頭看你的應用怎麼處理時間，通常就能比較快找到時間偏移的真正原因。</p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
