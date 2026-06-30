@@ -4,15 +4,18 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題 - 程式狂想筆記</title><meta name="Description" content="最近接的案子城市遇到OOM，但有時候要判斷程式是哪邊造成的，需要一些工具。但詳細還是要看log，說不定發生大量查詢資料地方。"><meta property="og:title" content="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題" />
-<meta property="og:description" content="最近接的案子城市遇到OOM，但有時候要判斷程式是哪邊造成的，需要一些工具。但詳細還是要看log，說不定發生大量查詢資料地方。" />
+        <title>使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題 - 程式狂想筆記</title><meta name="Description" content="最近接的案子有遇到 Java OOM。這種問題最麻煩的地方在於，看到 OutOfMemoryError 不代表你立刻就知道是哪一段程式出了問題。很多時候只是 JVM 已經爆了，但真正的根因可能是某個查詢撈太多資料、某個快取沒有釋放，或某個流程在短時間內開了太多執行緒。
+如果環境是在 AIX，而且用的是 IBM 的 JVM，還會多一個落差：很多常見教學都在講 hprof 或 HotSpot 工具，但 AIX / IBM JVM 常見拿到的是 .phd dump。這時候就不能直接照一般教學走，要改用 IBM HeapAnalyzer 這類工具來看。"><meta property="og:title" content="使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題" />
+<meta property="og:description" content="最近接的案子有遇到 Java OOM。這種問題最麻煩的地方在於，看到 OutOfMemoryError 不代表你立刻就知道是哪一段程式出了問題。很多時候只是 JVM 已經爆了，但真正的根因可能是某個查詢撈太多資料、某個快取沒有釋放，或某個流程在短時間內開了太多執行緒。
+如果環境是在 AIX，而且用的是 IBM 的 JVM，還會多一個落差：很多常見教學都在講 hprof 或 HotSpot 工具，但 AIX / IBM JVM 常見拿到的是 .phd dump。這時候就不能直接照一般教學走，要改用 IBM HeapAnalyzer 這類工具來看。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-10-09T23:26:11+00:00" />
 <meta property="article:modified_time" content="2021-10-09T23:26:11+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
-<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題"/>
-<meta name="twitter:description" content="最近接的案子城市遇到OOM，但有時候要判斷程式是哪邊造成的，需要一些工具。但詳細還是要看log，說不定發生大量查詢資料地方。"/>
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題"/>
+<meta name="twitter:description" content="最近接的案子有遇到 Java OOM。這種問題最麻煩的地方在於，看到 OutOfMemoryError 不代表你立刻就知道是哪一段程式出了問題。很多時候只是 JVM 已經爆了，但真正的根因可能是某個查詢撈太多資料、某個快取沒有釋放，或某個流程在短時間內開了太多執行緒。
+如果環境是在 AIX，而且用的是 IBM 的 JVM，還會多一個落差：很多常見教學都在講 hprof 或 HotSpot 工具，但 AIX / IBM JVM 常見拿到的是 .phd dump。這時候就不能直接照一般教學走，要改用 IBM HeapAnalyzer 這類工具來看。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -22,18 +25,18 @@
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題",
+        "headline": "使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題",
         "inLanguage": "zh-tw",
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C\/"
-        },"genre": "posts","wordcount":  47 ,
+        },"genre": "posts","keywords": "java, aix, oom, jvm","wordcount":  228 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C\/","datePublished": "2021-10-09T23:26:11+00:00","dateModified": "2021-10-09T23:26:11+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近接的案子城市遇到OOM，但有時候要判斷程式是哪邊造成的，需要一些工具。但詳細還是要看log，說不定發生大量查詢資料地方。\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近接的案子有遇到 Java OOM。這種問題最麻煩的地方在於，看到 \u003ccode\u003eOutOfMemoryError\u003c/code\u003e 不代表你立刻就知道是哪一段程式出了問題。很多時候只是 JVM 已經爆了，但真正的根因可能是某個查詢撈太多資料、某個快取沒有釋放，或某個流程在短時間內開了太多執行緒。\u003c/p\u003e\n\u003cp\u003e如果環境是在 AIX，而且用的是 IBM 的 JVM，還會多一個落差：很多常見教學都在講 \u003ccode\u003ehprof\u003c/code\u003e 或 HotSpot 工具，但 AIX / IBM JVM 常見拿到的是 \u003ccode\u003e.phd\u003c/code\u003e dump。這時候就不能直接照一般教學走，要改用 IBM HeapAnalyzer 這類工具來看。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -99,72 +102,182 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div>
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2021-10-09">2021-10-09</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>47 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>228 words
                 </span>
                 <span class="post-meta-item">
-                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>2 minutes
                 </span></div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>最近接的案子城市遇到OOM，但有時候要判斷程式是哪邊造成的，需要一些工具。但詳細還是要看log，說不定發生大量查詢資料地方。</p>
-<p><a href="https://yu-jack.github.io/2020/02/24/java-oom/" target="_blank" rel="noopener noreffer ">java.lang.OutOfMemoryError Java heap space? 怎麼解? - 技術雜記 Technology Notes - Jack Yu | 傑克</a><a href="https://i.imgur.com/VeD71Y2.png" target="_blank" rel="noopener noreffer ">備份圖</a></p>
-<p>AIX 不會產生 phrof 工具，產生 phd 檔案。跑在分析工具不能跑。最後找了很久發現要用 IBM HeapAnalyzer。</p>
-<p><a href="https://www.gushiciku.cn/dc_tw/201074884" target="_blank" rel="noopener noreffer ">Java 執行緒究竟佔用多少記憶體_ImportNew - 微文庫</a></p>
-<p><a href="https://www.baeldung.com/java-thread-dump" target="_blank" rel="noopener noreffer ">Capturing a Java Thread Dump | Baeldung</a></p>
-<p><a href="https://www.gushiciku.cn/pl/gfP6/zh-tw" target="_blank" rel="noopener noreffer ">保姆級教學，22張圖揭開ThreadLocal_程式猿阿星 - MdEditor</a></p>
-<p>.phd 檔案</p>
-<p>IBM HeapAnalyzer</p>
-<p><a href="https://www.ibm.com/support/pages/ibm-heapanalyzer" target="_blank" rel="noopener noreffer ">IBM HeapAnalyzer</a></p>
-<p><a class="lightgallery" href="https://i.imgur.com/PVd7rhB.png" title="https://i.imgur.com/PVd7rhB.png" data-thumbnail="https://i.imgur.com/PVd7rhB.png">
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#先講-oom-排查不要只看-dump">先講 OOM 排查不要只看 dump</a></li>
+    <li><a href="#aix--ibm-jvm-跟一般教學哪裡不一樣">AIX / IBM JVM 跟一般教學哪裡不一樣</a></li>
+    <li><a href="#基本排查流程">基本排查流程</a></li>
+    <li><a href="#ibm-heapanalyzer-可以看什麼">IBM HeapAnalyzer 可以看什麼</a></li>
+    <li><a href="#看圖時我會怎麼判讀">看圖時我會怎麼判讀</a></li>
+    <li><a href="#這次實際查到的狀況">這次實際查到的狀況</a></li>
+    <li><a href="#我會特別再查的幾個方向">我會特別再查的幾個方向</a></li>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#小結">小結</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近接的案子有遇到 Java OOM。這種問題最麻煩的地方在於，看到 <code>OutOfMemoryError</code> 不代表你立刻就知道是哪一段程式出了問題。很多時候只是 JVM 已經爆了，但真正的根因可能是某個查詢撈太多資料、某個快取沒有釋放，或某個流程在短時間內開了太多執行緒。</p>
+<p>如果環境是在 AIX，而且用的是 IBM 的 JVM，還會多一個落差：很多常見教學都在講 <code>hprof</code> 或 HotSpot 工具，但 AIX / IBM JVM 常見拿到的是 <code>.phd</code> dump。這時候就不能直接照一般教學走，要改用 IBM HeapAnalyzer 這類工具來看。</p>
+<h2 id="先講-oom-排查不要只看-dump">先講 OOM 排查不要只看 dump</h2>
+<p>Heap dump 很重要，但它只是拼圖的一塊。真正查 OOM，我會至少同時看這幾樣：</p>
+<ul>
+<li>應用程式 log</li>
+<li>GC log</li>
+<li>thread dump / javacore</li>
+<li>heap dump</li>
+<li>事故發生時間點附近的業務操作</li>
+</ul>
+<p>原因很簡單：heap dump 告訴你「當下記憶體裡塞了什麼」，但不一定直接告訴你「為什麼塞了那麼多」。</p>
+<h2 id="aix--ibm-jvm-跟一般教學哪裡不一樣">AIX / IBM JVM 跟一般教學哪裡不一樣</h2>
+<p>在 Oracle HotSpot 或 OpenJDK 的文章裡，常會看到 <code>.hprof</code>。但在 AIX 上，如果是 IBM J9 / OpenJ9 相關環境，實務上常拿到的是 <code>.phd</code> 檔案與 <code>javacore</code>。</p>
+<p>這也是我一開始卡住的地方：</p>
+<ul>
+<li>dump 有產生</li>
+<li>但平常常見的分析工具不一定直接好用</li>
+<li>搜尋一輪後才發現要改找 IBM HeapAnalyzer</li>
+</ul>
+<p>工具連結：</p>
+<ul>
+<li><a href="https://www.ibm.com/support/pages/ibm-heapanalyzer" target="_blank" rel="noopener noreffer ">IBM HeapAnalyzer</a></li>
+</ul>
+<h2 id="基本排查流程">基本排查流程</h2>
+<p>我自己的處理順序大概是下面這樣：</p>
+<ol>
+<li>先從 log 確認 OOM 發生時間與錯誤型態。</li>
+<li>確認當下有沒有產出 <code>.phd</code>、<code>javacore</code> 或其他 dump。</li>
+<li>用 IBM HeapAnalyzer 開 <code>.phd</code>。</li>
+<li>看大物件、可疑類別、物件保留鏈。</li>
+<li>再回頭對照 log 與業務流程，找出真正是哪段功能把 heap 撐爆。</li>
+</ol>
+<h2 id="ibm-heapanalyzer-可以看什麼">IBM HeapAnalyzer 可以看什麼</h2>
+<p>打開 <code>.phd</code> 後，通常我會優先看幾件事：</p>
+<ul>
+<li>哪些類別佔了最多記憶體。</li>
+<li>哪些物件數量異常多。</li>
+<li>某個大物件是被誰 reference 住。</li>
+<li>是否存在明顯的集合類別暴增，例如 <code>ArrayList</code>、<code>HashMap</code>、快取容器等。</li>
+</ul>
+<p>下面幾張圖是當時分析時的畫面紀錄。</p>
+<p><a class="lightgallery" href="01.avif" title="IBM HeapAnalyzer 畫面 1" data-thumbnail="01.avif">
         <img
             class="lazyload"
             src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/PVd7rhB.png"
-            data-srcset="https://i.imgur.com/PVd7rhB.png, https://i.imgur.com/PVd7rhB.png 1.5x, https://i.imgur.com/PVd7rhB.png 2x"
+            data-src="01.avif"
+            data-srcset="01.avif, 01.avif 1.5x, 01.avif 2x"
             data-sizes="auto"
-            alt="https://i.imgur.com/PVd7rhB.png"
-            title="https://i.imgur.com/PVd7rhB.png" />
+            alt="01.avif"
+            title="IBM HeapAnalyzer 畫面 1" />
     </a></p>
-<p><a class="lightgallery" href="https://i.imgur.com/v0czPEq.png" title="https://i.imgur.com/v0czPEq.png" data-thumbnail="https://i.imgur.com/v0czPEq.png">
+<p><a class="lightgallery" href="02.avif" title="IBM HeapAnalyzer 畫面 2" data-thumbnail="02.avif">
         <img
             class="lazyload"
             src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/v0czPEq.png"
-            data-srcset="https://i.imgur.com/v0czPEq.png, https://i.imgur.com/v0czPEq.png 1.5x, https://i.imgur.com/v0czPEq.png 2x"
+            data-src="02.avif"
+            data-srcset="02.avif, 02.avif 1.5x, 02.avif 2x"
             data-sizes="auto"
-            alt="https://i.imgur.com/v0czPEq.png"
-            title="https://i.imgur.com/v0czPEq.png" />
+            alt="02.avif"
+            title="IBM HeapAnalyzer 畫面 2" />
     </a></p>
-<p><a class="lightgallery" href="https://i.imgur.com/FtJwJSZ.png" title="https://i.imgur.com/FtJwJSZ.png" data-thumbnail="https://i.imgur.com/FtJwJSZ.png">
+<p><a class="lightgallery" href="03.avif" title="IBM HeapAnalyzer 畫面 3" data-thumbnail="03.avif">
         <img
             class="lazyload"
             src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/FtJwJSZ.png"
-            data-srcset="https://i.imgur.com/FtJwJSZ.png, https://i.imgur.com/FtJwJSZ.png 1.5x, https://i.imgur.com/FtJwJSZ.png 2x"
+            data-src="03.avif"
+            data-srcset="03.avif, 03.avif 1.5x, 03.avif 2x"
             data-sizes="auto"
-            alt="https://i.imgur.com/FtJwJSZ.png"
-            title="https://i.imgur.com/FtJwJSZ.png" />
+            alt="03.avif"
+            title="IBM HeapAnalyzer 畫面 3" />
     </a></p>
-<p><a class="lightgallery" href="https://i.imgur.com/11AOiZP.png" title="https://i.imgur.com/11AOiZP.png" data-thumbnail="https://i.imgur.com/11AOiZP.png">
+<p><a class="lightgallery" href="04.avif" title="IBM HeapAnalyzer 畫面 4" data-thumbnail="04.avif">
         <img
             class="lazyload"
             src="/blog/svg/loading.min.svg"
-            data-src="https://i.imgur.com/11AOiZP.png"
-            data-srcset="https://i.imgur.com/11AOiZP.png, https://i.imgur.com/11AOiZP.png 1.5x, https://i.imgur.com/11AOiZP.png 2x"
+            data-src="04.avif"
+            data-srcset="04.avif, 04.avif 1.5x, 04.avif 2x"
             data-sizes="auto"
-            alt="https://i.imgur.com/11AOiZP.png"
-            title="https://i.imgur.com/11AOiZP.png" />
+            alt="04.avif"
+            title="IBM HeapAnalyzer 畫面 4" />
     </a></p>
-<p>可惜不知道哪個 Class發生錯誤，但可以找對應資料和log錯誤地方找是哪邊出問題。原本這支程式MQ進來會開對應Class執行緒去執行，因為同時間跑的程式有兩隻，最後有一隻會撈大量資料，導致JVM RAM 暴掉。最後把這個排程先移出去。</p></div><div class="post-footer" id="post-footer">
+<h2 id="看圖時我會怎麼判讀">看圖時我會怎麼判讀</h2>
+<p>HeapAnalyzer 能幫你很快看出「現在 heap 裡最肥的是誰」，但它不一定會直接跳出一句話告訴你「第幾行程式碼有問題」。所以判讀的關鍵還是在交叉比對。</p>
+<p>例如你看到某個集合佔很大，就要繼續問：</p>
+<ul>
+<li>這個集合屬於哪個模組？</li>
+<li>它是暫存查詢結果，還是快取？</li>
+<li>為什麼它沒有在預期時間內釋放？</li>
+<li>是單筆物件太大，還是筆數太多？</li>
+</ul>
+<p>很多時候，問題不是單一類別寫得很差，而是某段業務流程在錯的時間撈了太多資料。</p>
+<h2 id="這次實際查到的狀況">這次實際查到的狀況</h2>
+<p>我這次碰到的情況，不是單純某個類別無限成長，而是程式本來會依 MQ 訊息開對應執行緒做處理。剛好同時間有兩支流程一起跑，其中一支會大量查資料，把 JVM heap 直接撐爆。</p>
+<p>也就是說，真正的問題比較接近：</p>
+<ul>
+<li>併行處理下，某個工作量太大。</li>
+<li>單次查詢回來的資料量過多。</li>
+<li>多條執行緒同時做重型工作，導致總記憶體快速升高。</li>
+</ul>
+<p>最後的處理方式，不是單純加大 heap 就結束，而是先把那個重型排程移出去，避免它跟其他流程同時搶 JVM 記憶體。</p>
+<h2 id="我會特別再查的幾個方向">我會特別再查的幾個方向</h2>
+<p>如果你也遇到類似問題，可以順手再確認：</p>
+<ol>
+<li>SQL 是否一次撈太多資料。</li>
+<li>結果集有沒有全部先載入記憶體。</li>
+<li>執行緒池大小是否合理。</li>
+<li>快取是否設上限。</li>
+<li>是否有大批次檔案、訊息或報表在同一時間集中處理。</li>
+</ol>
+<p>因為很多 OOM 的根因其實不是「洩漏」，而是「設計上允許某段流程一次吃太多記憶體」。</p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+	root((AIX Java OOM 排查))
+		事故資料
+			應用程式 log
+			GC log
+			javacore
+			heap dump
+		AIX 特性
+			IBM JVM
+			PHD dump
+			不是常見 HPROF
+		分析工具
+			IBM HeapAnalyzer
+			大物件
+			類別佔用
+			reference chain
+		根因方向
+			大量查詢
+			併行執行緒
+			快取過大
+			集合暴增
+		修正方式
+			移出重型排程
+			限制資料量
+			調整併行數
+</div>
+<h2 id="小結">小結</h2>
+<p>在 AIX 上查 Java OOM，最大的差別是工具鏈要換一下思維，不是直接照一般 <code>.hprof</code> 教學走。IBM HeapAnalyzer 可以幫你找到 heap 裡哪些物件最可疑，但真正定位根因，還是要把 dump、 log、查詢行為與執行緒活動一起看。</p>
+<p>這次我最後學到的重點是：不要太快把 OOM 當成單純的 JVM 參數問題，很多時候它反映的是業務流程和資料量的組合出了問題。</p>
+<p>延伸參考：</p>
+<ul>
+<li><a href="https://yu-jack.github.io/2020/02/24/java-oom/" target="_blank" rel="noopener noreffer ">java.lang.OutOfMemoryError Java heap space? 怎麼解?</a></li>
+<li><a href="https://www.baeldung.com/java-thread-dump" target="_blank" rel="noopener noreffer ">Capturing a Java Thread Dump | Baeldung</a></li>
+<li><a href="https://www.gushiciku.cn/dc_tw/201074884" target="_blank" rel="noopener noreffer ">Java 執行緒究竟佔用多少記憶體</a></li>
+<li><a href="https://www.gushiciku.cn/pl/gfP6/zh-tw" target="_blank" rel="noopener noreffer ">ThreadLocal 相關整理</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
@@ -173,13 +286,13 @@
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX ibm-heapanalyzer 查詢 Java OOM 問題"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題" data-hashtags="java,aix,oom,jvm"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-hashtag="java"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-AIX-ibm-heapanalyzer-%E6%9F%A5%E8%A9%A2-Java-OOM-%E5%95%8F%E9%A1%8C/" data-title="使用 AIX IBM HeapAnalyzer 查詢 Java OOM 問題"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/java/">Java</a><span class="post-tag-separator">,</span><a href="/blog/tags/aix/">Aix</a><span class="post-tag-separator">,</span><a href="/blog/tags/oom/">Oom</a><span class="post-tag-separator">,</span><a href="/blog/tags/jvm/">Jvm</a></section>
         <section class="post-links">
             <span><a href="#" onclick="window.history.back();">Back</a></span>
             <span class="post-links-separator" aria-hidden="true">|</span>

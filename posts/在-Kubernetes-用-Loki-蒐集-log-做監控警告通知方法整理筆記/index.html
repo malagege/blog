@@ -4,21 +4,18 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記 - 程式狂想筆記</title><meta name="Description" content="前言
-很高興這次有這個機會接觸雲端服務，我目前職位程式工程師，最近也對雲端技術也非常有興趣，所以自學Docker、Kubernetes(還在自學中）。不過我目前沒有實務上經驗，在下面這幾篇會以我成功實作紀錄，所以我的筆記理論可能會有誤，也歡迎手下留情大家指正。
-廢話不多說，直接 show 出我這次研究筆記，我把廢話放在感言。"><meta property="og:title" content="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記" />
-<meta property="og:description" content="前言
-很高興這次有這個機會接觸雲端服務，我目前職位程式工程師，最近也對雲端技術也非常有興趣，所以自學Docker、Kubernetes(還在自學中）。不過我目前沒有實務上經驗，在下面這幾篇會以我成功實作紀錄，所以我的筆記理論可能會有誤，也歡迎手下留情大家指正。
-廢話不多說，直接 show 出我這次研究筆記，我把廢話放在感言。" />
+        <title>在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記 - 程式狂想筆記</title><meta name="Description" content="這篇比較像我那次把環境一路建起來之後的總整理。主題是「在 Kubernetes 裡把 log 收進 Loki，接著做查詢、監控與警告通知」，但實際落地時，問題往往不只在 Loki 本身，而是會一路牽涉到主機網路、 bastion host、 Ingress、 Helm、 Grafana 與告警設定。
+如果你是第一次碰這條路線，這篇可以當成導讀地圖。重點不是把每個指令全部塞在同一篇，而是先知道整套鏈路長什麼樣子，再回頭看對應的安裝細節。"><meta property="og:title" content="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記" />
+<meta property="og:description" content="這篇比較像我那次把環境一路建起來之後的總整理。主題是「在 Kubernetes 裡把 log 收進 Loki，接著做查詢、監控與警告通知」，但實際落地時，問題往往不只在 Loki 本身，而是會一路牽涉到主機網路、 bastion host、 Ingress、 Helm、 Grafana 與告警設定。
+如果你是第一次碰這條路線，這篇可以當成導讀地圖。重點不是把每個指令全部塞在同一篇，而是先知道整套鏈路長什麼樣子，再回頭看對應的安裝細節。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-04-03T00:23:52+00:00" />
 <meta property="article:modified_time" content="2022-04-03T00:23:52+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"/>
-<meta name="twitter:description" content="前言
-很高興這次有這個機會接觸雲端服務，我目前職位程式工程師，最近也對雲端技術也非常有興趣，所以自學Docker、Kubernetes(還在自學中）。不過我目前沒有實務上經驗，在下面這幾篇會以我成功實作紀錄，所以我的筆記理論可能會有誤，也歡迎手下留情大家指正。
-廢話不多說，直接 show 出我這次研究筆記，我把廢話放在感言。"/>
+<meta name="twitter:description" content="這篇比較像我那次把環境一路建起來之後的總整理。主題是「在 Kubernetes 裡把 log 收進 Loki，接著做查詢、監控與警告通知」，但實際落地時，問題往往不只在 Loki 本身，而是會一路牽涉到主機網路、 bastion host、 Ingress、 Helm、 Grafana 與告警設定。
+如果你是第一次碰這條路線，這篇可以當成導讀地圖。重點不是把每個指令全部塞在同一篇，而是先知道整套鏈路長什麼樣子，再回頭看對應的安裝細節。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -33,13 +30,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98\/"
-        },"genre": "posts","keywords": "Kubernetes, loki","wordcount":  138 ,
+        },"genre": "posts","keywords": "kubernetes, loki, grafana, logging","wordcount":  338 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98\/","datePublished": "2022-04-03T00:23:52+00:00","dateModified": "2022-04-03T00:23:52+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003ch2 id=\"前言\"\u003e前言\u003c/h2\u003e\n\u003cp\u003e很高興這次有這個機會接觸雲端服務，我目前職位程式工程師，最近也對雲端技術也非常有興趣，所以自學Docker、Kubernetes(還在自學中）。不過我目前沒有實務上經驗，在下面這幾篇會以我成功實作紀錄，所以我的筆記理論可能會有誤，也歡迎\u003cdel\u003e手下留情\u003c/del\u003e大家指正。\u003cbr\u003e\n廢話不多說，直接 show 出我這次研究筆記，我把廢話放在感言。\u003c/p\u003e"
+            },"description": "\u003cp\u003e這篇比較像我那次把環境一路建起來之後的總整理。主題是「在 Kubernetes 裡把 log 收進 Loki，接著做查詢、監控與警告通知」，但實際落地時，問題往往不只在 Loki 本身，而是會一路牽涉到主機網路、 bastion host、 Ingress、 Helm、 Grafana 與告警設定。\u003c/p\u003e\n\u003cp\u003e如果你是第一次碰這條路線，這篇可以當成導讀地圖。重點不是把每個指令全部塞在同一篇，而是先知道整套鏈路長什麼樣子，再回頭看對應的安裝細節。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -110,10 +107,10 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2022-04-03">2022-04-03</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>138 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>338 words
                 </span>
                 <span class="post-meta-item">
-                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>2 minutes
                 </span></div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
@@ -122,62 +119,155 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#前言">前言</a></li>
-    <li><a href="#筆記">筆記</a>
+    <li><a href="#先講整體架構">先講整體架構</a></li>
+    <li><a href="#這次筆記拆成哪些主題">這次筆記拆成哪些主題</a>
       <ul>
-        <li><a href="#主機建置bastion-host">主機建置(Bastion Host)</a></li>
-        <li><a href="#kubernetestraefik監控等安裝筆記">Kubernetes、Traefik、監控等安裝筆記</a></li>
+        <li><a href="#主機建置與-bastion-host">主機建置與 Bastion Host</a></li>
+        <li><a href="#kubernetestraefikloki-與監控">Kubernetes、Traefik、Loki 與監控</a></li>
       </ul>
     </li>
-    <li><a href="#感言">感言</a></li>
+    <li><a href="#為什麼-loki-適合拿來做這件事">為什麼 Loki 適合拿來做這件事</a></li>
+    <li><a href="#建環境時我踩到的幾個重點">建環境時我踩到的幾個重點</a>
+      <ul>
+        <li><a href="#1-先搞懂-bastion-host不然後面很容易卡遠端操作">1. 先搞懂 bastion host，不然後面很容易卡遠端操作</a></li>
+        <li><a href="#2-ip-與網路設定要先穩">2. IP 與網路設定要先穩</a></li>
+        <li><a href="#3-cni-與網段衝突會讓你懷疑人生">3. CNI 與網段衝突會讓你懷疑人生</a></li>
+        <li><a href="#4-ingress-controller-設定不通loki--grafana-也會跟著卡">4. Ingress Controller 設定不通，Loki / Grafana 也會跟著卡</a></li>
+      </ul>
+    </li>
+    <li><a href="#如果你要自己重做一次建議順序">如果你要自己重做一次，建議順序</a></li>
+    <li><a href="#我這次最大的收穫">我這次最大的收穫</a></li>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#小結">小結</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><h2 id="前言">前言</h2>
-<p>很高興這次有這個機會接觸雲端服務，我目前職位程式工程師，最近也對雲端技術也非常有興趣，所以自學Docker、Kubernetes(還在自學中）。不過我目前沒有實務上經驗，在下面這幾篇會以我成功實作紀錄，所以我的筆記理論可能會有誤，也歡迎<del>手下留情</del>大家指正。<br>
-廢話不多說，直接 show 出我這次研究筆記，我把廢話放在感言。</p>
-<h2 id="筆記">筆記</h2>
-<h3 id="主機建置bastion-host">主機建置(Bastion Host)</h3>
+            </div><div class="content" id="content"><p>這篇比較像我那次把環境一路建起來之後的總整理。主題是「在 Kubernetes 裡把 log 收進 Loki，接著做查詢、監控與警告通知」，但實際落地時，問題往往不只在 Loki 本身，而是會一路牽涉到主機網路、 bastion host、 Ingress、 Helm、 Grafana 與告警設定。</p>
+<p>如果你是第一次碰這條路線，這篇可以當成導讀地圖。重點不是把每個指令全部塞在同一篇，而是先知道整套鏈路長什麼樣子，再回頭看對應的安裝細節。</p>
+<h2 id="先講整體架構">先講整體架構</h2>
+<p>當時我的想法很單純：</p>
+<ol>
+<li>機器先建立起來，確保能透過 bastion host 安全登入。</li>
+<li>Kubernetes 叢集能正常運作。</li>
+<li>Ingress Controller 能把服務對外曝光。</li>
+<li>Loki 能把 Pod log 收進來。</li>
+<li>Grafana 能查 log。</li>
+<li>告警規則命中時能通知到人。</li>
+</ol>
+<p>如果把資料流畫成一張圖，大概會像這樣：</p>
+<div class="mermaid">flowchart LR
+		A[Application Pod] --> B[Log Agent / Promtail]
+		B --> C[Loki]
+		C --> D[Grafana]
+		D --> E[Alert Rule]
+		E --> F[Notification Channel]
+</div>
+<p>很多人剛接觸時會把注意力全部放在 Loki query 語法，但實際上「能不能收得到 log」、「能不能穩定登入節點」、「Ingress 路由有沒有通」常常才是最先卡住的地方。</p>
+<h2 id="這次筆記拆成哪些主題">這次筆記拆成哪些主題</h2>
+<h3 id="主機建置與-bastion-host">主機建置與 Bastion Host</h3>
 <ul>
 <li><a href="https://malagege.github.io/blog/posts/sshconfig-%E8%A8%AD%E5%AE%9A%E5%B0%8F%E8%A8%98/" target="_blank" rel="noopener noreffer ">sshconfig 設定小記</a></li>
-<li><a href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Bastion-Host-%E6%96%B9%E5%BC%8Fssh%E6%96%B9%E5%BC%8F%E7%99%BB%E5%85%A5%E4%B8%BB%E6%A9%9F/" target="_blank" rel="noopener noreffer ">使用 Bastion Host 方式ssh方式登入主機</a></li>
+<li><a href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Bastion-Host-%E6%96%B9%E5%BC%8Fssh%E6%96%B9%E5%BC%8F%E7%99%BB%E5%85%A5%E4%B8%BB%E6%A9%9F/" target="_blank" rel="noopener noreffer ">使用 Bastion Host 方式 ssh 方式登入主機</a></li>
 </ul>
-<h3 id="kubernetestraefik監控等安裝筆記">Kubernetes、Traefik、監控等安裝筆記</h3>
+<h3 id="kubernetestraefikloki-與監控">Kubernetes、Traefik、Loki 與監控</h3>
 <ul>
 <li><a href="https://malagege.github.io/blog/posts/%E9%9B%B2%E7%AB%AF%E8%99%9B%E6%93%AC%E6%A9%9F-Ubuntu-20-04-%E5%AE%89%E8%A3%9D-Kubernetes/" target="_blank" rel="noopener noreffer ">雲端虛擬機 Ubuntu 20.04 安裝 Kubernetes</a></li>
 <li><a href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-helm-%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA-Traefik-Ingress-Controller/" target="_blank" rel="noopener noreffer ">使用 Helm 快速搭建 Traefik Ingress Controller</a></li>
 <li><a href="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8-Helm-%E5%BF%AB%E9%80%9F%E5%AE%89%E8%A3%9D-Loki/" target="_blank" rel="noopener noreffer ">使用 Helm 快速安裝 Loki</a></li>
 <li><a href="https://malagege.github.io/blog/posts/Loki-%E5%81%9A%E7%9B%A3%E6%8E%A7%E5%8B%95%E4%BD%9C%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">Loki 做監控動作方法</a></li>
 </ul>
-<p>最後檔案存放<a href="https://www.mediafire.com/file/ygw0ukj7s01jn4e/FileName.tar/file" target="_blank" rel="noopener noreffer ">FileName.tar</a></p>
-<h2 id="感言">感言</h2>
-<p>第一次接觸 Web 管理虛擬主機不是很習慣，我本來就像 Virtualbox 那樣建立機器就可以了，但看到網路有要設定路由器，剛看介面完全不知道要怎麼使用，看文件有些細節也不知道要如何使用，如用路由器綁定浮動 IP 。最後有請教我朋友做網路工程師，他有看文件大概跟我講一些設定，但他說有些設定他也不是很懂，如找不到Portfording 設定&hellip;，總之我順利開啟機器。</p>
-<p><a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png">
+<p>這幾篇合起來，才是完整的操作脈絡。單看其中一篇通常會少一段上下文。</p>
+<h2 id="為什麼-loki-適合拿來做這件事">為什麼 Loki 適合拿來做這件事</h2>
+<p>Loki 的核心概念是「像查詢 log 一樣查 log，而不是先把所有內容重度索引」。和全文索引型的方案相比，它在某些場景下會更省資源，尤其是你已經有 Grafana 生態系，想先把 Kubernetes log 集中起來做檢索與告警時，進入門檻相對低。</p>
+<p>它常見的價值有幾個：</p>
+<ul>
+<li>容器重建後，歷史 log 還能集中查詢。</li>
+<li>可以依 namespace、pod、container 等 label 過濾。</li>
+<li>能把錯誤關鍵字、次數門檻或特定 pattern 做成告警。</li>
+<li>很適合搭配 Grafana 一起用，查詢、 dashboard、 alert 都能串起來。</li>
+</ul>
+<h2 id="建環境時我踩到的幾個重點">建環境時我踩到的幾個重點</h2>
+<h3 id="1-先搞懂-bastion-host不然後面很容易卡遠端操作">1. 先搞懂 bastion host，不然後面很容易卡遠端操作</h3>
+<p>第一次碰雲端虛擬機的 Web 管理介面，我一開始其實不太習慣。以前自己在本機玩 VirtualBox，機器開好就差不多了；但到雲端環境後，還要理解私有網路、路由器、浮動 IP、 Security Group 這些概念，剛看介面真的會有點亂。</p>
+<p>後來我先照著文件把 bastion host 的路線打通，才發現這件事非常重要。因為一旦跳板機設定好，後面不管你是 SSH 到節點、做 <code>kubectl</code> 管理、 scp 傳檔，甚至 SSH tunnel 導出 Dashboard，整個維運流程都會順很多。</p>
+<p><a class="lightgallery" href="01.avif" title="OpenStack 介面畫面 1" data-thumbnail="01.avif">
         <img
             class="lazyload"
             src="/blog/svg/loading.min.svg"
-            data-src="https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png"
-            data-srcset="https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png, https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png 1.5x, https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png 2x"
+            data-src="01.avif"
+            data-srcset="01.avif, 01.avif 1.5x, 01.avif 2x"
             data-sizes="auto"
-            alt="https://user-images.githubusercontent.com/6058558/161395932-092de0c8-1482-4b8d-927d-c5ce0d7f05c4.png"
-            title="圖片" />
-    </a><br>
-<a class="lightgallery" href="https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png" title="圖片" data-thumbnail="https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png">
-        <img
-            class="lazyload"
-            src="/blog/svg/loading.min.svg"
-            data-src="https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png"
-            data-srcset="https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png, https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png 1.5x, https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png 2x"
-            data-sizes="auto"
-            alt="https://user-images.githubusercontent.com/6058558/161392274-a22f0a6e-75f8-4394-a352-afba818aba00.png"
-            title="圖片" />
+            alt="01.avif"
+            title="OpenStack 介面畫面 1" />
     </a></p>
-<p>設定IP也滿有趣的，以前 ifconfig 設定主機IP，這個系統可以直接設定主機IP安裝就會自動配置，後來我發現設兩個IP就不能了，後來發現主機有配置第一個 interface 做 DHCP，所以才會吃到 IP 設定，所以機器添加第二個就不會自動設定，最新版換 IP 配置用 yaml，對於遠端連線設定 IP 也是非常方便，就算設錯超過確認時間，也會幫你設定回去，可參考:<a href="https://blog.toright.com/posts/6293/ubuntu-18-04-%E9%80%8F%E9%81%8E-netplan-%E8%A8%AD%E5%AE%9A%E7%B6%B2%E8%B7%AF%E5%8D%A1-ip.html" target="_blank" rel="noopener noreffer ">Ubuntu 18.04 透過 netplan 設定網路卡 IP - Soul &amp; Shell Blog</a>。</p>
-<p>首先查看<a href="https://github.com/cloud-native-taiwan/Infra-Labs-Docs/blob/main/user-guide/openstack.md" target="_blank" rel="noopener noreffer ">CNTUG Infra Labs OpenStack 使用教學</a>文件，看到文件有建議使用 bastion host 。</p>
-<blockquote>
-<p>OpenStack 允許各個用戶在自己專案建立自己的私有網路，私有網路中的 VM 可以透過路由器 SNAT 連線至外部網路。 我們會建議使用者建立一個自己的私有網路並且透過一個 bastion host 作為一個跳板連入。</p>
-</blockquote>
-<p>這種登入方式也滿有趣，也整理滿多東西，不知道還有 ProxyJump 可以使用，之前公司環境不可以直接連資料庫，後來發現 SSH Tunnel 可以使用，可參考<a href="https://malagege.github.io/blog/posts/ssh-port-forward%E9%80%A3MySQL%E6%96%B9%E6%B3%95/" target="_blank" rel="noopener noreffer ">這篇</a>，也可以直接用工具連。我以前公司內部有幾個主機也需要跳板進去，我們都 ssh 跳板主機然後再 ssh 別台主機，這種麻煩的方式，這次能發現使用 <code>sshconfig</code>和 <code>proxyjump</code> 可以解決我這個問題。甚至 scp 我也不用在兩台主機打兩次指令，直接透過<code>sshconfig</code>和 <code>proxyjump</code> 做到傳檔案，可以參考<a href="https://nyogjtrc.github.io/posts/2020/03/ssh-proxyjump/" target="_blank" rel="noopener noreffer ">這篇</a>。</p>
-<p>Kubernetes 首次安裝也採到一些雷，我以為 <code>kubectl apply</code>就可以安裝 CNI，不過使用 calic 最後 Service 都連不到，目前猜測我網域 IP 跟內部衝突導致的?不過我現在用 Flannel 可正常使用。很多教學使用 Nginx 當作 Ingress Controller ，我家動物機使用 Traefik 當作接口，想說這次使用看看，當然也有碰到一些雷，使用 Traefik Dashboard 照上面操作還是會 404，就算 SSH Tunnel 也會出現 404，不知道 bastion host 做 SSH Tunnel 會不會有影響？網路上有一些文章有寫教學，結果操作發現不能運作，好險對照 Helm Loki/Prometheus Chart 裡面設定檔有<del>對照</del>猜出來，最後很高興有實作出來。</p></div><div class="post-footer" id="post-footer">
+<p><a class="lightgallery" href="02.avif" title="OpenStack 介面畫面 2" data-thumbnail="02.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="02.avif"
+            data-srcset="02.avif, 02.avif 1.5x, 02.avif 2x"
+            data-sizes="auto"
+            alt="02.avif"
+            title="OpenStack 介面畫面 2" />
+    </a></p>
+<h3 id="2-ip-與網路設定要先穩">2. IP 與網路設定要先穩</h3>
+<p>我那次也遇到一些網卡與 IP 配置問題。以前習慣直接用 <code>ifconfig</code> 之類的方式處理，但現在很多 Linux 發行版都是用 netplan 或其他方式管理，邏輯已經不太一樣。像多張網卡、 DHCP 與固定 IP 混用時，如果沒有先釐清哪個 interface 在接外網、哪個在接內網，後面 Kubernetes 安裝常常會出現「看起來裝好了，但實際上 service 不通」的情況。</p>
+<h3 id="3-cni-與網段衝突會讓你懷疑人生">3. CNI 與網段衝突會讓你懷疑人生</h3>
+<p>我第一次裝 Kubernetes 時，原本以為套件裝一裝、 <code>kubectl apply</code> 下去就好了。結果後來發現 CNI 如果選得不對，或 Pod network CIDR 跟現有網段衝突，Service、 Pod 彼此通訊都可能出問題。</p>
+<p>我當時用 Calico 沒順起來，後來改用 Flannel 才比較穩。這不代表哪個一定比較好，而是提醒自己：網段規劃跟 CNI 選型不能當成安裝細節，這其實是控制面與資料面能不能通的前提。</p>
+<h3 id="4-ingress-controller-設定不通loki--grafana-也會跟著卡">4. Ingress Controller 設定不通，Loki / Grafana 也會跟著卡</h3>
+<p>很多教學會用 Nginx Ingress Controller，我那次是想搭配 Traefik。理論上都能達成，但實際設定時， Dashboard 路由、 entrypoint、 service name、 port 等細節只要一個沒對上，就很容易 404。</p>
+<p>這也是我後來的一個心得：觀測系統不是獨立世界。只要 Ingress、 DNS、 TLS 或 tunnel 其中一段不通，最後你看起來像是 Loki 壞掉，其實根因常常在前面的網路或反向代理。</p>
+<h2 id="如果你要自己重做一次建議順序">如果你要自己重做一次，建議順序</h2>
+<p>我會建議照下面順序做，不要一開始就急著看 Loki query：</p>
+<ol>
+<li>確保 bastion host 與 SSH 設定正確。</li>
+<li>確保每台節點的 IP、 DNS、 時間同步正常。</li>
+<li>Kubernetes 與 CNI 安裝完成後，先驗證 Pod 與 Service 是否互通。</li>
+<li>再安裝 Ingress Controller。</li>
+<li>接著安裝 Loki / Promtail / Grafana。</li>
+<li>最後才開始做 log query、 dashboard 與 alert rule。</li>
+</ol>
+<p>這樣做的原因很簡單：越上層的功能越依賴下層基礎。如果叢集網路沒穩，後面所有觀測告警都只是在排假問題。</p>
+<h2 id="我這次最大的收穫">我這次最大的收穫</h2>
+<p>這次研究對我最大的幫助，不是單純學會「怎麼裝 Loki」，而是第一次比較完整地把雲端主機、跳板機、 Kubernetes、 Ingress、 observability 這幾塊串起來。以前看這些名詞都知道，但實際自己把路打通之後，才會真的理解它們之間的依賴關係。</p>
+<p>像是：</p>
+<ul>
+<li><code>ssh config</code> 搭配 <code>ProxyJump</code> 可以大幅降低多跳主機的操作成本。</li>
+<li>SSH tunnel 不只是連 DB 好用，對內部 Dashboard 測試也很實用。</li>
+<li>Loki 告警看起來像應用層需求，但背後很仰賴叢集與網路層的穩定度。</li>
+</ul>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+	root((Kubernetes Loki 監控整理))
+		基礎環境
+			雲端 VM
+			Bastion Host
+			SSH config
+			ProxyJump
+		叢集層
+			Kubernetes 安裝
+			CNI
+			Pod Network
+			Service 連通性
+		入口層
+			Traefik
+			Ingress
+			Dashboard
+			Tunnel
+		觀測層
+			Promtail
+			Loki
+			Grafana
+			Alert Rule
+		踩雷點
+			網段衝突
+			404 路由錯誤
+			IP 配置
+			登入路徑不順
+</div>
+<h2 id="小結">小結</h2>
+<p>如果你只是想要一份「Kubernetes 上 Loki 安裝全指令」，這篇不是那種一步一步照抄就完成的文章；它比較像一張全圖，幫你知道整條鏈路要看哪些元件、哪一段最容易卡、出了問題該優先懷疑哪個層次。</p>
+<p>我自己的經驗是，先把網路與登入路線打順，再做 Loki 監控，成功率真的會高很多。</p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
@@ -186,13 +276,13 @@
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記" data-hashtags="Kubernetes,loki"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-hashtag="Kubernetes"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記" data-hashtags="kubernetes,loki,grafana,logging"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-hashtag="kubernetes"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E5%9C%A8-Kubernetes-%E7%94%A8-Loki-%E8%92%90%E9%9B%86-log-%E5%81%9A%E7%9B%A3%E6%8E%A7%E8%AD%A6%E5%91%8A%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95%E6%95%B4%E7%90%86%E7%AD%86%E8%A8%98/" data-title="在 Kubernetes 用 Loki 蒐集 log 做監控警告通知方法整理筆記"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/Kubernetes/">Kubernetes</a><span class="post-tag-separator">,</span><a href="/blog/tags/loki/">Loki</a></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/Kubernetes/">Kubernetes</a><span class="post-tag-separator">,</span><a href="/blog/tags/loki/">Loki</a><span class="post-tag-separator">,</span><a href="/blog/tags/grafana/">Grafana</a><span class="post-tag-separator">,</span><a href="/blog/tags/logging/">Logging</a></section>
         <section class="post-links">
             <span><a href="#" onclick="window.history.back();">Back</a></span>
             <span class="post-links-separator" aria-hidden="true">|</span>

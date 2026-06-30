@@ -4,24 +4,18 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>使用docker架設db2環境 - 程式狂想筆記</title><meta name="Description" content="最近要實驗boolean在db2
-會有什麼結果
-所以找找有沒有docker簡單架設方法
-可以在docker api玩"><meta property="og:title" content="使用docker架設db2環境" />
-<meta property="og:description" content="最近要實驗boolean在db2
-會有什麼結果
-所以找找有沒有docker簡單架設方法
-可以在docker api玩" />
+        <title>使用 Docker 架設 DB2 環境 - 程式狂想筆記</title><meta name="Description" content="最近因為想測一下 DB2 對某些欄位型態的行為，例如 boolean 或相近設計在 DB2 上的表現，所以就找了一個最省時間的方式：直接用 Docker 起一套 DB2 環境來玩。
+這篇不是正式生產部署指南，比較偏向「快速拉一套可操作的測試環境」，適合拿來驗證 SQL、資料型態、 JDBC 行為或 migration 腳本。"><meta property="og:title" content="使用 Docker 架設 DB2 環境" />
+<meta property="og:description" content="最近因為想測一下 DB2 對某些欄位型態的行為，例如 boolean 或相近設計在 DB2 上的表現，所以就找了一個最省時間的方式：直接用 Docker 起一套 DB2 環境來玩。
+這篇不是正式生產部署指南，比較偏向「快速拉一套可操作的測試環境」，適合拿來驗證 SQL、資料型態、 JDBC 行為或 migration 腳本。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2018-11-08T20:49:45+00:00" />
 <meta property="article:modified_time" content="2018-11-08T20:49:45+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
-<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用docker架設db2環境"/>
-<meta name="twitter:description" content="最近要實驗boolean在db2
-會有什麼結果
-所以找找有沒有docker簡單架設方法
-可以在docker api玩"/>
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 Docker 架設 DB2 環境"/>
+<meta name="twitter:description" content="最近因為想測一下 DB2 對某些欄位型態的行為，例如 boolean 或相近設計在 DB2 上的表現，所以就找了一個最省時間的方式：直接用 Docker 起一套 DB2 環境來玩。
+這篇不是正式生產部署指南，比較偏向「快速拉一套可操作的測試環境」，適合拿來驗證 SQL、資料型態、 JDBC 行為或 migration 腳本。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -31,18 +25,18 @@
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "使用docker架設db2環境",
+        "headline": "使用 Docker 架設 DB2 環境",
         "inLanguage": "zh-tw",
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83\/"
-        },"genre": "posts","keywords": "docker, db2","wordcount":  59 ,
+        },"genre": "posts","keywords": "docker, db2, database","wordcount":  249 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83\/","datePublished": "2018-11-08T20:49:45+00:00","dateModified": "2018-11-08T20:49:45+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近要實驗boolean在db2\u003cbr\u003e\n會有什麼結果\u003cbr\u003e\n所以找找有沒有docker簡單架設方法\u003cbr\u003e\n可以在docker api玩\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近因為想測一下 DB2 對某些欄位型態的行為，例如 boolean 或相近設計在 DB2 上的表現，所以就找了一個最省時間的方式：直接用 Docker 起一套 DB2 環境來玩。\u003c/p\u003e\n\u003cp\u003e這篇不是正式生產部署指南，比較偏向「快速拉一套可操作的測試環境」，適合拿來驗證 SQL、資料型態、 JDBC 行為或 migration 腳本。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -108,35 +102,54 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用docker架設db2環境</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 Docker 架設 DB2 環境</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2018-11-08">2018-11-08</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>59 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>249 words
                 </span>
                 <span class="post-meta-item">
-                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>2 minutes
                 </span></div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>最近要實驗boolean在db2<br>
-會有什麼結果<br>
-所以找找有沒有docker簡單架設方法<br>
-可以在docker api玩</p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#先講適用情境">先講適用情境</a></li>
+    <li><a href="#最快的啟動方式">最快的啟動方式</a></li>
+    <li><a href="#進-container-後的基本操作">進 container 後的基本操作</a></li>
+    <li><a href="#這套流程的實際價值">這套流程的實際價值</a></li>
+    <li><a href="#我會另外提醒的幾件事">我會另外提醒的幾件事</a>
+      <ul>
+        <li><a href="#1-image-版本要再確認">1. image 版本要再確認</a></li>
+        <li><a href="#2-不要把測試啟動指令直接當正式部署">2. 不要把測試啟動指令直接當正式部署</a></li>
+        <li><a href="#3-測資料型態時最好順手驗證-driver-與-orm">3. 測資料型態時，最好順手驗證 driver 與 ORM</a></li>
+      </ul>
+    </li>
+    <li><a href="#小結">小結</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近因為想測一下 DB2 對某些欄位型態的行為，例如 boolean 或相近設計在 DB2 上的表現，所以就找了一個最省時間的方式：直接用 Docker 起一套 DB2 環境來玩。</p>
+<p>這篇不是正式生產部署指南，比較偏向「快速拉一套可操作的測試環境」，適合拿來驗證 SQL、資料型態、 JDBC 行為或 migration 腳本。</p>
+<h2 id="先講適用情境">先講適用情境</h2>
+<p>這種做法適合：</p>
+<ul>
+<li>想快速建立 DB2 測試環境。</li>
+<li>要驗證 SQL 語法或資料型態。</li>
+<li>不想先準備完整虛擬機。</li>
+</ul>
+<p>不太適合：</p>
+<ul>
+<li>直接當正式環境規劃。</li>
+<li>還沒確認 image 版本與授權條款就拿去公司長期使用。</li>
+</ul>
+<h2 id="最快的啟動方式">最快的啟動方式</h2>
+<p>我當時用的是這條指令：</p>
 <div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -it -p 50000:50000 -e <span class="nv">DB2INST1_PASSWORD</span><span class="o">=</span>db2inst1-pwd -e <span class="nv">LICENSE</span><span class="o">=</span>accept ibmcom/db2express-c:latest bash
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
@@ -145,20 +158,111 @@
 </span><span class="lnt">5
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ su - db2inst1
-</span></span><span class="line"><span class="cl">$ db2start
-</span></span><span class="line"><span class="cl">$ db2sampl
-</span></span><span class="line"><span class="cl">$ db2 connect to sample
-</span></span><span class="line"><span class="cl">$ db2 &#34;SELECT * FROM STAFF&#34;
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -it <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	-p 50000:50000 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	-e <span class="nv">DB2INST1_PASSWORD</span><span class="o">=</span>db2inst1-pwd <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	-e <span class="nv">LICENSE</span><span class="o">=</span>accept <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	ibmcom/db2express-c:latest bash
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>有畫面就是正常</p>
-<p>因為要實驗一個東西<br>
-這篇紀錄到這邊</p>
-<p>參考來源：<br>
-<a href="https://dongrenwen.github.io/2018/05/07/docker-install-db2/#%E4%BB%8E%E7%BD%91%E7%BB%9C%E8%8E%B7%E5%8F%96db2express-c%E9%95%9C%E5%83%8F" target="_blank" rel="noopener noreffer ">通过Docker安装db2express-c — 董仁文的博客</a>（沒有加上db2start）<br>
-<a href="https://hub.docker.com/r/ibmcom/db2express-c/" target="_blank" rel="noopener noreffer ">ibmcom/db2express-c - Docker Hub</a><br>
-<a href="https://www.ibm.com/support/knowledgecenter/zh-tw/SSEPGG_10.5.0/com.ibm.db2.luw.qb.server.doc/doc/t0008501.html" target="_blank" rel="noopener noreffer ">IBM Knowledge Center - 驗證分割的資料庫伺服器安裝（Linux 及 UNIX）</a></p></div><div class="post-footer" id="post-footer">
+</div><p>幾個重點：</p>
+<ul>
+<li><code>50000:50000</code>：DB2 常見對外 port。</li>
+<li><code>DB2INST1_PASSWORD</code>：設定 <code>db2inst1</code> 使用者密碼。</li>
+<li><code>LICENSE=accept</code>：接受授權條款，很多官方或半官方 image 都會要求。</li>
+</ul>
+<p>這個方式會先進入 container shell，後續再手動把 DB2 啟起來。</p>
+<h2 id="進-container-後的基本操作">進 container 後的基本操作</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">su - db2inst1
+</span></span><span class="line"><span class="cl">db2start
+</span></span><span class="line"><span class="cl">db2sampl
+</span></span><span class="line"><span class="cl">db2 connect to sample
+</span></span><span class="line"><span class="cl">db2 <span class="s2">&#34;SELECT * FROM STAFF&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>說明如下：</p>
+<ul>
+<li><code>su - db2inst1</code>：切到 DB2 instance 使用者。</li>
+<li><code>db2start</code>：啟動 DB2 instance。</li>
+<li><code>db2sampl</code>：建立 sample database。</li>
+<li><code>db2 connect to sample</code>：連到 sample database。</li>
+<li><code>db2 &quot;SELECT * FROM STAFF&quot;</code>：拿 sample table 測試查詢。</li>
+</ul>
+<p>如果最後能正常查到資料，代表這套測試環境基本上已經能用了。</p>
+<h2 id="這套流程的實際價值">這套流程的實際價值</h2>
+<p>我當時只是要快速驗證一些 DB2 行為，所以 sample database 已經很夠用。這種方式的好處是：</p>
+<ul>
+<li>不用先安裝一整套主機環境。</li>
+<li>可以很快做 SQL 測試。</li>
+<li>測完就刪 container，不太會污染本機。</li>
+</ul>
+<p>尤其當你只是想確認某個型態、函式或 driver 行為，這種「能用就好」的測試環境非常省時間。</p>
+<h2 id="我會另外提醒的幾件事">我會另外提醒的幾件事</h2>
+<h3 id="1-image-版本要再確認">1. image 版本要再確認</h3>
+<p>這篇用的是 <code>ibmcom/db2express-c:latest</code>。如果你現在是新環境，建議先回頭確認官方目前還維護哪個 image、授權條款怎麼寫，因為 DB2 image 歷史比較長，版本差異也可能影響行為。</p>
+<h3 id="2-不要把測試啟動指令直接當正式部署">2. 不要把測試啟動指令直接當正式部署</h3>
+<p>像 <code>docker run -it ... bash</code> 這種方式很適合實驗，但如果要重複使用，通常會想改成：</p>
+<ul>
+<li>指定 container 名稱</li>
+<li>掛 volume</li>
+<li>分離式啟動</li>
+<li>補上 restart policy</li>
+</ul>
+<p>例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker run -d <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	--name db2-test <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	-p 50000:50000 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	-e <span class="nv">DB2INST1_PASSWORD</span><span class="o">=</span>db2inst1-pwd <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	-e <span class="nv">LICENSE</span><span class="o">=</span>accept <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>	ibmcom/db2express-c:latest
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之後再進去：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">docker <span class="nb">exec</span> -it db2-test bash
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這樣會比較接近平常維運習慣。</p>
+<h3 id="3-測資料型態時最好順手驗證-driver-與-orm">3. 測資料型態時，最好順手驗證 driver 與 ORM</h3>
+<p>如果你這次像我一樣，是為了驗證 DB2 對欄位型態的行為，那最好不要只看 SQL 查詢結果，還要順手確認：</p>
+<ul>
+<li>JDBC / ODBC driver 取值結果</li>
+<li>ORM mapping 是否正常</li>
+<li>migration 工具產出的 DDL 是否一致</li>
+</ul>
+<p>因為很多問題不是 DB 本身不支援，而是應用程式層對型態的轉換方式不同。</p>
+<h2 id="小結">小結</h2>
+<p>如果只是想快速玩 DB2、驗證 SQL 或做相容性測試，用 Docker 起一套 sample 環境真的很方便。我自己這次就是為了快速驗證資料型態而用這種方式，省下不少前置安裝時間。</p>
+<p>之後如果有更進一步玩到 schema 匯入、資料持久化或 driver 行為，再另外補比較完整的紀錄。</p>
+<p>參考來源：</p>
+<ul>
+<li><a href="https://dongrenwen.github.io/2018/05/07/docker-install-db2/#%E4%BB%8E%E7%BD%91%E7%BB%9C%E8%8E%B7%E5%8F%96db2express-c%E9%95%9C%E5%83%8F" target="_blank" rel="noopener noreffer ">通过 Docker 安装 db2express-c</a></li>
+<li><a href="https://hub.docker.com/r/ibmcom/db2express-c/" target="_blank" rel="noopener noreffer ">ibmcom/db2express-c - Docker Hub</a></li>
+<li><a href="https://www.ibm.com/support/knowledgecenter/zh-tw/SSEPGG_10.5.0/com.ibm.db2.luw.qb.server.doc/doc/t0008501.html" target="_blank" rel="noopener noreffer ">IBM Knowledge Center - 驗證分割的資料庫伺服器安裝（Linux 及 UNIX）</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
@@ -167,13 +271,13 @@
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用docker架設db2環境" data-hashtags="docker,db2"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用docker架設db2環境"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用docker架設db2環境"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用docker架設db2環境"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用 Docker 架設 DB2 環境" data-hashtags="docker,db2,database"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用 Docker 架設 DB2 環境"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用 Docker 架設 DB2 環境"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8docker%E6%9E%B6%E8%A8%ADdb2%E7%92%B0%E5%A2%83/" data-title="使用 Docker 架設 DB2 環境"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/docker/">Docker</a><span class="post-tag-separator">,</span><a href="/blog/tags/db2/">Db2</a></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/docker/">Docker</a><span class="post-tag-separator">,</span><a href="/blog/tags/db2/">Db2</a><span class="post-tag-separator">,</span><a href="/blog/tags/database/">Database</a></section>
         <section class="post-links">
             <span><a href="#" onclick="window.history.back();">Back</a></span>
             <span class="post-links-separator" aria-hidden="true">|</span>

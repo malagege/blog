@@ -4,17 +4,13 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>使用phpstorm用docker remote遠端操作 - 程式狂想筆記</title><meta name="Description" content="最近在測試phpstorm
-因為不想在window 10上灌docker
-想遠端連docker
-發現phpstorm好像有遠端控制選項
+        <title>使用 PhpStorm 透過 Docker Remote 遠端操作 - 程式狂想筆記</title><meta name="Description" content="最近在測試 PhpStorm 時，因為不想直接在 Windows 10 本機安裝 Docker，所以就研究了一下能不能讓 PhpStorm 去連遠端主機上的 Docker daemon。後來發現 IDE 本身的確支援這種做法，只是設定時有一個重點不能忽略：遠端 Docker API 如果直接裸露在網路上，安全風險很高。
+所以這篇除了記錄怎麼接，也順手把安全上的基本概念補一下。
 
         
-    "><meta property="og:title" content="使用phpstorm用docker remote遠端操作" />
-<meta property="og:description" content="最近在測試phpstorm
-因為不想在window 10上灌docker
-想遠端連docker
-發現phpstorm好像有遠端控制選項
+    "><meta property="og:title" content="使用 PhpStorm 透過 Docker Remote 遠端操作" />
+<meta property="og:description" content="最近在測試 PhpStorm 時，因為不想直接在 Windows 10 本機安裝 Docker，所以就研究了一下能不能讓 PhpStorm 去連遠端主機上的 Docker daemon。後來發現 IDE 本身的確支援這種做法，只是設定時有一個重點不能忽略：遠端 Docker API 如果直接裸露在網路上，安全風險很高。
+所以這篇除了記錄怎麼接，也順手把安全上的基本概念補一下。
 
         
     " />
@@ -23,11 +19,9 @@
 <meta property="article:published_time" content="2018-05-26T16:08:38+00:00" />
 <meta property="article:modified_time" content="2018-05-26T16:08:38+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
-<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用phpstorm用docker remote遠端操作"/>
-<meta name="twitter:description" content="最近在測試phpstorm
-因為不想在window 10上灌docker
-想遠端連docker
-發現phpstorm好像有遠端控制選項
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="使用 PhpStorm 透過 Docker Remote 遠端操作"/>
+<meta name="twitter:description" content="最近在測試 PhpStorm 時，因為不想直接在 Windows 10 本機安裝 Docker，所以就研究了一下能不能讓 PhpStorm 去連遠端主機上的 Docker daemon。後來發現 IDE 本身的確支援這種做法，只是設定時有一個重點不能忽略：遠端 Docker API 如果直接裸露在網路上，安全風險很高。
+所以這篇除了記錄怎麼接，也順手把安全上的基本概念補一下。
 
         
     "/>
@@ -40,18 +34,18 @@
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "使用phpstorm用docker remote遠端操作",
+        "headline": "使用 PhpStorm 透過 Docker Remote 遠端操作",
         "inLanguage": "zh-tw",
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C\/"
-        },"genre": "posts","keywords": "docker, phpstorm","wordcount":  41 ,
+        },"genre": "posts","keywords": "docker, phpstorm","wordcount":  279 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C\/","datePublished": "2018-05-26T16:08:38+00:00","dateModified": "2018-05-26T16:08:38+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近在測試phpstorm\u003cbr\u003e\n因為不想在window 10上灌docker\u003cbr\u003e\n想遠端連docker\u003cbr\u003e\n發現phpstorm好像有遠端控制選項\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"lightgallery\" href=\"phpstorm_docker.png\" title=\"phpstorm設定docker選項\" data-thumbnail=\"phpstorm_docker.png\"\u003e\n        \u003cimg\n            class=\"lazyload\"\n            src=\"/blog/svg/loading.min.svg\"\n            data-src=\"phpstorm_docker.png\"\n            data-srcset=\"phpstorm_docker.png, phpstorm_docker.png 1.5x, phpstorm_docker.png 2x\"\n            data-sizes=\"auto\"\n            alt=\"phpstorm_docker.png\"\n            title=\"phpstorm設定docker選項\" /\u003e\n    \u003c/a\u003e\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近在測試 PhpStorm 時，因為不想直接在 Windows 10 本機安裝 Docker，所以就研究了一下能不能讓 PhpStorm 去連遠端主機上的 Docker daemon。後來發現 IDE 本身的確支援這種做法，只是設定時有一個重點不能忽略：遠端 Docker API 如果直接裸露在網路上，安全風險很高。\u003c/p\u003e\n\u003cp\u003e所以這篇除了記錄怎麼接，也順手把安全上的基本概念補一下。\u003c/p\u003e\n\u003cp\u003e\u003ca class=\"lightgallery\" href=\"phpstorm-docker.avif\" title=\"PhpStorm 設定 Docker 連線\" data-thumbnail=\"phpstorm-docker.avif\"\u003e\n        \u003cimg\n            class=\"lazyload\"\n            src=\"/blog/svg/loading.min.svg\"\n            data-src=\"phpstorm-docker.avif\"\n            data-srcset=\"phpstorm-docker.avif, phpstorm-docker.avif 1.5x, phpstorm-docker.avif 2x\"\n            data-sizes=\"auto\"\n            alt=\"phpstorm-docker.avif\"\n            title=\"PhpStorm 設定 Docker 連線\" /\u003e\n    \u003c/a\u003e\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -117,59 +111,176 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用phpstorm用docker remote遠端操作</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">使用 PhpStorm 透過 Docker Remote 遠端操作</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/Docker/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Docker</a></span></div>
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2018-05-26">2018-05-26</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>41 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>279 words
                 </span>
                 <span class="post-meta-item">
-                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>2 minutes
                 </span></div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>最近在測試phpstorm<br>
-因為不想在window 10上灌docker<br>
-想遠端連docker<br>
-發現phpstorm好像有遠端控制選項</p>
-<p><a class="lightgallery" href="phpstorm_docker.png" title="phpstorm設定docker選項" data-thumbnail="phpstorm_docker.png">
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#先理解這件事到底在做什麼">先理解這件事到底在做什麼</a></li>
+    <li><a href="#最直接的做法打開-tcp-docker-api">最直接的做法：打開 TCP Docker API</a></li>
+    <li><a href="#比較建議的做法至少用-ssh-或-tls">比較建議的做法：至少用 SSH 或 TLS</a></li>
+    <li><a href="#如果真的只是內網-lab-測試">如果真的只是內網 Lab 測試</a></li>
+    <li><a href="#phpstorm-端大概怎麼設">PhpStorm 端大概怎麼設</a></li>
+    <li><a href="#我自己當時的心得">我自己當時的心得</a></li>
+    <li><a href="#什麼時候適合這樣做">什麼時候適合這樣做</a></li>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#小結">小結</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在測試 PhpStorm 時，因為不想直接在 Windows 10 本機安裝 Docker，所以就研究了一下能不能讓 PhpStorm 去連遠端主機上的 Docker daemon。後來發現 IDE 本身的確支援這種做法，只是設定時有一個重點不能忽略：遠端 Docker API 如果直接裸露在網路上，安全風險很高。</p>
+<p>所以這篇除了記錄怎麼接，也順手把安全上的基本概念補一下。</p>
+<p><a class="lightgallery" href="phpstorm-docker.avif" title="PhpStorm 設定 Docker 連線" data-thumbnail="phpstorm-docker.avif">
         <img
             class="lazyload"
             src="/blog/svg/loading.min.svg"
-            data-src="phpstorm_docker.png"
-            data-srcset="phpstorm_docker.png, phpstorm_docker.png 1.5x, phpstorm_docker.png 2x"
+            data-src="phpstorm-docker.avif"
+            data-srcset="phpstorm-docker.avif, phpstorm-docker.avif 1.5x, phpstorm-docker.avif 2x"
             data-sizes="auto"
-            alt="phpstorm_docker.png"
-            title="phpstorm設定docker選項" />
+            alt="phpstorm-docker.avif"
+            title="PhpStorm 設定 Docker 連線" />
     </a></p>
-<p>在使用內建遠端時候<br>
-起注意這個會有安全性的問題<br>
-至於我在家裡使用<br>
-不需要考慮到這一塊<br>
-暫時不考慮TSL那一塊</p>
-<p>之前有買「Docker入門與實戰」<br>
-但是書上docker daemon用不出來</p>
-<p>後來看了網路用法不太一樣<br>
-<a href="https://deepzz.com/post/dockerd-and-docker-remote-api.html" target="_blank" rel="noopener noreffer ">远程连接docker daemon，Docker Remote API | Deepzz&rsquo;s Blog</a></p>
-<p><a href="https://docs.docker.com/engine/reference/commandline/dockerd/#description" target="_blank" rel="noopener noreffer ">https://docs.docker.com/engine/reference/commandline/dockerd/#description</a></p>
+<h2 id="先理解這件事到底在做什麼">先理解這件事到底在做什麼</h2>
+<p>PhpStorm 連遠端 Docker，本質上就是讓 IDE 去呼叫遠端主機上的 Docker API。也就是說，從 PhpStorm 觸發的 container list、 image build、 docker compose 等操作，最後都會變成對遠端 Docker daemon 的控制。</p>
+<p>這很方便，因為：</p>
+<ul>
+<li>本機不用安裝完整 Docker 環境。</li>
+<li>可以直接用遠端 Linux 主機當執行環境。</li>
+<li>IDE 裡的 Docker 功能還是能照常用。</li>
+</ul>
+<p>但也因為它是控制 Docker daemon，所以一旦暴露方式不安全，風險很高。能控 Docker，很多時候就等於能進一步碰到主機資源。</p>
+<h2 id="最直接的做法打開-tcp-docker-api">最直接的做法：打開 TCP Docker API</h2>
+<p>當時我測試時看到的做法大概像這樣：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">sudo &lt;path to&gt;/dockerd -H 0.0.0.0:5555 <span class="p">&amp;</span>
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">sudo dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:5555
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>打上這樣久能開啟5555 port給phpstorm操作使用<br>
-不過在第一次開啟感覺還是打指令比較方便耶&hellip;</p>
-<p>當然也可以照<a href="https://deepzz.com/post/dockerd-and-docker-remote-api.html" target="_blank" rel="noopener noreffer ">远程连接docker daemon，Docker Remote API | Deepzz&rsquo;s Blog</a><br>
-設定/etc/docker/daemon.json在執行<code>dockerd</code></p>
-<p>這樣就能愉悅在phpstorm玩docker</p></div><div class="post-footer" id="post-footer">
+</div><p>如果只是 lab 環境，這樣做確實很快，PhpStorm 就可以指定連到 <code>tcp://你的主機:5555</code>。</p>
+<p>但這種方式有兩個前提：</p>
+<ol>
+<li>你知道自己在暴露什麼。</li>
+<li>這不是直接對外開放給整個網路的正式環境。</li>
+</ol>
+<h2 id="比較建議的做法至少用-ssh-或-tls">比較建議的做法：至少用 SSH 或 TLS</h2>
+<p>如果是現在要重新做一次，我會優先選：</p>
+<ul>
+<li>用 SSH 方式連遠端 Docker。</li>
+<li>或者用 TLS 保護 Docker TCP API。</li>
+</ul>
+<p>原因很簡單，裸露的 Docker TCP port 真的太危險。以前很多教學只是為了示範方便，但實務上不太建議直接把 <code>0.0.0.0:5555</code> 或 <code>2375</code> 開給外部網路。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>不要把未保護的 Docker API 直接對外暴露<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">如果 Docker Remote API 沒有經過 SSH、 TLS、 VPN 或防火牆限制，等於把高權限控制入口直接放到網路上。測試環境都應該至少限制來源 IP，正式環境更不建議裸露。</div>
+        </div>
+    </div>
+<h2 id="如果真的只是內網-lab-測試">如果真的只是內網 Lab 測試</h2>
+<p>如果你只是家裡實驗、內網短暫測試，最簡單可以先在遠端主機啟用 Docker daemon TCP listener，再讓 PhpStorm 連過去。</p>
+<p>例如可以在啟動時加入：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">sudo dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:5555
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>或在 <code>daemon.json</code> 裡設定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nt">&#34;hosts&#34;</span><span class="p">:</span> <span class="p">[</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;unix:///var/run/docker.sock&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;tcp://0.0.0.0:5555&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之後重啟 Docker 服務，PhpStorm 裡選 TCP Socket 連線即可。</p>
+<p>但就算是 lab，我還是建議至少做這幾件事：</p>
+<ul>
+<li>防火牆限制來源 IP</li>
+<li>不要直接暴露到公網</li>
+<li>測完就關掉</li>
+</ul>
+<h2 id="phpstorm-端大概怎麼設">PhpStorm 端大概怎麼設</h2>
+<p>在 PhpStorm 裡，通常就是：</p>
+<ol>
+<li>打開 Settings。</li>
+<li>找到 Docker 或 Build, Execution, Deployment 相關設定。</li>
+<li>新增一個 Docker 連線。</li>
+<li>選擇 TCP socket、 SSH 或其他支援方式。</li>
+<li>填遠端主機位址與 port。</li>
+</ol>
+<p>連上後，如果能正常列出 images、 containers，基本上就代表設定成功。</p>
+<h2 id="我自己當時的心得">我自己當時的心得</h2>
+<p>第一次設定時，我原本還覺得直接打指令比較快，因為偶爾用一下 Docker，SSH 到主機上敲 <code>docker ps</code> 其實很直覺。不過如果你已經習慣在 IDE 裡一起看 container、 logs、 compose 與 interpreter，遠端整合起來確實方便不少。</p>
+<p>尤其對 PHP 專案來說，如果開發環境本來就在遠端 Linux 主機，讓 PhpStorm 直接接 Docker，會比在本機硬湊一套環境省事很多。</p>
+<h2 id="什麼時候適合這樣做">什麼時候適合這樣做</h2>
+<p>我覺得比較適合的情境是：</p>
+<ul>
+<li>本機資源不想再跑一套 Docker。</li>
+<li>團隊共享一台測試主機。</li>
+<li>專案執行環境本來就固定在遠端 Linux。</li>
+<li>想直接從 IDE 觀察 container 狀態。</li>
+</ul>
+<p>如果只是偶爾下幾條 Docker 指令，其實直接 SSH 上去操作也很夠用。</p>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+	root((PhpStorm 遠端 Docker))
+		目的
+			本機不裝 Docker
+			直接控遠端主機
+			IDE 整合操作
+		連線方式
+			TCP Socket
+			SSH
+			TLS
+		安全重點
+			不裸露公網
+			限制來源 IP
+			測完關閉
+		設定位置
+			PhpStorm Docker 設定
+			daemon.json
+			dockerd hosts
+		使用場景
+			遠端 Linux 開發
+			共用測試主機
+			看 logs 與 container
+</div>
+<h2 id="小結">小結</h2>
+<p>PhpStorm 確實可以很方便地控制遠端 Docker，但方便的另一面就是權限很重，所以安全性不能省略。我的建議是：測試環境可以先快速驗證連線可不可行，但真正要長期使用時，還是優先走 SSH 或 TLS。</p>
+<p>參考資料：</p>
+<ul>
+<li><a href="https://deepzz.com/post/dockerd-and-docker-remote-api.html" target="_blank" rel="noopener noreffer ">遠程連接 Docker daemon，Docker Remote API | Deepzz&rsquo;s Blog</a></li>
+<li><a href="https://docs.docker.com/engine/reference/commandline/dockerd/#description" target="_blank" rel="noopener noreffer ">Docker dockerd 指令文件</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
@@ -178,7 +289,7 @@
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用phpstorm用docker remote遠端操作" data-hashtags="docker,phpstorm"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用phpstorm用docker remote遠端操作"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用phpstorm用docker remote遠端操作"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用phpstorm用docker remote遠端操作"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用 PhpStorm 透過 Docker Remote 遠端操作" data-hashtags="docker,phpstorm"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用 PhpStorm 透過 Docker Remote 遠端操作"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用 PhpStorm 透過 Docker Remote 遠端操作"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/%E4%BD%BF%E7%94%A8phpstorm%E7%94%A8docker-remote%E9%81%A0%E7%AB%AF%E6%93%8D%E4%BD%9C/" data-title="使用 PhpStorm 透過 Docker Remote 遠端操作"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
