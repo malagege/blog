@@ -4,18 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>API 防重放小記(replay attack) - 程式狂想筆記</title><meta name="Description" content="最近思考怎麼預防尾造 API 回傳內容，剛好看到這幾篇文章
-順便整理一下"><meta property="og:title" content="API 防重放小記(replay attack)" />
-<meta property="og:description" content="最近思考怎麼預防尾造 API 回傳內容，剛好看到這幾篇文章
-順便整理一下" />
+        <title>API 防重放小記(replay attack) - 程式狂想筆記</title><meta name="Description" content="最近在想 API 傳輸安全時，順手重新整理了一次 replay attack。這個主題很常被一句「做簽章就好」帶過，但實際上如果只做簽章、不做時效與唯一性控制，重放攻擊還是擋不住。"><meta property="og:title" content="API 防重放小記(replay attack)" />
+<meta property="og:description" content="最近在想 API 傳輸安全時，順手重新整理了一次 replay attack。這個主題很常被一句「做簽章就好」帶過，但實際上如果只做簽章、不做時效與唯一性控制，重放攻擊還是擋不住。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/API-%E9%98%B2%E9%87%8D%E6%94%BE%E5%B0%8F%E8%A8%98-replay-attack/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-06-02T20:32:43+00:00" />
 <meta property="article:modified_time" content="2021-06-02T20:32:43+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="API 防重放小記(replay attack)"/>
-<meta name="twitter:description" content="最近思考怎麼預防尾造 API 回傳內容，剛好看到這幾篇文章
-順便整理一下"/>
+<meta name="twitter:description" content="最近在想 API 傳輸安全時，順手重新整理了一次 replay attack。這個主題很常被一句「做簽章就好」帶過，但實際上如果只做簽章、不做時效與唯一性控制，重放攻擊還是擋不住。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -30,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/API-%E9%98%B2%E9%87%8D%E6%94%BE%E5%B0%8F%E8%A8%98-replay-attack\/"
-        },"genre": "posts","keywords": "api, replay, attack","wordcount":  33 ,
+        },"genre": "posts","keywords": "api, replay, attack","wordcount":  125 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/API-%E9%98%B2%E9%87%8D%E6%94%BE%E5%B0%8F%E8%A8%98-replay-attack\/","datePublished": "2021-06-02T20:32:43+00:00","dateModified": "2021-06-02T20:32:43+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近思考怎麼預防尾造 API 回傳內容，剛好看到這幾篇文章\u003cbr\u003e\n順便整理一下\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近在想 API 傳輸安全時，順手重新整理了一次 replay attack。這個主題很常被一句「做簽章就好」帶過，但實際上如果只做簽章、不做時效與唯一性控制，重放攻擊還是擋不住。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -107,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2021-06-02">2021-06-02</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>33 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>125 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -117,22 +114,82 @@
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>最近思考怎麼預防尾造 API 回傳內容，剛好看到這幾篇文章<br>
-順便整理一下</p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#什麼是-replay-attack">什麼是 replay attack</a></li>
+    <li><a href="#只做簽章為什麼不夠">只做簽章為什麼不夠</a></li>
+    <li><a href="#常見做法">常見做法</a>
+      <ul>
+        <li><a href="#1-簽章">1. 簽章</a></li>
+        <li><a href="#2-timestamp">2. Timestamp</a></li>
+        <li><a href="#3-nonce">3. Nonce</a></li>
+        <li><a href="#4-token--身分驗證">4. Token / 身分驗證</a></li>
+      </ul>
+    </li>
+    <li><a href="#一個簡化流程">一個簡化流程</a></li>
+    <li><a href="#我當時想到的疑問">我當時想到的疑問</a></li>
+    <li><a href="#我的結論">我的結論</a></li>
+    <li><a href="#參考">參考</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近在想 API 傳輸安全時，順手重新整理了一次 replay attack。這個主題很常被一句「做簽章就好」帶過，但實際上如果只做簽章、不做時效與唯一性控制，重放攻擊還是擋不住。</p>
+<h2 id="什麼是-replay-attack">什麼是 replay attack</h2>
+<p>Replay attack 中文常翻成重放攻擊。意思是攻擊者不一定要看懂內容，也不一定要竄改內容，只要把一個原本合法的請求原封不動重送一次，就可能造成問題。</p>
+<p>例如：</p>
+<ol>
+<li>扣款 API 被重送一次，重複扣款。</li>
+<li>領券 API 被重送多次，重複領取。</li>
+<li>開門、解鎖、下單這類操作被重播。</li>
+</ol>
+<p>也就是說，資料內容沒被改，系統還是可能中招。</p>
+<h2 id="只做簽章為什麼不夠">只做簽章為什麼不夠</h2>
+<p>很多人第一反應是做 sign 簽章。簽章確實能防止內容被竄改，但如果攻擊者拿到一包「原本就合法」的請求，連同 body、timestamp 以外的所有內容一起重送，server 還是可能驗證通過。</p>
+<p>所以防重放至少要同時處理三件事：</p>
+<ol>
+<li>請求內容沒有被改。</li>
+<li>請求有時效。</li>
+<li>請求只能被接受一次。</li>
+</ol>
+<h2 id="常見做法">常見做法</h2>
+<h3 id="1-簽章">1. 簽章</h3>
+<p>客戶端把重要欄位組成固定字串，再用共享密鑰或私鑰做簽章。Server 收到後用同樣規則驗證，確認內容沒被改。</p>
+<h3 id="2-timestamp">2. Timestamp</h3>
+<p>請求帶上時間戳記，例如只接受 5 分鐘內的請求。這樣就算封包被攔到，也不能無限期重送。</p>
+<h3 id="3-nonce">3. Nonce</h3>
+<p>每次請求額外帶一個隨機唯一值。Server 驗證成功後，把這個 nonce 記錄下來，短時間內如果又收到一模一樣的 nonce，就拒絕。</p>
+<p>這一步通常才是真正防 replay 的關鍵。</p>
+<h3 id="4-token--身分驗證">4. Token / 身分驗證</h3>
+<p>如果不是完全開放的 API，搭配 token 或登入機制可以再把攻擊面縮小。至少不是任何人攔到封包就能隨便打。</p>
+<h2 id="一個簡化流程">一個簡化流程</h2>
+<p>我自己比較容易記的流程是：</p>
+<ol>
+<li>客戶端準備 <code>path + body + timestamp + nonce</code>。</li>
+<li>用共享密鑰算出簽章。</li>
+<li>Server 驗證簽章是否正確。</li>
+<li>Server 檢查 timestamp 是否過期。</li>
+<li>Server 檢查 nonce 是否已經用過。</li>
+<li>全部通過才真的執行業務邏輯。</li>
+</ol>
+<p>只少其中一層，效果都會差很多。</p>
+<h2 id="我當時想到的疑問">我當時想到的疑問</h2>
+<p>我那時也有想到一個很實際的問題：如果 App 被逆向，密鑰被挖出來，不就還是無解？</p>
+<p>這個問題其實沒錯。所以這類防護很多時候是在防：</p>
+<ol>
+<li>中間人攔包重送。</li>
+<li>一般腳本重放。</li>
+<li>低成本濫用。</li>
+</ol>
+<p>它不是在保證「App 被完整破解後仍百分之百安全」。那又是另一個層級的攻防問題。</p>
+<h2 id="我的結論">我的結論</h2>
+<p>防重放不是單一功能，而是一組策略。只做 sign 比只上 HTTPS 好，但還不夠完整。比較實際的組合通常是：HTTPS + 簽章 + timestamp + nonce + 身分驗證，再搭配 server 端真正的冪等設計。</p>
+<h2 id="參考">參考</h2>
 <ul>
 <li><a href="https://segmentfault.com/a/1190000021922705" target="_blank" rel="noopener noreffer ">数据安全（反爬虫）之「防重放」策略 - SegmentFault 思否</a></li>
 <li><a href="https://blog.csdn.net/qq_43323585/article/details/106088470" target="_blank" rel="noopener noreffer ">网络安全问题-防篡改、防劫持、防重放_越学越菜的博客-CSDN博客</a></li>
 <li><a href="https://www.jianshu.com/p/6105b06aa208" target="_blank" rel="noopener noreffer ">开放平台API接口安全策略汇总 - 简书</a></li>
 <li><a href="https://www.jqhtml.com/49154.html" target="_blank" rel="noopener noreffer ">Spring Boot接口如何设计防篡改、防重放攻击 – 前端开发，JQUERY特效，全栈开发，vue开发</a></li>
-</ul>
-<p>簡單來說就是要做 sign 簽章，兩邊用一樣私鑰把內容加密(做簽章)，資料傳到Server 再把私私鑰做簽章，看sign傳過來的值有沒有一樣</p>
-<p>這時候我有想到兩邊問題，私鑰被知道不就無解，任何人不就能使用<br>
-這邊防禦是以中間人為考量，並非討論App是否被破解取得私鑰<br>
-也有想過用公鑰、私鑰做一次加密解密，還時會被APP解析破解取得加密密碼</p>
-<p>這時候加入 token 能有效杜絕這個問題(不是開放API的話)<br>
-api Token 是無狀態，自然可以解決上面問題<br>
-<a href="https://www.jianshu.com/p/27317bd226fe" target="_blank" rel="noopener noreffer ">session/token (http是无状态协议) - 簡書</a></p></div><div class="post-footer" id="post-footer">
+<li><a href="https://www.jianshu.com/p/27317bd226fe" target="_blank" rel="noopener noreffer ">session/token (http是无状态协议) - 簡書</a></li>
+</ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

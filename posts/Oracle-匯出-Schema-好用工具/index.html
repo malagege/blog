@@ -4,21 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Oracle 匯出 Schema 好用工具 - 程式狂想筆記</title><meta name="Description" content="最近公司專案需要建制某環境 Table Schema
-但是現有工具沒辦法做到大量匯出Table
-後來 Google 好用的工具"><meta property="og:title" content="Oracle 匯出 Schema 好用工具" />
-<meta property="og:description" content="最近公司專案需要建制某環境 Table Schema
-但是現有工具沒辦法做到大量匯出Table
-後來 Google 好用的工具" />
+        <title>Oracle 匯出 Schema 好用工具 - 程式狂想筆記</title><meta name="Description" content="最近公司專案需要在另一個環境重建一批 Oracle 資料表 Schema，結果手上的既有工具不太順手，尤其當 table 數量一多，人工一個一個匯就很痛苦。後來找到一個 command line 工具，拿來快速匯出 DDL 還不錯。"><meta property="og:title" content="Oracle 匯出 Schema 好用工具" />
+<meta property="og:description" content="最近公司專案需要在另一個環境重建一批 Oracle 資料表 Schema，結果手上的既有工具不太順手，尤其當 table 數量一多，人工一個一個匯就很痛苦。後來找到一個 command line 工具，拿來快速匯出 DDL 還不錯。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Oracle-%E5%8C%AF%E5%87%BA-Schema-%E5%A5%BD%E7%94%A8%E5%B7%A5%E5%85%B7/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-09-03T20:47:56+00:00" />
 <meta property="article:modified_time" content="2020-09-03T20:47:56+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Oracle 匯出 Schema 好用工具"/>
-<meta name="twitter:description" content="最近公司專案需要建制某環境 Table Schema
-但是現有工具沒辦法做到大量匯出Table
-後來 Google 好用的工具"/>
+<meta name="twitter:description" content="最近公司專案需要在另一個環境重建一批 Oracle 資料表 Schema，結果手上的既有工具不太順手，尤其當 table 數量一多，人工一個一個匯就很痛苦。後來找到一個 command line 工具，拿來快速匯出 DDL 還不錯。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -33,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/Oracle-%E5%8C%AF%E5%87%BA-Schema-%E5%A5%BD%E7%94%A8%E5%B7%A5%E5%85%B7\/"
-        },"genre": "posts","keywords": "oracle, db2","wordcount":  65 ,
+        },"genre": "posts","keywords": "oracle, db2","wordcount":  115 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/Oracle-%E5%8C%AF%E5%87%BA-Schema-%E5%A5%BD%E7%94%A8%E5%B7%A5%E5%85%B7\/","datePublished": "2020-09-03T20:47:56+00:00","dateModified": "2020-09-03T20:47:56+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e最近公司專案需要建制某環境 Table Schema\u003cbr\u003e\n但是現有工具沒辦法做到大量匯出Table\u003cbr\u003e\n後來 Google 好用的工具\u003c/p\u003e"
+            },"description": "\u003cp\u003e最近公司專案需要在另一個環境重建一批 Oracle 資料表 Schema，結果手上的既有工具不太順手，尤其當 table 數量一多，人工一個一個匯就很痛苦。後來找到一個 command line 工具，拿來快速匯出 DDL 還不錯。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -110,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2020-09-03">2020-09-03</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>65 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>115 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -122,24 +116,60 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
+    <li><a href="#這類需求常見在哪">這類需求常見在哪</a></li>
     <li><a href="#scheme2ddl">scheme2ddl</a></li>
-    <li><a href="#其他看到工具">其他看到工具</a></li>
+    <li><a href="#使用前我會先注意什麼">使用前我會先注意什麼</a></li>
+    <li><a href="#這類工具的價值">這類工具的價值</a></li>
+    <li><a href="#其他看到的工具">其他看到的工具</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>最近公司專案需要建制某環境 Table Schema<br>
-但是現有工具沒辦法做到大量匯出Table<br>
-後來 Google 好用的工具</p>
+            </div><div class="content" id="content"><p>最近公司專案需要在另一個環境重建一批 Oracle 資料表 Schema，結果手上的既有工具不太順手，尤其當 table 數量一多，人工一個一個匯就很痛苦。後來找到一個 command line 工具，拿來快速匯出 DDL 還不錯。</p>
+<h2 id="這類需求常見在哪">這類需求常見在哪</h2>
+<p>通常會遇到這種需求的場景像是：</p>
+<ol>
+<li>建立測試環境。</li>
+<li>比對不同環境的資料表結構。</li>
+<li>想把 Oracle schema 轉成可追蹤的 SQL 檔案。</li>
+</ol>
+<p>如果只是偶爾看單一 table，很多 GUI 工具也行；但要大量匯出時，command line 工具反而比較有效率。</p>
 <h2 id="scheme2ddl">scheme2ddl</h2>
+<p>我當時找到的是這個：</p>
 <p><a href="https://github.com/qwazer/scheme2ddl" target="_blank" rel="noopener noreffer ">qwazer/scheme2ddl: Command line util for export oracle schema to set of ddl scripts</a></p>
-<p>java -jar scheme2ddl-2.4.3-SNAPSHOT.jar -url <em>DB_USERID</em>/<em>DB_PASSWORD</em>:@<em>Oracle_IP</em>:1521:<em>DBNAME</em> -o D:/temp/</p>
-<p>執行速度非常快!!</p>
-<h2 id="其他看到工具">其他看到工具</h2>
-<p>MySQL 就沒找了，現成 phpmyadmin 都可以做到</p>
-<p>不過，剛剛有發現看起來好用工具<a href="https://github.com/k0kubun/sqldef" target="_blank" rel="noopener noreffer ">k0kubun/sqldef: Idempotent MySQL/PostgreSQL schema management by SQL</a><br>
-之前有紀錄這些工具<a href="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A2%E7%94%9F%E8%B3%87%E6%96%99%E8%A1%A8-alter-table-%E8%AA%9E%E6%B3%95-schemalex/" target="_blank" rel="noopener noreffer ">快速產生資料表 alter table 語法 schemalex | 程式狂想筆記</a></p>
-<p>DB2 剛好有看到<a href="https://github.com/qwazer/db2-scheme2ddl" target="_blank" rel="noopener noreffer ">qwazer/db2-scheme2ddl: Command line util for export IBM DB2 schema to set of ddl scripts</a><br>
-不過我就沒測試了</p>
-<p><a href="https://github.com/qwazer/db2-table2sql" target="_blank" rel="noopener noreffer ">qwazer/db2-table2sql</a></p></div><div class="post-footer" id="post-footer">
+<p>執行方式像這樣：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">java -jar scheme2ddl-2.4.3-SNAPSHOT.jar -url _DB_USERID_/_DB_PASSWORD_:@_Oracle_IP_:1521:_DBNAME_ -o D:/temp/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我當時最大的感受就是速度滿快，對於一次要拉出很多 table 定義來說很省時間。</p>
+<h2 id="使用前我會先注意什麼">使用前我會先注意什麼</h2>
+<ol>
+<li>帳號是否有足夠權限讀取 schema 資訊。</li>
+<li>Oracle 連線字串是否正確。</li>
+<li>匯出的內容是否包含你要的物件類型。</li>
+<li>版本相容性要先確認，不要直接拿去打老環境或特殊環境。</li>
+</ol>
+<p>尤其第 3 點很重要，因為有些時候你不只要 table，還可能想要 index、sequence、constraint、view，這要先確認工具支援程度。</p>
+<h2 id="這類工具的價值">這類工具的價值</h2>
+<p>我覺得這類工具最實用的地方，不只是「匯得出來」，而是能把結構轉成檔案，方便：</p>
+<ol>
+<li>放進版控。</li>
+<li>做差異比對。</li>
+<li>當成環境建置的基礎。</li>
+</ol>
+<p>比起只在 GUI 中右鍵匯出一次，後續維護會方便很多。</p>
+<h2 id="其他看到的工具">其他看到的工具</h2>
+<p>MySQL 我當時就沒特別找，因為像 phpMyAdmin、Workbench 之類現成工具通常已經夠用。</p>
+<p>另外也剛好看到這些：</p>
+<p><a href="https://github.com/k0kubun/sqldef" target="_blank" rel="noopener noreffer ">k0kubun/sqldef: Idempotent MySQL/PostgreSQL schema management by SQL</a></p>
+<p>之前也有記過相關工具：<a href="https://malagege.github.io/blog/posts/%E5%BF%AB%E9%80%9F%E7%94%A2%E7%94%9F%E8%B3%87%E6%96%99%E8%A1%A8-alter-table-%E8%AA%9E%E6%B3%95-schemalex/" target="_blank" rel="noopener noreffer ">快速產生資料表 alter table 語法 schemalex | 程式狂想筆記</a></p>
+<p>DB2 方向則看到：</p>
+<p><a href="https://github.com/qwazer/db2-scheme2ddl" target="_blank" rel="noopener noreffer ">qwazer/db2-scheme2ddl: Command line util for export IBM DB2 schema to set of ddl scripts</a></p>
+<p><a href="https://github.com/qwazer/db2-table2sql" target="_blank" rel="noopener noreffer ">qwazer/db2-table2sql</a></p>
+<p>這兩個我當時沒有實測，但先記著，之後如果剛好遇到 DB2 專案也許會派上用場。</p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">

@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>尋找 spring boot 使用 sftp 方案 - 程式狂想筆記</title><meta name="Description" content="原本在想有沒有別的方案，但後來使用內部 sftp 上傳套件，所以就先把連結紀錄。"><meta property="og:title" content="尋找 spring boot 使用 sftp 方案" />
-<meta property="og:description" content="原本在想有沒有別的方案，但後來使用內部 sftp 上傳套件，所以就先把連結紀錄。" />
+        <title>尋找 spring boot 使用 sftp 方案 - 程式狂想筆記</title><meta name="Description" content="當時在找 Spring Boot 接 SFTP 的方案，本來以為直接找一個簡單 client 呼叫就好，結果真的查下去會發現至少有兩條路：一條是直接用底層 SFTP 函式庫，另一條是走 Spring Integration。這篇先把我整理過的思路補完整，之後再回頭看會比較知道當初為什麼選某套方案。"><meta property="og:title" content="尋找 spring boot 使用 sftp 方案" />
+<meta property="og:description" content="當時在找 Spring Boot 接 SFTP 的方案，本來以為直接找一個簡單 client 呼叫就好，結果真的查下去會發現至少有兩條路：一條是直接用底層 SFTP 函式庫，另一條是走 Spring Integration。這篇先把我整理過的思路補完整，之後再回頭看會比較知道當初為什麼選某套方案。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/%E5%B0%8B%E6%89%BE-spring-boot-%E4%BD%BF%E7%94%A8-sftp-%E6%96%B9%E6%A1%88/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-07-31T00:46:29+00:00" />
 <meta property="article:modified_time" content="2022-07-31T00:46:29+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="尋找 spring boot 使用 sftp 方案"/>
-<meta name="twitter:description" content="原本在想有沒有別的方案，但後來使用內部 sftp 上傳套件，所以就先把連結紀錄。"/>
+<meta name="twitter:description" content="當時在找 Spring Boot 接 SFTP 的方案，本來以為直接找一個簡單 client 呼叫就好，結果真的查下去會發現至少有兩條路：一條是直接用底層 SFTP 函式庫，另一條是走 Spring Integration。這篇先把我整理過的思路補完整，之後再回頭看會比較知道當初為什麼選某套方案。"/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -27,13 +27,13 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/%E5%B0%8B%E6%89%BE-spring-boot-%E4%BD%BF%E7%94%A8-sftp-%E6%96%B9%E6%A1%88\/"
-        },"genre": "posts","keywords": "sftp, java, spring","wordcount":  46 ,
+        },"genre": "posts","keywords": "sftp, java, spring","wordcount":  153 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/%E5%B0%8B%E6%89%BE-spring-boot-%E4%BD%BF%E7%94%A8-sftp-%E6%96%B9%E6%A1%88\/","datePublished": "2022-07-31T00:46:29+00:00","dateModified": "2022-07-31T00:46:29+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "\u003cp\u003e原本在想有沒有別的方案，但後來使用內部 sftp 上傳套件，所以就先把連結紀錄。\u003c/p\u003e"
+            },"description": "\u003cp\u003e當時在找 Spring Boot 接 SFTP 的方案，本來以為直接找一個簡單 client 呼叫就好，結果真的查下去會發現至少有兩條路：一條是直接用底層 SFTP 函式庫，另一條是走 Spring Integration。這篇先把我整理過的思路補完整，之後再回頭看會比較知道當初為什麼選某套方案。\u003c/p\u003e"
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -104,7 +104,7 @@
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2022-07-31">2022-07-31</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>46 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>153 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -116,18 +116,91 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#小記連結">小記連結</a></li>
+    <li><a href="#先看需求再選方案">先看需求再選方案</a></li>
+    <li><a href="#為什麼很多人會選-spring-integration">為什麼很多人會選 Spring Integration</a></li>
+    <li><a href="#基本設定方向">基本設定方向</a></li>
+    <li><a href="#我會特別注意的地方">我會特別注意的地方</a></li>
+    <li><a href="#如果不想用太重">如果不想用太重</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>原本在想有沒有別的方案，但後來使用內部 sftp 上傳套件，所以就先把連結紀錄。</p>
-<h2 id="小記連結">小記連結</h2>
+            </div><div class="content" id="content"><p>當時在找 Spring Boot 接 SFTP 的方案，本來以為直接找一個簡單 client 呼叫就好，結果真的查下去會發現至少有兩條路：一條是直接用底層 SFTP 函式庫，另一條是走 Spring Integration。這篇先把我整理過的思路補完整，之後再回頭看會比較知道當初為什麼選某套方案。</p>
+<h2 id="先看需求再選方案">先看需求再選方案</h2>
+<p>如果只是偶爾上傳一個檔案，其實不用把事情搞太大；但如果你需要排程拉檔、失敗重試、輪詢遠端資料夾、檔案搬移後處理，那 Spring Integration 會比自己硬寫流程穩很多。</p>
+<p>我自己會先這樣分：</p>
+<ol>
+<li>單純上傳下載檔案：可以考慮簡單 client。</li>
+<li>需要整合 Spring Flow：Spring Integration 比較適合。</li>
+<li>需要排程、監控、訊息流：Spring Integration 優勢更明顯。</li>
+</ol>
+<h2 id="為什麼很多人會選-spring-integration">為什麼很多人會選 Spring Integration</h2>
+<p>Spring Integration SFTP 比較像是在搭資料流，不只是「連上去傳檔」而已。它適合的地方在於：</p>
+<ol>
+<li>可以把 inbound、outbound 流程拆清楚。</li>
+<li>容易接排程、channel、filter。</li>
+<li>對 Spring 專案整體一致性比較好。</li>
+</ol>
+<p>缺點就是心智負擔比較高。如果專案只要做一個很單純的上傳 API，第一次看會覺得有點重。</p>
+<h2 id="基本設定方向">基本設定方向</h2>
+<p>如果走 Spring Integration，大致上會有幾個核心設定：</p>
+<ol>
+<li>SFTP session factory。</li>
+<li>遠端目錄設定。</li>
+<li>上傳或下載的 flow。</li>
+<li>錯誤處理與重試策略。</li>
+</ol>
+<p>概念上大概像這樣：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Bean</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="n">DefaultSftpSessionFactory</span><span class="w"> </span><span class="nf">sftpSessionFactory</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">DefaultSftpSessionFactory</span><span class="w"> </span><span class="n">factory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DefaultSftpSessionFactory</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">factory</span><span class="p">.</span><span class="na">setHost</span><span class="p">(</span><span class="s">&#34;example.com&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">factory</span><span class="p">.</span><span class="na">setPort</span><span class="p">(</span><span class="n">22</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">factory</span><span class="p">.</span><span class="na">setUser</span><span class="p">(</span><span class="s">&#34;username&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">factory</span><span class="p">.</span><span class="na">setPassword</span><span class="p">(</span><span class="s">&#34;password&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="n">factory</span><span class="p">.</span><span class="na">setAllowUnknownKeys</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="n">factory</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>實際專案通常還會把帳密、路徑改成設定檔，不會硬寫在程式裡。</p>
+<h2 id="我會特別注意的地方">我會特別注意的地方</h2>
+<ol>
+<li>金鑰驗證還是密碼登入。</li>
+<li>遠端目錄是否需要自動建立。</li>
+<li>同名檔案覆蓋策略。</li>
+<li>下載後要不要搬移、刪除或改名。</li>
+<li>網路不穩時是否要 retry。</li>
+</ol>
+<p>很多專案一開始只測通 happy path，結果上正式環境才發現檔案重送、檔名衝突、半傳輸狀態都沒處理。</p>
+<h2 id="如果不想用太重">如果不想用太重</h2>
+<p>如果你只是需要一個 service method：<code>upload(file)</code> 或 <code>download(fileName)</code>，其實直接用底層 SFTP 函式庫也不是不行。只是後續一旦需求開始變成排程同步、多資料夾處理、批次錯誤控管，通常就會慢慢長成一套自己的 integration flow。</p>
+<p>所以我現在比較傾向：</p>
+<ol>
+<li>短平快需求先求能用。</li>
+<li>有長期維護需求就早點走 Spring Integration。</li>
+</ol>
+<h2 id="參考資料">參考資料</h2>
 <p><a href="https://www.codeleading.com/article/30421984064/" target="_blank" rel="noopener noreffer ">SFTP第三篇——Spring-Integration-Sftp实现 - 代码先锋网</a><br>
 <a href="https://blog.csdn.net/Leo_songHJ/article/details/85044057" target="_blank" rel="noopener noreffer ">Spring Integration sftp 技术专栏_小花荣的博客-CSDN博客</a><br>
 <a href="https://zxuanhong.medium.com/spring-integration-in-action-7fb3deddd8cd" target="_blank" rel="noopener noreffer ">Spring Integration in Action學習筆記(1) | by Z-xuan Hong | Medium</a><br>
 <a href="https://www.tony-bro.com/posts/1578338213/index.html" target="_blank" rel="noopener noreffer ">Spring Integration简介 | TONY&rsquo;S TOY BLOG</a><br>
 <a href="https://lanlan2017.github.io/JavaReadingNotes/23813697/" target="_blank" rel="noopener noreffer ">9.1 声明一个简单的集成流 | 蓝蓝站点</a><br>
-<a href="https://www.cnblogs.com/zgrey/p/14364585.html#%E8%BF%87%E6%BB%A4%E5%99%A8" target="_blank" rel="noopener noreffer ">Spring企业集成流 Spring Integration - 錵開や落幕 - 博客园</a></p>
-<p><a href="http://www.voycn.com/article/fenbushisuoshenqispringboot-2xrediszhenghe-spring-integrationshixianfenbushisuo" target="_blank" rel="noopener noreffer ">分布式锁神器：springboot 2.X+Redis整合 Spring Integration实现分布式锁 | 航行学园</a><br>
+<a href="https://www.cnblogs.com/zgrey/p/14364585.html#%E8%BF%87%E6%BB%A4%E5%99%A8" target="_blank" rel="noopener noreffer ">Spring企业集成流 Spring Integration - 錵開や落幕 - 博客园</a><br>
+<a href="http://www.voycn.com/article/fenbushisuoshenqispringboot-2xrediszhenghe-spring-integrationshixianfenbushisuo" target="_blank" rel="noopener noreffer ">分布式锁神器：springboot 2.X+Redis整合 Spring Integration实现分布式锁 | 航行学园</a><br>
 <a href="https://blog.51cto.com/u_9177933/2982700" target="_blank" rel="noopener noreffer ">Spring Integration实现分布式锁_caofeng2012的技术博客_51CTO博客</a></p></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">

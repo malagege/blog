@@ -4,18 +4,48 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Trust Boundary Violation 風險問題 - 程式狂想筆記</title><meta name="Description" content="使用 Validateor 做 Filter 動作。
-ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary violation -Security Issue&rdquo; in Coverity (Security Tool similar to veracode) in Servlet? - Stack Overflow Validator (ESAPI 2.0.1 API) security - How to fix Trust Boundary Violation flaw in Java Web application - Stack Overflow "><meta property="og:title" content="Trust Boundary Violation 風險問題" />
-<meta property="og:description" content="使用 Validateor 做 Filter 動作。
-ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary violation -Security Issue&rdquo; in Coverity (Security Tool similar to veracode) in Servlet? - Stack Overflow Validator (ESAPI 2.0.1 API) security - How to fix Trust Boundary Violation flaw in Java Web application - Stack Overflow " />
+        <title>Trust Boundary Violation 風險問題 - 程式狂想筆記</title><meta name="Description" content="以前我第一次看到弱掃工具跳出 Trust Boundary Violation，第一個反應其實是「我明明只是拿 request 參數查資料，怎麼也會被報」。後來回頭整理才發現，這類問題不是指程式一定已經被打穿，而是提醒我們不要把外部輸入直接當成可信任資料往下傳。
+簡單來說，只要資料是從 HTTP request、Cookie、Header、Query String、檔案上傳、訊息佇列，甚至別的系統 API 回傳進來，都應該先視為不可信任。程式如果沒有做驗證、過濾或型別限制，就直接拿去查資料庫、拼接路徑、寫檔案或輸出到頁面，就很容易被弱掃工具標記。
+什麼是 Trust Boundary Trust Boundary 可以理解成「資料從不可信任區域，跨進可信任程式邏輯的邊界」。
+常見例子像這些：
+使用者輸入的帳號、姓名、查詢條件。 前端送來的 JSON 欄位。 第三方系統 callback 回來的參數。 上傳檔案的檔名、MIME type、路徑。 這些值一旦直接進入核心流程，就可能衍生出 SQL Injection、XSS、Path Traversal、業務規則繞過，或至少讓弱掃無法確認這段程式是安全的。
+為什麼弱掃會報 弱掃工具通常不是在判斷「你有沒有出事」，而是在判斷「資料流是否有明確被驗證」。
+像下面這種寫法就很容易被標：
+1 2 String userId = request.getParameter(&#34;userId&#34;); userService.findUser(userId); 就算 findUser 內部最後是用 prepared statement，弱掃有時還是會認為這個值跨越 trust boundary 後沒有先被驗證，因此繼續往下標記。
+實務上的修補方向 修這類問題時，我自己通常會先做三件事：
+先限制型別，例如該是數字就轉成數字，該是 Enum 就轉成 Enum。 再限制格式，例如長度、字元白名單、是否允許空值。 最後才交給 service 或 repository 使用。 如果只是單純說「有做 filter」其實不太夠，因為真正重點是要讓資料在邊界進來時就被收斂成可控格式。
+Java 範例 下面是比較容易讓人理解的作法，先把 request 參數驗證完再往下傳：
+1 2 3 4 5 6 7 8 String rawUserId = request."><meta property="og:title" content="Trust Boundary Violation 風險問題" />
+<meta property="og:description" content="以前我第一次看到弱掃工具跳出 Trust Boundary Violation，第一個反應其實是「我明明只是拿 request 參數查資料，怎麼也會被報」。後來回頭整理才發現，這類問題不是指程式一定已經被打穿，而是提醒我們不要把外部輸入直接當成可信任資料往下傳。
+簡單來說，只要資料是從 HTTP request、Cookie、Header、Query String、檔案上傳、訊息佇列，甚至別的系統 API 回傳進來，都應該先視為不可信任。程式如果沒有做驗證、過濾或型別限制，就直接拿去查資料庫、拼接路徑、寫檔案或輸出到頁面，就很容易被弱掃工具標記。
+什麼是 Trust Boundary Trust Boundary 可以理解成「資料從不可信任區域，跨進可信任程式邏輯的邊界」。
+常見例子像這些：
+使用者輸入的帳號、姓名、查詢條件。 前端送來的 JSON 欄位。 第三方系統 callback 回來的參數。 上傳檔案的檔名、MIME type、路徑。 這些值一旦直接進入核心流程，就可能衍生出 SQL Injection、XSS、Path Traversal、業務規則繞過，或至少讓弱掃無法確認這段程式是安全的。
+為什麼弱掃會報 弱掃工具通常不是在判斷「你有沒有出事」，而是在判斷「資料流是否有明確被驗證」。
+像下面這種寫法就很容易被標：
+1 2 String userId = request.getParameter(&#34;userId&#34;); userService.findUser(userId); 就算 findUser 內部最後是用 prepared statement，弱掃有時還是會認為這個值跨越 trust boundary 後沒有先被驗證，因此繼續往下標記。
+實務上的修補方向 修這類問題時，我自己通常會先做三件事：
+先限制型別，例如該是數字就轉成數字，該是 Enum 就轉成 Enum。 再限制格式，例如長度、字元白名單、是否允許空值。 最後才交給 service 或 repository 使用。 如果只是單純說「有做 filter」其實不太夠，因為真正重點是要讓資料在邊界進來時就被收斂成可控格式。
+Java 範例 下面是比較容易讓人理解的作法，先把 request 參數驗證完再往下傳：
+1 2 3 4 5 6 7 8 String rawUserId = request." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://malagege.github.io/blog/posts/Trust-Boundary-Violation-%E9%A2%A8%E9%9A%AA%E5%95%8F%E9%A1%8C/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-07-31T00:49:20+00:00" />
 <meta property="article:modified_time" content="2022-07-31T00:49:20+00:00" /><meta property="og:site_name" content="程式狂想筆記" />
 
 <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Trust Boundary Violation 風險問題"/>
-<meta name="twitter:description" content="使用 Validateor 做 Filter 動作。
-ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary violation -Security Issue&rdquo; in Coverity (Security Tool similar to veracode) in Servlet? - Stack Overflow Validator (ESAPI 2.0.1 API) security - How to fix Trust Boundary Violation flaw in Java Web application - Stack Overflow "/>
+<meta name="twitter:description" content="以前我第一次看到弱掃工具跳出 Trust Boundary Violation，第一個反應其實是「我明明只是拿 request 參數查資料，怎麼也會被報」。後來回頭整理才發現，這類問題不是指程式一定已經被打穿，而是提醒我們不要把外部輸入直接當成可信任資料往下傳。
+簡單來說，只要資料是從 HTTP request、Cookie、Header、Query String、檔案上傳、訊息佇列，甚至別的系統 API 回傳進來，都應該先視為不可信任。程式如果沒有做驗證、過濾或型別限制，就直接拿去查資料庫、拼接路徑、寫檔案或輸出到頁面，就很容易被弱掃工具標記。
+什麼是 Trust Boundary Trust Boundary 可以理解成「資料從不可信任區域，跨進可信任程式邏輯的邊界」。
+常見例子像這些：
+使用者輸入的帳號、姓名、查詢條件。 前端送來的 JSON 欄位。 第三方系統 callback 回來的參數。 上傳檔案的檔名、MIME type、路徑。 這些值一旦直接進入核心流程，就可能衍生出 SQL Injection、XSS、Path Traversal、業務規則繞過，或至少讓弱掃無法確認這段程式是安全的。
+為什麼弱掃會報 弱掃工具通常不是在判斷「你有沒有出事」，而是在判斷「資料流是否有明確被驗證」。
+像下面這種寫法就很容易被標：
+1 2 String userId = request.getParameter(&#34;userId&#34;); userService.findUser(userId); 就算 findUser 內部最後是用 prepared statement，弱掃有時還是會認為這個值跨越 trust boundary 後沒有先被驗證，因此繼續往下標記。
+實務上的修補方向 修這類問題時，我自己通常會先做三件事：
+先限制型別，例如該是數字就轉成數字，該是 Enum 就轉成 Enum。 再限制格式，例如長度、字元白名單、是否允許空值。 最後才交給 service 或 repository 使用。 如果只是單純說「有做 filter」其實不太夠，因為真正重點是要讓資料在邊界進來時就被收斂成可控格式。
+Java 範例 下面是比較容易讓人理解的作法，先把 request 參數驗證完再往下傳：
+1 2 3 4 5 6 7 8 String rawUserId = request."/>
 <meta name="application-name" content="程式狂想筆記">
 <meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -30,13 +60,13 @@ ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary 
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/malagege.github.io\/blog\/posts\/Trust-Boundary-Violation-%E9%A2%A8%E9%9A%AA%E5%95%8F%E9%A1%8C\/"
-        },"genre": "posts","keywords": "java","wordcount":  52 ,
+        },"genre": "posts","keywords": "java","wordcount":  173 ,
         "url": "https:\/\/malagege.github.io\/blog\/posts\/Trust-Boundary-Violation-%E9%A2%A8%E9%9A%AA%E5%95%8F%E9%A1%8C\/","datePublished": "2022-07-31T00:49:20+00:00","dateModified": "2022-07-31T00:49:20+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
                 "name": "malagege"
-            },"description": "使用 Validateor 做 Filter 動作。\nESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix \u0026ldquo;Trust boundary violation -Security Issue\u0026rdquo; in Coverity (Security Tool similar to veracode) in Servlet? - Stack Overflow Validator (ESAPI 2.0.1 API) security - How to fix Trust Boundary Violation flaw in Java Web application - Stack Overflow "
+            },"description": "以前我第一次看到弱掃工具跳出 Trust Boundary Violation，第一個反應其實是「我明明只是拿 request 參數查資料，怎麼也會被報」。後來回頭整理才發現，這類問題不是指程式一定已經被打穿，而是提醒我們不要把外部輸入直接當成可信任資料往下傳。\n簡單來說，只要資料是從 HTTP request、Cookie、Header、Query String、檔案上傳、訊息佇列，甚至別的系統 API 回傳進來，都應該先視為不可信任。程式如果沒有做驗證、過濾或型別限制，就直接拿去查資料庫、拼接路徑、寫檔案或輸出到頁面，就很容易被弱掃工具標記。\n什麼是 Trust Boundary Trust Boundary 可以理解成「資料從不可信任區域，跨進可信任程式邏輯的邊界」。\n常見例子像這些：\n使用者輸入的帳號、姓名、查詢條件。 前端送來的 JSON 欄位。 第三方系統 callback 回來的參數。 上傳檔案的檔名、MIME type、路徑。 這些值一旦直接進入核心流程，就可能衍生出 SQL Injection、XSS、Path Traversal、業務規則繞過，或至少讓弱掃無法確認這段程式是安全的。\n為什麼弱掃會報 弱掃工具通常不是在判斷「你有沒有出事」，而是在判斷「資料流是否有明確被驗證」。\n像下面這種寫法就很容易被標：\n1 2 String userId = request.getParameter(\u0026#34;userId\u0026#34;); userService.findUser(userId); 就算 findUser 內部最後是用 prepared statement，弱掃有時還是會認為這個值跨越 trust boundary 後沒有先被驗證，因此繼續往下標記。\n實務上的修補方向 修這類問題時，我自己通常會先做三件事：\n先限制型別，例如該是數字就轉成數字，該是 Enum 就轉成 Enum。 再限制格式，例如長度、字元白名單、是否允許空值。 最後才交給 service 或 repository 使用。 如果只是單純說「有做 filter」其實不太夠，因為真正重點是要讓資料在邊界進來時就被收斂成可控格式。\nJava 範例 下面是比較容易讓人理解的作法，先把 request 參數驗證完再往下傳：\n1 2 3 4 5 6 7 8 String rawUserId = request."
     }
     </script></head>
     <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
@@ -107,7 +137,7 @@ ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary 
             <div class="post-meta-line"><span class="post-meta-item post-meta-date">
                         <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2022-07-31">2022-07-31</time>
                     </span><span class="post-meta-item">
-                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>52 words
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>173 words
                 </span>
                 <span class="post-meta-item">
                     <i class="far fa-clock fa-fw" aria-hidden="true"></i>One minute
@@ -117,8 +147,87 @@ ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary 
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
-                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p>使用 Validateor 做 Filter 動作。</p>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#什麼是-trust-boundary">什麼是 Trust Boundary</a></li>
+    <li><a href="#為什麼弱掃會報">為什麼弱掃會報</a></li>
+    <li><a href="#實務上的修補方向">實務上的修補方向</a></li>
+    <li><a href="#java-範例">Java 範例</a></li>
+    <li><a href="#esapi-validator-可以怎麼用">ESAPI Validator 可以怎麼用</a></li>
+    <li><a href="#我後來的整理">我後來的整理</a></li>
+    <li><a href="#參考資料">參考資料</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>以前我第一次看到弱掃工具跳出 Trust Boundary Violation，第一個反應其實是「我明明只是拿 request 參數查資料，怎麼也會被報」。後來回頭整理才發現，這類問題不是指程式一定已經被打穿，而是提醒我們不要把外部輸入直接當成可信任資料往下傳。</p>
+<p>簡單來說，只要資料是從 HTTP request、Cookie、Header、Query String、檔案上傳、訊息佇列，甚至別的系統 API 回傳進來，都應該先視為不可信任。程式如果沒有做驗證、過濾或型別限制，就直接拿去查資料庫、拼接路徑、寫檔案或輸出到頁面，就很容易被弱掃工具標記。</p>
+<h2 id="什麼是-trust-boundary">什麼是 Trust Boundary</h2>
+<p>Trust Boundary 可以理解成「資料從不可信任區域，跨進可信任程式邏輯的邊界」。</p>
+<p>常見例子像這些：</p>
+<ol>
+<li>使用者輸入的帳號、姓名、查詢條件。</li>
+<li>前端送來的 JSON 欄位。</li>
+<li>第三方系統 callback 回來的參數。</li>
+<li>上傳檔案的檔名、MIME type、路徑。</li>
+</ol>
+<p>這些值一旦直接進入核心流程，就可能衍生出 SQL Injection、XSS、Path Traversal、業務規則繞過，或至少讓弱掃無法確認這段程式是安全的。</p>
+<h2 id="為什麼弱掃會報">為什麼弱掃會報</h2>
+<p>弱掃工具通常不是在判斷「你有沒有出事」，而是在判斷「資料流是否有明確被驗證」。</p>
+<p>像下面這種寫法就很容易被標：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">String</span><span class="w"> </span><span class="n">userId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">request</span><span class="p">.</span><span class="na">getParameter</span><span class="p">(</span><span class="s">&#34;userId&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">userService</span><span class="p">.</span><span class="na">findUser</span><span class="p">(</span><span class="n">userId</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>就算 <code>findUser</code> 內部最後是用 prepared statement，弱掃有時還是會認為這個值跨越 trust boundary 後沒有先被驗證，因此繼續往下標記。</p>
+<h2 id="實務上的修補方向">實務上的修補方向</h2>
+<p>修這類問題時，我自己通常會先做三件事：</p>
+<ol>
+<li>先限制型別，例如該是數字就轉成數字，該是 Enum 就轉成 Enum。</li>
+<li>再限制格式，例如長度、字元白名單、是否允許空值。</li>
+<li>最後才交給 service 或 repository 使用。</li>
+</ol>
+<p>如果只是單純說「有做 filter」其實不太夠，因為真正重點是要讓資料在邊界進來時就被收斂成可控格式。</p>
+<h2 id="java-範例">Java 範例</h2>
+<p>下面是比較容易讓人理解的作法，先把 request 參數驗證完再往下傳：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">String</span><span class="w"> </span><span class="n">rawUserId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">request</span><span class="p">.</span><span class="na">getParameter</span><span class="p">(</span><span class="s">&#34;userId&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rawUserId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="n">rawUserId</span><span class="p">.</span><span class="na">matches</span><span class="p">(</span><span class="s">&#34;^[0-9]{1,10}$&#34;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">IllegalArgumentException</span><span class="p">(</span><span class="s">&#34;userId 格式錯誤&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">long</span><span class="w"> </span><span class="n">userId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Long</span><span class="p">.</span><span class="na">parseLong</span><span class="p">(</span><span class="n">rawUserId</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userService</span><span class="p">.</span><span class="na">findUser</span><span class="p">(</span><span class="n">userId</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果專案本身有用 Bean Validation、Spring Validation，或者統一的 request DTO，通常會更好維護，不一定要每次手刻正規表示式。</p>
+<h2 id="esapi-validator-可以怎麼用">ESAPI Validator 可以怎麼用</h2>
+<p>如果舊專案本來就有導入 OWASP ESAPI，也可以利用 Validator 做基礎驗證，例如限制最大長度、允許字元集合、是否必填。不過我自己會把它當成其中一層保護，不會把所有安全議題都壓在同一個 validator 上。</p>
+<p>重點不是「用了哪個函式庫」，而是：</p>
+<ol>
+<li>邊界輸入有沒有先驗證。</li>
+<li>驗證規則是否符合業務需求。</li>
+<li>後續資料庫、檔案、HTML 輸出是否還有各自的安全處理。</li>
+</ol>
+<h2 id="我後來的整理">我後來的整理</h2>
+<p>這個風險很多時候不是要你亂加一堆 filter，而是要把輸入資料整理成明確、可驗證、可維護的格式。只要做到「邊界先驗證、內部用強型別、輸出再依情境做編碼」，通常弱掃結果就會乾淨很多，後續維護的人也比較看得懂這段程式到底信任了什麼。</p>
+<h2 id="參考資料">參考資料</h2>
 <ul>
 <li><a href="https://www.cnblogs.com/fishou/p/4177491.html" target="_blank" rel="noopener noreffer ">ESAPI学习笔记 - Fish_Ou - 博客园</a></li>
 <li><a href="https://stackoverflow.com/questions/58092928/how-to-fix-trust-boundary-violation-security-issue-in-coverity-security-tool" target="_blank" rel="noopener noreffer ">java - How to fix &ldquo;Trust boundary violation -Security Issue&rdquo; in Coverity (Security Tool similar to veracode) in Servlet? - Stack Overflow</a></li>

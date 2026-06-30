@@ -122,8 +122,18 @@
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/javascript/">Javascript</a>,<a href="/blog/tags/debug/">Debug</a>,<a href="/blog/tags/web/">Web</a></div></div>
 </article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
         <a href="/blog/posts/Trust-Boundary-Violation-%E9%A2%A8%E9%9A%AA%E5%95%8F%E9%A1%8C/">Trust Boundary Violation 風險問題</a>
-    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-publish">published on <time datetime="2022-07-31">2022-07-31</time></span><span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div><div class="content">使用 Validateor 做 Filter 動作。
-ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary violation -Security Issue&rdquo; in Coverity (Security Tool similar to veracode) in Servlet? - Stack Overflow Validator (ESAPI 2.0.1 API) security - How to fix Trust Boundary Violation flaw in Java Web application - Stack Overflow </div><div class="post-footer">
+    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-publish">published on <time datetime="2022-07-31">2022-07-31</time></span><span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div><div class="content">以前我第一次看到弱掃工具跳出 Trust Boundary Violation，第一個反應其實是「我明明只是拿 request 參數查資料，怎麼也會被報」。後來回頭整理才發現，這類問題不是指程式一定已經被打穿，而是提醒我們不要把外部輸入直接當成可信任資料往下傳。
+簡單來說，只要資料是從 HTTP request、Cookie、Header、Query String、檔案上傳、訊息佇列，甚至別的系統 API 回傳進來，都應該先視為不可信任。程式如果沒有做驗證、過濾或型別限制，就直接拿去查資料庫、拼接路徑、寫檔案或輸出到頁面，就很容易被弱掃工具標記。
+什麼是 Trust Boundary Trust Boundary 可以理解成「資料從不可信任區域，跨進可信任程式邏輯的邊界」。
+常見例子像這些：
+使用者輸入的帳號、姓名、查詢條件。 前端送來的 JSON 欄位。 第三方系統 callback 回來的參數。 上傳檔案的檔名、MIME type、路徑。 這些值一旦直接進入核心流程，就可能衍生出 SQL Injection、XSS、Path Traversal、業務規則繞過，或至少讓弱掃無法確認這段程式是安全的。
+為什麼弱掃會報 弱掃工具通常不是在判斷「你有沒有出事」，而是在判斷「資料流是否有明確被驗證」。
+像下面這種寫法就很容易被標：
+1 2 String userId = request.getParameter(&#34;userId&#34;); userService.findUser(userId); 就算 findUser 內部最後是用 prepared statement，弱掃有時還是會認為這個值跨越 trust boundary 後沒有先被驗證，因此繼續往下標記。
+實務上的修補方向 修這類問題時，我自己通常會先做三件事：
+先限制型別，例如該是數字就轉成數字，該是 Enum 就轉成 Enum。 再限制格式，例如長度、字元白名單、是否允許空值。 最後才交給 service 或 repository 使用。 如果只是單純說「有做 filter」其實不太夠，因為真正重點是要讓資料在邊界進來時就被收斂成可控格式。
+Java 範例 下面是比較容易讓人理解的作法，先把 request 參數驗證完再往下傳：
+1 2 3 4 5 6 7 8 String rawUserId = request.</div><div class="post-footer">
         <a href="/blog/posts/Trust-Boundary-Violation-%E9%A2%A8%E9%9A%AA%E5%95%8F%E9%A1%8C/">Read More</a><div class="post-tags">
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/java/">Java</a></div></div>
 </article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
@@ -133,7 +143,7 @@ ESAPI学习笔记 - Fish_Ou - 博客园 java - How to fix &ldquo;Trust boundary 
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/XSS/">Xss</a></div></div>
 </article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
         <a href="/blog/posts/%E5%B0%8B%E6%89%BE-spring-boot-%E4%BD%BF%E7%94%A8-sftp-%E6%96%B9%E6%A1%88/">尋找 spring boot 使用 sftp 方案</a>
-    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-publish">published on <time datetime="2022-07-31">2022-07-31</time></span><span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div><div class="content"><p>原本在想有沒有別的方案，但後來使用內部 sftp 上傳套件，所以就先把連結紀錄。</p></div><div class="post-footer">
+    </h1><div class="post-meta"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-publish">published on <time datetime="2022-07-31">2022-07-31</time></span><span class="post-category">included in <a href="/blog/categories/Java/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Java</a></span></div><div class="content"><p>當時在找 Spring Boot 接 SFTP 的方案，本來以為直接找一個簡單 client 呼叫就好，結果真的查下去會發現至少有兩條路：一條是直接用底層 SFTP 函式庫，另一條是走 Spring Integration。這篇先把我整理過的思路補完整，之後再回頭看會比較知道當初為什麼選某套方案。</p></div><div class="post-footer">
         <a href="/blog/posts/%E5%B0%8B%E6%89%BE-spring-boot-%E4%BD%BF%E7%94%A8-sftp-%E6%96%B9%E6%A1%88/">Read More</a><div class="post-tags">
                 <i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/sftp/">Sftp</a>,<a href="/blog/tags/java/">Java</a>,<a href="/blog/tags/spring/">Spring</a></div></div>
 </article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
