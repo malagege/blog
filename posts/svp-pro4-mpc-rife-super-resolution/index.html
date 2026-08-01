@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法 - 程式狂想筆記</title><meta name="Description" content="整理 MPC-HC 搭配 AviSynth Filter、SVP Pro 4 與 mpv-lazy 腳本的設定流程，包含安裝位置、外部篩選器設定與實測心得。"><meta property="og:title" content="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法" />
+<meta property="og:description" content="整理 MPC-HC 搭配 AviSynth Filter、SVP Pro 4 與 mpv-lazy 腳本的設定流程，包含安裝位置、外部篩選器設定與實測心得。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-08-01T12:00:00+08:00" />
+<meta property="article:modified_time" content="2026-08-02T01:16:01+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法"/>
+<meta name="twitter:description" content="整理 MPC-HC 搭配 AviSynth Filter、SVP Pro 4 與 mpv-lazy 腳本的設定流程，包含安裝位置、外部篩選器設定與實測心得。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="canonical" href="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" /><link rel="prev" href="https://malagege.github.io/blog/posts/disable-llm-thinking-mode-to-speed-up-manga-translation/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/svp-pro4-mpc-rife-super-resolution\/"
+        },"genre": "posts","keywords": "mpc, mpv, svp, rife, upscaling","wordcount":  248 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/svp-pro4-mpc-rife-super-resolution\/","datePublished": "2026-08-01T12:00:00+08:00","dateModified": "2026-08-02T01:16:01+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近原本想測試看看，改用 MPC 搭配 mpv-lazy 腳本後，SVP Pro 4 的 RIFE 補幀和影片超分會不會比直接用 MPV-Lazy 更順。結果先講結論：效能差異沒有我預期的大，整體表現差不多，而且 DRBA 補真在這一套流程下甚至沒辦法順利跑起來。\u003c/p\u003e\n\u003cp\u003e如果你只是想找一個比較省事的方法，其實不用特地為了這件事重做整套播放器環境。不過如果你平常主力還是 MPC，想把 mpv-lazy 的 VapourSynth 腳本接進來，這篇還是可以當成一個實作紀錄。\u003c/p\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <span class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="#" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <span class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <span class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </span>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="#" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/%E5%AF%A6%E7%94%A8%E5%B7%A5%E5%85%B7/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>實用工具</a></span></div>
+            <div class="post-meta-line"><span class="post-meta-item post-meta-date">
+                        <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2026-08-01">2026-08-01</time>
+                    </span><span class="post-meta-item">
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>248 words
+                </span>
+                <span class="post-meta-item">
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>2 minutes
+                </span></div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#先講結論">先講結論</a></li>
+    <li><a href="#設定流程心智圖">設定流程心智圖</a></li>
+    <li><a href="#mpc-執行-mpv-lazy-腳本">MPC 執行 mpv-lazy 腳本</a></li>
+    <li><a href="#腳本調整重點">腳本調整重點</a></li>
+    <li><a href="#腳本">腳本</a></li>
+    <li><a href="#我這次測試的心得">我這次測試的心得</a></li>
+    <li><a href="#小結">小結</a></li>
+    <li><a href="#彩蛋">彩蛋</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近原本想測試看看，改用 MPC 搭配 mpv-lazy 腳本後，SVP Pro 4 的 RIFE 補幀和影片超分會不會比直接用 MPV-Lazy 更順。結果先講結論：效能差異沒有我預期的大，整體表現差不多，而且 DRBA 補真在這一套流程下甚至沒辦法順利跑起來。</p>
+<p>如果你只是想找一個比較省事的方法，其實不用特地為了這件事重做整套播放器環境。不過如果你平常主力還是 MPC，想把 mpv-lazy 的 VapourSynth 腳本接進來，這篇還是可以當成一個實作紀錄。</p>
+<h2 id="先講結論">先講結論</h2>
+<ol>
+<li>MPC 可以透過 avisynth_filter 載入對應腳本。</li>
+<li>RIFE 與超分流程可以跑，但效能沒有明顯優於直接用 MPV-Lazy。</li>
+<li>DRBA 補真在我這次測試環境中無法正常執行。</li>
+<li>如果只是要看片，直接維持原本 MPV-Lazy 或 SVP 習慣用法就好。</li>
+</ol>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>這篇適合誰<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">已經有在用 MPC、SVP Pro 4、mpv-lazy，並且想自己改 VapourSynth 腳本路徑的人最適合看這篇。</div>
+        </div>
+    </div>
+<h2 id="設定流程心智圖">設定流程心智圖</h2>
+<div class="mermaid">mindmap
+    root((MPC + SVP Pro 4 + RIFE))
+        安裝前置
+            avisynth_filter
+            管理員執行 install.cmd
+        MPC 設定
+            外部篩選器
+            加入 Vavisynth Filter
+        腳本調整
+            指定 mpv-lazy 模型路徑
+            依解析度決定縮放
+        實測結果
+            RIFE 可跑
+            超分可跑
+            DRBA 無法正常執行
+            效能差距不大
+</div>
+<h2 id="mpc-執行-mpv-lazy-腳本">MPC 執行 mpv-lazy 腳本</h2>
+<ul>
+<li><a href="https://github.com/CrendKing/avisynth_filter/releases" target="_blank" rel="noopener noreffer ">下載 avisynth_filter（包含 Vavisynth Filter）</a></li>
+</ul>
+<p>下載後先解壓縮到固定資料夾，我這邊是放在 <code>D:\Software\SynthFilters</code>。你應該會看到底下這幾個重點檔案：</p>
+<ol>
+<li><code>avisynth_filter_32.ax</code></li>
+<li><code>avisynth_filter_64.ax</code></li>
+<li><code>vapoursynth_filter_64.ax</code></li>
+<li><code>install.cmd</code></li>
+<li><code>uninstall.cmd</code></li>
+</ol>
+<p>接著對 <code>install.cmd</code> 按右鍵，用系統管理員權限執行。這一步的重點不是單純把檔案放著，而是要把對應 filter 正常註冊進系統，這樣 MPC 才抓得到。</p>
+<p><a class="lightgallery" href="01-install-filter.avif" title="avisynth_filter 解壓後目錄" data-thumbnail="01-install-filter.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="01-install-filter.avif"
+            data-srcset="01-install-filter.avif, 01-install-filter.avif 1.5x, 01-install-filter.avif 2x"
+            data-sizes="auto"
+            alt="01-install-filter.avif"
+            title="avisynth_filter 解壓後目錄" />
+    </a></p>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>從截圖判斷要看什麼<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">第一張圖的重點不是檔案很多，而是確認你真的有看到 <code>install.cmd</code>、AviSynth Filter 的 <code>.ax</code> 檔，以及 VapourSynth Filter 的 <code>.ax</code> 檔。少了這些檔案，後面在 MPC 很可能找不到對應篩選器。</div>
+        </div>
+    </div>
+<p>安裝完成後，打開 MPC，依序進入「選項 → 內建篩選器 → 外部篩選器」，按右側的「新增篩選器」。</p>
+<p><a class="lightgallery" href="02-mpc-filter-settings.avif" title="MPC 外部篩選器設定" data-thumbnail="02-mpc-filter-settings.avif">
+        <img
+            class="lazyload"
+            src="/blog/svg/loading.min.svg"
+            data-src="02-mpc-filter-settings.avif"
+            data-srcset="02-mpc-filter-settings.avif, 02-mpc-filter-settings.avif 1.5x, 02-mpc-filter-settings.avif 2x"
+            data-sizes="auto"
+            alt="02-mpc-filter-settings.avif"
+            title="MPC 外部篩選器設定" />
+    </a></p>
+<p>在你貼的第二張圖裡，可以注意到兩個細節：</p>
+<ol>
+<li>清單中有 <code>AviSynth Filter</code> 與 <code>VapourSynth Filter</code>。</li>
+<li>目前勾選的是 <code>AviSynth Filter</code>，不是 <code>VapourSynth Filter</code>。</li>
+</ol>
+<p>這代表你這次要讓 MPC 接進去的流程，是先以 AviSynth Filter 為入口。新增完成後，記得確認左側清單真的有 <code>AviSynth Filter</code>，而且前面的核取方塊是打勾狀態。</p>
+<p>這一步如果沒加好，後面的腳本就算寫對也不會生效，所以建議先確認篩選器真的有被載入。</p>
+<h2 id="腳本調整重點">腳本調整重點</h2>
+<p>MPC 這邊的做法，本質上就是把 mpv-lazy 原本使用的 VapourSynth 流程搬過來，因此你至少要確認兩件事：</p>
+<ol>
+<li>模型檔路徑要改成你自己電腦上的實際位置。</li>
+<li>如果顯示卡效能有限，先用較保守的超分與解析度設定，不然很容易掉幀。</li>
+</ol>
+<h2 id="腳本">腳本</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">vapoursynth</span> <span class="k">as</span> <span class="nn">vs</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">vapoursynth</span> <span class="kn">import</span> <span class="n">core</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">k7sfunc</span> <span class="k">as</span> <span class="nn">k7f</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">clip</span> <span class="o">=</span> <span class="n">VpsFilterSource</span>
+</span></span><span class="line"><span class="cl"><span class="n">container_fps</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">VpsFilterSource</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">clip</span><span class="o">.</span><span class="n">height</span> <span class="o">&lt;</span> <span class="mi">2160</span> <span class="o">*</span> <span class="mf">0.85</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">clip</span> <span class="o">=</span> <span class="n">k7f</span><span class="o">.</span><span class="n">FMT_CTRL</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mi">1080</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">clip</span> <span class="o">=</span> <span class="n">k7f</span><span class="o">.</span><span class="n">UAI_NV_TRT</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">model_pth</span><span class="o">=</span><span class="sa">r</span><span class="s2">&#34;D:/mpv-lazy/vs-plugins/models/the_database_AnimeJaNaiV2L1_x2_fp16_op17.onnx&#34;</span><span class="p">,</span> <span class="n">fp16_qnt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gpu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gpu_t</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">st_eng</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">clip</span> <span class="o">=</span> <span class="n">k7f</span><span class="o">.</span><span class="n">FMT_CTRL</span><span class="p">(</span><span class="n">clip</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mi">2160</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面這段的意思很單純：如果原始影片高度低於接近 4K 的門檻，就先壓到 1080 高度做一次超分，再放大回 2160。這樣做可以讓模型負擔比較穩定，也比較接近一般看片情境。</p>
+<h2 id="我這次測試的心得">我這次測試的心得</h2>
+<p>我原本最在意的是，改成 MPC 之後能不能吃到比較好的播放效率。不過實際測下來，和直接跑 MPV-Lazy 差異真的不大。你如果是為了更高效能才打算整套重設，我會建議先別抱太大期待。</p>
+<p>另外 DRBA 補真在這一套流程下，我這邊是跑不起來的，所以如果你很依賴這個功能，可能還是得回原本的播放器組合比較實際。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>注意事項<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><ol>
+<li>模型檔路徑一定要改成自己的實際路徑。</li>
+<li>用管理員權限執行 install.cmd 比較不會卡權限問題。</li>
+<li>如果影片播放開始大量掉幀，先把超分關掉，再逐步加回 RIFE 或其他處理。</li>
+<li>在 MPC 外部篩選器這一步，先確認你勾選的是 <code>AviSynth Filter</code>，不要和 <code>VapourSynth Filter</code> 搞混。</li>
+</ol>
+</div>
+        </div>
+    </div>
+<h2 id="小結">小結</h2>
+<p>這次比較像是驗證「MPC 能不能接上這一套流程」，答案是可以；但如果你期待它在 RIFE 補幀或影片超分上明顯打贏 MPV-Lazy，那我這邊的答案是否定的。能跑，不代表比較值得切換。</p>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li><a href="https://www.zhihu.com/question/407714002/answer/3480722279" target="_blank" rel="noopener noreffer ">电脑什么软件可以视频补帧和提高画质呢? - 知乎</a></li>
+<li><a href="https://www.bilibili.com/read/cv33691109/?opus_fallback=1" target="_blank" rel="noopener noreffer ">播放本地hdr電影，播放器如何選擇 - 嗶哩嗶哩</a></li>
+<li><a href="https://www.ptt.cc/bbs/PC_Shopping/M.1684152439.A.0AC.html" target="_blank" rel="noopener noreffer ">[心得] 透過MPV使用影像擷取卡提升switch畫質 - 看板 PC\_Shopping - 批踢踢實業坊</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2026-08-02</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" data-title="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法" data-hashtags="mpc,mpv,svp,rife,upscaling"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" data-hashtag="mpc"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" data-title="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" data-title="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" data-title="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/mpc/">Mpc</a><span class="post-tag-separator">,</span><a href="/blog/tags/mpv/">Mpv</a><span class="post-tag-separator">,</span><a href="/blog/tags/svp/">SVP</a><span class="post-tag-separator">,</span><a href="/blog/tags/rife/">Rife</a><span class="post-tag-separator">,</span><a href="/blog/tags/upscaling/">Upscaling</a></section>
+        <section class="post-links">
+            <span><a href="#" onclick="window.history.back();">Back</a></span>
+            <span class="post-links-separator" aria-hidden="true">|</span>
+            <span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/disable-llm-thinking-mode-to-speed-up-manga-translation/" class="prev" rel="prev" title="關掉 LLM 思考模式，加快 manga-image-translator 的翻譯速度"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>關掉 LLM 思考模式，加快 manga-image-translator 的翻譯速度</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2026</span><span class="author" itemprop="copyrightHolder" style="padding-left: .3rem;"><a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
