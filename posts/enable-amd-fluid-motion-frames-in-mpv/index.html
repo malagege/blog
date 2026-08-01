@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀 - 程式狂想筆記</title><meta name="Description" content="整理在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀的前置需求、mpv.conf 設定方式、濾鏡參數與串接注意事項。"><meta property="og:title" content="在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀" />
+<meta property="og:description" content="整理在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀的前置需求、mpv.conf 設定方式、濾鏡參數與串接注意事項。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-08-02T01:17:11+08:00" />
+<meta property="article:modified_time" content="2026-08-02T01:22:16+08:00" /><meta property="og:site_name" content="程式狂想筆記" />
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀"/>
+<meta name="twitter:description" content="整理在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀的前置需求、mpv.conf 設定方式、濾鏡參數與串接注意事項。"/>
+<meta name="application-name" content="程式狂想筆記">
+<meta name="apple-mobile-web-app-title" content="程式狂想筆記"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="canonical" href="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" /><link rel="prev" href="https://malagege.github.io/blog/posts/svp-pro4-mpc-rife-super-resolution/" /><link rel="stylesheet" href="/blog/css/style.min.css"><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀",
+        "inLanguage": "zh-tw",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/malagege.github.io\/blog\/posts\/enable-amd-fluid-motion-frames-in-mpv\/"
+        },"genre": "posts","keywords": "mpv, amd, afmf, windows, video","wordcount":  262 ,
+        "url": "https:\/\/malagege.github.io\/blog\/posts\/enable-amd-fluid-motion-frames-in-mpv\/","datePublished": "2026-08-02T01:17:11+08:00","dateModified": "2026-08-02T01:22:16+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "malagege"
+            },"description": "\u003cp\u003e最近幫朋友測了一輪 mpv 的 AFMF 補幀設定，確認在條件符合的情況下，的確可以正常啟用，而且搭配 AI 畫質拉升一起使用時，整體觀看體驗也不錯。雖然我自己手上沒有 AMD 內顯或外顯，沒辦法在自己的機器長時間交叉驗證，但至少這次實測結果是可行的，所以先把步驟整理成筆記，之後要重配環境比較不會再重踩一次。\u003c/p\u003e\n\u003cp\u003e這篇主要會整理幾個重點：mpv 啟用 AFMF 需要什麼條件、mpv.conf 應該怎麼寫、濾鏡怎麼確認有沒有真的生效，以及和 VapourSynth 串接時要注意哪些細節。\u003c/p\u003e\n\u003cdiv class=\"details admonition warning open\"\u003e\n        \u003cdiv class=\"details-summary admonition-title\"\u003e\n            \u003ci class=\"icon fas fa-exclamation-triangle fa-fw\" aria-hidden=\"true\"\u003e\u003c/i\u003e先看原始討論\u003ci class=\"details-icon fas fa-angle-right fa-fw\" aria-hidden=\"true\"\u003e\u003c/i\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"details-content\"\u003e\n            \u003cdiv class=\"admonition-content\"\u003e本篇內容主要參考 \u003ca href=\"https://github.com/hooke007/mpv_PlayKit/discussions/650\" target=\"_blank\" rel=\"noopener noreffer \"\u003eAMD Fluid Motion Frames 补帧 · hooke007/mpv_PlayKit · Discussion #650\u003c/a\u003e，這裡偏向我自己的整理筆記與實作紀錄。若你要追最新參數、相容性或額外玩法，建議還是一起對照原討論。\u003c/div\u003e\n        \u003c/div\u003e\n    \u003c/div\u003e"
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/blog/"> 首頁 </a><a class="menu-item" href="/blog/posts/"> 文章 </a><a class="menu-item" href="/blog/tags/"> 標籤 </a><a class="menu-item" href="/blog/categories/"> 分類 </a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊"> 好站連結 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <span class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="#" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/blog/" title="程式狂想筆記">程式狂想筆記</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <span class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <span class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </span>
+                </div><a class="menu-item" href="/blog/" title="">首頁</a><a class="menu-item" href="/blog/posts/" title="">文章</a><a class="menu-item" href="/blog/tags/" title="">標籤</a><a class="menu-item" href="/blog/categories/" title="">分類</a><a class="menu-item" href="/blog/links/" title="覺得不錯好站都會放在這邊">好站連結</a><a href="#" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>malagege</a></span><span class="post-category">included in <a href="/blog/categories/%E5%BD%B1%E9%9F%B3/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>影音</a></span></div>
+            <div class="post-meta-line"><span class="post-meta-item post-meta-date">
+                        <i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i><time datetime="2026-08-02">2026-08-02</time>
+                    </span><span class="post-meta-item">
+                    <i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>262 words
+                </span>
+                <span class="post-meta-item">
+                    <i class="far fa-clock fa-fw" aria-hidden="true"></i>2 minutes
+                </span></div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#先講結論">先講結論</a></li>
+    <li><a href="#心智圖">心智圖</a></li>
+    <li><a href="#1-環境需求">1. 環境需求</a></li>
+    <li><a href="#2-mpvconf-基本設定">2. mpv.conf 基本設定</a>
+      <ul>
+        <li><a href="#指定顯卡">指定顯卡</a></li>
+        <li><a href="#硬解模式">硬解模式</a></li>
+        <li><a href="#軟解模式">軟解模式</a></li>
+      </ul>
+    </li>
+    <li><a href="#3-先理解濾鏡寫法">3. 先理解濾鏡寫法</a></li>
+    <li><a href="#4-濾鏡選項與生效確認">4. 濾鏡選項與生效確認</a>
+      <ul>
+        <li><a href="#常用參數">常用參數</a></li>
+      </ul>
+    </li>
+    <li><a href="#5-與-vapoursynth-串接時的注意事項">5. 與 VapourSynth 串接時的注意事項</a></li>
+    <li><a href="#6-實測心得">6. 實測心得</a></li>
+    <li><a href="#小結">小結</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>最近幫朋友測了一輪 mpv 的 AFMF 補幀設定，確認在條件符合的情況下，的確可以正常啟用，而且搭配 AI 畫質拉升一起使用時，整體觀看體驗也不錯。雖然我自己手上沒有 AMD 內顯或外顯，沒辦法在自己的機器長時間交叉驗證，但至少這次實測結果是可行的，所以先把步驟整理成筆記，之後要重配環境比較不會再重踩一次。</p>
+<p>這篇主要會整理幾個重點：mpv 啟用 AFMF 需要什麼條件、mpv.conf 應該怎麼寫、濾鏡怎麼確認有沒有真的生效，以及和 VapourSynth 串接時要注意哪些細節。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>先看原始討論<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">本篇內容主要參考 <a href="https://github.com/hooke007/mpv_PlayKit/discussions/650" target="_blank" rel="noopener noreffer ">AMD Fluid Motion Frames 补帧 · hooke007/mpv_PlayKit · Discussion #650</a>，這裡偏向我自己的整理筆記與實作紀錄。若你要追最新參數、相容性或額外玩法，建議還是一起對照原討論。</div>
+        </div>
+    </div>
+<h2 id="先講結論">先講結論</h2>
+<ol>
+<li>mpv 可以透過 <code>amf_frc</code> 濾鏡啟用 AFMF 補幀。</li>
+<li>前提是要有支援的 AMD GPU，並且 mpv 與相關濾鏡環境要正確設定。</li>
+<li>硬解與軟解都能用，但設定方式略有不同，尤其軟解模式一定要補上 <code>format=d3d11</code>。</li>
+<li>如果你還有串接 VapourSynth 或 AI 超分流程，記得把影格格式轉成 d3d11，不然 AFMF 很容易看起來像是沒啟動。</li>
+</ol>
+<h2 id="心智圖">心智圖</h2>
+<div class="mermaid">mindmap
+  root((mpv 啟用 AFMF))
+    前置需求
+      AMD GPU
+      mpv 最新版
+    基本設定
+      d3d11 顯卡指定
+      硬解模式
+      軟解模式
+    濾鏡驗證
+      amf_frc
+      indicator=yes
+    串接注意
+      VapourSynth
+      format=d3d11
+    實測心得
+      可正常補幀
+      可搭配 AI 拉升畫質
+</div>
+<h2 id="1-環境需求">1. 環境需求</h2>
+<p>在開始前，先確認環境條件有到位，不然後面就算把設定檔照抄，濾鏡也可能完全不會動。</p>
+<ol>
+<li>需要有 AMD GPU，不論是內顯或外顯都可以，但前提是驅動與功能支援 AFMF。</li>
+<li>建議使用較新的 mpv 版本，避免碰到舊版在濾鏡、硬解或裝置辨識上的問題。</li>
+<li>Windows 環境下，若你不想自己編譯，可以先用別人整理好的版本，例如 <a href="https://github.com/zhongfly/mpv-winbuild" target="_blank" rel="noopener noreffer ">zhongfly/mpv-winbuild</a>。</li>
+</ol>
+<div class="details admonition tip open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-lightbulb fa-fw" aria-hidden="true"></i>我的測試背景<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content">我自己沒有 AMD 內顯或外顯，所以這次是幫朋友測試設定是否能正常使用。實際結果是 AFMF 可以啟用，搭配 AI 畫質拉升與補幀後，主觀觀看體驗是順的，至少不是那種設定完卻完全沒作用的狀態。</div>
+        </div>
+    </div>
+<h2 id="2-mpvconf-基本設定">2. mpv.conf 基本設定</h2>
+<p>如果你的目標很單純，就是先讓 AFMF 成功啟用，建議先從最基本的 mpv.conf 設定開始，不要一開始就串太多濾鏡，這樣比較容易確認問題到底卡在哪。</p>
+<h3 id="指定顯卡">指定顯卡</h3>
+<p>先讓 mpv 明確知道要使用哪一張 AMD 顯卡：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">d3d11-adapter=AMD Radeon Graphics
+</span></span><span class="line"><span class="cl">vulkan-device=AMD Radeon Graphics
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果你的顯卡名稱不是這個，請改成自己機器上實際顯示的名稱。這裡最常見的問題不是語法錯，而是名稱打錯或抓錯裝置，結果 mpv 根本沒用到你想指定的 AMD GPU。</p>
+<h3 id="硬解模式">硬解模式</h3>
+<p>如果你是走硬體解碼，可以先用下面這組：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">gpu-context=d3d11
+</span></span><span class="line"><span class="cl">hwdec=d3d11va
+</span></span><span class="line"><span class="cl">vf-append=amf_frc
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這組重點有兩個：</p>
+<ol>
+<li><code>gpu-context=d3d11</code> 讓圖形環境走 d3d11。</li>
+<li><code>hwdec=d3d11va</code> 讓硬解流程跟 AFMF 的需求一致。</li>
+</ol>
+<h3 id="軟解模式">軟解模式</h3>
+<p>如果你不是走硬解，或你的流程本來就偏向軟體處理，則可以改用：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=format=d3d11,amf_frc
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這裡最關鍵的是前面的 <code>format=d3d11</code>。少了這段，後面的 <code>amf_frc</code> 很可能根本起不來，或者你會誤以為它有掛上，但實際上沒有真正生效。</p>
+<h2 id="3-先理解濾鏡寫法">3. 先理解濾鏡寫法</h2>
+<p>如果你平常比較少碰 mpv 濾鏡，建議先知道最基本的寫法，後面看參數會比較不容易亂掉。</p>
+<div class="details admonition info open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-info-circle fa-fw" aria-hidden="true"></i>mpv 濾鏡快速整理<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><p>掛載單一濾鏡：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=濾鏡名
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>掛載濾鏡並指定子參數：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=濾鏡名=子參數1:子參數2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>串接多個濾鏡：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=濾鏡1,濾鏡2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>手動加標籤：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=@標籤名:!濾鏡名
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>參考資料：<a href="https://hooke007.github.io/unofficial/mpv_filters.html" target="_blank" rel="noopener noreffer ">音視頻濾鏡 - mpv_CFanStation</a></p>
+</div>
+        </div>
+    </div>
+<p>知道這些基本規則後，下面在看 <code>amf_frc</code> 參數時就會比較直覺。</p>
+<h2 id="4-濾鏡選項與生效確認">4. 濾鏡選項與生效確認</h2>
+<p>AFMF 最怕的不是不能設，而是你以為有設成功。最簡單的驗證方式，是先打開指示器看看：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=amf_frc=profile=super:indicator=yes
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果有正常生效，畫面左上角會出現閃爍方塊，這可以當成最直接的判斷依據。</p>
+<h3 id="常用參數">常用參數</h3>
+<p>下面兩個參數是比較常需要調整的：</p>
+<ol>
+<li><code>profile</code>：<code>auto</code>、<code>low</code>、<code>high</code>、<code>super</code></li>
+<li><code>mv-search</code>：<code>native</code>、<code>performance</code></li>
+</ol>
+<p>如果你是 4K 影片，或者還有額外掛 AI 超分、去雜訊之類的濾鏡，播放不順時可以優先試著調整這兩個值。通常 <code>profile</code> 降低一點，或改成較偏效能的 <code>mv-search</code>，會比較容易穩住播放流暢度。</p>
+<h2 id="5-與-vapoursynth-串接時的注意事項">5. 與 VapourSynth 串接時的注意事項</h2>
+<p>如果你本來就有用 VapourSynth 做 AI 畫質拉升、補幀或其他後處理，AFMF 並不是完全不能一起用，但你要特別注意輸出影格格式。</p>
+<p>原因很簡單，VapourSynth 輸出的通常是軟體幀，而 AFMF 比較期待的是 d3d11 流程。所以中間要補一段格式轉換。</p>
+<p>範例如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">vf=vapoursynth=&#34;~~/vs/MIX_UAI_DML.vpy&#34;,format=d3d11,amf_frc
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這段裡面最容易忽略的就是：</p>
+<ol>
+<li><code>format=d3d11</code> 必須放在 VapourSynth 與 <code>amf_frc</code> 之間。</li>
+<li><code>format=d3d11</code> 不能亂加空白。</li>
+</ol>
+<p>如果少了這一步，AFMF 很可能就接不起來。這也是很多人看起來設定都差不多，結果只有部分環境能動的原因之一。</p>
+<h2 id="6-實測心得">6. 實測心得</h2>
+<p>這次幫朋友測完後，我的感覺是這套流程不是只有「理論上能用」，而是真的可以拿來看片。補幀有正常作用，搭配 AI 拉升畫質後，主觀體驗也算不錯，至少不會有明顯設定失敗或完全無感的情況。</p>
+<p>不過這類設定還是很吃幾個條件：</p>
+<ol>
+<li>顯卡型號與驅動版本。</li>
+<li>影片解析度與位元率。</li>
+<li>你同時還掛了多少濾鏡。</li>
+<li>是用硬解還是軟解流程。</li>
+</ol>
+<p>所以如果你照著設定後效果不如預期，我會建議先把流程簡化成「只留 AFMF」，確認能正常啟用之後，再把 AI 超分、VapourSynth 腳本或其他濾鏡一個一個加回來，這樣最好排查。</p>
+<div class="details admonition warning open">
+        <div class="details-summary admonition-title">
+            <i class="icon fas fa-exclamation-triangle fa-fw" aria-hidden="true"></i>常見踩雷點<i class="details-icon fas fa-angle-right fa-fw" aria-hidden="true"></i>
+        </div>
+        <div class="details-content">
+            <div class="admonition-content"><ol>
+<li>顯卡名稱填錯，導致 mpv 沒有吃到 AMD GPU。</li>
+<li>軟解模式漏掉 <code>format=d3d11</code>。</li>
+<li>VapourSynth 串接後沒有把輸出轉成 d3d11。</li>
+<li>一次掛太多濾鏡，結果分不清楚到底是哪個步驟出問題。</li>
+</ol>
+</div>
+        </div>
+    </div>
+<h2 id="小結">小結</h2>
+<p>如果你本來就在用 mpv，而且手上有支援的 AMD GPU，AFMF 其實是可以試的，設定上也沒有想像中那麼複雜。重點不是把一堆參數全塞進去，而是先確認最小可行設定能動，再慢慢把自己的 AI 畫質拉升、補幀或其他濾鏡流程加回去。</p>
+<p>對我來說，這篇比較像是一次實測後的整理筆記。雖然不是在我自己的 AMD 環境長期使用，但至少幫朋友測下來，功能是正常的，也確實能帶來不錯的觀看體驗。之後如果再遇到需要重配 mpv 補幀環境時，應該就能少走很多冤枉路。</p></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2026-08-02</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="#" title="Share on Twitter" data-sharer="twitter" data-url="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" data-title="在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀" data-hashtags="mpv,amd,afmf,windows,video"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Facebook" data-sharer="facebook" data-url="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" data-hashtag="mpv"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Hacker News" data-sharer="hackernews" data-url="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" data-title="在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="#" title="Share on Line" data-sharer="line" data-url="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" data-title="在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a><a href="#" title="Share on 微博" data-sharer="weibo" data-url="https://malagege.github.io/blog/posts/enable-amd-fluid-motion-frames-in-mpv/" data-title="在 mpv 啟用 AMD Fluid Motion Frames (AFMF) 補幀"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i><a href="/blog/tags/mpv/">Mpv</a><span class="post-tag-separator">,</span><a href="/blog/tags/amd/">Amd</a><span class="post-tag-separator">,</span><a href="/blog/tags/afmf/">Afmf</a><span class="post-tag-separator">,</span><a href="/blog/tags/windows/">Windows</a><span class="post-tag-separator">,</span><a href="/blog/tags/video/">Video</a></section>
+        <section class="post-links">
+            <span><a href="#" onclick="window.history.back();">Back</a></span>
+            <span class="post-links-separator" aria-hidden="true">|</span>
+            <span><a href="/blog/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/blog/posts/svp-pro4-mpc-rife-super-resolution/" class="prev" rel="prev" title="SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>SVP Pro 4 在 MPC 上執行 RIFE 與影片超分方法</a></div>
+</div>
+<div id="comments"><div id="disqus_thread" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://disqus.com/?ref_noscript">Disqus</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.123.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2026</span><span class="author" itemprop="copyrightHolder" style="padding-left: .3rem;"><a href="/blog/" target="_blank">malagege</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/css/lightgallery-bundle.min.css"><script type="text/javascript" src="https://malagege-blog.disqus.com/embed.js" defer></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.38.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/algoliasearch@4.13.1/dist/algoliasearch-lite.umd.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/thumbnail/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery@2.5.0/plugins/zoom/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.5.1/sharer.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"algoliaAppID":"4LYONZIY18","algoliaIndex":"malagege_blog","algoliaSearchKey":"30dc05f673e702e0701b9b40cfa44eac","highlightTag":"em","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"algolia"}};</script><script type="text/javascript" src="/blog/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-105195903-2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-105195903-2" async></script></body>
+</html>
